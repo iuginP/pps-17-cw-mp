@@ -4,9 +4,9 @@
 |----------|-----------------------------------------------------------------------------|--------------------|-----------------------|---|---|---|---|---|---|
 | <center>Configurazione e bootstrap del progetto</center>                                  | Creazione multi-progetto (gradle) | Eugenio | <center>10</center> |   |   |   |   |   |   |
 |         | Configurazione travis 	                    |                    | <center> 1 </center>  |   |   |   |   |   |   |
-|         | Configurazione gitignore (www.gitignore.io) |                    | <center> 1 </center>  |   |   |   |   |   |   |
+|         | Configurazione gitignore (www.gitignore.io) |                    | <center> 1 </center>  | 0 |   |   |   |   |   |
 |         | Configurazione doc (relazione)              |                    | <center> 10 </center> |   |   |   |   |   |   |
-|         | Tracciare i backlog (markdown)              | Davide             | <center> 1 </center>  |   |   |   |   |   |   |
+|         | Tracciare i backlog (markdown)              | Davide             | <center> 1 </center>  | 0 |   |   |   |   |   |
 |         | Configurazione ambiente di test             |                    | <center> 1 </center>  |   |   |   |   |   |   |
 |         | Configurazione trello                       |                    | <center> 5 </center>  |   |   |   |   |   |   |
 | <center>I client si possono collegare ad un server che li assegna ad una stanza</center>  | Configurazione doc (relazione)    |         | <center>40</center> |   |   |   |   |   |   |
