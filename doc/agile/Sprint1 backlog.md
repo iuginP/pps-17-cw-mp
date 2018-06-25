@@ -3,7 +3,7 @@
 | Product Backlog Item | Sprint Task                                                                    	 | Person | Initial size estimate | 1 | 2 | 3 | 4 | 5 | 6 |
 |----------|-----------------------------------------------------------------------------|--------------------|-----------------------|---|---|---|---|---|---|
 | <center>Configurazione e bootstrap del progetto</center>                                  | Creazione multi-progetto (gradle) | Eugenio | <center>10</center> |   |   |   |   |   |   |
-|         | Configurazione travis 	                    |                    | <center> 1 </center>  |   |   |   |   |   |   |
+|         | Configurazione travis 	                    | Davide             | <center> 1 </center>  | 0 |   |   |   |   |   |
 |         | Configurazione gitignore (www.gitignore.io) | Eugenio            | <center> 1 </center>  | 0 |   |   |   |   |   |
 |         | Configurazione doc (relazione)              |                    | <center> 10 </center> |   |   |   |   |   |   |
 |         | Tracciare i backlog (markdown)              | Davide             | <center> 1 </center>  | 0 |   |   |   |   |   |
