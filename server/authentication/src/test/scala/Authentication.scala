@@ -1,5 +1,3 @@
-package io.vertx.scala.sbt
-
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
@@ -10,7 +8,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
   val port = 1234
 
   "AuthenticationVerticle" should s"bind to $port and succed signup" in {
-    val promise = Promise[String]
+    val promise = Promise[Int]
 
     vertx.createHttpClient()
       .getNow(port, host, "/api/signup",
@@ -23,7 +21,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
   }
 
   "AuthenticationVerticle" should s"bind to $port and fail signup" in {
-    val promise = Promise[String]
+    val promise = Promise[Int]
 
     vertx.createHttpClient()
       .getNow(port, host, "/api/signup",
@@ -49,7 +47,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
   }
 
   "AuthenticationVerticle" should s"bind to $port and fail login" in {
-    val promise = Promise[String]
+    val promise = Promise[Int]
 
     vertx.createHttpClient()
       .getNow(port, host, "/api/login",
@@ -75,7 +73,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
   }
 
   "AuthenticationVerticle" should s"bind to $port and fail check token" in {
-    val promise = Promise[String]
+    val promise = Promise[Int]
 
     vertx.createHttpClient()
       .getNow(port, host, "/api/validate",
