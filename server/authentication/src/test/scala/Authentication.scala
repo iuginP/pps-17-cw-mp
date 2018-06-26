@@ -4,8 +4,8 @@ import scala.concurrent.Promise
 
 class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle] with Matchers {
 
-  val host = ""
-  val port = 1234
+  val host = "127.0.0.1"
+  val port = 8666
 
   "AuthenticationVerticle" should s"bind to $port and succed signup" in {
     val promise = Promise[Int]
