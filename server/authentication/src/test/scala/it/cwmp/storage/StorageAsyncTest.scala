@@ -1,5 +1,6 @@
 package it.cwmp.storage
 
+import io.vertx.core.json.JsonObject
 import org.scalatest.Matchers
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.authentication.AuthenticationVerticle
@@ -7,32 +8,38 @@ import it.cwmp.utils.VerticleTesting
 
 class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matchers {
 
+  private def getDefaultClient(): JDBCClient = {
+    val config = new JsonObject()
+      .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
+      .put("driver_class", "org.hsqldb.jdbcDriver")
+      .put("max_pool_size", 30)
+      .put("user", "SA")
+      .put("password", "")
+    JDBCClient.createShared(vertx, config)
+  }
+
   describe("Storage manager") {
     describe("in sign up") {
       describe("should fail with error") {
         it("when username empty") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "", "").map(res => res should equal(Unit))
+          StorageAsync().signupFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
         }
         it("when password empty") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "", "").map(res => res should equal(Unit))
+          StorageAsync().signupFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
         }
         it("when username already present") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "aaa", "aaa")
-            .map(_ => StorageAsync().signupFuture(client, "aaa", "aaa"))
+          StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
+            .map(_ => StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa"))
             .map(res => {
-              StorageAsync().signoutFuture(client, "aaa")
+              StorageAsync().signoutFuture(getDefaultClient(), "aaa")
               res should equal(Unit)
             })
         }
       }
       describe("should succeed") {
         it("when all right") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "", "").map(res => {
-            StorageAsync().signoutFuture(client, "aaa")
+          StorageAsync().signupFuture(getDefaultClient(), "", "").map(res => {
+            StorageAsync().signoutFuture(getDefaultClient(), "aaa")
             res should equal(Unit)
           })
         }
@@ -41,30 +48,26 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matc
     describe("in login") {
       describe("should fail with error") {
         it("when username empty") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().loginFuture(client, "", "").map(res => res should equal(Unit))
+          StorageAsync().loginFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
         }
         it("when username doesn't exists") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().loginFuture(client, "", "").map(res => res should equal(Unit))
+          StorageAsync().loginFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
         }
         it("when password is wrong") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "aaa", "aaa")
-            .map(f => StorageAsync().loginFuture(client, "aaa", "bbb"))
+          StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
+            .map(_ => StorageAsync().loginFuture(getDefaultClient(), "aaa", "bbb"))
             .map(res => {
-              StorageAsync().signoutFuture(client, "aaa")
+              StorageAsync().signoutFuture(getDefaultClient(), "aaa")
               res should equal(Unit)
             })
         }
       }
       describe("should succeed") {
         it("when all right") {
-          var client = JDBCClient.createShared(vertx, config)
-          StorageAsync().signupFuture(client, "aaa", "aaa")
-            .map(f => StorageAsync().loginFuture(client, "aaa", "aaa"))
+          StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
+            .map(_ => StorageAsync().loginFuture(getDefaultClient(), "aaa", "aaa"))
             .map(res => {
-              StorageAsync().signoutFuture(client, "aaa")
+              StorageAsync().signoutFuture(getDefaultClient(), "aaa")
               res should equal(Unit)
             })
         }
