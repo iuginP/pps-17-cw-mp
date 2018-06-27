@@ -1,7 +1,6 @@
 import io.netty.handler.codec.http.HttpHeaders
-import io.vertx.scala.core.http.{HttpClientOptions, HttpClientResponse}
+import io.vertx.scala.core.http.{HttpClientOptions}
 import org.scalatest.Matchers
-
 import scala.concurrent.Promise
 
 class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle] with Matchers {
@@ -16,7 +15,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
 
       client.get("/api/signup")
-        .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
+        .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "stringa")
         .handler(res => {
         res.exceptionHandler(promise.failure)
         promise.success(res.statusCode())

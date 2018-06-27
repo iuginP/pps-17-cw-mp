@@ -1,68 +1,71 @@
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.http.{HttpClient, HttpClientOptions, HttpServerResponse}
-import io.vertx.scala.ext.web.Router
-
+import io.vertx.scala.core.http.{HttpServerResponse}
+import io.vertx.scala.ext.web.{Router, RoutingContext}
 import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 class AuthenticationVerticle extends ScalaVerticle {
 
   //host e porta del database al quale inoltriamo le richieste
-  val host = "127.0.0.1"
-  val port = 8667
+  private val host = "127.0.0.1"
+  private val port = 8667
 
   override def startFuture(): Future[_] = {
 
     //qui è dove ricevo le richieste
     val router = Router.router(vertx)
 
-    def sendError(statusCode: Int,  response: HttpServerResponse): Unit = {
-      response.setStatusCode(statusCode).end()
-    }
-
     router.post("/api/singup").handler(handlerSingup)
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerVerification)
-
-    def handlerSingup(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-      var userID = routingContext.request().getParam("userID")
-      var password = routingContext.request().getParam("password")
-      var response: HttpServerResponse = routingContext.response()
-
-      if(routingContext.response() == null){
-        sendError(400, response)
-      } else {
-        //TODO richiamare metodo gegio
-      }
-    }
-
-    def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-      var userID = routingContext.request().getParam("userID")
-      var password = routingContext.request().getParam("password")
-      var response: HttpServerResponse = routingContext.response()
-
-      if(routingContext.response() == null){
-        sendError(400, response)
-      } else {
-        //TODO richiamare metodo gegio
-      }
-    }
-
-    def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-      /*var userID = routingContext.request().getParam("userID")
-      var password = routingContext.request().getParam("password")*/
-      var response: HttpServerResponse = routingContext.response()
-
-      if(routingContext.response() == null){
-        sendError(400, response)
-      } else {
-
-        //TODO richiamare metodo gegio
-      }
-    }
 
     vertx
       .createHttpServer()
       .requestHandler(router.accept _)
       .listenFuture(8666, "0.0.0.0")
+  }
+
+  private def sendError(statusCode: Int,  response: HttpServerResponse): Unit = {
+    response.setStatusCode(statusCode).end()
+  }
+
+  private def handlerSingup(routingContext: RoutingContext): Unit = {
+    //TODO leggere credenziali dall header
+
+    val response = routingContext.response()
+
+    if(false /*param == null*/){
+      sendError(400, response)
+    } else {
+      val result: Future[Unit] = Future() //TODO implementare chiamata in db
+      result andThen {
+        case Success(s) => response end "TOKEN" // TODO Token generato con utente
+        case Failure(f) => sendError(400, response)
+      }
+    }
+  }
+
+  private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
+    //TODO leggere credenziali dall header
+    var userID = routingContext.request().getParam("userID")
+    var password = routingContext.request().getParam("password")
+    var response: HttpServerResponse = routingContext.response()
+
+    if(routingContext.response() == null){
+      sendError(400, response)
+    } else {
+      //TODO richiamare metodo gegio
+    }
+  }
+
+  private def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
+    var response: HttpServerResponse = routingContext.response()
+
+    if(routingContext.response() == null){
+      sendError(400, response)
+    } else {
+
+      //TODO richiamare metodo gegio
+    }
   }
 }
