@@ -8,7 +8,10 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
-abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec with BeforeAndAfter{
+/**
+  * Abstract class to test Verticles
+  */
+abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends AsyncFunSpec with BeforeAndAfter {
   val vertx = Vertx.vertx
   implicit val vertxExecutionContext = VertxExecutionContext(
     vertx.getOrCreateContext()
