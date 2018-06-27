@@ -1,21 +1,17 @@
 package it.cwmp.storage
 
-import io.vertx.core.{AsyncResult, Handler}
+import io.vertx.core.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
+import io.vertx.scala.ext.sql.SQLConnection
 
-import scala.concurrent.Future
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 trait StorageAsync {
 
-  def signup(client: JDBCClient, username: String, password: String, handler: Handler[AsyncResult[Unit]]): Unit
-
   def signupFuture(client: JDBCClient, username: String, password: String): Future[Unit]
 
-  def signout(client: JDBCClient, username: String, handler: Handler[AsyncResult[Unit]]): Unit
-
   def signoutFuture(client: JDBCClient, username: String): Future[Unit]
-
-  def login(client: JDBCClient, username: String, password: String, handler: Handler[AsyncResult[Unit]]): Unit
 
   def loginFuture(client: JDBCClient, username: String, password: String): Future[Unit]
 }
@@ -26,15 +22,32 @@ object StorageAsync {
 
   class StorageAsyncImpl() extends StorageAsync {
 
-    override def signup(client: JDBCClient, username: String, password: String, handler: Handler[AsyncResult[Unit]]): Unit = ???
+    private def getConnection(client: JDBCClient): Future[SQLConnection] = {
+      client.getConnectionFuture()
+    }
 
-    override def signupFuture(client: JDBCClient, username: String, password: String): Future[Unit] = ???
-
-    override def signout(client: JDBCClient, username: String, handler: Handler[AsyncResult[Unit]]): Unit = ???
+    override def signupFuture(client: JDBCClient, username: String, password: String): Future[Unit] = {
+      if (username == null || username.isEmpty
+        || password == null || password.isEmpty) {
+        Future.failed(new Exception())
+      } else {
+        getConnection(client).map(conn => {
+          // create a test table
+          conn.executeFuture("create table test(id int primary key, name varchar(255))").map(_ => {
+            // insert some test data
+            conn.executeFuture("insert into test values (1, 'Hello'), (2, 'World')").map(_ => {
+              // query some data with arguments
+              conn.queryWithParamsFuture("select * from test where id = ?", new JsonArray().add(2)).map(res => {
+                res.getResults foreach println
+                conn.close()
+              })
+            })
+          })
+        })
+      }
+    }
 
     override def signoutFuture(client: JDBCClient, username: String): Future[Unit] = ???
-
-    override def login(client: JDBCClient, username: String, password: String, handler: Handler[AsyncResult[Unit]]): Unit = ???
 
     override def loginFuture(client: JDBCClient, username: String, password: String): Future[Unit] = ???
   }

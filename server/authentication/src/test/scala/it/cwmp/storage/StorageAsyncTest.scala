@@ -22,18 +22,17 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matc
     describe("in sign up") {
       describe("should fail with error") {
         it("when username empty") {
-          StorageAsync().signupFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
+          shouldFail(StorageAsync().signupFuture(getDefaultClient(), "", ""))
         }
         it("when password empty") {
-          StorageAsync().signupFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
+          shouldFail(StorageAsync().signupFuture(getDefaultClient(), "", ""))
         }
         it("when username already present") {
-          StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
+          shouldFail(StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
             .map(_ => StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa"))
             .map(res => {
               StorageAsync().signoutFuture(getDefaultClient(), "aaa")
-              res should equal(Unit)
-            })
+            }))
         }
       }
       describe("should succeed") {
@@ -48,18 +47,17 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matc
     describe("in login") {
       describe("should fail with error") {
         it("when username empty") {
-          StorageAsync().loginFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
+          shouldFail(StorageAsync().loginFuture(getDefaultClient(), "", ""))
         }
         it("when username doesn't exists") {
-          StorageAsync().loginFuture(getDefaultClient(), "", "").map(res => res should equal(Unit))
+          shouldFail(StorageAsync().loginFuture(getDefaultClient(), "", ""))
         }
         it("when password is wrong") {
-          StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
+          shouldFail(StorageAsync().signupFuture(getDefaultClient(), "aaa", "aaa")
             .map(_ => StorageAsync().loginFuture(getDefaultClient(), "aaa", "bbb"))
             .map(res => {
               StorageAsync().signoutFuture(getDefaultClient(), "aaa")
-              res should equal(Unit)
-            })
+            }))
         }
       }
       describe("should succeed") {
