@@ -50,7 +50,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
         .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
-          //promise.success(res.statusCode()) //TODO restituire token
+          promise.success(res.statusMessage()) //TODO restituire token
           println(res)
       })
         .end()
@@ -82,7 +82,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
         .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
-          //promise.success(res.statusCode())//TODO restituire token
+          promise.success(res.statusMessage())//TODO restituire token
           println(res)
       })
         .end()

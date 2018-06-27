@@ -1,7 +1,8 @@
+import io.netty.handler.codec.http.HttpHeaders
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.http.{HttpServerResponse}
+import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class AuthenticationVerticle extends ScalaVerticle {
@@ -34,6 +35,23 @@ class AuthenticationVerticle extends ScalaVerticle {
 
     val response = routingContext.response()
 
+    if(response.headers().get(HttpHeaders.Names.AUTHORIZATION) == null){
+      sendError(400, response)
+    } else {
+      val result: Future[Unit] = Future() //TODO implementare chiamata in db
+      result andThen {
+        case Success(s) => response end "TOKEN" // TODO Token generato con utente
+        case Failure(f) => sendError(400, response)
+      }
+    }
+
+    println("Authorization: " + response.headers().get("basic"))
+  }
+
+  private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
+    //TODO leggere credenziali dall header
+    var response: HttpServerResponse = routingContext.response()
+
     if(false /*param == null*/){
       sendError(400, response)
     } else {
@@ -45,27 +63,18 @@ class AuthenticationVerticle extends ScalaVerticle {
     }
   }
 
-  private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-    //TODO leggere credenziali dall header
-    var userID = routingContext.request().getParam("userID")
-    var password = routingContext.request().getParam("password")
-    var response: HttpServerResponse = routingContext.response()
-
-    if(routingContext.response() == null){
-      sendError(400, response)
-    } else {
-      //TODO richiamare metodo gegio
-    }
-  }
-
   private def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
+    //TODO leggere credenziali dall header
     var response: HttpServerResponse = routingContext.response()
 
-    if(routingContext.response() == null){
+    if(false /*param == null*/){
       sendError(400, response)
     } else {
-
-      //TODO richiamare metodo gegio
+      val result: Future[Unit] = Future() //TODO implementare chiamata in db
+      result andThen {
+        case Success(s) => response end "TOKEN" // TODO Token generato con utente
+        case Failure(f) => sendError(400, response)
+      }
     }
   }
 }
