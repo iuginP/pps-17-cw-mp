@@ -19,13 +19,13 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
     def createClientPost(authToken: String) = {
       val promise = Promise[Int]
+
+      //TODO .putHeader("authToken", "----TOKEN---")
       vertx.createHttpClient()
         .post(port, host, usedApi)
-        //TODO .putHeader("authToken", "----TOKEN---")
         .setTimeout(requestTimeoutMILLIS)
         .exceptionHandler(promise.failure _)
-        .handler(r => promise.success(r.statusCode())
-      )
+        .handler(r => promise.success(r.statusCode()))
       promise
     }
 
