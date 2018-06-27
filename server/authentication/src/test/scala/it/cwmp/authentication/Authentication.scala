@@ -1,3 +1,6 @@
+package it.cwmp.authentication
+
+import it.cwmp.utils.VerticleTesting
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
