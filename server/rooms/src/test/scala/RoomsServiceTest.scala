@@ -1,4 +1,7 @@
+import io.vertx.core.http.HttpMethod
+import io.vertx.scala.core.http.HttpClientResponse
 import org.scalatest.Matchers
+import room.service.RoomsServiceVerticle
 
 import scala.concurrent.Promise
 
@@ -14,84 +17,75 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
   val requestTimeoutMILLIS = 1000
 
-  describe("Room Creation") {
+  describe("Room Listing") {
     val usedApi = "/api/rooms"
 
-    def createClientPost(authToken: String) = {
-      val promise = Promise[Int]
-
-      //TODO .putHeader("authToken", "----TOKEN---")
-      vertx.createHttpClient()
-        .post(port, host, usedApi)
-        .setTimeout(requestTimeoutMILLIS)
-        .exceptionHandler(promise.failure _)
-        .handler(r => promise.success(r.statusCode()))
-      promise
-    }
-
     it("should succeed if the user is authenticated") {
-      // TODO Creare un utente di test che può accedere ed effettuare la richiesta al servizio "login" per ricevere il token
-      createClientPost("")
-        .future
-        .map(res => res should equal(201))
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(200))
     }
 
     it("should fail if token isn't provided") {
-      createClientPost("")
-        .future
-        .map(res => res should equal(400))
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(400))
     }
 
     it("should fail if token isn't valid") {
-      createClientPost("")
-        .future
-        .map(res => res should equal(401))
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(401))
     }
   }
 
-  private def createClientGet(testedApi: String, authToken: String) = {
-    val promise = Promise[Int]
-    vertx.createHttpClient()
-      .getNow(port, host, testedApi,
-        r => {
-          r.exceptionHandler(promise.failure _)
-          promise.success(r.statusCode())
-        })
-    promise
+  describe("Room Creation") {
+    val usedApi = "/api/rooms"
+
+    it("should succeed if the user is authenticated") {
+      // TODO Creare un utente di test che può accedere ed effettuare la richiesta al servizio "login" per ricevere il token
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(201))
+    }
+
+    it("should fail if token isn't provided") {
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(400))
+    }
+
+    it("should fail if token isn't valid") {
+      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+        .map(res => res.statusCode() should equal(401))
+    }
   }
 
   describe("Room ") {
-    val toTestApi = Seq(("Info Retrieval", "/api/rooms/:room/info"), ("Entering", "/api/rooms/:room"))
+    val toTestApi = Seq(
+      ("Info Retrieval", "/api/rooms/:room/info"), // TODO: replace ":room" with room representation in the REST api
+      ("Entering", "/api/rooms/:room"))
 
     toTestApi foreach { apiNameAndUrl =>
       it(s"${apiNameAndUrl._1} should fail when user not authenticated") {
-        createClientGet(apiNameAndUrl._2, "")
-          .future
-          .map(res => res should equal(400))
+        getMyServerResponseOn(HttpMethod.GET, apiNameAndUrl._2, "")
+          .map(res => res.statusCode() should equal(400))
       }
     }
 
     toTestApi foreach { apiNameAndUrl =>
       it(s"${apiNameAndUrl._1} should fail when token isn't provided") {
-        createClientGet(apiNameAndUrl._2, "")
-          .future
-          .map(res => res should equal(400))
+        getMyServerResponseOn(HttpMethod.GET, apiNameAndUrl._2, "")
+          .map(res => res.statusCode() should equal(400))
       }
     }
 
     toTestApi foreach { apiNameAndUrl =>
       it(s"${apiNameAndUrl._1} should fail if the room isn't present") {
-        createClientGet(apiNameAndUrl._2, "")
-          .future
-          .map(res => res should equal(404))
+        getMyServerResponseOn(HttpMethod.GET, apiNameAndUrl._2, "")
+          .map(res => res.statusCode() should equal(404))
       }
     }
 
     toTestApi foreach { apiNameAndUrl =>
       it(s"${apiNameAndUrl._1} should succeed if user is authenticated and room is present") {
-        createClientGet(apiNameAndUrl._2, "")
-          .future
-          .map(res => res should equal(200))
+        getMyServerResponseOn(HttpMethod.GET, apiNameAndUrl._2, "")
+          .map(res => res.statusCode() should equal(200))
       }
     }
   }
@@ -100,21 +94,49 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     val usedApi = "/api/rooms/public"
 
     it("should fail when user not authenticated") {
-      createClientGet(usedApi, "")
-        .future
-        .map(res => res should equal(401))
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
+        .map(res => res.statusCode() should equal(401))
     }
 
     it("should fail when token isn't provided") {
-      createClientGet(usedApi, "")
-        .future
-        .map(res => res should equal(400))
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
+        .map(res => res.statusCode() should equal(400))
     }
 
     it("should succeed if useris authenticated") {
-      createClientGet(usedApi, "")
-        .future
-        .map(res => res should equal(200))
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
+        .map(res => res.statusCode() should equal(200))
     }
+  }
+
+  private def getMyServerResponseOn(method: HttpMethod, testedApi: String, authToken: String) =
+    getServerResponseOn(port, host, method, testedApi, authToken, requestTimeoutMILLIS)
+
+  /**
+    *
+    * @param port      the port on wich to contact host
+    * @param host      the host to contact
+    * @param method    the method to use
+    * @param testedApi the api to test
+    * @param authToken the token for authentication to use
+    * @return the Promise containing the response status code
+    */
+  private def getServerResponseOn(port: Int,
+                                  host: String,
+                                  method: HttpMethod,
+                                  testedApi: String,
+                                  authToken: String,
+                                  requestTimeoutMILLIS: Long) = {
+    val promise = Promise[HttpClientResponse]
+    val httpClient = vertx.createHttpClient()
+
+    httpClient
+      .request(method, port, host, testedApi)
+      .setTimeout(requestTimeoutMILLIS)
+      .exceptionHandler(promise.failure _)
+      .handler(promise.success _)
+      .end()
+
+    promise.future
   }
 }

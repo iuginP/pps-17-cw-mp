@@ -1,4 +1,5 @@
 import io.vertx.scala.core.Vertx
+import room.service.RoomsServiceVerticle
 
 /**
   * Object that implements the Rooms micro-service entry-point
