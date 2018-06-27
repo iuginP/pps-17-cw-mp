@@ -12,6 +12,8 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
   val host = "127.0.0.1"
   val port = 8667
 
+  val requestTimeoutMILLIS = 1000
+
   describe("Room Creation") {
     val usedApi = "/api/rooms"
 
@@ -20,11 +22,10 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
       vertx.createHttpClient()
         .post(port, host, usedApi)
         //TODO .putHeader("authToken", "----TOKEN---")
-        .handler(
-        r => {
-          r.exceptionHandler(promise.failure _)
-          promise.success(r.statusCode())
-        })
+        .setTimeout(requestTimeoutMILLIS)
+        .exceptionHandler(promise.failure _)
+        .handler(r => promise.success(r.statusCode())
+      )
       promise
     }
 
