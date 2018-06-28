@@ -33,7 +33,6 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
 
       client.post("/api/signup")
-        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
           promise.success(res.statusCode())
@@ -93,19 +92,51 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       promise.future.map(res => res should not equal("")) // TODO not empty
     }
 
-    it("when wrong should fail") {
+    it("when empty header should fail") {
       val promise = Promise[Int]
 
       client.get("/api/login")
-        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
         res.exceptionHandler(promise.failure)
         promise.success(res.statusCode())
       })
         .end()
 
-      promise.future.map(res => res should equal(401))
+      promise.future.map(res => res should equal(400))
     }
+
+    it("when password is empty should fail") {
+      val promise = Promise[Int]
+      val username = "username"
+      val password = ""
+
+      client.get("/api/login")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+        res.exceptionHandler(promise.failure)
+        promise.success(res.statusCode())
+      })
+        .end()
+
+      promise.future.map(res => res should equal(400))
+    }
+
+    it("when username is empty should fail") {
+      val promise = Promise[Int]
+      val username = ""
+      val password = "password"
+
+      client.get("/api/login")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure)
+          promise.success(res.statusCode())
+        })
+        .end()
+
+      promise.future.map(res => res should equal(400))
+    }
+
   }
 
   describe("Verification") {
