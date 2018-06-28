@@ -1,8 +1,9 @@
-import io.netty.handler.codec.http.{HttpHeaderNames}
+import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import java.util.Base64
+import it.cwmp.authentication.HttpUtils
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -38,12 +39,8 @@ class AuthenticationVerticle extends ScalaVerticle {
     if(authorizationHeader == None){
       sendError(400, response)
     } else {
-      val credentialFromHeader = authorizationHeader.get.split(" ")
-      val textDecoded = new String(Base64.getDecoder.decode(credentialFromHeader(1))).split(":")
-      val username = textDecoded(0)
-      val password = textDecoded(1)
-      println("Signup " + username, password)
 
+      HttpUtils.readBasicAuthentication(authorizationHeader.get)
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
         case Success(s) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
@@ -54,18 +51,13 @@ class AuthenticationVerticle extends ScalaVerticle {
 
   private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
     var response: HttpServerResponse = routingContext.response()
-
     val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
 
     if(authorizationHeader == None){
       sendError(400, response)
     } else {
-      val credentialFromHeader = authorizationHeader.get.split(" ")
-      val textDecoded = new String(Base64.getDecoder.decode(credentialFromHeader(1))).split(":")
-      val username = textDecoded(0)
-      val password = textDecoded(1)
-      println("Login " + username, password)
 
+      HttpUtils.readBasicAuthentication(authorizationHeader.get)
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
         case Success(s) => response setStatusCode  201 end "TOKEN" // TODO Token generato con utente
@@ -83,7 +75,7 @@ class AuthenticationVerticle extends ScalaVerticle {
       sendError(400, response)
     } else {
       val tokenFromHeader = authorizationHeader.get.split(" ")
-      val tokenDecoded = new String(Base64.getDecoder.decode(tokenFromHeader(1)))
+      val tokenDecoded = new String(Base64.getDecoder.decode(tokenFromHeader(1)))//TODO gestire il token
       println(tokenDecoded)
 
       val result: Future[Unit] = Future() //TODO implementare chiamata in db

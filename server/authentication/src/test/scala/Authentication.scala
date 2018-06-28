@@ -1,6 +1,7 @@
 import java.util.Base64
-import io.netty.handler.codec.http.HttpHeaders
+import io.netty.handler.codec.http.{HttpHeaderNames}
 import io.vertx.scala.core.http.HttpClientOptions
+import it.cwmp.authentication.HttpUtils
 import org.scalatest.Matchers
 import scala.concurrent.Promise
 
@@ -17,7 +18,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val username = "username"
       val password = "password"
       client.post("/api/signup")
-        .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + Base64.getEncoder.encodeToString(s"$username:$password".getBytes()))
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
         .handler(res => {
         res.exceptionHandler(promise.failure)
         promise.success(res.statusCode())
@@ -31,7 +32,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
 
       client.post("/api/signup")
-        //.putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
+        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
           promise.success(res.statusCode())
@@ -49,7 +50,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val password = "password"
 
       client.get("/api/login")
-        .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + Base64.getEncoder.encodeToString(s"$username:$password".getBytes()))//TODO gestire il base64
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
         .handler(res => {
           res.exceptionHandler(promise.failure)
           promise.success(res.statusMessage()) //TODO restituire token
@@ -63,7 +64,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
 
       client.get("/api/login")
-        //.putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
+        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
         res.exceptionHandler(promise.failure)
         promise.success(res.statusCode())
@@ -79,7 +80,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[String]
 
       client.get("/api/validate")
-        .putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " +  Base64.getEncoder.encodeToString("Token".getBytes()))//TODO gestire il base64
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " +  Base64.getEncoder.encodeToString("Token".getBytes()))//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
           promise.success(res.statusMessage())//TODO restituire token
@@ -93,7 +94,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
 
       client.get("/api/validate")
-        //.putHeader(HttpHeaders.Names.AUTHORIZATION, "Basic " + "base64key")//TODO gestire il base64
+        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
         .handler(res => {
           res.exceptionHandler(promise.failure)
           promise.success(res.statusCode())
