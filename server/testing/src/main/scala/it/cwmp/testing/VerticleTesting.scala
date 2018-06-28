@@ -1,3 +1,5 @@
+package it.cwmp.testing
+
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.lang.scala.{ScalaVerticle, VertxExecutionContext}
 import io.vertx.scala.core.{DeploymentOptions, Vertx}
@@ -8,10 +10,7 @@ import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
-/**
-  * Abstract class to test Verticles
-  */
-abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends AsyncFunSpec with BeforeAndAfter {
+abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec with BeforeAndAfter{
   val vertx = Vertx.vertx
   implicit val vertxExecutionContext = VertxExecutionContext(
     vertx.getOrCreateContext()
@@ -32,7 +31,10 @@ abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends AsyncFunSpe
         },
       10000 millis
     )
+    beforeAbs()
   }
+
+  def beforeAbs() = {}
 
   after {
     Await.result(
@@ -43,6 +45,9 @@ abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends AsyncFunSpe
         },
       10000 millis
     )
+    afterAbs()
   }
+
+  def afterAbs() = {}
 
 }

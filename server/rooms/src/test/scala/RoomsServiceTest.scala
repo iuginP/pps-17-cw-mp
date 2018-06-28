@@ -1,3 +1,4 @@
+import it.cwmp.testing.VerticleTesting
 import io.vertx.core.http.HttpMethod
 import io.vertx.scala.core.http.HttpClientResponse
 import org.scalatest.Matchers
