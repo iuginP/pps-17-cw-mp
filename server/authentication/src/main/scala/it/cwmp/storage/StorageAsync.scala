@@ -6,6 +6,7 @@ import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 trait StorageAsync {
 
@@ -51,10 +52,11 @@ object StorageAsync {
         getConnection().map(conn => {
           // insert the user in the authorization table
           conn.updateWithParamsFuture("""
-            INSERT INTO authorization values (?, ?)
-            """, new JsonArray().add(username).add(password)).map(_ => {
-            conn.close()
-          })
+            INSERT INTO authorization values (?, ?, ?)
+            """, new JsonArray().add(username).add(password).add("SALT"))
+            .map(_ => {
+              conn.close()
+            })
         })
       }
     }

@@ -1,13 +1,12 @@
 package it.cwmp.storage
 
 import io.vertx.core.json.JsonObject
-import org.scalatest.{Assertion, Matchers}
+import org.scalatest.{Matchers}
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.authentication.AuthenticationVerticle
 import it.cwmp.utils.VerticleTesting
 
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
+import scala.concurrent.{Future}
 
 class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matchers {
 
@@ -32,99 +31,94 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matc
     describe("in sign up") {
       describe("should fail with error") {
         it("when username empty") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage => storage.signupFuture("", "").onComplete({
-            case Failure(_) => promise.success(succeed)
-            case Success(_) => promise.failure(new Exception())
-          }))
-          promise.future
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage => storage.signupFuture("", "")).map {
+              ex => {
+                ex shouldBe a[Exception]
+              }
+            }
+          }
         }
         it("when password empty") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage => storage.signupFuture("", "").onComplete({
-            case Failure(_) => promise.success(succeed)
-            case Success(_) => promise.failure(new Exception())
-          }))
-          promise.future
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage => storage.signupFuture("", "")).map {
+              ex => {
+                ex shouldBe a[Exception]
+              }
+            }
+          }
         }
         it("when username already present") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage =>
-            storage.signupFuture("aaa", "aaa").map(_ =>
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage =>
               storage.signupFuture("aaa", "aaa").map(_ =>
-                storage.signoutFuture("aaa").onComplete({
-                  case Failure(_) => promise.success(succeed)
-                  case Success(_) => promise.failure(new Exception())
-                })
+                storage.signupFuture("aaa", "aaa").map {
+                  ex => {
+                    ex shouldBe a[Exception]
+                  }
+                }
               )
             )
-          )
-          promise.future
+          }
         }
       }
       describe("should succeed") {
         it("when all right") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage =>
-            storage.signupFuture("aaa", "aaa").map(_ =>
-              storage.signoutFuture("aaa").onComplete({
-                case Failure(_) => promise.failure(new Exception())
-                case Success(_) => promise.success(succeed)
-              })
+          storageFuture
+            .map(storage =>
+              storage.signupFuture("aaa", "aaa").map(_ =>
+                storage.signoutFuture("aaa").map(_ => succeed)
+              )
             )
-          )
-          promise.future
+            .map(_ => succeed)
         }
       }
     }
     describe("in login") {
       describe("should fail with error") {
         it("when username empty") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage => storage.loginFuture("", "").onComplete({
-            case Failure(_) => promise.success(succeed)
-            case Success(_) => promise.failure(new Exception())
-          })
-          )
-          promise.future
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage => storage.loginFuture("", "")).map {
+              ex => {
+                ex shouldBe a[Exception]
+              }
+            }
+          }
         }
         it("when username doesn't exists") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage => storage.loginFuture("", "").onComplete({
-            case Failure(_) => promise.success(succeed)
-            case Success(_) => promise.failure(new Exception())
-          })
-          )
-          promise.future
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage => storage.loginFuture("", "")).map {
+              ex => {
+                ex shouldBe a[Exception]
+              }
+            }
+          }
         }
         it("when password is wrong") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage =>
-            storage.signupFuture("aaa", "aaa").map(_ =>
-              storage.loginFuture("aaa", "bbb").map(_ =>
-                storage.signoutFuture("aaa").onComplete({
-                  case Failure(_) => promise.success(succeed)
-                  case Success(_) => promise.failure(new Exception())
-                })
+          recoverToSucceededIf[Exception] {
+            storageFuture.map(storage =>
+              storage.signupFuture("aaa", "aaa").map(_ =>
+                storage.loginFuture("aaa", "bbb").map(_ =>
+                  storage.signoutFuture("aaa")).map {
+                  ex => {
+                    ex shouldBe a[Exception]
+                  }
+                }
               )
             )
-          )
-          promise.future
+          }
         }
       }
       describe("should succeed") {
         it("when all right") {
-          val promise = Promise[Assertion]
-          storageFuture.map(storage => storage.signupFuture("aaa", "aaa").map(_ =>
-              storage.loginFuture("aaa", "aaa").map(_ =>
-                storage.signoutFuture("aaa").onComplete({
-                  case Failure(_) => promise.failure(new Exception())
-                  case Success(_) => promise.success(succeed)
-                })
+          storageFuture
+            .map(storage =>
+              storage.signupFuture("aaa", "aaa").map(_ =>
+                storage.loginFuture("aaa", "aaa").map(_ =>
+                  storage.signoutFuture("aaa"))
               )
             )
-          )
-          promise.future
+            .map(_ => succeed)
         }
       }
     }
