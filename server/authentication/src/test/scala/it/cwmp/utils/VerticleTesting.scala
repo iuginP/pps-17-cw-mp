@@ -3,7 +3,7 @@ package it.cwmp.utils
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.lang.scala.{ScalaVerticle, VertxExecutionContext}
 import io.vertx.scala.core.{DeploymentOptions, Vertx}
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter}
+import org.scalatest.{Assertion, AsyncFunSpec, BeforeAndAfter}
 
 import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
@@ -20,12 +20,6 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
 
   def config(): JsonObject = Json.emptyObj()
 
-  def shouldFail[A](future: Future[A]): Future[org.scalatest.compatible.Assertion] = {
-    val promise = Promise[Unit]
-    future.onComplete { case Failure(_) => promise.success() case Success(_) => promise.failure(_)}
-    promise.future.map(_ => succeed)
-  }
-
   before {
     deploymentId = Await.result(
       vertx
@@ -37,7 +31,10 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
         },
       10000 millis
     )
+    beforeAbs()
   }
+
+  def beforeAbs() = {}
 
   after {
     Await.result(
@@ -48,6 +45,9 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
         },
       10000 millis
     )
+    afterAbs()
   }
+
+  def afterAbs() = {}
 
 }

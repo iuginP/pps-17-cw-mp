@@ -9,46 +9,88 @@ import ExecutionContext.Implicits.global
 
 trait StorageAsync {
 
-  def signupFuture(client: JDBCClient, username: String, password: String): Future[Unit]
+  def init(): Future[Unit]
 
-  def signoutFuture(client: JDBCClient, username: String): Future[Unit]
+  def signupFuture(username: String, password: String): Future[Unit]
 
-  def loginFuture(client: JDBCClient, username: String, password: String): Future[Unit]
+  def signoutFuture(username: String): Future[Unit]
+
+  def loginFuture(username: String, password: String): Future[Unit]
 }
 
 object StorageAsync {
 
-  def apply(): StorageAsync = new StorageAsyncImpl()
+  def apply(client: JDBCClient): StorageAsync = new StorageAsyncImpl(client)
 
-  class StorageAsyncImpl() extends StorageAsync {
+  class StorageAsyncImpl(client: JDBCClient) extends StorageAsync {
 
-    private def getConnection(client: JDBCClient): Future[SQLConnection] = {
+    private def getConnection(): Future[SQLConnection] = {
       client.getConnectionFuture()
     }
 
-    override def signupFuture(client: JDBCClient, username: String, password: String): Future[Unit] = {
+    override def init(): Future[Unit] = {
+      getConnection().map(conn => {
+        // create a test table
+        conn.executeFuture("""
+          CREATE TABLE authorization (
+            auth_username VARCHAR(45) NOT NULL,
+            auth_password VARCHAR(45) NOT NULL,
+            auth_salt CHAR(32) NOT NULL,
+            PRIMARY KEY (auth_username))
+          """).map(_ => {
+          conn.close()
+        })
+      })
+    }
+
+    override def signupFuture(username: String, password: String): Future[Unit] = {
       if (username == null || username.isEmpty
         || password == null || password.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection(client).map(conn => {
-          // create a test table
-          conn.executeFuture("create table test(id int primary key, name varchar(255))").map(_ => {
-            // insert some test data
-            conn.executeFuture("insert into test values (1, 'Hello'), (2, 'World')").map(_ => {
-              // query some data with arguments
-              conn.queryWithParamsFuture("select * from test where id = ?", new JsonArray().add(2)).map(res => {
-                res.getResults foreach println
-                conn.close()
-              })
-            })
+        getConnection().map(conn => {
+          // insert the user in the authorization table
+          conn.updateWithParamsFuture("""
+            INSERT INTO authorization values (?, ?)
+            """, new JsonArray().add(username).add(password)).map(_ => {
+            conn.close()
           })
         })
       }
     }
 
-    override def signoutFuture(client: JDBCClient, username: String): Future[Unit] = ???
+    override def signoutFuture(username: String): Future[Unit] = {
+      if (username == null || username.isEmpty) {
+        Future.failed(new Exception())
+      } else {
+        getConnection().map(conn => {
+          // insert the user in the authorization table
+          conn.updateWithParamsFuture("""
+            DELETE FROM authorization WHERE auth_username = ?
+            """, new JsonArray().add(username)).map(_ => {
+            conn.close()
+          })
+        })
+      }
+    }
 
-    override def loginFuture(client: JDBCClient, username: String, password: String): Future[Unit] = ???
+    override def loginFuture(username: String, password: String): Future[Unit] = {
+      if (username == null || username.isEmpty
+        || password == null || password.isEmpty) {
+        Future.failed(new Exception())
+      } else {
+        getConnection().map(conn => {
+          // check the user against the authorization table
+          conn.queryWithParamsFuture("""
+            SELECT *
+            FROM authorization
+            WHERE auth_username = ?
+            AND auth_password = ?
+            """, new JsonArray().add(username).add(password)).map(_ => {
+            conn.close()
+          })
+        })
+      }
+    }
   }
 }
