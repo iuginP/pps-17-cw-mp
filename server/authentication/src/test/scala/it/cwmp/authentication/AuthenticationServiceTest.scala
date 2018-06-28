@@ -1,81 +1,159 @@
 package it.cwmp.authentication
 
 import it.cwmp.testing.VerticleTesting
+import java.util.Base64
+
+import io.netty.handler.codec.http.HttpHeaderNames
+import io.vertx.scala.core.http.HttpClientOptions
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
-  val host = "127.0.0.1"
-  val port = 8666
+  private val client = vertx.createHttpClient(HttpClientOptions()
+    .setDefaultHost("localhost")
+    .setDefaultPort(8666)
+  )
 
   describe("Signup") {
     it("when right should succed") {
       val promise = Promise[Int]
+      val username = "username"
+      val password = "password"
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/signup",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            promise.success(r.statusCode())
-          })
+      client.post("/api/signup")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
 
       promise.future.map(res => res should equal(201))
     }
 
-    it("when wrong should fail") {
+    it("when empty header should fail") {
       val promise = Promise[Int]
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/signup",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            promise.success(r.statusCode())
-          })
+      client.post("/api/signup")
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
 
-      promise.future.map(res => res should equal(401))
+      promise.future.map(res => res should equal(400))
+    }
+
+    it("when password is empty should fail") {
+      val promise = Promise[Int]
+      val username = "pippo"
+      val password = ""
+
+      client.post("/api/signup")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
+
+      promise.future.map(res => res should equal(400))
+    }
+
+    it("when username is empty should fail") {
+      val promise = Promise[Int]
+      val username = ""
+      val password = "password"
+
+      client.post("/api/signup")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
+
+      promise.future.map(res => res should equal(400))
     }
   }
 
   describe("Login") {
     it("when right should succed") {
       val promise = Promise[String]
+      val username = "username"
+      val password = "password"
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/login",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            r.bodyHandler(b => promise.success(b.toString))
-          })
+      client.get("/api/login")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusMessage()) //TODO restituire token
+        })
+        .end()
 
-      promise.future.map(res => res should equal("world")) // TODO not empty
+      promise.future.map(res => res should not equal "") // TODO not empty
     }
 
-    it("when wrong should fail") {
+    it("when empty header should fail") {
       val promise = Promise[Int]
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/login",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            promise.success(r.statusCode())
-          })
+      client.get("/api/login")
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
 
-      promise.future.map(res => res should equal(401))
+      promise.future.map(res => res should equal(400))
     }
+
+    it("when password is empty should fail") {
+      val promise = Promise[Int]
+      val username = "username"
+      val password = ""
+
+      client.get("/api/login")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
+
+      promise.future.map(res => res should equal(400))
+    }
+
+    it("when username is empty should fail") {
+      val promise = Promise[Int]
+      val username = ""
+      val password = "password"
+
+      client.get("/api/login")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
+        .handler(res => {
+          res.exceptionHandler(promise.failure _)
+          promise.success(res.statusCode())
+        })
+        .end()
+
+      promise.future.map(res => res should equal(400))
+    }
+
   }
 
   describe("Verification") {
     it("when right should succed") {
       val promise = Promise[String]
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/validate",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            r.bodyHandler(b => promise.success(b.toString))
-          })
+      client.get("/api/validate")
+        .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " +  Base64.getEncoder.encodeToString("Token".getBytes()))//TODO gestire il base64
+        .handler(res => {
+        res.exceptionHandler(promise.failure _)
+        promise.success(res.statusMessage())//TODO restituire token
+      })
+        .end()
 
       promise.future.map(res => res should equal("world")) // TODO not empty
     }
@@ -83,15 +161,15 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     it("when wrong should fail") {
       val promise = Promise[Int]
 
-      vertx.createHttpClient()
-        .getNow(port, host, "/api/validate",
-          r => {
-            r.exceptionHandler(promise.failure _)
-            promise.success(r.statusCode())
-          })
+      client.get("/api/validate")
+        //.putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + "base64key")//TODO gestire il base64
+        .handler(res => {
+        res.exceptionHandler(promise.failure _)
+        promise.success(res.statusCode())
+      })
+        .end()
 
       promise.future.map(res => res should equal(401))
     }
   }
-
 }
