@@ -5,7 +5,7 @@ import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 
-class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
+class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
   val host = "127.0.0.1"
   val port = 8666
@@ -17,7 +17,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/signup",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             promise.success(r.statusCode())
           })
 
@@ -30,7 +30,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/signup",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             promise.success(r.statusCode())
           })
 
@@ -45,7 +45,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/login",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             r.bodyHandler(b => promise.success(b.toString))
           })
 
@@ -58,7 +58,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/login",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             promise.success(r.statusCode())
           })
 
@@ -73,7 +73,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/validate",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             r.bodyHandler(b => promise.success(b.toString))
           })
 
@@ -86,7 +86,7 @@ class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationSe
       vertx.createHttpClient()
         .getNow(port, host, "/api/validate",
           r => {
-            r.exceptionHandler(promise.failure)
+            r.exceptionHandler(promise.failure _)
             promise.success(r.statusCode())
           })
 
