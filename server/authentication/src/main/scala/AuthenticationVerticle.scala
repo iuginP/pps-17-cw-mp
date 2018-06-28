@@ -39,12 +39,17 @@ class AuthenticationVerticle extends ScalaVerticle {
     if(authorizationHeader == None){
       sendError(400, response)
     } else {
-
-      HttpUtils.readBasicAuthentication(authorizationHeader.get)
-      val result: Future[Unit] = Future() //TODO implementare chiamata in db
-      result andThen {
-        case Success(s) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
-        case Failure(f) => sendError(401, response)
+      val credential = HttpUtils.readBasicAuthentication(authorizationHeader.get)
+      println("Credential AuthentiactionVerticle " + credential)
+      if (credential == None){
+        sendError(400, response)
+      }else{
+        println("Credential AuthentiactionVerticle " + credential)
+        val result: Future[Unit] = Future() //TODO implementare chiamata in db
+        result andThen {
+          case Success(s) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
+          case Failure(f) => sendError(401, response)
+        }
       }
     }
   }
