@@ -5,7 +5,7 @@ import io.vertx.scala.ext.web.Router
 
 import scala.concurrent.Future
 
-class AuthenticationVerticle extends ScalaVerticle {
+class AuthenticationServiceVerticle extends ScalaVerticle {
 
 
   override def startFuture(): Future[_] = {

@@ -3,12 +3,12 @@ package it.cwmp.storage
 import io.vertx.core.json.JsonObject
 import org.scalatest.Matchers
 import io.vertx.scala.ext.jdbc.JDBCClient
-import it.cwmp.authentication.AuthenticationVerticle
+import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.utils.VerticleTesting
 
 import scala.concurrent.Future
 
-class StorageAsyncTest extends VerticleTesting[AuthenticationVerticle] with Matchers {
+class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
   private def getDefaultClient(): JDBCClient = {
     val config = new JsonObject()

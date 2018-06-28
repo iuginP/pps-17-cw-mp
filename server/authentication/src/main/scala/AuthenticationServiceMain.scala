@@ -1,8 +1,12 @@
+import io.vertx.scala.core.Vertx
+import it.cwmp.authentication.AuthenticationServiceVerticle
 
 /**
   * Hello class for server
   */
 object AuthenticationServiceMain extends App {
-  println(s"Core greeting form server ${CoreExampleClass.greet}")
-  println("Hello i'm the server")
+
+  Vertx.vertx().deployVerticle(new AuthenticationServiceVerticle)
+
+  println("Deploying AuthenticationServiceVerticle... ") // TODO replace with logger logging
 }

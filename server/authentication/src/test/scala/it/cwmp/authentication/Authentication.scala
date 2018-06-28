@@ -5,7 +5,7 @@ import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 
-class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle] with Matchers {
+class AuthenticationServiceVerticleSpec extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
   val host = "127.0.0.1"
   val port = 8666
