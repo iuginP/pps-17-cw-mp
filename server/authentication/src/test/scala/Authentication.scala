@@ -17,6 +17,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       val promise = Promise[Int]
       val username = "username"
       val password = "password"
+
       client.post("/api/signup")
         .putHeader(HttpHeaderNames.AUTHORIZATION toString, "Basic " + HttpUtils.buildBasicAuthentication(username, password))
         .handler(res => {
@@ -39,7 +40,7 @@ class AuthenticationVerticleSpec extends VerticleTesting[AuthenticationVerticle]
       })
         .end()
 
-      promise.future.map(res => res should equal(401))
+      promise.future.map(res => res should equal(400))
     }
   }
 

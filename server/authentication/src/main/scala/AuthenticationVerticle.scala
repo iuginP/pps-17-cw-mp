@@ -18,7 +18,7 @@ class AuthenticationVerticle extends ScalaVerticle {
     //qui è dove ricevo le richieste
     val router = Router.router(vertx)
 
-    router.post("/api/signup").handler(handlersignup)
+    router.post("/api/signup").handler(handlerSignup)
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerVerification)
 
@@ -32,7 +32,7 @@ class AuthenticationVerticle extends ScalaVerticle {
     response.setStatusCode(statusCode).end()
   }
 
-  private def handlersignup(routingContext: RoutingContext): Unit = {
+  private def handlerSignup(routingContext: RoutingContext): Unit = {
     val response = routingContext.response()
     val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
 
@@ -74,9 +74,11 @@ class AuthenticationVerticle extends ScalaVerticle {
     if(authorizationHeader == None){
       sendError(400, response)
     } else {
-      val tokenFromHeader = authorizationHeader.get.split(" ")
-      val tokenDecoded = new String(Base64.getDecoder.decode(tokenFromHeader(1)))//TODO gestire il token
+
+      val tokenDecoded = new String(Base64.getDecoder.decode(authorizationHeader.get.split(" ")(1)))//TODO gestire il token
       println(tokenDecoded)
+
+      println(HttpUtils.readJwtAuthentication(tokenDecoded))
 
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
