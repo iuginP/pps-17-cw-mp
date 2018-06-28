@@ -4,7 +4,7 @@ import io.vertx.core.json.JsonObject
 import org.scalatest.Matchers
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.authentication.AuthenticationServiceVerticle
-import it.cwmp.utils.VerticleTesting
+import it.cwmp.testing.VerticleTesting
 
 import scala.concurrent.Future
 
