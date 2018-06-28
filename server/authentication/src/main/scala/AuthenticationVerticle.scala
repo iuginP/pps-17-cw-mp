@@ -1,7 +1,8 @@
-import io.netty.handler.codec.http.HttpHeaders
+import io.netty.handler.codec.http.{HttpHeaderNames}
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import java.util.Base64
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -16,7 +17,7 @@ class AuthenticationVerticle extends ScalaVerticle {
     //qui è dove ricevo le richieste
     val router = Router.router(vertx)
 
-    router.post("/api/singup").handler(handlerSingup)
+    router.post("/api/signup").handler(handlersignup)
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerVerification)
 
@@ -30,50 +31,65 @@ class AuthenticationVerticle extends ScalaVerticle {
     response.setStatusCode(statusCode).end()
   }
 
-  private def handlerSingup(routingContext: RoutingContext): Unit = {
-    //TODO leggere credenziali dall header
-
+  private def handlersignup(routingContext: RoutingContext): Unit = {
     val response = routingContext.response()
+    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
 
-    if(response.headers().get(HttpHeaders.Names.AUTHORIZATION) == null){
+    if(authorizationHeader == None){
       sendError(400, response)
     } else {
+      val credentialFromHeader = authorizationHeader.get.split(" ")
+      val textDecoded = new String(Base64.getDecoder.decode(credentialFromHeader(1))).split(":")
+      val username = textDecoded(0)
+      val password = textDecoded(1)
+      println("Signup " + username, password)
+
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
-        case Success(s) => response end "TOKEN" // TODO Token generato con utente
-        case Failure(f) => sendError(400, response)
+        case Success(s) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
+        case Failure(f) => sendError(401, response)
       }
     }
-
-    println("Authorization: " + response.headers().get("basic"))
   }
 
   private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-    //TODO leggere credenziali dall header
     var response: HttpServerResponse = routingContext.response()
 
-    if(false /*param == null*/){
+    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
+
+    if(authorizationHeader == None){
       sendError(400, response)
     } else {
+      val credentialFromHeader = authorizationHeader.get.split(" ")
+      val textDecoded = new String(Base64.getDecoder.decode(credentialFromHeader(1))).split(":")
+      val username = textDecoded(0)
+      val password = textDecoded(1)
+      println("Login " + username, password)
+
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
-        case Success(s) => response end "TOKEN" // TODO Token generato con utente
-        case Failure(f) => sendError(400, response)
+        case Success(s) => response setStatusCode  201 end "TOKEN" // TODO Token generato con utente
+        case Failure(f) => sendError(401, response)
       }
     }
   }
 
   private def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-    //TODO leggere credenziali dall header
     var response: HttpServerResponse = routingContext.response()
 
-    if(false /*param == null*/){
+    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
+
+    if(authorizationHeader == None){
       sendError(400, response)
     } else {
+      val tokenFromHeader = authorizationHeader.get.split(" ")
+      val tokenDecoded = new String(Base64.getDecoder.decode(tokenFromHeader(1)))
+      println(tokenDecoded)
+
       val result: Future[Unit] = Future() //TODO implementare chiamata in db
       result andThen {
         case Success(s) => response end "TOKEN" // TODO Token generato con utente
-        case Failure(f) => sendError(400, response)
+        case Failure(f) => sendError(401, response)
       }
     }
   }
