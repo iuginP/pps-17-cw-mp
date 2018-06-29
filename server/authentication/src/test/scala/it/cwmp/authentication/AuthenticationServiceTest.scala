@@ -57,6 +57,18 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
         .sendFuture()
         .map(res => res statusCode() should equal(400))
     }
+
+    it("when username already exist should fail") {
+      val username = "username"
+      val password = "password"
+
+      client.post("/api/signup")
+        .putHeader(
+          HttpHeaderNames.AUTHORIZATION.toString,
+          HttpUtils.buildBasicAuthentication(username, password))
+        .sendFuture()
+        .map(res => res statusCode() should equal(400))
+    }
   }
 
   describe("Login") {
@@ -74,6 +86,18 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
 
     it("when empty header should fail") {
       client.get("/api/login")
+        .sendFuture()
+        .map(res => res statusCode() should equal(400))
+    }
+
+    it("when user not exist should fail") {
+      val username = "username"
+      val password = "password"
+
+      client.post("/api/signup")
+        .putHeader(
+          HttpHeaderNames.AUTHORIZATION.toString,
+          HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
         .map(res => res statusCode() should equal(400))
     }
