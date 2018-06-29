@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 
 class AuthenticationServiceVerticle extends ScalaVerticle {
 
-  private var storage: StorageAsync = _;
+  private var storage: StorageAsync = _
 
   override def startFuture(): Future[_] = {
 

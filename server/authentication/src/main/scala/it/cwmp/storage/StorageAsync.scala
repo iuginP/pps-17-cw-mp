@@ -6,7 +6,6 @@ import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 
 trait StorageAsync {
 
