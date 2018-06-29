@@ -25,13 +25,13 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(201)) // TODO controllare anche il body per la presenza del token
+        .map(res => res statusCode() should equal(201)) // TODO controllare anche il body per la presenza del token
     }
 
     it("when empty header should fail") {
       client.post("/api/signup")
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when password is empty should fail") {
@@ -43,7 +43,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when username is empty should fail") {
@@ -55,7 +55,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
   }
 
@@ -69,13 +69,13 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
+        .map(res => res statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
     }
 
     it("when empty header should fail") {
       client.get("/api/login")
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when password is empty should fail") {
@@ -87,7 +87,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when username is empty should fail") {
@@ -99,9 +99,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
-
   }
 
   describe("Verification") {
@@ -112,13 +111,13 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildJwtAuthentication(token))
         .sendFuture()
-        .map(res => res.statusCode() should equal(200))
+        .map(res => res statusCode() should equal(200))
     }
 
     it("when missing token should fail") {
       client.get("/api/validate")
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when invalid token should fail") {
@@ -128,7 +127,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildJwtAuthentication(token))
         .sendFuture()
-        .map(res => res.statusCode() should equal(400))
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when unauthorized token should fail") {
@@ -138,7 +137,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           HttpHeaderNames.AUTHORIZATION toString,
           HttpUtils.buildJwtAuthentication(token))
         .sendFuture()
-        .map(res => res.statusCode() should equal(401))
+        .map(res => res statusCode() should equal(401))
     }
   }
 }
