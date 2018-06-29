@@ -42,17 +42,17 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     val usedApi = "/api/rooms"
 
     it("should succeed if the user is authenticated") {
-      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
         .map(res => res.statusCode() should equal(200))
     }
 
     it("should fail if token isn't provided") {
-      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
         .map(res => res.statusCode() should equal(400))
     }
 
     it("should fail if token isn't valid") {
-      getMyServerResponseOn(HttpMethod.POST, usedApi, "")
+      getMyServerResponseOn(HttpMethod.GET, usedApi, "")
         .map(res => res.statusCode() should equal(401))
     }
   }
@@ -65,7 +65,7 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     toTestApi foreach { apiNameAndUrl =>
       it(s"${apiNameAndUrl._1} should fail when user not authenticated") {
         getMyServerResponseOn(HttpMethod.GET, apiNameAndUrl._2, "")
-          .map(res => res.statusCode() should equal(400))
+          .map(res => res.statusCode() should equal(401))
       }
     }
 
@@ -104,7 +104,7 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
         .map(res => res.statusCode() should equal(400))
     }
 
-    it("should succeed if useris authenticated") {
+    it("should succeed if user is authenticated") {
       getMyServerResponseOn(HttpMethod.GET, usedApi, "")
         .map(res => res.statusCode() should equal(200))
     }

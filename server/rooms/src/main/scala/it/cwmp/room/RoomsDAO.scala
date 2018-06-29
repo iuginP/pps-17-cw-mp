@@ -16,18 +16,18 @@ import scala.concurrent.Future
   *
   * @author Enrico Siboni
   */
-trait RoomsStorageWrapper {
+trait RoomsDAO {
   def initialize(): Future[Unit]
 
-  def createRoom(name: String): Future[Unit]
+  def createRoom(roomName: String): Future[Unit]
 
   def listRooms(): Future[Seq[Room]]
 
   def enterPublicRoom(user: User): Future[Unit]
 
-  def enterRoom(name: String, user: User): Future[Unit]
+  def enterRoom(roomName: String, user: User): Future[Unit]
 
-  def getRoomInfo(name: String): Future[Room]
+  def getRoomInfo(roomName: String): Future[Room]
 }
 
 /**
@@ -35,14 +35,14 @@ trait RoomsStorageWrapper {
   *
   * @author Enrico Siboni
   */
-object RoomsStorageWrapper {
-  def apply(vertx: Vertx): RoomsStorageWrapper = new RoomStorageLocalWrapper(vertx)
+object RoomsDAO {
+  def apply(vertx: Vertx): RoomsDAO = new RoomLocalDAO(vertx)
 
 
   /**
-    * A wrapper to access a local Vertx storage
+    * A wrapper to access a local Vertx storage for Rooms
     */
-  private class RoomStorageLocalWrapper(vertx: Vertx) extends RoomsStorageWrapper {
+  private class RoomLocalDAO(vertx: Vertx) extends RoomsDAO {
     private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
     private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
@@ -59,12 +59,12 @@ object RoomsStorageWrapper {
       })
     }
 
-    override def createRoom(name: String): Future[Unit] = {
-      if (emptyString(name) || name == publicRoomName) {
+    override def createRoom(roomName: String): Future[Unit] = {
+      if (emptyString(roomName) || roomName == publicRoomName) {
         Future.failed(new Exception)
       } else {
         localJDBCClient.getConnectionFuture().flatMap(conn =>
-          conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(name))
+          conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(roomName))
             .map(_ => conn.close())
         )
       }
@@ -84,19 +84,19 @@ object RoomsStorageWrapper {
       enterRoom(publicRoomName, user)
     }
 
-    override def enterRoom(name: String, user: User): Future[Unit] = {
-      if (emptyString(name) || user == null) {
+    override def enterRoom(roomName: String, user: User): Future[Unit] = {
+      if (emptyString(roomName) || user == null) {
         Future.failed(new Exception)
       } else {
         localJDBCClient.getConnectionFuture().flatMap(conn => {
-          conn.updateWithParamsFuture(insertUserInRoomSql, (user, name))
+          conn.updateWithParamsFuture(insertUserInRoomSql, (user, roomName))
             .map(_ => conn.close())
         })
       }
     }
 
-    override def getRoomInfo(name: String): Future[Room] = {
-      listRooms().map(rooms => rooms.find(room => room.name == name).get)
+    override def getRoomInfo(roomName: String): Future[Room] = {
+      listRooms().map(_.find(_.name == roomName).get)
     }
 
     private def localConfig: JsonObject = new JsonObject()
@@ -156,10 +156,13 @@ object RoomsStorageWrapper {
       *
       * @return the converted data
       */
-    private implicit def roomAndUserToJsonArray(roomAndUser: (User, String)): JsonArray = {
-      new JsonArray().add(roomAndUser._1.username).add(roomAndUser._2)
+    private implicit def userAndRoomToJsonArray(userAndRoom: (User, String)): JsonArray = {
+      new JsonArray().add(userAndRoom._1.username).add(userAndRoom._2)
     }
 
+    /**
+      * @return true if the string is empty or null
+      */
     private def emptyString(string: String): Boolean = string == null || string.isEmpty
   }
 
