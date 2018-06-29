@@ -139,14 +139,21 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
   }
 
-  describe("Verification") {
+  describe("Validation") {
     it("when right should succed") {
-      val token = "TOKEN" // TODO ottenere token valido
-      client.get("/api/validate")
+      val username = "username"
+      val password = "password"
+      client.post("/api/signup")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
+          HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
+        .flatMap(response =>
+          client.get("/api/validate")
+            .putHeader(
+              HttpHeaderNames.AUTHORIZATION.toString,
+              HttpUtils.buildJwtAuthentication(response.bodyAsString get))
+            .sendFuture())
         .map(res => res statusCode() should equal(200))
     }
 

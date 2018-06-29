@@ -25,7 +25,7 @@ object HttpUtils {
     }
   }
 
-  def buildJwtAuthentication(token: String): String = ???
+  def buildJwtAuthentication(token: String): String = token // TODO implementare
 
-  def readJwtAuthentication(header: String): Option[String] = ???
+  def readJwtAuthentication(header: String): Option[String] = Some(header) // TODO implementare
 }

@@ -16,6 +16,8 @@ trait StorageAsync {
   def signoutFuture(username: String): Future[Unit]
 
   def loginFuture(username: String, password: String): Future[Unit]
+
+  def existsFuture(username: String): Future[Unit]
 }
 
 object StorageAsync {
@@ -89,6 +91,26 @@ object StorageAsync {
             WHERE auth_username = ?
             AND auth_password = ?
             """, new JsonArray().add(username).add(password)).map(res => {
+            conn.close()
+            if (res.getResults.isEmpty) {
+              throw new Exception
+            }
+          })
+        })
+      }
+    }
+
+    override def existsFuture(username: String): Future[Unit] = {
+      if (username == null || username.isEmpty) {
+        Future.failed(new Exception())
+      } else {
+        getConnection().flatMap(conn => {
+          // check the user against the authorization table
+          conn.queryWithParamsFuture("""
+            SELECT *
+            FROM authorization
+            WHERE auth_username = ?
+            """, new JsonArray().add(username)).map(res => {
             conn.close()
             if (res.getResults.isEmpty) {
               throw new Exception
