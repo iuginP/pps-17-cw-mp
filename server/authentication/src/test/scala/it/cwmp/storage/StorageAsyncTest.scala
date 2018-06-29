@@ -28,30 +28,27 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
   }
 
   describe("Storage manager") {
-    describe("in sign up") {
+    describe("sign up") {
       describe("should fail with error") {
         it("when username empty") {
           recoverToSucceededIf[Exception] {
             storageFuture
-              .map(storage => storage.signupFuture("", ""))
+              .flatMap(storage => storage.signupFuture("", ""))
               .map(ex => ex shouldBe a[Exception])
           }
         }
         it("when password empty") {
           recoverToSucceededIf[Exception] {
             storageFuture
-              .map(storage => storage.signupFuture("", ""))
+              .flatMap(storage => storage.signupFuture("", ""))
               .map(ex => ex shouldBe a[Exception])
           }
         }
         it("when username already present") {
           recoverToSucceededIf[Exception] {
             storageFuture
-              .map(storage =>
-                storage.signupFuture("aaa", "aaa").map(_ =>
-                  storage.signupFuture("aaa", "aaa")
-                )
-              )
+              .flatMap(storage => storage.signupFuture("aaa", "aaa").map(_ => storage))
+              .flatMap(storage => storage.signupFuture("aaa", "aaa"))
               .map(ex => ex shouldBe a[Exception])
           }
         }
@@ -59,40 +56,26 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
       describe("should succeed") {
         it("when all right") {
           storageFuture
-            .map(storage =>
-              storage.signupFuture("aaa", "aaa").map(_ =>
-                storage.signoutFuture("aaa").map(_ => succeed)
-              )
-            )
+            .flatMap(storage => storage.signupFuture("aaa", "aaa").map(_ => storage))
+            .flatMap(storage => storage.signoutFuture("aaa"))
             .map(_ => succeed)
         }
       }
     }
-    describe("in login") {
+
+    describe("sign out") {
       describe("should fail with error") {
         it("when username empty") {
           recoverToSucceededIf[Exception] {
             storageFuture
-              .map(storage => storage.loginFuture("", ""))
+              .flatMap(storage => storage.signoutFuture(""))
               .map(ex => ex shouldBe a[Exception])
           }
         }
         it("when username doesn't exists") {
           recoverToSucceededIf[Exception] {
             storageFuture
-              .map(storage => storage.loginFuture("", ""))
-              .map(ex => ex shouldBe a[Exception])
-          }
-        }
-        it("when password is wrong") {
-          recoverToSucceededIf[Exception] {
-            storageFuture
-              .map(storage =>
-                storage.signupFuture("aaa", "aaa").map(_ =>
-                  storage.loginFuture("aaa", "bbb").map(_ =>
-                    storage.signoutFuture("aaa"))
-                )
-              )
+              .flatMap(storage => storage.signoutFuture("aaa"))
               .map(ex => ex shouldBe a[Exception])
           }
         }
@@ -100,12 +83,45 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
       describe("should succeed") {
         it("when all right") {
           storageFuture
-            .map(storage =>
-              storage.signupFuture("aaa", "aaa").map(_ =>
-                storage.loginFuture("aaa", "aaa").map(_ =>
-                  storage.signoutFuture("aaa"))
-              )
-            )
+            .flatMap(storage => storage.signupFuture("aaa", "aaa").map(_ => storage))
+            .flatMap(storage => storage.signoutFuture("aaa"))
+            .map(_ => succeed)
+        }
+      }
+    }
+
+    describe("login") {
+      describe("should fail with error") {
+        it("when username empty") {
+          recoverToSucceededIf[Exception] {
+            storageFuture
+              .flatMap(storage => storage.loginFuture("", "aaa"))
+              .map(ex => ex shouldBe a[Exception])
+          }
+        }
+        it("when username doesn't exists") {
+          recoverToSucceededIf[Exception] {
+            storageFuture
+              .flatMap(storage => storage.loginFuture("aaa", ""))
+              .map(ex => ex shouldBe a[Exception])
+          }
+        }
+        it("when password is wrong") {
+          recoverToSucceededIf[Exception] {
+            storageFuture
+              .flatMap(storage => storage.signupFuture("aaa", "aaa").map(_ => storage))
+              .flatMap(storage => storage.loginFuture("aaa", "bbb").map(_ => storage))
+              .flatMap(storage => storage.signoutFuture("aaa"))
+              .map(ex => ex shouldBe a[Exception])
+          }
+        }
+      }
+      describe("should succeed") {
+        it("when all right") {
+          storageFuture
+            .flatMap(storage => storage.signupFuture("aaa", "aaa").map(_ => storage))
+            .flatMap(storage => storage.loginFuture("aaa", "aaa").map(_ => storage))
+            .flatMap(storage => storage.signoutFuture("aaa"))
             .map(_ => succeed)
         }
       }
