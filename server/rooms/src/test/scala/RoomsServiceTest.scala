@@ -1,8 +1,8 @@
 import it.cwmp.testing.VerticleTesting
 import io.vertx.core.http.HttpMethod
 import io.vertx.scala.core.http.HttpClientResponse
+import it.cwmp.room.RoomsServiceVerticle
 import org.scalatest.Matchers
-import room.service.RoomsServiceVerticle
 
 import scala.concurrent.Promise
 
@@ -18,12 +18,13 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
   val requestTimeoutMILLIS = 1000
 
-  describe("Room Listing") {
+  describe("Room Creation") {
     val usedApi = "/api/rooms"
 
     it("should succeed if the user is authenticated") {
+      // TODO Creare un utente di test che può accedere ed effettuare la richiesta al servizio "login" per ricevere il token
       getMyServerResponseOn(HttpMethod.POST, usedApi, "")
-        .map(res => res.statusCode() should equal(200))
+        .map(res => res.statusCode() should equal(201))
     }
 
     it("should fail if token isn't provided") {
@@ -37,13 +38,12 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     }
   }
 
-  describe("Room Creation") {
+  describe("Room Listing") {
     val usedApi = "/api/rooms"
 
     it("should succeed if the user is authenticated") {
-      // TODO Creare un utente di test che può accedere ed effettuare la richiesta al servizio "login" per ricevere il token
       getMyServerResponseOn(HttpMethod.POST, usedApi, "")
-        .map(res => res.statusCode() should equal(201))
+        .map(res => res.statusCode() should equal(200))
     }
 
     it("should fail if token isn't provided") {

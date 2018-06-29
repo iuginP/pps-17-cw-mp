@@ -1,9 +1,9 @@
-package room.service
+package it.cwmp.room
 
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import room.Room
+import it.cwmp.model.Room
 
 import scala.concurrent.{Future, Promise}
 
@@ -17,17 +17,21 @@ class RoomsServiceVerticle extends ScalaVerticle {
   override def startFuture(): Future[_] = {
 
     val router = Router.router(vertx)
-    router get "/api/rooms" handler listRoomsHandler
     router post "/api/rooms" handler createRoomHandler
+    router get "/api/rooms" handler listRoomsHandler
     router get "/api/rooms/public" handler enterPublicRoomHandler
     router get "/api/rooms/:room" handler enterRoomHandler
     router get "/api/rooms/:room/info" handler retrieveRoomInfoHandler
-
 
     vertx
       .createHttpServer()
       .requestHandler(router.accept _)
       .listenFuture(8667, "127.0.0.1")
+  }
+
+  private def createRoomHandler: Handler[RoutingContext] = routingContext => {
+    // TODO:
+    routingContext.response().end()
   }
 
   private def listRoomsHandler: Handler[RoutingContext] = routingContext => {
@@ -38,11 +42,6 @@ class RoomsServiceVerticle extends ScalaVerticle {
         routingContext.response().end("Error retrieving rooms!")
       }
     })
-  }
-
-  private def createRoomHandler: Handler[RoutingContext] = routingContext => {
-    // TODO:
-    routingContext.response().end()
   }
 
   private def enterPublicRoomHandler: Handler[RoutingContext] = routingContext => {
@@ -69,8 +68,8 @@ class RoomsServiceVerticle extends ScalaVerticle {
     val promisedRooms: Promise[Seq[Room]] = Promise()
 
     // Blocking operation here, and at the end promise.success call
-    promisedRooms.success(Seq(Room("First"), Room("Second")))
+//    promisedRooms.success(Seq(Room("First"), Room("Second")))
 
-    promisedRooms
+    promisedRooms.success(Seq[Room]())
   }
 }
