@@ -10,13 +10,8 @@ import scala.util.{Failure, Success}
 
 class AuthenticationServiceVerticle extends ScalaVerticle {
 
-  //host e porta del database al quale inoltriamo le richieste
-  private val host = "127.0.0.1"
-  private val port = 8667
-
   override def startFuture(): Future[_] = {
 
-    //qui è dove ricevo le richieste
     val router = Router.router(vertx)
 
     router.post("/api/signup").handler(handlerSignup)
@@ -26,7 +21,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     vertx
       .createHttpServer()
       .requestHandler(router.accept _)
-      .listenFuture(8666, "0.0.0.0")
+      .listenFuture(8666)
   }
 
   private def sendError(statusCode: Int,  response: HttpServerResponse): Unit = {
@@ -35,17 +30,18 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
 
   private def handlerSignup(routingContext: RoutingContext): Unit = {
     val response = routingContext.response()
-    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
+    val authorizationHeader = routingContext
+      .request()
+      .headers()
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
     } else {
       val credential = HttpUtils.readBasicAuthentication(authorizationHeader.get)
-      println("Credential AuthentiactionVerticle " + credential)
       if (credential.isEmpty){
         sendError(400, response)
       }else{
-        println("Credential AuthentiactionVerticle " + credential)
         val result: Future[Unit] = Future.successful(Unit) //TODO implementare chiamata in db
         result andThen {
           case Success(_) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
@@ -57,7 +53,10 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
 
   private def handlerLogin(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
     val response = routingContext.response()
-    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
+    val authorizationHeader = routingContext
+      .request()
+      .headers()
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
@@ -76,18 +75,21 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
   }
 
   private def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-    var response: HttpServerResponse = routingContext.response()
-
-    val authorizationHeader = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION toString)
+    val response: HttpServerResponse = routingContext.response()
+    val authorizationHeader = routingContext
+      .request()
+      .headers()
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
     } else {
 
-      val tokenDecoded = new String(Base64.getDecoder.decode(authorizationHeader.get.split(" ")(1)))
-      println(tokenDecoded)
-
-      println(HttpUtils.readJwtAuthentication(tokenDecoded))
+      val tokenDecoded = new String(
+        Base64.getDecoder.decode(authorizationHeader.get.split(" ")(1)))
+      if (tokenDecoded.nonEmpty){
+        HttpUtils.readJwtAuthentication(tokenDecoded)
+      }
 
       val result: Future[Unit] = Future.successful(Unit) //TODO implementare chiamata in db
       result andThen {
