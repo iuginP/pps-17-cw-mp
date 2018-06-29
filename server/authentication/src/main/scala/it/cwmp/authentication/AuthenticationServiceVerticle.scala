@@ -33,7 +33,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     val authorizationHeader = routingContext
       .request()
       .headers()
-      .get(HttpHeaderNames.AUTHORIZATION toString)
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
@@ -56,7 +56,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     val authorizationHeader = routingContext
       .request()
       .headers()
-      .get(HttpHeaderNames.AUTHORIZATION toString)
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
@@ -75,11 +75,11 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
   }
 
   private def handlerVerification(routingContext: io.vertx.scala.ext.web.RoutingContext): Unit = {
-    var response: HttpServerResponse = routingContext.response()
+    val response: HttpServerResponse = routingContext.response()
     val authorizationHeader = routingContext
       .request()
       .headers()
-      .get(HttpHeaderNames.AUTHORIZATION toString)
+      .get(HttpHeaderNames.AUTHORIZATION.toString)
 
     if(authorizationHeader.isEmpty){
       sendError(400, response)
@@ -87,7 +87,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
 
       val tokenDecoded = new String(
         Base64.getDecoder.decode(authorizationHeader.get.split(" ")(1)))
-      if (tokenDecoded nonEmpty){
+      if (tokenDecoded.nonEmpty){
         HttpUtils.readJwtAuthentication(tokenDecoded)
       }
 
