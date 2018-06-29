@@ -59,7 +59,10 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
         sendError(400, response)
       }else{
         storage.signupFuture(credential.get._1, credential.get._2) onComplete {
-          case Success(_) => response setStatusCode 201 end credential.get._1 // TODO Token generato con utente
+          case Success(_) =>
+            JwtUtils
+              .encodeUsernameToken(credential.get._1)
+              .foreach(token => response setStatusCode 201 end token)
           case Failure(_) => sendError(400, response)
         }
       }
@@ -81,7 +84,10 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
         sendError(400, response)
       }else{
         storage.loginFuture(credential.get._1, credential.get._2) onComplete {
-          case Success(_) => response setStatusCode 200 end credential.get._1 // TODO Token generato con utente
+          case Success(_) =>
+            JwtUtils
+              .encodeUsernameToken(credential.get._1)
+              .foreach(token => response setStatusCode 200 end token)
           case Failure(_) => sendError(401, response)
         }
       }
@@ -93,7 +99,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     for (
       authorizationHeader <- routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString);
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
-      username = token // TODO get from Utils JWT
+      username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
       // If every check pass, username contains the username contained in the token and we can check it exists
       storage.existsFuture(username).onComplete {

@@ -174,7 +174,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when unauthorized token should fail") {
-      val token = "6a5sd4f6a5sd4fa6s5df4"
+      // Username 'tizio':
+      val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
       client.get("/api/validate")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
