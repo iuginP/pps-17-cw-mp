@@ -32,5 +32,22 @@ class JwtUtilsTest extends FunSpec {
         assert(JwtUtils.decodeToken(null).isEmpty)
       }
     }
+
+    describe("validate") {
+      it ("should succeed if right") {
+        val claim = JwtClaim() + ("username", "tizio")
+        var result = false
+        for (
+          token <- JwtUtils.encodeToken(claim);
+          isValid = JwtUtils.validateToken(token)
+        ) yield {
+          result = isValid
+        }
+        assert(result)
+      }
+      it ("should fail if argument null") {
+        assert(!JwtUtils.validateToken(null))
+      }
+    }
   }
 }

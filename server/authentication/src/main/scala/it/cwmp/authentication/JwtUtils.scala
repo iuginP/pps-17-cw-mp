@@ -20,4 +20,8 @@ object JwtUtils {
       case Failure(_) => None
     }
   }
+
+  def validateToken(token: String): Boolean = {
+    Jwt.isValid(token, secretKey, Seq(algorithm))
+  }
 }
