@@ -1,5 +1,6 @@
 package it.cwmp.authentication
 
+import io.vertx.core.json.JsonObject
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import scala.util.{Failure, Success}
 
@@ -23,5 +24,14 @@ object JwtUtils {
 
   def validateToken(token: String): Boolean = {
     Jwt.isValid(token, secretKey, Seq(algorithm))
+  }
+
+  def encodeUsernameToken(username: String): Option[String] = {
+    if (username == null) None
+    else encodeToken(JwtClaim(new JsonObject().put("username", username).encode()))
+  }
+
+  def decodeUsernameToken(token: String): Option[String] = {
+    decodeToken(token).map(decoded => new JsonObject(decoded.content).getString("username"))
   }
 }

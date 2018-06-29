@@ -50,4 +50,31 @@ class JwtUtilsTest extends FunSpec {
       }
     }
   }
+
+  describe("User specific") {
+    describe("encode") {
+      it ("should succeed if right") {
+        assert(JwtUtils.encodeUsernameToken("username").nonEmpty)
+      }
+      it ("should fail if argument null") {
+        assert(JwtUtils.encodeUsernameToken(null).isEmpty)
+      }
+    }
+
+    describe("decode") {
+      it ("should succeed if right") {
+        var result: Option[String] = None
+        for (
+          token <- JwtUtils.encodeUsernameToken("username");
+          decoded <- JwtUtils.decodeUsernameToken(token)
+        ) yield {
+          result = Some(decoded)
+        }
+        assert(result.isDefined && result.get == "username")
+      }
+      it ("should fail if argument null") {
+        assert(JwtUtils.decodeUsernameToken(null).isEmpty)
+      }
+    }
+  }
 }
