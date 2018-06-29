@@ -5,10 +5,17 @@ import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import java.util.Base64
+
+import io.vertx.core.json.JsonObject
+import io.vertx.scala.ext.jdbc.JDBCClient
+import it.cwmp.storage.StorageAsync
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class AuthenticationServiceVerticle extends ScalaVerticle {
+
+  private var storage: StorageAsync = _;
 
   override def startFuture(): Future[_] = {
 
@@ -18,10 +25,20 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerVerification)
 
-    vertx
-      .createHttpServer()
-      .requestHandler(router.accept _)
-      .listenFuture(8666)
+    val client = JDBCClient.createShared(vertx, new JsonObject()
+      .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
+      .put("driver_class", "org.hsqldb.jdbcDriver")
+      .put("max_pool_size", 30)
+      .put("user", "SA")
+      .put("password", ""))
+    storage = StorageAsync(client)
+    storage.init().flatMap(_ => {
+      // Launch the server only after the DB has been initialized
+      vertx
+        .createHttpServer()
+        .requestHandler(router.accept _)
+        .listenFuture(8666)
+    })
   }
 
   private def sendError(statusCode: Int,  response: HttpServerResponse): Unit = {
@@ -42,10 +59,9 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
       if (credential.isEmpty){
         sendError(400, response)
       }else{
-        val result: Future[Unit] = Future.successful(Unit) //TODO implementare chiamata in db
-        result andThen {
-          case Success(_) => response setStatusCode 201 end "TOKEN" // TODO Token generato con utente
-          case Failure(_) => sendError(401, response)
+        storage.signupFuture(credential.get._1, credential.get._2) onComplete {
+          case Success(_) => response setStatusCode 201 end "TOKEN" + credential.get._1 // TODO Token generato con utente
+          case Failure(_) => sendError(400, response)
         }
       }
     }
@@ -65,9 +81,8 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
       if (credential.isEmpty){
         sendError(400, response)
       }else{
-        val result: Future[Unit] = Future.successful(Unit) //TODO implementare chiamata in db
-        result andThen {
-          case Success(_) => response setStatusCode 200 end "TOKEN" // TODO Token generato con utente
+        storage.loginFuture(credential.get._1, credential.get._2) onComplete {
+          case Success(_) => response setStatusCode 200 end "TOKEN" + credential.get._1 // TODO Token generato con utente
           case Failure(_) => sendError(401, response)
         }
       }
