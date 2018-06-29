@@ -139,14 +139,21 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
   }
 
-  describe("Verification") {
+  describe("Validation") {
     it("when right should succed") {
-      val token = "TOKEN" // TODO ottenere token valido
-      client.get("/api/validate")
+      val username = "username"
+      val password = "password"
+      client.post("/api/signup")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
+          HttpUtils.buildBasicAuthentication(username, password))
         .sendFuture()
+        .flatMap(response =>
+          client.get("/api/validate")
+            .putHeader(
+              HttpHeaderNames.AUTHORIZATION.toString,
+              HttpUtils.buildJwtAuthentication(response.bodyAsString get))
+            .sendFuture())
         .map(res => res statusCode() should equal(200))
     }
 
@@ -167,7 +174,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when unauthorized token should fail") {
-      val token = "6a5sd4f6a5sd4fa6s5df4"
+      // Username 'tizio':
+      val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
       client.get("/api/validate")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
