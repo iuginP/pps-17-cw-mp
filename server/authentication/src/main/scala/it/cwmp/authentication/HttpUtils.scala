@@ -30,6 +30,7 @@ object HttpUtils {
       }
     } catch {
       case (_: IndexOutOfBoundsException) => None
+      case (_: NullPointerException) => None
     }
   }
 
