@@ -3,6 +3,7 @@ package it.cwmp.authentication
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.testing.VerticleTesting
+import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
@@ -20,12 +21,15 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val username = "username"
       val password = "password"
 
-      client.post("/api/signup")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .map(res => res statusCode() should equal(201)) // TODO controllare anche il body per la presenza del token
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.post("/api/signup")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .map(res => res statusCode() should equal(201)) // TODO controllare anche il body per la presenza del token
+      }
     }
 
     it("when empty header should fail") {
@@ -34,26 +38,12 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
         .map(res => res statusCode() should equal(400))
     }
 
-    it("when password is empty should fail") {
-      val username = "pippo"
-      val password = ""
-
+    it("when invalid header should fail") {
+      val token = "INVALID"
       client.post("/api/signup")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .map(res => res statusCode() should equal(400))
-    }
-
-    it("when username is empty should fail") {
-      val username = ""
-      val password = "password"
-
-      client.post("/api/signup")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
+          token)
         .sendFuture()
         .map(res => res statusCode() should equal(400))
     }
@@ -62,18 +52,24 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val username = "username"
       val password = "password"
 
-      client.post("/api/signup")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .flatMap(_ =>
-          client.post("/api/signup")
-            .putHeader(
-              HttpHeaderNames.AUTHORIZATION.toString,
-              HttpUtils.buildBasicAuthentication(username, password))
-            .sendFuture())
-        .map(res => res statusCode() should equal(400))
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.post("/api/signup")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .flatMap(_ =>
+            HttpUtils.buildBasicAuthentication(username, password) match {
+              case None => fail
+              case Some(secondToken) => client.post("/api/signup")
+                .putHeader(
+                  HttpHeaderNames.AUTHORIZATION.toString,
+                  secondToken)
+                .sendFuture()
+            })
+          .map(res => res statusCode() should equal(400))
+      }
     }
   }
 
@@ -82,18 +78,24 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val username = "username"
       val password = "password"
 
-      client.post("/api/signup")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .flatMap(_ =>
-          client.get("/api/login")
-            .putHeader(
-              HttpHeaderNames.AUTHORIZATION.toString,
-              HttpUtils.buildBasicAuthentication(username, password))
-            .sendFuture())
-        .map(res => res statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.post("/api/signup")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .flatMap(_ =>
+            HttpUtils.buildBasicAuthentication(username, password) match {
+              case None => fail
+              case Some(secondToken) => client.get("/api/login")
+                .putHeader(
+                  HttpHeaderNames.AUTHORIZATION.toString,
+                  secondToken)
+                .sendFuture()
+            })
+          .map(res => res statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
+      }
     }
 
     it("when empty header should fail") {
@@ -106,34 +108,23 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val username = "username"
       val password = "password"
 
-      client.get("/api/login")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .map(res => res statusCode() should equal(401))
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.get("/api/login")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .map(res => res statusCode() should equal(401))
+      }
     }
 
     it("when password is empty should fail") {
-      val username = "username"
-      val password = ""
-
+      val token = "INVALID"
       client.get("/api/login")
         .putHeader(
           HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .map(res => res statusCode() should equal(400))
-    }
-
-    it("when username is empty should fail") {
-      val username = ""
-      val password = "password"
-
-      client.get("/api/login")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
+          token)
         .sendFuture()
         .map(res => res statusCode() should equal(400))
     }
@@ -143,18 +134,24 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     it("when right should succed") {
       val username = "username"
       val password = "password"
-      client.post("/api/signup")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildBasicAuthentication(username, password))
-        .sendFuture()
-        .flatMap(response =>
-          client.get("/api/validate")
-            .putHeader(
-              HttpHeaderNames.AUTHORIZATION.toString,
-              HttpUtils.buildJwtAuthentication(response.bodyAsString get))
-            .sendFuture())
-        .map(res => res statusCode() should equal(200))
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.post("/api/signup")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .flatMap(response =>
+            HttpUtils.buildJwtAuthentication(response.bodyAsString.get) match {
+              case None => fail
+              case Some(secondToken) => client.get("/api/validate")
+                .putHeader(
+                  HttpHeaderNames.AUTHORIZATION.toString,
+                  secondToken)
+                .sendFuture()
+            })
+          .map(res => res statusCode() should equal(200))
+      }
     }
 
     it("when missing token should fail") {
@@ -164,24 +161,31 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when invalid token should fail") {
-      val token = "TOKEN"
-      client.get("/api/validate")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
-        .sendFuture()
-        .map(res => res statusCode() should equal(400))
+      val myToken = "TOKEN"
+
+      HttpUtils.buildJwtAuthentication(myToken) match {
+        case None => fail
+        case Some(secondToken) => client.get("/api/validate")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            secondToken)
+          .sendFuture()
+          .map(res => res statusCode() should equal(400))
+      }
     }
 
     it("when unauthorized token should fail") {
-      // Username 'tizio':
-      val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
-      client.get("/api/validate")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
-        .sendFuture()
-        .map(res => res statusCode() should equal(401))
+      val myToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
+
+      HttpUtils.buildJwtAuthentication(myToken) match {
+        case None => fail
+        case Some(token) => client.get("/api/validate")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .map(res => res statusCode() should equal(401))
+      }
     }
   }
 }

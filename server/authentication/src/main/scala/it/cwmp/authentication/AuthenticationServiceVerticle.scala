@@ -4,10 +4,10 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.storage.StorageAsync
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
