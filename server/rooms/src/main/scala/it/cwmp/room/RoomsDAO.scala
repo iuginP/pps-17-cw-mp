@@ -49,14 +49,18 @@ object RoomsDAO {
     private val publicRoomName: String = "public"
 
     override def initialize(): Future[Unit] = {
-      localJDBCClient.getConnectionFuture().flatMap(conn => {
-        conn.executeFuture(createRoomTableSql).flatMap(_ => {
-          conn.executeFuture(createUserTableSql).flatMap(_ => {
-            conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(publicRoomName))
-              .map(_ => conn.close())
-          })
-        })
-      })
+      localJDBCClient.getConnectionFuture().flatMap(conn =>
+        conn.executeFuture(dropUserTableSql).flatMap(_ =>
+          conn.executeFuture(dropRoomTableSql).flatMap(_ =>
+            conn.executeFuture(createRoomTableSql).flatMap(_ =>
+              conn.executeFuture(createUserTableSql).flatMap(_ =>
+                conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(publicRoomName))
+                  .map(_ => conn.close())
+              )
+            )
+          )
+        )
+      )
     }
 
     override def createRoom(roomName: String): Future[Unit] = {
@@ -74,7 +78,7 @@ object RoomsDAO {
       localJDBCClient.getConnectionFuture().flatMap(conn => {
         conn.queryFuture(selectAllRoomsAndUsersSql)
           .map(resultSet => {
-            resultSet.getResults.foreach(println(_))
+//            resultSet.getResults.foreach(println(_))
             resultSetToRooms(resultSet)
           })
       })
@@ -123,6 +127,8 @@ object RoomsDAO {
         )
       """
 
+    private val dropUserTableSql = "DROP TABLE user IF EXISTS"
+    private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
     private val insertNewRoomSql = "INSERT INTO room VALUES (?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
     private val selectAllRoomsAndUsersSql = "SELECT * FROM room LEFT JOIN user ON room_name = user_room"
@@ -147,7 +153,6 @@ object RoomsDAO {
           }
         }
       })
-      println(rooms)
       rooms.map(entry => Room(entry._1, entry._2)).toSeq
     }
 
