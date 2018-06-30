@@ -7,8 +7,13 @@ object HttpUtils {
   private val PREFIX_BASIC = "Basic"
   private val PREFIX_JWT = "Barer"
 
-  def buildBasicAuthentication(username: String, password: String): String = {
-    s"$PREFIX_BASIC " + Base64.getEncoder.encodeToString(s"$username:$password".getBytes())
+  def buildBasicAuthentication(username: String, password: String): Option[String] = {
+    if (username == null || username.isEmpty
+      || password == null || password.isEmpty) {
+      None
+    } else {
+      Some(s"$PREFIX_BASIC " + Base64.getEncoder.encodeToString(s"$username:$password".getBytes()))
+    }
   }
 
   //preso un header in Base64 lo converte in stringa e restituisce username e password
