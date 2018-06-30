@@ -11,8 +11,8 @@ import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
 abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec with BeforeAndAfter{
-  val vertx = Vertx.vertx
-  implicit val vertxExecutionContext = VertxExecutionContext(
+  val vertx: Vertx = Vertx.vertx
+  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(
     vertx.getOrCreateContext()
   )
 
@@ -29,12 +29,12 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
           case Success(d) => d
           case Failure(t) => throw new RuntimeException(t)
         },
-      10000 millis
+      10000.millis
     )
     beforeAbs()
   }
 
-  def beforeAbs() = {}
+  def beforeAbs(): Unit = {}
 
   after {
     Await.result(
@@ -43,11 +43,11 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
           case Success(d) => d
           case Failure(t) => throw new RuntimeException(t)
         },
-      10000 millis
+      10000.millis
     )
     afterAbs()
   }
 
-  def afterAbs() = {}
+  def afterAbs(): Unit = {}
 
 }

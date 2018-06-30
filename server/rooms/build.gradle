@@ -3,5 +3,10 @@ apply plugin: 'application'
 mainClassName = 'RoomsServiceMain'
 
 dependencies {
-    testImplementation project(':server:testing')
+    implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
+    implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
+
+    runtimeOnly 'org.hsqldb:hsqldb:2.0.0'
+
+    testImplementation project(':server:authentication')
 }
