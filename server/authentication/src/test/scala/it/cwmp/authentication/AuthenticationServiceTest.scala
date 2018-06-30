@@ -81,10 +81,10 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           .flatMap(_ =>
             HttpUtils.buildBasicAuthentication(username, password) match {
               case None => fail
-              case Some(token) => client.post("/api/signup")
+              case Some(secondToken) => client.post("/api/signup")
                 .putHeader(
                   HttpHeaderNames.AUTHORIZATION.toString,
-                  token)
+                  secondToken)
                 .sendFuture()
             })
           .map(res => res statusCode() should equal(400))
@@ -107,10 +107,10 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
           .flatMap(_ =>
             HttpUtils.buildBasicAuthentication(username, password) match {
               case None => fail
-              case Some(token) => client.get("/api/login")
+              case Some(secondToken) => client.get("/api/login")
                 .putHeader(
                   HttpHeaderNames.AUTHORIZATION.toString,
-                  token)
+                  secondToken)
                 .sendFuture()
             })
           .map(res => res statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
@@ -181,11 +181,14 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
             token)
           .sendFuture()
           .flatMap(response =>
-            client.get("/api/validate")
-              .putHeader(
-                HttpHeaderNames.AUTHORIZATION.toString,
-                HttpUtils.buildJwtAuthentication(response.bodyAsString get))
-              .sendFuture())
+            HttpUtils.buildJwtAuthentication(response.bodyAsString.get) match {
+              case None => fail
+              case Some(secondToken) => client.get("/api/validate")
+                .putHeader(
+                  HttpHeaderNames.AUTHORIZATION.toString,
+                  secondToken)
+                .sendFuture()
+            })
           .map(res => res statusCode() should equal(200))
       }
     }
@@ -197,24 +200,31 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when invalid token should fail") {
-      val token = "TOKEN"
-      client.get("/api/validate")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
-        .sendFuture()
-        .map(res => res statusCode() should equal(400))
+      val myToken = "TOKEN"
+
+      HttpUtils.buildJwtAuthentication(myToken) match {
+        case None => fail
+        case Some(secondToken) => client.get("/api/validate")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            secondToken)
+          .sendFuture()
+          .map(res => res statusCode() should equal(400))
+      }
     }
 
     it("when unauthorized token should fail") {
-      // Username 'tizio':
-      val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
-      client.get("/api/validate")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          HttpUtils.buildJwtAuthentication(token))
-        .sendFuture()
-        .map(res => res statusCode() should equal(401))
+      val myToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
+
+      HttpUtils.buildJwtAuthentication(myToken) match {
+        case None => fail
+        case Some(token) => client.get("/api/validate")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .map(res => res statusCode() should equal(401))
+      }
     }
   }
 }

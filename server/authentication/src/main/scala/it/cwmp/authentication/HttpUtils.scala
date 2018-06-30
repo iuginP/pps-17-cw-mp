@@ -34,8 +34,10 @@ object HttpUtils {
     }
   }
 
-  def buildJwtAuthentication(token: String): String = {
-    s"$PREFIX_JWT $token"
+  def buildJwtAuthentication(token: String): Option[String] = token match {
+    case "" =>  None
+    case null => None
+    case _ => Some(s"$PREFIX_JWT $token")
   }
 
   def readJwtAuthentication(header: String): Option[String] = {

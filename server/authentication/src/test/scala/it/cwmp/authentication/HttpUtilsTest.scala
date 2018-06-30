@@ -43,6 +43,16 @@ class HttpUtilsTest extends  FunSpec{
   }
 
   describe("JWT authentication") {
-
+    describe("build") {
+      it("should succeed if right") {
+        assert(HttpUtils.buildJwtAuthentication("token").nonEmpty)
+      }
+      it("should fail if argument is empty") {
+        assert(HttpUtils.buildJwtAuthentication("").isEmpty)
+      }
+      it("should fail if argument is null") {
+        assert(HttpUtils.buildJwtAuthentication(null).isEmpty)
+      }
+    }
   }
 }
