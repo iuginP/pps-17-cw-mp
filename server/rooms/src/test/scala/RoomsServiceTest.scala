@@ -1,3 +1,4 @@
+import it.cwmp.testing.VerticleTesting
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
