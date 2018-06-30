@@ -2,8 +2,9 @@ package it.cwmp.room
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
-import it.cwmp.authentication.{AuthenticationServiceVerticle, HttpUtils}
+import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.testing.VerticleTesting
+import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
 
 import scala.concurrent.{Future, Promise}
@@ -167,7 +168,7 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
       .port(authenticationServicePort)
       .putHeader(
         HttpHeaderNames.AUTHORIZATION.toString,
-        HttpUtils.buildBasicAuthentication(username, password))
+        HttpUtils.buildBasicAuthentication(username, password).get)
       .sendFuture()
       .map(response => response.bodyAsString().get)
   }
