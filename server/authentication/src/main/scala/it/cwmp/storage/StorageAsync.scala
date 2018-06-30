@@ -6,7 +6,6 @@ import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 
 trait StorageAsync {
 
@@ -17,6 +16,8 @@ trait StorageAsync {
   def signoutFuture(username: String): Future[Unit]
 
   def loginFuture(username: String, password: String): Future[Unit]
+
+  def existsFuture(username: String): Future[Unit]
 }
 
 object StorageAsync {
@@ -30,9 +31,10 @@ object StorageAsync {
     }
 
     override def init(): Future[Unit] = {
-      getConnection().map(conn => {
+      getConnection().flatMap(conn => {
         // create a test table
         conn.executeFuture("""
+          DROP TABLE authorization IF EXISTS;
           CREATE TABLE authorization (
             auth_username VARCHAR(45) NOT NULL,
             auth_password VARCHAR(45) NOT NULL,
@@ -49,12 +51,12 @@ object StorageAsync {
         || password == null || password.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().map(conn => {
+        getConnection().flatMap(conn => {
           // insert the user in the authorization table
           conn.updateWithParamsFuture("""
             INSERT INTO authorization values (?, ?, ?)
             """, new JsonArray().add(username).add(password).add("SALT"))
-            .map(_ => {
+            .map(res => {
               conn.close()
             })
         })
@@ -65,7 +67,7 @@ object StorageAsync {
       if (username == null || username.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().map(conn => {
+        getConnection().flatMap(conn => {
           // insert the user in the authorization table
           conn.updateWithParamsFuture("""
             DELETE FROM authorization WHERE auth_username = ?
@@ -81,15 +83,38 @@ object StorageAsync {
         || password == null || password.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().map(conn => {
+        getConnection().flatMap(conn => {
           // check the user against the authorization table
           conn.queryWithParamsFuture("""
             SELECT *
             FROM authorization
             WHERE auth_username = ?
             AND auth_password = ?
-            """, new JsonArray().add(username).add(password)).map(_ => {
+            """, new JsonArray().add(username).add(password)).map(res => {
             conn.close()
+            if (res.getResults.isEmpty) {
+              throw new Exception
+            }
+          })
+        })
+      }
+    }
+
+    override def existsFuture(username: String): Future[Unit] = {
+      if (username == null || username.isEmpty) {
+        Future.failed(new Exception())
+      } else {
+        getConnection().flatMap(conn => {
+          // check the user against the authorization table
+          conn.queryWithParamsFuture("""
+            SELECT *
+            FROM authorization
+            WHERE auth_username = ?
+            """, new JsonArray().add(username)).map(res => {
+            conn.close()
+            if (res.getResults.isEmpty) {
+              throw new Exception
+            }
           })
         })
       }
