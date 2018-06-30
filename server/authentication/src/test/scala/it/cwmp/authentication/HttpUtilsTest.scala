@@ -36,7 +36,7 @@ class HttpUtilsTest extends  FunSpec{
       it ("should fail if argument is empty") {
         assert(HttpUtils.readBasicAuthentication("").isEmpty)
       }
-      it ("should fail if argument null") {
+      it ("should fail if argument is null") {
         assert(HttpUtils.readBasicAuthentication(null).isEmpty)
       }
     }
@@ -52,6 +52,29 @@ class HttpUtilsTest extends  FunSpec{
       }
       it("should fail if argument is null") {
         assert(HttpUtils.buildJwtAuthentication(null).isEmpty)
+      }
+    }
+
+    describe("read") {
+      it ("should succeed if right") {
+        var result: Option[String] = None
+        val myToken = "token"
+        for (
+          token <- HttpUtils.buildJwtAuthentication(myToken);
+          decoded = HttpUtils.readJwtAuthentication(token)
+        ) yield {
+          result = decoded
+        }
+        result match {
+          case Some((t)) => assert(t == myToken )
+          case _ => fail
+        }
+      }
+      it ("should fail if argument is empty") {
+        assert(HttpUtils.readJwtAuthentication("").isEmpty)
+      }
+      it ("should fail if argument is null") {
+        assert(HttpUtils.readJwtAuthentication(null).isEmpty)
       }
     }
   }

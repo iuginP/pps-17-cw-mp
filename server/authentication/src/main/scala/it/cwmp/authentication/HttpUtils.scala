@@ -40,15 +40,19 @@ object HttpUtils {
     case _ => Some(s"$PREFIX_JWT $token")
   }
 
-  def readJwtAuthentication(header: String): Option[String] = {
-    try{
-      //divido la stringa "Barer " dalla parte in Base64
-      header.split(s"$PREFIX_JWT ")(1) match {
-        case s if s.nonEmpty => Some(s)
-        case _ => None
+  def readJwtAuthentication(header: String): Option[String] = header match {
+    case "" => None
+    case null => None
+    case _ => {
+      try{
+        //divido la stringa "Barer " dalla parte in Base64
+        header.split(s"$PREFIX_JWT ")(1) match {
+          case s if s.nonEmpty => Some(s)
+          case _ => None
+        }
+      } catch {
+        case (_: IndexOutOfBoundsException) => None
       }
-    } catch {
-      case (_: IndexOutOfBoundsException) => None
     }
   }
 }
