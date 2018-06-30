@@ -29,30 +29,27 @@ object HttpUtils {
         None
       }
     } catch {
-      case (_: IndexOutOfBoundsException) => None
-      case (_: NullPointerException) => None
+      case (_) => None
     }
   }
 
-  def buildJwtAuthentication(token: String): Option[String] = token match {
-    case "" =>  None
-    case null => None
-    case _ => Some(s"$PREFIX_JWT $token")
+  def buildJwtAuthentication(token: String): Option[String] = Option(token) match {
+    case Some(s) if s.nonEmpty => Some(s"$PREFIX_JWT $s")
+    case _ => None
   }
 
-  def readJwtAuthentication(header: String): Option[String] = header match {
-    case "" => None
-    case null => None
-    case _ => {
+  def readJwtAuthentication(header: String): Option[String] = Option(header) match {
+    case Some(s) if s.nonEmpty => {
       try{
         //divido la stringa "Barer " dalla parte in Base64
-        header.split(s"$PREFIX_JWT ")(1) match {
+        s.split(s"$PREFIX_JWT ")(1) match {
           case s if s.nonEmpty => Some(s)
           case _ => None
         }
       } catch {
-        case (_: IndexOutOfBoundsException) => None
+        case (_) => None
       }
     }
+    case _ => None
   }
 }
