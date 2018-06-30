@@ -3,6 +3,7 @@ package it.cwmp.authentication
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.testing.VerticleTesting
+import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
@@ -37,34 +38,14 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
         .map(res => res statusCode() should equal(400))
     }
 
-    it("when password is empty should fail") {
-      val username = "pippo"
-      val password = ""
-
-      HttpUtils.buildBasicAuthentication(username, password) match {
-        case None => fail
-        case Some(token) => client.post("/api/signup")
-          .putHeader(
-            HttpHeaderNames.AUTHORIZATION.toString,
-            token)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
-      }
-    }
-
-    it("when username is empty should fail") {
-      val username = ""
-      val password = "password"
-
-      HttpUtils.buildBasicAuthentication(username, password) match {
-        case None => fail
-        case Some(token) => client.post("/api/signup")
-          .putHeader(
-            HttpHeaderNames.AUTHORIZATION.toString,
-            token)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
-      }
+    it("when invalid header should fail") {
+      val token = "INVALID"
+      client.post("/api/signup")
+        .putHeader(
+          HttpHeaderNames.AUTHORIZATION.toString,
+          token)
+        .sendFuture()
+        .map(res => res statusCode() should equal(400))
     }
 
     it("when username already exist should fail") {
@@ -139,33 +120,13 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when password is empty should fail") {
-      val username = "username"
-      val password = ""
-
-      HttpUtils.buildBasicAuthentication(username, password) match {
-        case None => fail
-        case Some(token) => client.get("/api/login")
-          .putHeader(
-            HttpHeaderNames.AUTHORIZATION.toString,
-            token)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
-      }
-    }
-
-    it("when username is empty should fail") {
-      val username = ""
-      val password = "password"
-
-      HttpUtils.buildBasicAuthentication(username, password) match {
-        case None => fail
-        case Some(token) => client.get("/api/login")
-          .putHeader(
-            HttpHeaderNames.AUTHORIZATION.toString,
-            token)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
-      }
+      val token = "INVALID"
+      client.get("/api/login")
+        .putHeader(
+          HttpHeaderNames.AUTHORIZATION.toString,
+          token)
+        .sendFuture()
+        .map(res => res statusCode() should equal(400))
     }
   }
 

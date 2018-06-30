@@ -1,4 +1,4 @@
-package it.cwmp.authentication
+package it.cwmp.utils
 
 import org.scalatest.FunSpec
 
