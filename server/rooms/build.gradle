@@ -10,3 +10,7 @@ dependencies {
 
     testImplementation project(':server:authentication')
 }
+
+tasks.withType(Test) {
+    maxParallelForks = 1
+}

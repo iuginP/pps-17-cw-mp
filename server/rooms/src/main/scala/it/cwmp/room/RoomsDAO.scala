@@ -12,22 +12,22 @@ import scala.collection.mutable
 import scala.concurrent.Future
 
 /**
-  * A trait that describes the access to database made by rooms micro-service
+  * A trait that describes the Data Access Object for Rooms
   *
   * @author Enrico Siboni
   */
 trait RoomsDAO {
   def initialize(): Future[Unit]
 
-  def createRoom(roomName: String): Future[Unit]
+  def createRoom(roomID: String, roomName: String, neededPlayers: Int): Future[Unit]
 
   def listRooms(): Future[Seq[Room]]
 
   def enterPublicRoom(user: User): Future[Unit]
 
-  def enterRoom(roomName: String, user: User): Future[Unit]
+  def enterRoom(roomID: String, user: User): Future[Unit]
 
-  def getRoomInfo(roomName: String): Future[Room]
+  def getRoomInfo(roomID: String): Future[Room]
 }
 
 /**
@@ -36,6 +36,7 @@ trait RoomsDAO {
   * @author Enrico Siboni
   */
 object RoomsDAO {
+
   def apply(vertx: Vertx): RoomsDAO = new RoomLocalDAO(vertx)
 
 
@@ -54,7 +55,7 @@ object RoomsDAO {
           conn.executeFuture(dropRoomTableSql).flatMap(_ =>
             conn.executeFuture(createRoomTableSql).flatMap(_ =>
               conn.executeFuture(createUserTableSql).flatMap(_ =>
-                conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(publicRoomName))
+                conn.updateWithParamsFuture(insertNewRoomSql, Seq("ID", publicRoomName, "4")) // TODO: add other public rooms
                   .map(_ => conn.close())
               )
             )
@@ -63,12 +64,12 @@ object RoomsDAO {
       )
     }
 
-    override def createRoom(roomName: String): Future[Unit] = {
-      if (emptyString(roomName) || roomName == publicRoomName) {
+    override def createRoom(roomID: String, roomName: String, neededPlayers: Int): Future[Unit] = {
+      if (emptyString(roomID) || emptyString(roomName) || roomName == publicRoomName || neededPlayers < 1) {
         Future.failed(new Exception)
       } else {
         localJDBCClient.getConnectionFuture().flatMap(conn =>
-          conn.updateWithParamsFuture(insertNewRoomSql, new JsonArray().add(roomName))
+          conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, neededPlayers.toString))
             .map(_ => conn.close())
         )
       }
@@ -78,29 +79,29 @@ object RoomsDAO {
       localJDBCClient.getConnectionFuture().flatMap(conn => {
         conn.queryFuture(selectAllRoomsAndUsersSql)
           .map(resultSet => {
-//            resultSet.getResults.foreach(println(_))
-            resultSetToRooms(resultSet)
+            //            resultSet.getResults.foreach(println(_))
+            userTableRecordsToRooms(resultSet)
           })
       })
     }
 
     override def enterPublicRoom(user: User): Future[Unit] = {
-      enterRoom(publicRoomName, user)
+      enterRoom("ID", user) // TODO: change the ID to be variable
     }
 
-    override def enterRoom(roomName: String, user: User): Future[Unit] = {
-      if (emptyString(roomName) || user == null) {
+    override def enterRoom(roomID: String, user: User): Future[Unit] = {
+      if (emptyString(roomID) || user == null) {
         Future.failed(new Exception)
       } else {
         localJDBCClient.getConnectionFuture().flatMap(conn => {
-          conn.updateWithParamsFuture(insertUserInRoomSql, (user, roomName))
+          conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.toString, roomID))
             .map(_ => conn.close())
         })
       }
     }
 
-    override def getRoomInfo(roomName: String): Future[Room] = {
-      listRooms().map(_.find(_.name == roomName).get)
+    override def getRoomInfo(roomID: String): Future[Room] = {
+      listRooms().map(_.find(_.identifier == roomID).get)
     }
 
     private def localConfig: JsonObject = new JsonObject()
@@ -110,50 +111,61 @@ object RoomsDAO {
       .put("user", "SA")
       .put("password", "")
 
+
+    private val userToRoomLinkField = "user_room"
     private val createRoomTableSql =
-      """
+      s"""
         CREATE TABLE room (
-          room_name VARCHAR(45) NOT NULL,
-          PRIMARY KEY (room_name)
+          ${Room.FIELD_IDENTIFIER} VARCHAR(100) NOT NULL,
+          ${Room.FIELD_NAME} VARCHAR(50) NOT NULL,
+          ${Room.FIELD_NEEDED_PLAYERS} INT NOT NULL,
+          PRIMARY KEY (${Room.FIELD_IDENTIFIER})
         )
       """
     private val createUserTableSql =
-      """
+      s"""
         CREATE TABLE user (
-          user_username VARCHAR(45) NOT NULL,
-          user_room VARCHAR(45),
-          PRIMARY KEY (user_username),
-          CONSTRAINT FK_userRooms FOREIGN KEY (user_room) REFERENCES room(room_name)
+          ${User.FIELD_USERNAME} VARCHAR(50) NOT NULL,
+          $userToRoomLinkField VARCHAR(100),
+          PRIMARY KEY (${User.FIELD_USERNAME}),
+          CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
         )
       """
 
     private val dropUserTableSql = "DROP TABLE user IF EXISTS"
     private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
-    private val insertNewRoomSql = "INSERT INTO room VALUES (?)"
+    private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
-    private val selectAllRoomsAndUsersSql = "SELECT * FROM room LEFT JOIN user ON room_name = user_room"
+    private val selectAllRoomsAndUsersSql = s"SELECT * FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField"
 
     /**
       * Utility method to convert a result set to a room sequence
       */
-    private def resultSetToRooms(resultSet: ResultSet): Seq[Room] = {
-      val rooms: mutable.Map[String, Seq[User]] = mutable.HashMap()
+    private def userTableRecordsToRooms(resultSet: ResultSet): Seq[Room] = {
+      val roomsToUsers: mutable.Map[String, Seq[User]] = mutable.HashMap()
+      val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
       resultSet.getResults.foreach(resultRow => {
-        val roomName = resultRow.getString(0)
-        val userName = if (resultRow.hasNull(1)) None else Some(resultRow.getString(1))
+        val roomID = resultRow.getString(0)
+        val userName = if (resultRow.hasNull(3)) None else Some(resultRow.getString(3))
 
-        if (rooms.contains(roomName)) {
-          userName.foreach(name =>
-            rooms(roomName) = rooms(roomName) :+ User(name))
+        if (roomsToUsers.contains(roomID)) {
+          userName.foreach(name => roomsToUsers(roomID) = roomsToUsers(roomID) :+ User(name))
         } else {
-          if (userName.isDefined) {
-            rooms(roomName) = Seq(User(userName.get))
-          } else {
-            rooms(roomName) = Seq()
+          val roomName = resultRow.getString(1)
+          val roomNeededPlayers = resultRow.getInteger(2)
+          roomsInfo(roomID) = (roomName, roomNeededPlayers)
+          userName match {
+            case Some(name) => roomsToUsers(roomID) = Seq(User(name))
+            case None => roomsToUsers(roomID) = Seq()
           }
         }
       })
-      rooms.map(entry => Room(entry._1, entry._2)).toSeq
+
+      (for (
+        roomUsers <- roomsToUsers;
+        roomInfo <- roomsInfo if roomUsers._1 == roomInfo._1;
+        room = Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2)
+      ) yield room).toSeq
     }
 
     /**
@@ -161,8 +173,8 @@ object RoomsDAO {
       *
       * @return the converted data
       */
-    private implicit def userAndRoomToJsonArray(userAndRoom: (User, String)): JsonArray = {
-      new JsonArray().add(userAndRoom._1.username).add(userAndRoom._2)
+    private implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
+      arguments.foldLeft(new JsonArray)(_.add(_))
     }
 
     /**

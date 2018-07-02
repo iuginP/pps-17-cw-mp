@@ -1,8 +1,10 @@
 package it.cwmp.room
 
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.authentication.AuthenticationServiceVerticle
+import it.cwmp.model.Room
 import it.cwmp.testing.VerticleTesting
 import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
@@ -22,7 +24,6 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
   private val authenticationServicePort = 8666
   private val authenticationSignUpUrl = "/api/signup" // TODO: questi campi non serviranno più quando ci sarà l'helper
-  private val authenticationValidationUrl = "/api/validate"
 
   private val testUserUsername = "Enrico"
   private val testUserPassword = "password"
@@ -54,8 +55,9 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
   describe("Room Creation") {
     it("should succeed when the user is authenticated") {
+      val roomName = "Stanza"
       testUserToken.future.flatMap(token => {
-        createRoom("Stanza", token)
+        createRoom(roomName, 4, token)
           .map(res => res statusCode() shouldEqual 201)
       })
     }
@@ -103,8 +105,9 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     it("should succeed if user is authenticated and room is present") {
       val roomName = "Stanza"
       testUserToken.future.flatMap(token => {
-        createRoom(roomName, token).flatMap(_ => {
-          enterRoom(roomName, token)
+        createRoom(roomName, 4, token).flatMap(response => {
+          val roomID = response.body().get.toString()
+          enterRoom(roomID, token)
             .map(res => res.statusCode() shouldEqual 200)
         })
       })
@@ -133,8 +136,9 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     it("should succeed if user is authenticated and room is present") { // TODO: refactor test so they are one inside another
       val roomName = "Stanza"
       testUserToken.future.flatMap(token => {
-        createRoom(roomName, token).flatMap(_ => {
-          retrieveRoomInfo(roomName, token)
+        createRoom(roomName, 4, token).flatMap(response => {
+          val roomID = response.body().get.toString()
+          retrieveRoomInfo(roomID, token)
             .map(res => res.statusCode() shouldEqual 200)
         })
       })
@@ -175,11 +179,14 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
 
   // TODO: la parte qui sotto magari modificata sar da riportare nel RoomsServiceHelper
-  private def createRoom(roomName: String, userToken: String) = {
+  private def createRoom(roomName: String, neededPlayers: Int, userToken: String) = {
     webClient.post("/api/rooms")
       .putHeader(HttpHeaderNames.AUTHORIZATION.toString, userToken)
-      .addQueryParam(":room", roomName)
-      .sendFuture()
+      .sendJsonObjectFuture(
+        Json.obj(
+          (Room.FIELD_NAME, roomName),
+          (Room.FIELD_NEEDED_PLAYERS, neededPlayers)
+        ))
   }
 
   private def listRooms(userToken: String) = {
@@ -188,16 +195,16 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
       .sendFuture()
   }
 
-  private def enterRoom(roomName: String, userToken: String) = {
-    webClient.get(s"/api/rooms/:room")
-      .setQueryParam(":room", roomName)
+  private def enterRoom(roomID: String, userToken: String) = {
+    webClient.get(s"/api/rooms/:${Room.FIELD_IDENTIFIER}")
+      .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
       .putHeader(HttpHeaderNames.AUTHORIZATION.toString, userToken)
       .sendFuture()
   }
 
-  private def retrieveRoomInfo(roomName: String, userToken: String) = {
-    webClient.get(s"/api/rooms/:room/info")
-      .setQueryParam(":room", roomName)
+  private def retrieveRoomInfo(roomID: String, userToken: String) = {
+    webClient.get(s"/api/rooms/${Room.FIELD_IDENTIFIER}/info")
+      .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
       .putHeader(HttpHeaderNames.AUTHORIZATION.toString, userToken)
       .sendFuture()
   }

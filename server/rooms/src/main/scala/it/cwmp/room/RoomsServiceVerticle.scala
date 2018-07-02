@@ -3,10 +3,10 @@ package it.cwmp.room
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.lang.scala.json.Json
+import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.model.User
+import it.cwmp.model.{Room, User}
 import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Future
@@ -18,8 +18,6 @@ import scala.util.{Failure, Random, Success}
   * @author Enrico Siboni
   */
 class RoomsServiceVerticle extends ScalaVerticle {
-
-  private val ROOM_NAME_PARAM = ":room"
 
   private val USER_NOT_AUTHENTICATED = "User is not authenticated"
   private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
@@ -37,9 +35,8 @@ class RoomsServiceVerticle extends ScalaVerticle {
     val router = Router.router(vertx)
     router post "/api/rooms" handler createRoomHandler
     router get "/api/rooms" handler listRoomsHandler
-    router get "/api/rooms/public" handler enterPublicRoomHandler // TODO:  remove this and check for "public" inside :room
-    router get "/api/rooms/:room" handler enterRoomHandler
-    router get "/api/rooms/:room/info" handler retrieveRoomInfoHandler
+    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler enterRoomHandler
+    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}/info" handler retrieveRoomInfoHandler
 
     vertx
       .createHttpServer()
@@ -48,14 +45,23 @@ class RoomsServiceVerticle extends ScalaVerticle {
   }
 
   private def createRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    validateUserOrSendError.map(_ => {
-      val roomName = getRequestParam(ROOM_NAME_PARAM)
-        .getOrElse(s"Room${Random.nextInt(Int.MaxValue)}") // TODO: check if random generated room is already present
+    var bodyJson: JsonObject = Json.emptyObj()
+    routingContext.request().bodyHandler(body => {
+      bodyJson = body.toJsonObject
+    })
 
-      daoFuture.map(_.createRoom(roomName).onComplete {
-        case Success(_) => sendResponse(201, None)
-        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
-      })
+    validateUserOrSendError.map(_ => {
+      extractRoomFromBody(bodyJson) match {
+        case Some((roomName, neededPlayers)) =>
+          val generatedIdentifier: String = Random.nextInt(Int.MaxValue).toString // TODO: check generation of room identifier (even against db)
+          daoFuture.map(_.createRoom(generatedIdentifier, roomName, neededPlayers)
+            .onComplete {
+              case Success(_) => sendResponse(201, Some(generatedIdentifier))
+              case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+            })
+        case None =>
+          sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR no Room JSON in body"))
+      }
     })
   }
 
@@ -63,7 +69,7 @@ class RoomsServiceVerticle extends ScalaVerticle {
     validateUserOrSendError.map(_ => {
       daoFuture.map(_.listRooms().onComplete {
         case Success(rooms) =>
-          import RoomUtils.RichRoom
+          import Room.Converters._
           sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
 
         case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
@@ -71,44 +77,39 @@ class RoomsServiceVerticle extends ScalaVerticle {
     })
   }
 
-  private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+  private def enterRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
       // TODO: GET_USER
       val testUser = User(s"Test${Random.nextInt()}")
-      daoFuture.map(_.enterPublicRoom(testUser).onComplete {
-        case Success(_) => sendResponse(200, None)
-        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
-      })
-    })
-  }
+      extractRequestParam(Room.FIELD_IDENTIFIER) match {
+        case Some(roomID) if roomID == "public" =>
+          daoFuture.map(_.enterPublicRoom(testUser).onComplete {
+            case Success(_) => sendResponse(200, None)
+            case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+          })
 
-  private def enterRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    validateUserOrSendError.map(_ => {
-      getRequestParam(ROOM_NAME_PARAM) match {
-        case Some(roomName) =>
-          // TODO: GET_USER
-          val testUser = User(s"Test${Random.nextInt()}")
-          daoFuture.map(_.enterRoom(roomName, testUser).onComplete {
+        case Some(roomID) =>
+          daoFuture.map(_.enterRoom(roomID, testUser).onComplete {
             case Success(_) => sendResponse(200, None)
             case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
           })
 
-        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM")) // TODO: refactor with below method
+        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")) // TODO: refactor with below method
       }
     })
   }
 
   private def retrieveRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
-      getRequestParam(ROOM_NAME_PARAM) match {
+      extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomName) =>
           daoFuture.map(_.getRoomInfo(roomName).onComplete {
             case Success(room) =>
-              import RoomUtils.RichRoom
+              import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
             case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
           })
-        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM"))
+        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}"))
       }
     })
   }
@@ -149,11 +150,23 @@ class RoomsServiceVerticle extends ScalaVerticle {
     }
   }
 
+
+  /**
+    * Utility method to extract room parameters from json
+    *
+    * @return the information retrieved
+    */
+  private def extractRoomFromBody(jsonObject: JsonObject): Option[(String, Int)] = {
+    if (jsonObject.containsKey(Room.FIELD_NAME) && jsonObject.containsKey(Room.FIELD_NEEDED_PLAYERS))
+      Some((jsonObject.getString(Room.FIELD_NAME), jsonObject.getInteger(Room.FIELD_NEEDED_PLAYERS)))
+    else None
+  }
+
   /**
     * @param routingContext the routing context on which to extract
     * @return the extracted room name
     */
-  private def getRequestParam(paramName: String)(implicit routingContext: RoutingContext): Option[String] = {
+  private def extractRequestParam(paramName: String)(implicit routingContext: RoutingContext): Option[String] = {
     routingContext.request().getParam(paramName)
   }
 
