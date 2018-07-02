@@ -7,6 +7,7 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.User
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Random, Success}
@@ -21,7 +22,7 @@ class RoomsServiceVerticle extends ScalaVerticle {
   private val ROOM_NAME_PARAM = ":room"
 
   private val USER_NOT_AUTHENTICATED = "User is not authenticated"
-  private val TOKEN_NOT_PROVIDED = "Token not provided"
+  private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
   private val INVALID_PARAMETER_ERROR = "Invalid parameters:"
   private val INTERNAL_SERVER_ERROR = "Internal server error"
   private val RESOURCE_NOT_FOUND = "Resource not found"
@@ -36,7 +37,7 @@ class RoomsServiceVerticle extends ScalaVerticle {
     val router = Router.router(vertx)
     router post "/api/rooms" handler createRoomHandler
     router get "/api/rooms" handler listRoomsHandler
-    router get "/api/rooms/public" handler enterPublicRoomHandler
+    router get "/api/rooms/public" handler enterPublicRoomHandler // TODO:  remove this and check for "public" inside :room
     router get "/api/rooms/:room" handler enterRoomHandler
     router get "/api/rooms/:room/info" handler retrieveRoomInfoHandler
 
@@ -47,69 +48,69 @@ class RoomsServiceVerticle extends ScalaVerticle {
   }
 
   private def createRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    //    validateUserOrSendError(routingContext).andThen({case x=>println(x)}).map(_ => {
-    val roomName = getRequestParam(ROOM_NAME_PARAM)
-      .getOrElse(s"Room${Random.nextInt(Int.MaxValue)}") // TODO: check if random generated room is already present
+    validateUserOrSendError.map(_ => {
+      val roomName = getRequestParam(ROOM_NAME_PARAM)
+        .getOrElse(s"Room${Random.nextInt(Int.MaxValue)}") // TODO: check if random generated room is already present
 
-    daoFuture.map(_.createRoom(roomName).onComplete {
-      case Success(_) => sendResponse(201, None)
-      case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+      daoFuture.map(_.createRoom(roomName).onComplete {
+        case Success(_) => sendResponse(201, None)
+        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+      })
     })
-    //    })
   }
 
   private def listRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
-    //    validateUserOrSendError(routingContext).map(_ => {
-    daoFuture.map(_.listRooms().onComplete {
-      case Success(rooms) =>
-        import RoomUtils.RichRoom
-        sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
+    validateUserOrSendError.map(_ => {
+      daoFuture.map(_.listRooms().onComplete {
+        case Success(rooms) =>
+          import RoomUtils.RichRoom
+          sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
 
-      case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+      })
     })
-    //    })
   }
 
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    //    validateUserOrSendError(routingContext).map(_ => {
-    // TODO: GET_USER
-    val testUser = User(s"Test${Random.nextInt()}")
-    daoFuture.map(_.enterPublicRoom(testUser).onComplete {
-      case Success(_) => sendResponse(200, None)
-      case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+    validateUserOrSendError.map(_ => {
+      // TODO: GET_USER
+      val testUser = User(s"Test${Random.nextInt()}")
+      daoFuture.map(_.enterPublicRoom(testUser).onComplete {
+        case Success(_) => sendResponse(200, None)
+        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+      })
     })
-    //    })
   }
 
   private def enterRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    //    validateUserOrSendError(routingContext).map(_ => {
-    getRequestParam(ROOM_NAME_PARAM) match {
-      case Some(roomName) =>
-        // TODO: GET_USER
-        val testUser = User(s"Test${Random.nextInt()}")
-        daoFuture.map(_.enterRoom(roomName, testUser).onComplete {
-          case Success(_) => sendResponse(200, None)
-          case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
-        })
+    validateUserOrSendError.map(_ => {
+      getRequestParam(ROOM_NAME_PARAM) match {
+        case Some(roomName) =>
+          // TODO: GET_USER
+          val testUser = User(s"Test${Random.nextInt()}")
+          daoFuture.map(_.enterRoom(roomName, testUser).onComplete {
+            case Success(_) => sendResponse(200, None)
+            case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
+          })
 
-      case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM")) // TODO: refactor with below method
-    }
-    //    })
+        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM")) // TODO: refactor with below method
+      }
+    })
   }
 
   private def retrieveRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
-    //    validateUserOrSendError(routingContext).map(_ => {
-    getRequestParam(ROOM_NAME_PARAM) match {
-      case Some(roomName) =>
-        daoFuture.map(_.getRoomInfo(roomName).onComplete {
-          case Success(room) =>
-            import RoomUtils.RichRoom
-            sendResponse(200, Some(room.toJson.encode()))
-          case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
-        })
-      case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM"))
-    }
-    //    })
+    validateUserOrSendError.map(_ => {
+      getRequestParam(ROOM_NAME_PARAM) match {
+        case Some(roomName) =>
+          daoFuture.map(_.getRoomInfo(roomName).onComplete {
+            case Success(room) =>
+              import RoomUtils.RichRoom
+              sendResponse(200, Some(room.toJson.encode()))
+            case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
+          })
+        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR $ROOM_NAME_PARAM"))
+      }
+    })
   }
 
   /**
@@ -119,25 +120,33 @@ class RoomsServiceVerticle extends ScalaVerticle {
     *
     * @param routingContext the context in which to check
     */
-  private def validateUserOrSendError(routingContext: RoutingContext): Future[User] = {
-    // TODO: Utilizzare l'AuthenticationServiceHelper
-    val incomingUserToken = routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString).get
-    //    println(s"Server received: $incomingUserToken")
+  private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
+    (for (
+      httpToken <- routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString);
+      jwtOption = HttpUtils.buildJwtAuthentication(httpToken);
+      jwToken <- jwtOption
+    ) yield {
 
-    val webClient = WebClient.create(vertx, WebClientOptions().setDefaultHost("127.0.0.1").setDefaultPort(8666))
-    webClient.get("/api/validate")
-      .putHeader(HttpHeaderNames.AUTHORIZATION.toString, incomingUserToken)
-      .sendFuture()
-      .map(response => {
-        //        println(response.statusCode())
-        //        println(response.body())
-        User(response.bodyAsString.get)
-      })
-    // TODO: add error checking
-
-    // routingContext.response().setStatusCode(400).end(TOKEN_NOT_PROVIDED)
-    // routingContext.response().setStatusCode(401).end(USER_NOT_AUTHENTICATED)
-    // TODO: chek authentication
+      // TODO: Utilizzare l'AuthenticationServiceHelper
+      val webClient = WebClient.create(vertx, WebClientOptions().setDefaultHost("127.0.0.1").setDefaultPort(8666))
+      webClient.get("/api/validate")
+        .putHeader(HttpHeaderNames.AUTHORIZATION.toString, jwToken)
+        .sendFuture()
+        .flatMap(response => response.statusCode() match {
+          case 200 => Future.successful(User(response.bodyAsString.get))
+          case 400 =>
+            sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
+            Future.failed(new Exception(TOKEN_NOT_PROVIDED_OR_INVALID))
+          case 401 =>
+            sendResponse(401, Some(USER_NOT_AUTHENTICATED))
+            Future.failed(new Exception(USER_NOT_AUTHENTICATED))
+        })
+    }) match {
+      case Some(userFuture) => userFuture
+      case None =>
+        sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
+        Future.failed(new Exception(TOKEN_NOT_PROVIDED_OR_INVALID))
+    }
   }
 
   /**
