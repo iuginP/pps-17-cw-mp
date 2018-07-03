@@ -5,29 +5,36 @@ import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
-import io.vertx.scala.ext.sql.ResultSet
+import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.model.{Room, User}
 
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.util.Random
 
 /**
   * A trait that describes the Data Access Object for Rooms
   *
   * @author Enrico Siboni
   */
-trait RoomsDAO {
+trait RoomsDAO { // TODO: move in core... but not local implementation... then implement the communication with server there
   def initialize(): Future[Unit]
 
-  def createRoom(roomID: String, roomName: String, neededPlayers: Int): Future[Unit]
+  def createRoom(roomName: String, playersNumber: Int): Future[String]
 
-  def listRooms(): Future[Seq[Room]]
+  def enterRoom(roomID: String)(implicit user: User): Future[Unit]
 
-  def enterPublicRoom(user: User): Future[Unit]
+  def roomInfo(roomID: String): Future[Room]
 
-  def enterRoom(roomID: String, user: User): Future[Unit]
+  def exitRoom(roomID: String): Future[Unit]
 
-  def getRoomInfo(roomID: String): Future[Room]
+  def listPublicRooms(): Future[Seq[Room]]
+
+  def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit]
+
+  def publicRoomInfo(playersNumber: Int): Future[Unit]
+
+  def exitPublicRoom(playersNumber: Int): Future[Unit]
 }
 
 /**
@@ -39,70 +46,91 @@ object RoomsDAO {
 
   def apply(vertx: Vertx): RoomsDAO = new RoomLocalDAO(vertx)
 
+  val publicPrefix: String = "public"
 
   /**
     * A wrapper to access a local Vertx storage for Rooms
     */
   private class RoomLocalDAO(vertx: Vertx) extends RoomsDAO {
     private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
+    private var notInitialized = true
     private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
-    private val publicRoomName: String = "public"
-
     override def initialize(): Future[Unit] = {
+      var randomIDs: Seq[Int] = Seq()
+      // generate three different random IDs
+      do randomIDs = for (_ <- 0 until 3; random = Random.nextInt(Int.MaxValue)) yield random
+      while (randomIDs.distinct.size != 3)
+
       localJDBCClient.getConnectionFuture().flatMap(conn =>
-        conn.executeFuture(dropUserTableSql).flatMap(_ =>
-          conn.executeFuture(dropRoomTableSql).flatMap(_ =>
-            conn.executeFuture(createRoomTableSql).flatMap(_ =>
-              conn.executeFuture(createUserTableSql).flatMap(_ =>
-                conn.updateWithParamsFuture(insertNewRoomSql, Seq("ID", publicRoomName, "4")) // TODO: add other public rooms
-                  .map(_ => conn.close())
-              )
-            )
-          )
-        )
+        conn.executeFuture(s"$dropUserTableSql;$dropRoomTableSql")
+          .flatMap(_ => conn.executeFuture(s"$createRoomTableSql;$createUserTableSql"))
+          .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs.head}", s"${publicPrefix}2", "2")))
+          .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs(1)}", s"${publicPrefix}3", "3")))
+          .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs(2)}", s"${publicPrefix}4", "4")))
+          .map(_ => {
+            conn.close()
+            notInitialized = false
+          })
       )
     }
 
-    override def createRoom(roomID: String, roomName: String, neededPlayers: Int): Future[Unit] = {
-      if (emptyString(roomID) || emptyString(roomName) || roomName == publicRoomName || neededPlayers < 1) {
-        Future.failed(new Exception)
-      } else {
+    override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
+      checkInitialization().flatMap(_ =>
+        if (emptyString(roomName)) Future.failed(new IllegalArgumentException("Room name empty"))
+        else if (playersNumber < 2) Future.failed(new IllegalArgumentException(s"Room players number not valid: $playersNumber"))
+        else
+          localJDBCClient.getConnectionFuture().flatMap(conn =>
+            getNotAlreadyPresentRoomID(conn).flatMap(roomID =>
+              conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
+                .map(_ => {
+                  conn.close()
+                  roomID
+                }))))
+    }
+
+    override def enterRoom(roomID: String)(implicit user: User): Future[Unit] = ???
+
+    override def roomInfo(roomID: String): Future[Room] = ???
+
+    override def exitRoom(roomID: String): Future[Unit] = ???
+
+    override def listPublicRooms(): Future[Seq[Room]] = {
+      checkInitialization().flatMap(_ =>
         localJDBCClient.getConnectionFuture().flatMap(conn =>
-          conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, neededPlayers.toString))
-            .map(_ => conn.close())
-        )
-      }
+          conn.queryFuture(selectAllPublicRooms)
+            .map(resultSet => {
+              resultSet.getResults.foreach(println(_))
+              userTableRecordsToRooms(resultSet)
+            })))
     }
 
-    override def listRooms(): Future[Seq[Room]] = {
-      localJDBCClient.getConnectionFuture().flatMap(conn => {
-        conn.queryFuture(selectAllRoomsAndUsersSql)
-          .map(resultSet => {
-            //            resultSet.getResults.foreach(println(_))
-            userTableRecordsToRooms(resultSet)
-          })
-      })
-    }
+    override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = ???
 
-    override def enterPublicRoom(user: User): Future[Unit] = {
-      enterRoom("ID", user) // TODO: change the ID to be variable
-    }
+    override def publicRoomInfo(playersNumber: Int): Future[Unit] = ???
 
-    override def enterRoom(roomID: String, user: User): Future[Unit] = {
-      if (emptyString(roomID) || user == null) {
-        Future.failed(new Exception)
-      } else {
-        localJDBCClient.getConnectionFuture().flatMap(conn => {
-          conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.toString, roomID))
-            .map(_ => conn.close())
-        })
-      }
-    }
+    override def exitPublicRoom(playersNumber: Int): Future[Unit] = ???
 
-    override def getRoomInfo(roomID: String): Future[Room] = {
-      listRooms().map(_.find(_.identifier == roomID).get)
-    }
+
+    //
+    //    override def enterPublicRoom(user: User): Future[Unit] = {
+    //      enterRoom("ID", user) // TODO: change the ID to be variable
+    //    }
+    //
+    //    override def enterRoom(roomID: String, user: User): Future[Unit] = {
+    //      if (emptyString(roomID) || user == null) {
+    //        Future.failed(new Exception)
+    //      } else {
+    //        localJDBCClient.getConnectionFuture().flatMap(conn => {
+    //          conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.toString, roomID))
+    //            .map(_ => conn.close())
+    //        })
+    //      }
+    //    }
+    //
+    //    override def getRoomInfo(roomID: String): Future[Room] = {
+    //      listRooms().map(_.find(_.identifier == roomID).get)
+    //    }
 
     private def localConfig: JsonObject = new JsonObject()
       .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
@@ -110,6 +138,14 @@ object RoomsDAO {
       .put("max_pool_size", 30)
       .put("user", "SA")
       .put("password", "")
+
+    /**
+      * Utility method to check if DAO is initialized
+      */
+    private def checkInitialization() = {
+      if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
+      else Future.successful(Unit)
+    }
 
 
     private val userToRoomLinkField = "user_room"
@@ -136,12 +172,36 @@ object RoomsDAO {
     private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
     private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
-    private val selectAllRoomsAndUsersSql = s"SELECT * FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField"
+    private val selectAllPublicRooms =
+      s"""
+         SELECT *
+         FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField
+         WHERE ${Room.FIELD_IDENTIFIER} LIKE '$publicPrefix%'
+       """
+
+    /**
+      * Method to get a room random ID that isn't already in use
+      *
+      * @param connection the connection to DB where to check presence
+      */
+    private def getNotAlreadyPresentRoomID(connection: SQLConnection) = {
+      val selectRoomIDSql = s"SELECT ${Room.FIELD_IDENTIFIER} FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
+
+      def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
+        connection.queryWithParamsFuture(selectRoomIDSql, Seq(toCheckID)).flatMap(result => {
+          result.getResults.size match {
+            case 0 => Future.successful(toCheckID)
+            case _ => _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection)
+          }
+        })
+
+      _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection)
+    }
 
     /**
       * Utility method to convert a result set to a room sequence
       */
-    private def userTableRecordsToRooms(resultSet: ResultSet): Seq[Room] = {
+    private def userTableRecordsToRooms(resultSet: ResultSet): Seq[Room] = { // review maybe with for comprehension
       val roomsToUsers: mutable.Map[String, Seq[User]] = mutable.HashMap()
       val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
       resultSet.getResults.foreach(resultRow => {
@@ -176,6 +236,11 @@ object RoomsDAO {
     private implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
       arguments.foldLeft(new JsonArray)(_.add(_))
     }
+
+    /**
+      * Method that generates a random room identifier
+      */
+    private def generateRandomRoomID() = Random.nextInt(Int.MaxValue).toString
 
     /**
       * @return true if the string is empty or null

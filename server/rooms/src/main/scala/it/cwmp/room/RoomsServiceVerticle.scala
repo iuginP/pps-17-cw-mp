@@ -53,10 +53,9 @@ class RoomsServiceVerticle extends ScalaVerticle {
     validateUserOrSendError.map(_ => {
       extractRoomFromBody(bodyJson) match {
         case Some((roomName, neededPlayers)) =>
-          val generatedIdentifier: String = Random.nextInt(Int.MaxValue).toString // TODO: check generation of room identifier (even against db)
-          daoFuture.map(_.createRoom(generatedIdentifier, roomName, neededPlayers)
+          daoFuture.map(_.createRoom(roomName, neededPlayers)
             .onComplete {
-              case Success(_) => sendResponse(201, Some(generatedIdentifier))
+              case Success(generatedID) => sendResponse(201, Some(generatedID))
               case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
             })
         case None =>
@@ -67,7 +66,7 @@ class RoomsServiceVerticle extends ScalaVerticle {
 
   private def listRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
-      daoFuture.map(_.listRooms().onComplete {
+      daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
           import Room.Converters._
           sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
@@ -80,16 +79,16 @@ class RoomsServiceVerticle extends ScalaVerticle {
   private def enterRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
       // TODO: GET_USER
-      val testUser = User(s"Test${Random.nextInt()}")
+      implicit val testUser: User = User(s"Test${Random.nextInt()}")
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomID) if roomID == "public" =>
-          daoFuture.map(_.enterPublicRoom(testUser).onComplete {
+          daoFuture.map(_.enterPublicRoom(roomID.toInt).onComplete {
             case Success(_) => sendResponse(200, None)
             case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
           })
 
         case Some(roomID) =>
-          daoFuture.map(_.enterRoom(roomID, testUser).onComplete {
+          daoFuture.map(_.enterRoom(roomID).onComplete {
             case Success(_) => sendResponse(200, None)
             case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
           })
@@ -102,8 +101,8 @@ class RoomsServiceVerticle extends ScalaVerticle {
   private def retrieveRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
-        case Some(roomName) =>
-          daoFuture.map(_.getRoomInfo(roomName).onComplete {
+        case Some(roomId) =>
+          daoFuture.map(_.roomInfo(roomId).onComplete {
             case Success(room) =>
               import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
