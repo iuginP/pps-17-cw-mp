@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import io.vertx.scala.ext.web.client.WebClient
+import it.cwmp.model.User
 import it.cwmp.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
@@ -16,7 +17,7 @@ trait AuthenticationService {
 
   def login(username: String, password: String): Future[String]
 
-  def validate(token: String): Future[Unit]
+  def validate(token: String): Future[User]
 }
 
 object AuthenticationService {
@@ -53,7 +54,7 @@ object AuthenticationService {
           })
       }
 
-    override def validate(token: String): Future[Unit] =
+    override def validate(token: String): Future[User] =
       HttpUtils.buildJwtAuthentication(token) match {
         case None => Future.failed(new IllegalArgumentException())
         case Some(authHeader) => client.get("/api/validate")
@@ -62,7 +63,7 @@ object AuthenticationService {
             authHeader)
           .sendFuture()
           .map(res => res statusCode() match {
-            case 200 => res.bodyAsString().get
+            case 200 => User(res.bodyAsString().get)
             case code => throw new HTTPException(code)
           })
       }

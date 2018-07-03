@@ -92,7 +92,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
 
       auth.signUp(username, password)
         .flatMap(token => auth.validate(token))
-        .map(_ => succeed)
+        .map(user => assert(user.username == username))
     }
 
     it("when invalid token should fail") {
