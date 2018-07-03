@@ -104,7 +104,17 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
         .map(res => res statusCode() should equal(400))
     }
 
-    it("when user not exist should fail") {
+    it("when invalid header should fail") {
+      val token = "INVALID"
+      client.get("/api/login")
+        .putHeader(
+          HttpHeaderNames.AUTHORIZATION.toString,
+          token)
+        .sendFuture()
+        .map(res => res statusCode() should equal(400))
+    }
+
+    it("when user does not exists should fail") {
       val username = "username"
       val password = "password"
 
@@ -119,14 +129,29 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       }
     }
 
-    it("when password is empty should fail") {
-      val token = "INVALID"
-      client.get("/api/login")
-        .putHeader(
-          HttpHeaderNames.AUTHORIZATION.toString,
-          token)
-        .sendFuture()
-        .map(res => res statusCode() should equal(400))
+    it("when password is wrong should fail") {
+      val username = "username"
+      val password = "password"
+      val passwordWrong = "passwordWRONG"
+
+      HttpUtils.buildBasicAuthentication(username, password) match {
+        case None => fail
+        case Some(token) => client.post("/api/signup")
+          .putHeader(
+            HttpHeaderNames.AUTHORIZATION.toString,
+            token)
+          .sendFuture()
+          .flatMap(_ => HttpUtils.buildBasicAuthentication(username, passwordWrong) match {
+              case None => fail
+              case Some(token2) => client.get("/api/login")
+                .putHeader(
+                  HttpHeaderNames.AUTHORIZATION.toString,
+                  token2)
+                .sendFuture()
+                .map(res => res statusCode() should equal(401))
+            }
+          )
+      }
     }
   }
 
