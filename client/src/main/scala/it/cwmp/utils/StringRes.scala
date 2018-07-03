@@ -7,7 +7,9 @@ object StringRes {
 
   val none: String = ""
 
-  val appName: String = "Application Name"
+  val appName: String = "Cell Wars MultiPlayer"
 
   val openingTitle: String = appName
+
+  val signInTitle: String = "Login"
 }
