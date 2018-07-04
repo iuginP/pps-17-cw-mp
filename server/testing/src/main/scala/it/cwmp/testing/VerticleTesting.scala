@@ -1,20 +1,21 @@
 package it.cwmp.testing
 
+import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.{Json, JsonObject}
-import io.vertx.lang.scala.{ScalaVerticle, VertxExecutionContext}
-import io.vertx.scala.core.{DeploymentOptions, Vertx}
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter}
+import io.vertx.scala.core.DeploymentOptions
+import org.scalatest.BeforeAndAfter
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
-abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec with BeforeAndAfter{
-  val vertx: Vertx = Vertx.vertx
-  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(
-    vertx.getOrCreateContext()
-  )
+/**
+  * A base test class that deploys and undeploys a Verticle under testing
+  *
+  * @tparam A the type of the verticle to test
+  */
+abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends VertxTest with BeforeAndAfter {
 
   private var deploymentId = ""
 
@@ -34,7 +35,7 @@ abstract class VerticleTesting[A <: ScalaVerticle: TypeTag] extends AsyncFunSpec
     beforeAbs()
   }
 
-  def beforeAbs(): Unit = {}
+  def beforeAbs(): Unit = {} // TODO: whatch for changing this (mixin in BeforeAdnAfterEach maybe?)
 
   after {
     Await.result(

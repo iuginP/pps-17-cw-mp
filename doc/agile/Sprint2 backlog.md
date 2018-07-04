@@ -8,7 +8,7 @@
 |                      | 3       | Il client deve potersi registrare                                          |           |  10                   | 
 |                      | 4       | Il client deve poter fare login                                            |           |  10                   | 
 | Il client deve poter entrare e uscire in una stanza specifica o randomica (lato client)
-|                      | 5       | Implementazione Classe Helper per interazione servizio Room                | Enrico    |  20                   | 
+|                      | 5       | Implementazione Classe Helper per interazione servizio Room                | Enrico    |  20                   | 20| 20
 |                      | 6       | I client devono poter creare una stanza (protetta)                         |           |  30                   | 
 |                      | 7       | I client devono poter entrare in una stanza (protetta)                     |           |  30                   | 
 |                      | 8       | I client devono poter entrare in una stanza pubblica di una certa dimensione (2,3,4) | |  50                   | 

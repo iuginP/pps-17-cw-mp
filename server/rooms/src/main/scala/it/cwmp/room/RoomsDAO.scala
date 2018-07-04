@@ -10,6 +10,7 @@ import it.cwmp.model.{Room, User}
 
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scala.util.Random
 
 /**
@@ -24,7 +25,7 @@ trait RoomsDAO { // TODO: move in core... but not local implementation... then i
 
   def enterRoom(roomID: String)(implicit user: User): Future[Unit]
 
-  def roomInfo(roomID: String): Future[Room]
+  def roomInfo(roomID: String): Future[Option[Room]]
 
   def exitRoom(roomID: String): Future[Unit]
 
@@ -56,6 +57,11 @@ object RoomsDAO {
     private var notInitialized = true
     private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
+    private val EMPTY_ROOM_NAME_ERROR = "Room name must not be empty!"
+    private val EMPTY_ROOM_ID_ERROR = "Provided room ID must not be empty!"
+    private val INVALID_PLAYERS_NUMBER = "Players number invalid: "
+    private val ALREADY_INSIDE_USER_ERROR = "The user is already inside a room: "
+
     override def initialize(): Future[Unit] = {
       var randomIDs: Seq[Int] = Seq()
       // generate three different random IDs
@@ -76,22 +82,43 @@ object RoomsDAO {
     }
 
     override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
-      checkInitialization().flatMap(_ =>
-        if (emptyString(roomName)) Future.failed(new IllegalArgumentException("Room name empty"))
-        else if (playersNumber < 2) Future.failed(new IllegalArgumentException(s"Room players number not valid: $playersNumber"))
-        else
-          localJDBCClient.getConnectionFuture().flatMap(conn =>
-            getNotAlreadyPresentRoomID(conn).flatMap(roomID =>
-              conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
-                .map(_ => {
-                  conn.close()
-                  roomID
-                }))))
+      checkInitialization()
+        .flatMap(_ => emptyStringCheck(roomName, EMPTY_ROOM_NAME_ERROR))
+        .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
+        .flatMap(_ => localJDBCClient.getConnectionFuture())
+        .flatMap(conn => getNotAlreadyPresentRoomID(conn)
+          .flatMap(roomID => conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
+            .map(_ => {
+              conn.close()
+              roomID
+            }))
+        )
     }
 
-    override def enterRoom(roomID: String)(implicit user: User): Future[Unit] = ???
+    override def enterRoom(roomID: String)(implicit user: User): Future[Unit] = {
+      checkInitialization()
+        .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
+        .flatMap(_ => localJDBCClient.getConnectionFuture())
+        .flatMap(conn => getRoomOfUser(conn, user)
+          .flatMap({
+            case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username}->${room.identifier}"))
+            case None => Future.successful(Unit)
+          })
+          .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID))
+            .map(_ => conn.close()))
+        )
+    }
 
-    override def roomInfo(roomID: String): Future[Room] = ???
+    override def roomInfo(roomID: String): Future[Option[Room]] = {
+      checkInitialization()
+        .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
+        .flatMap(_ => localJDBCClient.getConnectionFuture())
+        .flatMap(conn => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
+          .map(resultSet => {
+            conn.close()
+            userTableRecordsToRooms(resultSet).headOption
+          }))
+    }
 
     override def exitRoom(roomID: String): Future[Unit] = ???
 
@@ -100,7 +127,6 @@ object RoomsDAO {
         localJDBCClient.getConnectionFuture().flatMap(conn =>
           conn.queryFuture(selectAllPublicRooms)
             .map(resultSet => {
-              resultSet.getResults.foreach(println(_))
               userTableRecordsToRooms(resultSet)
             })))
     }
@@ -117,16 +143,6 @@ object RoomsDAO {
     //      enterRoom("ID", user) // TODO: change the ID to be variable
     //    }
     //
-    //    override def enterRoom(roomID: String, user: User): Future[Unit] = {
-    //      if (emptyString(roomID) || user == null) {
-    //        Future.failed(new Exception)
-    //      } else {
-    //        localJDBCClient.getConnectionFuture().flatMap(conn => {
-    //          conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.toString, roomID))
-    //            .map(_ => conn.close())
-    //        })
-    //      }
-    //    }
     //
     //    override def getRoomInfo(roomID: String): Future[Room] = {
     //      listRooms().map(_.find(_.identifier == roomID).get)
@@ -167,17 +183,25 @@ object RoomsDAO {
           CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
         )
       """
-
     private val dropUserTableSql = "DROP TABLE user IF EXISTS"
     private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
+
     private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
-    private val selectAllPublicRooms =
+    private val selectAllRooms =
       s"""
          SELECT *
          FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField
-         WHERE ${Room.FIELD_IDENTIFIER} LIKE '$publicPrefix%'
-       """
+      """
+    private val selectRoomByIDSql = s"$selectAllRooms WHERE ${Room.FIELD_IDENTIFIER} = ?"
+    private val selectAllPublicRooms = s"$selectAllRooms WHERE ${Room.FIELD_IDENTIFIER} LIKE '$publicPrefix%'"
+    private val selectRoomByUser = selectRoomByIDSql.replace("?",
+      s"""
+         (SELECT ${Room.FIELD_IDENTIFIER}
+         FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField
+         WHERE ${User.FIELD_USERNAME} = ?)
+       """)
+
 
     /**
       * Method to get a room random ID that isn't already in use
@@ -196,6 +220,15 @@ object RoomsDAO {
         })
 
       _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection)
+    }
+
+    /**
+      * @return the future containing the room where optionally the user is
+      */
+    private def getRoomOfUser(connection: SQLConnection, user: User) = {
+      connection.queryWithParamsFuture(selectRoomByUser, Seq(user.username))
+        .map(result => userTableRecordsToRooms(result))
+        .map(_.headOption)
     }
 
     /**
@@ -243,9 +276,19 @@ object RoomsDAO {
     private def generateRandomRoomID() = Random.nextInt(Int.MaxValue).toString
 
     /**
-      * @return true if the string is empty or null
+      * @return a succeeded Future if string is ok, a failed Future otherwise
       */
-    private def emptyString(string: String): Boolean = string == null || string.isEmpty
+    private def emptyStringCheck(toCheck: String, errorMessage: String): Future[Unit] =
+      if (toCheck == null || toCheck.isEmpty) Future.failed(new IllegalArgumentException(errorMessage))
+      else Future.successful(Unit)
+
+    /**
+      * @return a succeeded Future if playersNumber is correct, a failed Future otherwise
+      */
+    private def playersNumberCheck(playersNumber: Int, errorMessage: String): Future[Unit] =
+      if (playersNumber < 2) Future.failed(new IllegalArgumentException(errorMessage))
+      else Future.successful(Unit)
+
   }
 
 }

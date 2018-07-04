@@ -103,10 +103,10 @@ class RoomsServiceVerticle extends ScalaVerticle {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).onComplete {
-            case Success(room) =>
+            case Success(Some(room)) =>
               import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
-            case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
+            case _ => sendResponse(404, Some(RESOURCE_NOT_FOUND))
           })
         case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}"))
       }
