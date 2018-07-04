@@ -1,7 +1,7 @@
-package it.cwmp.view
+package it.cwmp.client.view
 
-import it.cwmp.controller.OpeningController
-import it.cwmp.utils.{LayoutRes, StringRes}
+import it.cwmp.client.controller.OpeningController
+import it.cwmp.client.utils.{LayoutRes, StringRes}
 import javafx.application.Platform
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene

@@ -6,7 +6,7 @@ import scala.concurrent._
 import ExecutionContext.Implicits.global
 import io.vertx.scala.ext.web.client.WebClient
 import it.cwmp.model.User
-import it.cwmp.utils.HttpUtils
+import it.cwmp.client.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.Future

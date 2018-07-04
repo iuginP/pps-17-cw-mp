@@ -1,6 +1,6 @@
-package it.cwmp
+package it.cwmp.client
 
-import it.cwmp.view.OpeningView
+import it.cwmp.client.view.OpeningView
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 

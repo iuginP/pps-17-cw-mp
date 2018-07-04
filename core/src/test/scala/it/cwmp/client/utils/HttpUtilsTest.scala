@@ -1,4 +1,4 @@
-package it.cwmp.utils
+package it.cwmp.client.utils
 
 import org.scalatest.FunSpec
 

@@ -1,6 +1,6 @@
-package it.cwmp.controller
+package it.cwmp.client.controller
 
-import it.cwmp.view.{OpeningView, SignInView}
+import it.cwmp.client.view.{OpeningView, SignInView}
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.stage.Stage

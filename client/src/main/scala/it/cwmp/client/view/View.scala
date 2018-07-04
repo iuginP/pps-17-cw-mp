@@ -1,4 +1,4 @@
-package it.cwmp.view
+package it.cwmp.client.view
 
 /**
   * Common trait to all view classes.
