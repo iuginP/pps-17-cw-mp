@@ -1,3 +1,5 @@
+package it.cwmp
+
 import io.vertx.scala.core.Vertx
 import it.cwmp.room.RoomsServiceVerticle
 

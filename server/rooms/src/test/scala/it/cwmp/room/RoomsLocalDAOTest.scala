@@ -1,5 +1,6 @@
 package it.cwmp.room
 
+import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.User
 import it.cwmp.testing.VertxTest
 import org.scalatest.{BeforeAndAfterEach, Matchers}
@@ -13,7 +14,7 @@ import scala.concurrent.Future
   */
 class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach {
 
-  private var daoFuture: Future[RoomsDAO] = _
+  private var daoFuture: Future[RoomsApiWrapper] = _
 
   private val roomName = "Stanza"
   private val playersNumber = 4
@@ -21,7 +22,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
   private val user: User = User("Enrico")
 
   override protected def beforeEach(): Unit = {
-    val localDAO = RoomsDAO(vertx)
+    val localDAO = RoomLocalDAO(vertx)
     daoFuture = localDAO.initialize().map(_ => localDAO)
   }
 
@@ -58,7 +59,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
         daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
           .flatMap(roomID => dao.enterRoom(roomID)(user)
             .flatMap(_ => dao.roomInfo(roomID))
-            .flatMap(_.get.participants should contain(user))))
+            .flatMap(_.participants should contain(user))))
       }
 
       describe("should fail") {
@@ -88,12 +89,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
       it("should succeed if roomId is correct") {
         daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
           .flatMap(roomID => dao.roomInfo(roomID)))
-          .flatMap(_.get.participants shouldBe empty)
-      }
-
-      it("should return empty option if room not present") {
-        daoFuture.flatMap(_.roomInfo("1111111"))
-          .flatMap(_ shouldBe empty)
+          .flatMap(_.participants shouldBe empty)
       }
 
       describe("should fail") {
@@ -102,7 +98,11 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
             daoFuture.flatMap(_.roomInfo(""))
           }
         }
-
+        it("if room is not present"){
+          recoverToSucceededIf[NoSuchElementException] {
+            daoFuture.flatMap(_.roomInfo("1111111"))
+          }
+        }
       }
     }
 
@@ -154,7 +154,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
     it("should show only public rooms") {
       daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
         .flatMap(_ => dao.listPublicRooms()))
-        .flatMap(_.forall(_.identifier.contains(RoomsDAO.publicPrefix)) shouldBe true)
+        .flatMap(_.forall(_.identifier.contains(RoomsApiWrapper.publicPrefix)) shouldBe true)
     }
   }
 
@@ -163,28 +163,28 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
       val fakeRoomID = "12342134"
       implicit val fakeUser: User = User("Enrico")
       it("createRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).createRoom(roomName, playersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).createRoom(roomName, playersNumber))
       }
       it("enterRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).enterRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).enterRoom(fakeRoomID))
       }
       it("roomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).roomInfo(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).roomInfo(fakeRoomID))
       }
       it("exitRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).exitRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).exitRoom(fakeRoomID))
       }
       it("listPublicRooms") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).listPublicRooms())
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).listPublicRooms())
       }
       it("enterPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).enterPublicRoom(playersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).enterPublicRoom(playersNumber))
       }
       it("publicRoomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).publicRoomInfo(playersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).publicRoomInfo(playersNumber))
       }
       it("exitPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsDAO(vertx).exitPublicRoom(playersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).exitPublicRoom(playersNumber))
       }
     }
   }

@@ -6,6 +6,7 @@ import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.{Room, User}
 import it.cwmp.utils.HttpUtils
 
@@ -25,11 +26,11 @@ class RoomsServiceVerticle extends ScalaVerticle {
   private val INTERNAL_SERVER_ERROR = "Internal server error"
   private val RESOURCE_NOT_FOUND = "Resource not found"
 
-  private var daoFuture: Future[RoomsDAO] = _
+  private var daoFuture: Future[RoomsApiWrapper] = _
 
   override def startFuture(): Future[_] = {
 
-    val storageHelper = RoomsDAO(vertx)
+    val storageHelper = RoomLocalDAO(vertx)
     daoFuture = storageHelper.initialize().map(_ => storageHelper)
 
     val router = Router.router(vertx)
@@ -103,7 +104,7 @@ class RoomsServiceVerticle extends ScalaVerticle {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).onComplete {
-            case Success(Some(room)) =>
+            case Success(room) =>
               import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
             case _ => sendResponse(404, Some(RESOURCE_NOT_FOUND))
