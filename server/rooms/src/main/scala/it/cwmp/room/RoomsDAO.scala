@@ -115,7 +115,7 @@ object RoomsDAO {
         .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
         .flatMap(_ => localJDBCClient.getConnectionFuture())
         .flatMap(conn => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
-          .map(resultSet => userTableRecordsToRooms(resultSet).headOption)
+          .map(userTableRecordsToRooms(_).headOption)
           .andThen { case _ => conn.close() }
         )
     }
@@ -124,15 +124,16 @@ object RoomsDAO {
       checkInitialization()
         .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
         .flatMap(_ => localJDBCClient.getConnectionFuture())
-        .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
-          .flatMap({
-          case Some(room) if room.identifier == roomID => Future.successful(Unit)
-          case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-        })
-          .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
-          .andThen { case _ => conn.close() }
-          .map(_ => Unit)
-        )
+        .flatMap(conn => checkRoomPresence(roomID, conn)
+          .flatMap(_ => getRoomOfUser(conn, user) // check user inside room
+            .flatMap({
+            case Some(room) if room.identifier == roomID => Future.successful(Unit)
+            case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+          })
+            .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
+            .andThen { case _ => conn.close() }
+            .map(_ => Unit)
+          ))
     }
 
     override def listPublicRooms(): Future[Seq[Room]] = {
@@ -140,7 +141,7 @@ object RoomsDAO {
         .flatMap(_ => localJDBCClient.getConnectionFuture())
         .flatMap(conn => conn.queryFuture(selectAllPublicRooms)
           .andThen { case _ => conn.close() })
-        .map(resultSet => userTableRecordsToRooms(resultSet))
+        .map(userTableRecordsToRooms)
     }
 
     override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = checkInitialization()
@@ -237,8 +238,7 @@ object RoomsDAO {
       */
     private def getRoomOfUser(connection: SQLConnection, user: User) = {
       connection.queryWithParamsFuture(selectRoomByUser, Seq(user.username))
-        .map(result => userTableRecordsToRooms(result))
-        .map(_.headOption)
+        .map(userTableRecordsToRooms(_).headOption)
     }
 
     /**
