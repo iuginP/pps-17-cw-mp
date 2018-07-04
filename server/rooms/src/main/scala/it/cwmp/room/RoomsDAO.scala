@@ -27,7 +27,7 @@ trait RoomsDAO { // TODO: move in core... but not local implementation... then i
 
   def roomInfo(roomID: String): Future[Option[Room]]
 
-  def exitRoom(roomID: String): Future[Unit]
+  def exitRoom(roomID: String)(implicit user: User): Future[Unit]
 
   def listPublicRooms(): Future[Seq[Room]]
 
@@ -35,7 +35,7 @@ trait RoomsDAO { // TODO: move in core... but not local implementation... then i
 
   def publicRoomInfo(playersNumber: Int): Future[Unit]
 
-  def exitPublicRoom(playersNumber: Int): Future[Unit]
+  def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit]
 }
 
 /**
@@ -61,6 +61,7 @@ object RoomsDAO {
     private val EMPTY_ROOM_ID_ERROR = "Provided room ID must not be empty!"
     private val INVALID_PLAYERS_NUMBER = "Players number invalid: "
     private val ALREADY_INSIDE_USER_ERROR = "The user is already inside a room: "
+    private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
 
     override def initialize(): Future[Unit] = {
       var randomIDs: Seq[Int] = Seq()
@@ -101,7 +102,7 @@ object RoomsDAO {
         .flatMap(_ => localJDBCClient.getConnectionFuture())
         .flatMap(conn => getRoomOfUser(conn, user)
           .flatMap({
-            case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username}->${room.identifier}"))
+            case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
             case None => Future.successful(Unit)
           })
           .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID))
@@ -120,7 +121,19 @@ object RoomsDAO {
           }))
     }
 
-    override def exitRoom(roomID: String): Future[Unit] = ???
+    override def exitRoom(roomID: String)(implicit user: User): Future[Unit] = {
+      checkInitialization()
+        .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
+        .flatMap(_ => localJDBCClient.getConnectionFuture())
+        .flatMap(conn => getRoomOfUser(conn, user)
+          .flatMap({
+            case Some(room) if room.identifier == roomID => Future.successful(Unit)
+            case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+          })
+          .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))
+            .map(_ => conn.close()))
+        )
+    }
 
     override def listPublicRooms(): Future[Seq[Room]] = {
       checkInitialization().flatMap(_ =>
@@ -131,11 +144,11 @@ object RoomsDAO {
             })))
     }
 
-    override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = ???
+    override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = checkInitialization()
 
-    override def publicRoomInfo(playersNumber: Int): Future[Unit] = ???
+    override def publicRoomInfo(playersNumber: Int): Future[Unit] = checkInitialization()
 
-    override def exitPublicRoom(playersNumber: Int): Future[Unit] = ???
+    override def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = checkInitialization()
 
 
     //
@@ -158,7 +171,7 @@ object RoomsDAO {
     /**
       * Utility method to check if DAO is initialized
       */
-    private def checkInitialization() = {
+    private def checkInitialization(): Future[Unit] = {
       if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
       else Future.successful(Unit)
     }
@@ -188,6 +201,7 @@ object RoomsDAO {
 
     private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
+    private val deleteUserFormRoomSql = s"DELETE FROM user WHERE ${User.FIELD_USERNAME} = ?"
     private val selectAllRooms =
       s"""
          SELECT *

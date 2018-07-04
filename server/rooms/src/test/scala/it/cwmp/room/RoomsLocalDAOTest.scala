@@ -49,16 +49,16 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
 
     describe("Entering") {
       it("should succeed if roomId is provided") {
-        daoFuture.flatMap(conn =>
-          conn.createRoom(roomName, playersNumber).flatMap(roomID =>
-            conn.enterRoom(roomID)(user).map(_ => succeed)))
+        daoFuture.flatMap(dao =>
+          dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+            dao.enterRoom(roomID)(user).map(_ => succeed)))
       }
 
-      it("user should be inside after entering") {
-        daoFuture.flatMap(conn =>
-          conn.createRoom(roomName, playersNumber).flatMap(roomID =>
-            conn.enterRoom(roomID)(user).flatMap(_ =>
-              conn.roomInfo(roomID))
+      it("user should be inside after it") {
+        daoFuture.flatMap(dao =>
+          dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+            dao.enterRoom(roomID)(user).flatMap(_ =>
+              dao.roomInfo(roomID))
               .flatMap(_.get.participants should contain(user))))
       }
 
@@ -71,10 +71,10 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
 
         it("if user already inside a room") {
           recoverToSucceededIf[IllegalArgumentException] {
-            daoFuture.flatMap(conn =>
-              conn.createRoom(roomName, playersNumber).flatMap(roomID =>
-                conn.enterRoom(roomID)(user).flatMap(_ =>
-                  conn.enterRoom(roomID)(user))))
+            daoFuture.flatMap(dao =>
+              dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+                dao.enterRoom(roomID)(user).flatMap(_ =>
+                  dao.enterRoom(roomID)(user))))
           }
         }
       }
@@ -82,9 +82,9 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
 
     describe("Retrieving Info") {
       it("should succeed if roomId is correct") {
-        daoFuture.flatMap(conn =>
-          conn.createRoom(roomName, playersNumber).flatMap(roomID =>
-            conn.roomInfo(roomID))
+        daoFuture.flatMap(dao =>
+          dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+            dao.roomInfo(roomID))
             .flatMap(_.get.participants shouldBe empty))
       }
 
@@ -100,6 +100,41 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
           }
         }
 
+      }
+    }
+
+    describe("Exit Room") {
+      it("should succeed if roomID is correct and user inside") {
+        daoFuture.flatMap(dao =>
+          dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+            dao.enterRoom(roomID)(user).flatMap(_ =>
+              dao.exitRoom(roomID)(user).map(_ => succeed))))
+      }
+
+      describe("should fail") {
+        it("if roomId is empty") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(_.exitRoom("")(user))
+          }
+        }
+
+        it("if user is not inside the room") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(dao =>
+              dao.createRoom(roomName, playersNumber).flatMap(roomID =>
+                dao.exitRoom(roomID)(user).map(_ => succeed)))
+          }
+        }
+
+        it("if user is inside another room") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(dao =>
+              dao.createRoom(roomName, playersNumber).flatMap(roomID2 =>
+                dao.createRoom(roomName, playersNumber).flatMap(roomID1 =>
+                  dao.enterRoom(roomID1)(user).flatMap(_ =>
+                    dao.exitRoom(roomID2)(user).map(_ => succeed)))))
+          }
+        }
       }
     }
   }
