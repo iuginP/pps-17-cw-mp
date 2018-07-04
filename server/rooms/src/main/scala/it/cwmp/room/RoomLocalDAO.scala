@@ -12,6 +12,7 @@ import it.cwmp.model.{Room, User}
 
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scala.util.Random
 
 /**
@@ -26,6 +27,8 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
 
   private val EMPTY_ROOM_NAME_ERROR = "Room name must not be empty!"
   private val EMPTY_ROOM_ID_ERROR = "Provided room ID must not be empty!"
+  private val NOT_PRESENT_ROOM_ID_ERROR = "Provided id is not present!"
+  private val ROOM_FULL_ERROR = "The room is full!"
   private val INVALID_PLAYERS_NUMBER = "Players number invalid: "
   private val ALREADY_INSIDE_USER_ERROR = "The user is already inside a room: "
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
@@ -65,12 +68,13 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     checkInitialization()
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
-      .flatMap(conn => checkRoomPresence(roomID, conn)
+      .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
+        .flatMap(_ => checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR))
         .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
-        .flatMap({
-        case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
+        .flatMap {
+        case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
         case None => Future.successful(Unit)
-      })
+      }
         .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID)))
         .andThen { case _ => conn.close() }
         .map(_ => Unit)
@@ -81,9 +85,9 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     checkInitialization()
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
-      .flatMap(conn => checkRoomPresence(roomID, conn)
+      .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
         .flatMap(_ => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID)))
-        .map(userTableRecordsToRooms(_).head)
+        .map(resultOfJoinToRooms(_).head)
         .andThen { case _ => conn.close() })
   }
 
@@ -91,12 +95,12 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     checkInitialization()
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
-      .flatMap(conn => checkRoomPresence(roomID, conn)
+      .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
         .flatMap(_ => getRoomOfUser(conn, user) // check user inside room
-          .flatMap({
+          .flatMap {
           case Some(room) if room.identifier == roomID => Future.successful(Unit)
-          case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-        })
+          case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+        }
           .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
           .andThen { case _ => conn.close() }
           .map(_ => Unit)
@@ -106,31 +110,28 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   override def listPublicRooms(): Future[Seq[Room]] = {
     checkInitialization()
       .flatMap(_ => localJDBCClient.getConnectionFuture())
-      .flatMap(conn => conn.queryFuture(selectAllPublicRooms)
+      .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
         .andThen { case _ => conn.close() })
-      .map(userTableRecordsToRooms)
+      .map(resultOfJoinToRooms)
   }
 
   override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
     checkInitialization()
+      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
+      .flatMap(enterRoom)
   }
 
   override def publicRoomInfo(playersNumber: Int): Future[Room] = {
-    checkInitialization().map(_ => ???)
+    checkInitialization()
+      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
+      .flatMap(roomInfo)
   }
 
-  override def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = checkInitialization()
-
-
-  //
-  //    override def enterPublicRoom(user: User): Future[Unit] = {
-  //      enterRoom("ID", user) // TODO: change the ID to be variable
-  //    }
-  //
-  //
-  //    override def getRoomInfo(roomID: String): Future[Room] = {
-  //      listRooms().map(_.find(_.identifier == roomID).get)
-  //    }
+  override def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
+    checkInitialization()
+      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
+      .flatMap(exitRoom)
+  }
 
   private def localConfig: JsonObject = new JsonObject()
     .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
@@ -174,14 +175,14 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
   private val deleteUserFormRoomSql = s"DELETE FROM user WHERE ${User.FIELD_USERNAME} = ?"
   private val selectARoomIDSql = s"SELECT ${Room.FIELD_IDENTIFIER} FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
-  private val selectAllRooms =
+  private val selectAllRoomsSql =
     s"""
          SELECT *
          FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField
       """
-  private val selectRoomByIDSql = s"$selectAllRooms WHERE ${Room.FIELD_IDENTIFIER} = ?"
-  private val selectAllPublicRooms = s"$selectAllRooms WHERE ${Room.FIELD_IDENTIFIER} LIKE '$publicPrefix%'"
-  private val selectRoomByUser = selectRoomByIDSql.replace("?",
+  private val selectRoomByIDSql = s"$selectAllRoomsSql WHERE ${Room.FIELD_IDENTIFIER} = ?"
+  private val selectAllPublicRoomsSql = s"$selectAllRoomsSql WHERE ${Room.FIELD_IDENTIFIER} LIKE '$publicPrefix%'"
+  private val selectRoomByUserSql = selectRoomByIDSql.replace("?",
     s"""
          (SELECT ${Room.FIELD_IDENTIFIER}
          FROM room LEFT JOIN user ON ${Room.FIELD_IDENTIFIER} = $userToRoomLinkField
@@ -197,7 +198,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   private def getNotAlreadyPresentRoomID(connection: SQLConnection): Future[String] = {
 
     def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
-      checkRoomPresence(toCheckID, connection)
+      checkRoomPresence(toCheckID, connection, "")
         .flatMap(_ => _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection))
         .fallbackTo(Future.successful(toCheckID))
 
@@ -205,17 +206,31 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   /**
+    * @return the future containing the roomId of the public room with such players number,
+    *         or failed future if players number too low or not present
+    */
+  private def publicRoomIdFromPlayersNumber(playersNumber: Int): Future[String] = {
+    playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber")
+      .flatMap(_ => listPublicRooms())
+      .map(_.find(_.neededPlayersNumber == playersNumber))
+      .flatMap {
+        case Some(room) => Future.successful(room.identifier)
+        case _ => Future.failed(new NoSuchElementException(s"$INVALID_PLAYERS_NUMBER$playersNumber"))
+      }
+  }
+
+  /**
     * @return the future containing the room where optionally the user is
     */
   private def getRoomOfUser(connection: SQLConnection, user: User) = {
-    connection.queryWithParamsFuture(selectRoomByUser, Seq(user.username))
-      .map(userTableRecordsToRooms(_).headOption)
+    connection.queryWithParamsFuture(selectRoomByUserSql, Seq(user.username))
+      .map(resultOfJoinToRooms(_).headOption)
   }
 
   /**
     * Utility method to convert a result set to a room sequence
     */
-  private def userTableRecordsToRooms(resultSet: ResultSet): Seq[Room] = { // review maybe with for comprehension
+  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[Room] = { // review maybe with for comprehension
     val roomsToUsers: mutable.Map[String, Seq[User]] = mutable.HashMap()
     val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
     resultSet.getResults.foreach(resultRow => {
@@ -271,13 +286,26 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     else Future.successful(Unit)
 
   /**
-    * @return a succeeded future if the rome with given ID is present, a failed future otherwise
+    * @return a succeeded future if the room with given ID is present, a failed future otherwise
     */
-  private def checkRoomPresence(roomID: String, connection: SQLConnection): Future[Unit] = {
+  private def checkRoomPresence(roomID: String, connection: SQLConnection, errorMessage: String): Future[Unit] = {
     connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
       .flatMap(_.getResults.size match {
-        case 0 => Future.failed(new NoSuchElementException)
+        case 0 => Future.failed(new NoSuchElementException(errorMessage))
         case _ => Future.successful(Unit)
+      })
+  }
+
+  /**
+    * @return a succeeded future if the room has available space for other users
+    */
+  private def checkRoomSpaceAvailable(roomID: String, connection: SQLConnection, errorMessage: String): Future[Unit] = {
+    connection.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
+      .map(result => resultOfJoinToRooms(result))
+      .flatMap(_.head match {
+        case Room(_, _, playersNumber, actualParticipants)
+          if playersNumber > actualParticipants.size => Future.successful(Unit)
+        case _ => Future.failed(new IllegalStateException(errorMessage))
       })
   }
 }

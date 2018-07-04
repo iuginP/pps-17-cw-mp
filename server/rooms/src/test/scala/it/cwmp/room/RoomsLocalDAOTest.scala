@@ -14,10 +14,9 @@ import scala.concurrent.Future
   */
 class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach {
 
-  private var daoFuture: Future[RoomsApiWrapper] = _
+  private var daoFuture: Future[RoomLocalDAO] = _
 
   private val roomName = "Stanza"
-  private val playersNumber = 4
 
   private val user: User = User("Enrico")
 
@@ -27,6 +26,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
   }
 
   describe("Private Room") {
+    val playersNumber = 2
 
     describe("Creation") {
       it("should succeed returning roomId, if parameters are correct") {
@@ -76,10 +76,21 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
         }
 
         it("if user is already inside a room") {
-          recoverToSucceededIf[IllegalArgumentException] {
+          recoverToSucceededIf[IllegalStateException] {
             daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
               .flatMap(roomID => dao.enterRoom(roomID)(user)
                 .flatMap(_ => dao.enterRoom(roomID)(user))))
+          }
+        }
+
+        it("if the room is full") {
+          recoverToSucceededIf[IllegalStateException] {
+            val playersNumber = 2
+            daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
+              .flatMap(roomID => dao.enterRoom(roomID)(User("User1"))
+                .flatMap(_ => dao.enterRoom(roomID)(User("User2")))
+                .flatMap(_ => dao.enterRoom(roomID)(User("User3")))
+              ))
           }
         }
       }
@@ -98,7 +109,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
             daoFuture.flatMap(_.roomInfo(""))
           }
         }
-        it("if room is not present"){
+        it("if room is not present") {
           recoverToSucceededIf[NoSuchElementException] {
             daoFuture.flatMap(_.roomInfo("1111111"))
           }
@@ -112,6 +123,14 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
           .flatMap(roomID => dao.enterRoom(roomID)(user)
             .flatMap(_ => dao.exitRoom(roomID)(user))))
           .map(_ => succeed)
+      }
+
+      it("user should not be inside after it") {
+        daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
+          .flatMap(roomID => dao.enterRoom(roomID)(user)
+            .flatMap(_ => dao.exitRoom(roomID)(user))
+            .flatMap(_ => dao.roomInfo(roomID))
+            .flatMap(_.participants shouldNot contain(user))))
       }
 
       describe("should fail") {
@@ -128,14 +147,14 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
         }
 
         it("if user is not inside the room") {
-          recoverToSucceededIf[IllegalArgumentException] {
+          recoverToSucceededIf[IllegalStateException] {
             daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
               .flatMap(roomID => dao.exitRoom(roomID)(user)))
           }
         }
 
         it("if user is inside another room") {
-          recoverToSucceededIf[IllegalArgumentException] {
+          recoverToSucceededIf[IllegalStateException] {
             daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
               .flatMap(roomID => dao.createRoom(roomName, playersNumber)
                 .flatMap(otherRoomID => dao.enterRoom(otherRoomID)(user))
@@ -147,20 +166,138 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
   }
 
   describe("Public Room") {
-    it("listing should be nonEmpty") {
-      daoFuture.flatMap(_.listPublicRooms()).flatMap(_ should not be empty)
+    val publicRoomPlayersNumber = 2
+
+    describe("Listing") {
+      it("should be nonEmpty") {
+        daoFuture.flatMap(_.listPublicRooms()).flatMap(_ should not be empty)
+      }
+
+      it("should show only public rooms") {
+        daoFuture.flatMap(dao => dao.createRoom(roomName, publicRoomPlayersNumber)
+          .flatMap(_ => dao.listPublicRooms()))
+          .flatMap(_.forall(_.identifier.contains(RoomsApiWrapper.publicPrefix)) shouldBe true)
+      }
     }
 
-    it("should show only public rooms") {
-      daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-        .flatMap(_ => dao.listPublicRooms()))
-        .flatMap(_.forall(_.identifier.contains(RoomsApiWrapper.publicPrefix)) shouldBe true)
+    describe("Entering") {
+      describe("should succeed") {
+        it("if room with such players number exists") {
+          daoFuture.flatMap(_.enterPublicRoom(publicRoomPlayersNumber)(user))
+            .map(_ => succeed)
+        }
+
+        it("and the user should be inside it") {
+          daoFuture.flatMap(dao => dao.enterPublicRoom(publicRoomPlayersNumber)(user)
+            .flatMap(_ => dao.publicRoomInfo(publicRoomPlayersNumber))
+            .flatMap(_.participants should contain(user)))
+        }
+      }
+
+      describe("should fail") {
+        it("if provided players number is less than 2") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(_.enterPublicRoom(0)(user))
+          }
+        }
+
+        it("if there's no room with such players number") {
+          recoverToSucceededIf[NoSuchElementException] {
+            daoFuture.flatMap(_.enterPublicRoom(20)(user))
+          }
+        }
+
+        it("if user is already inside a room") {
+          recoverToSucceededIf[IllegalStateException] {
+            daoFuture.flatMap(dao => dao.enterPublicRoom(2)(user)
+              .flatMap(_ => dao.enterPublicRoom(3)(user)))
+          }
+        }
+
+        it("if room is full") {
+          recoverToSucceededIf[IllegalStateException] {
+            daoFuture.flatMap(dao => dao.enterPublicRoom(2)(User("User1"))
+              .flatMap(_ => dao.enterPublicRoom(2)(User("User2")))
+              .flatMap(_ => dao.enterPublicRoom(2)(User("User3"))))
+          }
+        }
+      }
+    }
+
+    describe("Retrieving Info") {
+      it("should succeed if provided playersNumber is correct") {
+        daoFuture.flatMap(_.publicRoomInfo(publicRoomPlayersNumber))
+          .flatMap(_.participants shouldBe empty)
+      }
+
+      it("should show entered players") {
+        daoFuture.flatMap(dao => dao.enterPublicRoom(publicRoomPlayersNumber)(user)
+          .flatMap(_ => dao.publicRoomInfo(publicRoomPlayersNumber)))
+          .flatMap(_.participants should contain(user))
+      }
+
+      describe("should fail") {
+        it("if playersNumber provided is less than 2") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(_.publicRoomInfo(0))
+          }
+        }
+
+        it("if room with such playersNumber doesn't exist") {
+          recoverToSucceededIf[NoSuchElementException] {
+            daoFuture.flatMap(_.publicRoomInfo(20))
+          }
+        }
+      }
+    }
+
+    describe("Exiting") {
+      it("should succeed if players number is correct and user is inside") {
+        daoFuture.flatMap(dao => dao.enterPublicRoom(publicRoomPlayersNumber)(user)
+          .flatMap(_ => dao.exitPublicRoom(publicRoomPlayersNumber)(user)))
+          .flatMap(_ => succeed)
+      }
+
+      it("user should not be inside after it") {
+        daoFuture.flatMap(dao => dao.enterPublicRoom(publicRoomPlayersNumber)(user)
+          .flatMap(_ => dao.exitPublicRoom(publicRoomPlayersNumber)(user))
+          .flatMap(_ => dao.publicRoomInfo(publicRoomPlayersNumber)))
+          .flatMap(_.participants shouldNot contain(user))
+      }
+
+      describe("should fail") {
+        it("if playersNumber provided is less than 2") {
+          recoverToSucceededIf[IllegalArgumentException] {
+            daoFuture.flatMap(_.exitPublicRoom(0)(user))
+          }
+        }
+
+        it("if room with such playersNumber doesn't exist") {
+          recoverToSucceededIf[NoSuchElementException] {
+            daoFuture.flatMap(_.exitPublicRoom(20)(user))
+          }
+        }
+
+        it("if user is not inside the room") {
+          recoverToSucceededIf[IllegalStateException] {
+            daoFuture.flatMap(_.exitPublicRoom(publicRoomPlayersNumber)(user))
+          }
+        }
+
+        it("if user is inside another room") {
+          recoverToSucceededIf[IllegalStateException] {
+            daoFuture.flatMap(dao => dao.enterPublicRoom(publicRoomPlayersNumber)(user)
+              .flatMap(_ => dao.exitPublicRoom(publicRoomPlayersNumber + 1)(user)))
+          }
+        }
+      }
     }
   }
 
   describe("The Helper shouldn't work") {
     describe("if not initialized") {
       val fakeRoomID = "12342134"
+      val playersNumber = 2
       implicit val fakeUser: User = User("Enrico")
       it("createRoom") {
         recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).createRoom(roomName, playersNumber))
