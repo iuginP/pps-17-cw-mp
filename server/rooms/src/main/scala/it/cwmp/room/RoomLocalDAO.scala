@@ -9,6 +9,7 @@ import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.controller.rooms.RoomsApiWrapper.publicPrefix
 import it.cwmp.model.{Room, User}
+import it.cwmp.room.RoomLocalDAO._
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -20,7 +21,7 @@ import scala.util.Random
   *
   * @author Enrico Siboni
   */
-case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
+case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper with RoomLocalManagement {
   private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
   private var notInitialized = true
   private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
@@ -32,6 +33,8 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   private val INVALID_PLAYERS_NUMBER = "Players number invalid: "
   private val ALREADY_INSIDE_USER_ERROR = "The user is already inside a room: "
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
+
+  import RoomLocalDAO.stringsToJsonArray
 
   override def initialize(): Future[Unit] = {
     var randomIDs: Seq[Int] = Seq()
@@ -53,7 +56,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => emptyStringCheck(roomName, EMPTY_ROOM_NAME_ERROR))
       .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
@@ -65,7 +68,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def enterRoom(roomID: String)(implicit user: User): Future[Unit] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
@@ -82,7 +85,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def roomInfo(roomID: String): Future[Room] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
@@ -92,7 +95,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def exitRoom(roomID: String)(implicit user: User): Future[Unit] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
@@ -108,7 +111,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def listPublicRooms(): Future[Seq[Room]] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
         .andThen { case _ => conn.close() })
@@ -116,22 +119,47 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(enterRoom)
   }
 
   override def publicRoomInfo(playersNumber: Int): Future[Room] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(roomInfo)
   }
 
   override def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
-    checkInitialization()
+    checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(exitRoom)
   }
+
+  override def deleteRoom(roomID: String): Future[Unit] = ???
+
+  override def deleteAndRecreatePublicRoom(playersNumber: Int): Future[Unit] = ???
+
+  /**
+    * @return the future containing the roomId of the public room with such players number,
+    *         or failed future if players number too low or not present
+    */
+  private def publicRoomIdFromPlayersNumber(playersNumber: Int): Future[String] = {
+    playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber")
+      .flatMap(_ => listPublicRooms())
+      .map(_.find(_.neededPlayersNumber == playersNumber))
+      .flatMap {
+        case Some(room) => Future.successful(room.identifier)
+        case _ => Future.failed(new NoSuchElementException(s"$INVALID_PLAYERS_NUMBER$playersNumber"))
+      }
+  }
+}
+
+
+/**
+  * Companion Object
+  */
+object RoomLocalDAO {
 
   private def localConfig: JsonObject = new JsonObject()
     .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
@@ -143,7 +171,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   /**
     * Utility method to check if DAO is initialized
     */
-  private def checkInitialization(): Future[Unit] = {
+  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
     if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
     else Future.successful(Unit)
   }
@@ -195,7 +223,8 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     *
     * @param connection the connection to DB where to check presence
     */
-  private def getNotAlreadyPresentRoomID(connection: SQLConnection): Future[String] = {
+  private def getNotAlreadyPresentRoomID(connection: SQLConnection)
+                                        (implicit executionContext: VertxExecutionContext): Future[String] = {
 
     def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
       checkRoomPresence(toCheckID, connection, "")
@@ -206,23 +235,10 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   }
 
   /**
-    * @return the future containing the roomId of the public room with such players number,
-    *         or failed future if players number too low or not present
-    */
-  private def publicRoomIdFromPlayersNumber(playersNumber: Int): Future[String] = {
-    playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber")
-      .flatMap(_ => listPublicRooms())
-      .map(_.find(_.neededPlayersNumber == playersNumber))
-      .flatMap {
-        case Some(room) => Future.successful(room.identifier)
-        case _ => Future.failed(new NoSuchElementException(s"$INVALID_PLAYERS_NUMBER$playersNumber"))
-      }
-  }
-
-  /**
     * @return the future containing the room where optionally the user is
     */
-  private def getRoomOfUser(connection: SQLConnection, user: User) = {
+  private def getRoomOfUser(connection: SQLConnection, user: User)
+                           (implicit executionContext: VertxExecutionContext) = {
     connection.queryWithParamsFuture(selectRoomByUserSql, Seq(user.username))
       .map(resultOfJoinToRooms(_).headOption)
   }
@@ -262,7 +278,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
     *
     * @return the converted data
     */
-  private implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
+  protected implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
     arguments.foldLeft(new JsonArray)(_.add(_))
   }
 
@@ -288,7 +304,9 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   /**
     * @return a succeeded future if the room with given ID is present, a failed future otherwise
     */
-  private def checkRoomPresence(roomID: String, connection: SQLConnection, errorMessage: String): Future[Unit] = {
+  private def checkRoomPresence(roomID: String,
+                                connection: SQLConnection,
+                                errorMessage: String)(implicit executionContext: VertxExecutionContext): Future[Unit] = {
     connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
       .flatMap(_.getResults.size match {
         case 0 => Future.failed(new NoSuchElementException(errorMessage))
@@ -299,7 +317,9 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper {
   /**
     * @return a succeeded future if the room has available space for other users
     */
-  private def checkRoomSpaceAvailable(roomID: String, connection: SQLConnection, errorMessage: String): Future[Unit] = {
+  private def checkRoomSpaceAvailable(roomID: String,
+                                      connection: SQLConnection,
+                                      errorMessage: String)(implicit executionContext: VertxExecutionContext): Future[Unit] = {
     connection.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
       .map(result => resultOfJoinToRooms(result))
       .flatMap(_.head match {
