@@ -69,17 +69,17 @@ object RoomsDAO {
       do randomIDs = for (_ <- 0 until 3; random = Random.nextInt(Int.MaxValue)) yield random
       while (randomIDs.distinct.size != 3)
 
-      localJDBCClient.getConnectionFuture().flatMap(conn =>
-        conn.executeFuture(s"$dropUserTableSql;$dropRoomTableSql")
-          .flatMap(_ => conn.executeFuture(s"$createRoomTableSql;$createUserTableSql"))
+      localJDBCClient.getConnectionFuture()
+        .flatMap(conn => conn.executeFuture(dropUserTableSql)
+          .flatMap(_ => conn.executeFuture(dropRoomTableSql))
+          .flatMap(_ => conn.executeFuture(createRoomTableSql))
+          .flatMap(_ => conn.executeFuture(createUserTableSql))
           .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs.head}", s"${publicPrefix}2", "2")))
           .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs(1)}", s"${publicPrefix}3", "3")))
           .flatMap(_ => conn.updateWithParamsFuture(insertNewRoomSql, Seq(s"$publicPrefix${randomIDs(2)}", s"${publicPrefix}4", "4")))
-          .map(_ => {
-            conn.close()
-            notInitialized = false
-          })
-      )
+          .map(_ => notInitialized = false)
+          .andThen { case _ => conn.close() }
+        )
     }
 
     override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
@@ -89,10 +89,8 @@ object RoomsDAO {
         .flatMap(_ => localJDBCClient.getConnectionFuture())
         .flatMap(conn => getNotAlreadyPresentRoomID(conn)
           .flatMap(roomID => conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
-            .map(_ => {
-              conn.close()
-              roomID
-            }))
+            .map(_ => roomID))
+          .andThen { case _ => conn.close() }
         )
     }
 
@@ -100,13 +98,15 @@ object RoomsDAO {
       checkInitialization()
         .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
         .flatMap(_ => localJDBCClient.getConnectionFuture())
-        .flatMap(conn => getRoomOfUser(conn, user)
+        .flatMap(conn => checkRoomPresence(roomID, conn)
+          .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
           .flatMap({
-            case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
-            case None => Future.successful(Unit)
-          })
-          .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID))
-            .map(_ => conn.close()))
+          case Some(room) => Future.failed(new IllegalArgumentException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
+          case None => Future.successful(Unit)
+        })
+          .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID)))
+          .andThen { case _ => conn.close() }
+          .map(_ => Unit)
         )
     }
 
@@ -115,33 +115,32 @@ object RoomsDAO {
         .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
         .flatMap(_ => localJDBCClient.getConnectionFuture())
         .flatMap(conn => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
-          .map(resultSet => {
-            conn.close()
-            userTableRecordsToRooms(resultSet).headOption
-          }))
+          .map(resultSet => userTableRecordsToRooms(resultSet).headOption)
+          .andThen { case _ => conn.close() }
+        )
     }
 
     override def exitRoom(roomID: String)(implicit user: User): Future[Unit] = {
       checkInitialization()
         .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
         .flatMap(_ => localJDBCClient.getConnectionFuture())
-        .flatMap(conn => getRoomOfUser(conn, user)
+        .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
           .flatMap({
-            case Some(room) if room.identifier == roomID => Future.successful(Unit)
-            case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-          })
-          .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))
-            .map(_ => conn.close()))
+          case Some(room) if room.identifier == roomID => Future.successful(Unit)
+          case _ => Future.failed(new IllegalArgumentException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+        })
+          .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
+          .andThen { case _ => conn.close() }
+          .map(_ => Unit)
         )
     }
 
     override def listPublicRooms(): Future[Seq[Room]] = {
-      checkInitialization().flatMap(_ =>
-        localJDBCClient.getConnectionFuture().flatMap(conn =>
-          conn.queryFuture(selectAllPublicRooms)
-            .map(resultSet => {
-              userTableRecordsToRooms(resultSet)
-            })))
+      checkInitialization()
+        .flatMap(_ => localJDBCClient.getConnectionFuture())
+        .flatMap(conn => conn.queryFuture(selectAllPublicRooms)
+          .andThen { case _ => conn.close() })
+        .map(resultSet => userTableRecordsToRooms(resultSet))
     }
 
     override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = checkInitialization()
@@ -202,6 +201,7 @@ object RoomsDAO {
     private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
     private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
     private val deleteUserFormRoomSql = s"DELETE FROM user WHERE ${User.FIELD_USERNAME} = ?"
+    private val selectARoomIDSql = s"SELECT ${Room.FIELD_IDENTIFIER} FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
     private val selectAllRooms =
       s"""
          SELECT *
@@ -222,16 +222,12 @@ object RoomsDAO {
       *
       * @param connection the connection to DB where to check presence
       */
-    private def getNotAlreadyPresentRoomID(connection: SQLConnection) = {
-      val selectRoomIDSql = s"SELECT ${Room.FIELD_IDENTIFIER} FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
+    private def getNotAlreadyPresentRoomID(connection: SQLConnection): Future[String] = {
 
       def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
-        connection.queryWithParamsFuture(selectRoomIDSql, Seq(toCheckID)).flatMap(result => {
-          result.getResults.size match {
-            case 0 => Future.successful(toCheckID)
-            case _ => _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection)
-          }
-        })
+        checkRoomPresence(toCheckID, connection)
+          .flatMap(_ => _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection))
+          .fallbackTo(Future.successful(toCheckID))
 
       _getNotAlreadyPresentRoomID(generateRandomRoomID(), connection)
     }
@@ -303,6 +299,16 @@ object RoomsDAO {
       if (playersNumber < 2) Future.failed(new IllegalArgumentException(errorMessage))
       else Future.successful(Unit)
 
+    /**
+      * @return a succeeded future if the rome with given ID is present, a failed future otherwise
+      */
+    private def checkRoomPresence(roomID: String, connection: SQLConnection): Future[Unit] = {
+      connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
+        .flatMap(_.getResults.size match {
+          case 0 => Future.failed(new NoSuchElementException)
+          case _ => Future.successful(Unit)
+        })
+    }
   }
 
 }

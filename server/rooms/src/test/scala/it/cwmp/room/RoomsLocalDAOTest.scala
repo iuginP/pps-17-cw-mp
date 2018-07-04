@@ -69,7 +69,13 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
           }
         }
 
-        it("if user already inside a room") {
+        it("if provided roomId is not present"){
+          recoverToSucceededIf[NoSuchElementException]{
+            daoFuture.flatMap(_.enterRoom("11111111")(user))
+          }
+        }
+
+        it("if user is already inside a room") {
           recoverToSucceededIf[IllegalArgumentException] {
             daoFuture.flatMap(dao =>
               dao.createRoom(roomName, playersNumber).flatMap(roomID =>
