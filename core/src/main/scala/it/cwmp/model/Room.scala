@@ -16,7 +16,7 @@ sealed trait Room {
 
   def neededPlayersNumber: Int
 
-  def participants: Seq[User]
+  def participants: Seq[User with Address]
 }
 
 /**
@@ -29,7 +29,7 @@ object Room {
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
-            participants: Seq[User] = Seq()): Room = {
+            participants: Seq[User with Address] = Seq()): Room = {
 
     if (roomID.isEmpty) throw new IllegalArgumentException("Room ID empty")
     if (roomName.isEmpty) throw new IllegalAccessException("Room name empty")
@@ -38,7 +38,7 @@ object Room {
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)
   }
 
-  def unapply(toExtract: Room): Option[(String, String, Int, Seq[User])] =
+  def unapply(toExtract: Room): Option[(String, String, Int, Seq[User with Address])] =
     Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
 
   /**
@@ -49,7 +49,7 @@ object Room {
   private case class RoomDefault(identifier: String,
                                  name: String,
                                  neededPlayersNumber: Int,
-                                 participants: Seq[User]) extends Room
+                                 participants: Seq[User with Address]) extends Room
 
 
   val FIELD_IDENTIFIER = "room_identifier"
@@ -81,24 +81,28 @@ object Room {
       }
     }
 
+    /**
+      * Json to Room Converter
+      */
     implicit class JsonRoomConverter(jsonObject: JsonObject) {
       def toRoom: Room = {
-        if (jsonObject.containsKey(FIELD_IDENTIFIER) && jsonObject.containsKey(FIELD_NAME)
-          && jsonObject.containsKey(FIELD_NEEDED_PLAYERS) && jsonObject.containsKey(FIELD_PARTICIPANTS)) {
+        if ((jsonObject containsKey FIELD_IDENTIFIER) && (jsonObject containsKey FIELD_NAME)
+          && (jsonObject containsKey FIELD_NEEDED_PLAYERS) && (jsonObject containsKey FIELD_PARTICIPANTS)) {
 
-          var userSeq = Seq[User]()
-          import User.Converters._
-          jsonObject.getJsonArray(FIELD_PARTICIPANTS).getList.forEach(jsonUser => {
-            userSeq = Json.fromObjectString(jsonUser.toString).toUser +: userSeq
+          var userSeq = Seq[User with Address]()
+          jsonObject.getJsonArray(FIELD_PARTICIPANTS).getList forEach (jsonUser => {
+            import User.Converters._
+            userSeq = Json.fromObjectString(jsonUser.toString).toUserWithAddress +: userSeq
           })
 
           Room(
-            jsonObject.getString(FIELD_IDENTIFIER),
-            jsonObject.getString(FIELD_NAME),
-            jsonObject.getInteger(FIELD_NEEDED_PLAYERS),
+            jsonObject getString FIELD_IDENTIFIER,
+            jsonObject getString FIELD_NAME,
+            jsonObject getInteger FIELD_NEEDED_PLAYERS,
             userSeq)
         } else {
-          throw new ParseException(s"The input doesn't contain $FIELD_NAME, $FIELD_PARTICIPANTS --> ${jsonObject.encodePrettily()}", 0)
+          throw new ParseException(s"The input doesn't contain one or more of: " +
+            s"$FIELD_IDENTIFIER, $FIELD_NAME, $FIELD_NEEDED_PLAYERS, $FIELD_PARTICIPANTS --> ${jsonObject.encodePrettily()}", 0)
         }
       }
     }

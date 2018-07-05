@@ -1,6 +1,6 @@
 package it.cwmp.controller.rooms
 
-import it.cwmp.model.{Room, User}
+import it.cwmp.model.{Address, Room, User}
 
 import scala.concurrent.Future
 import scala.language.implicitConversions
@@ -35,7 +35,7 @@ trait RoomsApiWrapper {
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: User): Future[Unit]
+  def enterRoom(roomID: String)(implicit user: User with Address): Future[Unit]
 
   /**
     * Retrieves room information
@@ -73,7 +73,7 @@ trait RoomsApiWrapper {
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit]
+  def enterPublicRoom(playersNumber: Int)(implicit user: User with Address): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players

@@ -1,7 +1,7 @@
 package it.cwmp.room
 
 import it.cwmp.controller.rooms.RoomsApiWrapper
-import it.cwmp.model.User
+import it.cwmp.model.{Address, User}
 import it.cwmp.testing.VertxTest
 import org.scalatest.{BeforeAndAfterEach, Matchers}
 
@@ -17,7 +17,9 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
   private var daoFuture: Future[RoomLocalDAO] = _
 
   private val roomName = "Stanza"
-  private val user: User = User("Enrico")
+
+  private val userAddress = "fakeAddress"
+  private val user: User with Address = User("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
     val localDAO = RoomLocalDAO(vertx)
@@ -82,9 +84,9 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
           recoverToSucceededIf[IllegalStateException] {
             val playersNumber = 2
             daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-              .flatMap(roomID => dao.enterRoom(roomID)(User("User1"))
-                .flatMap(_ => dao.enterRoom(roomID)(User("User2")))
-                .flatMap(_ => dao.enterRoom(roomID)(User("User3")))
+              .flatMap(roomID => dao.enterRoom(roomID)(User("User1", userAddress))
+                .flatMap(_ => dao.enterRoom(roomID)(User("User2", userAddress)))
+                .flatMap(_ => dao.enterRoom(roomID)(User("User3", userAddress)))
               ))
           }
         }
@@ -159,8 +161,8 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
       it("should succeed if room is full") {
         val playersNumber = 2
         daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-          .flatMap(roomID => dao.enterRoom(roomID)(User("User1"))
-            .flatMap(_ => dao.enterRoom(roomID)(User("User2")))
+          .flatMap(roomID => dao.enterRoom(roomID)(User("User1", userAddress))
+            .flatMap(_ => dao.enterRoom(roomID)(User("User2", userAddress)))
             .flatMap(_ => dao.deleteRoom(roomID))))
           .map(_ => succeed)
       }
@@ -168,8 +170,8 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
         val playersNumber = 2
         recoverToSucceededIf[NoSuchElementException] {
           daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-            .flatMap(roomID => dao.enterRoom(roomID)(User("User1"))
-              .flatMap(_ => dao.enterRoom(roomID)(User("User2")))
+            .flatMap(roomID => dao.enterRoom(roomID)(User("User1", userAddress))
+              .flatMap(_ => dao.enterRoom(roomID)(User("User2", userAddress)))
               .flatMap(_ => dao.deleteRoom(roomID))
               .flatMap(_ => dao.roomInfo(roomID))))
         }
@@ -243,9 +245,9 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
         }
         it("if room is full") {
           recoverToSucceededIf[IllegalStateException] {
-            daoFuture.flatMap(dao => dao.enterPublicRoom(2)(User("User1"))
-              .flatMap(_ => dao.enterPublicRoom(2)(User("User2")))
-              .flatMap(_ => dao.enterPublicRoom(2)(User("User3"))))
+            daoFuture.flatMap(dao => dao.enterPublicRoom(2)(User("User1", userAddress))
+              .flatMap(_ => dao.enterPublicRoom(2)(User("User2", userAddress)))
+              .flatMap(_ => dao.enterPublicRoom(2)(User("User3", userAddress))))
           }
         }
       }
@@ -317,8 +319,8 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
     describe("Deletion") {
       it("should succeed if room is full, and recreate an empty public room with same players number") {
         val playersNumber = 2
-        daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(User("User1"))
-          .flatMap(_ => dao.enterPublicRoom(playersNumber)(User("User2")))
+        daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(User("User1", userAddress))
+          .flatMap(_ => dao.enterPublicRoom(playersNumber)(User("User2", userAddress)))
           .flatMap(_ => dao.deleteAndRecreatePublicRoom(playersNumber))
           .flatMap(_ => dao.publicRoomInfo(playersNumber)))
           .map(publicRoom => publicRoom.participants shouldBe empty)
@@ -350,7 +352,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
     describe("if not initialized") {
       val fakeRoomID = "12342134"
       val playersNumber = 2
-      implicit val fakeUser: User = User("Enrico")
+      implicit val fakeUser: User with Address = User("Enrico", userAddress)
       it("createRoom") {
         recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).createRoom(roomName, playersNumber))
       }

@@ -8,7 +8,7 @@ import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.controller.rooms.RoomsApiWrapper.publicPrefix
-import it.cwmp.model.{Room, User}
+import it.cwmp.model.{Address, Room, User}
 import it.cwmp.room.RoomLocalDAO._
 
 import scala.collection.mutable
@@ -70,7 +70,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper with RoomLocalMana
       )
   }
 
-  override def enterRoom(roomID: String)(implicit user: User): Future[Unit] = {
+  override def enterRoom(roomID: String)(implicit user: User with Address): Future[Unit] = {
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
@@ -80,7 +80,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper with RoomLocalMana
         case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
         case None => Future.successful(Unit)
       }
-        .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, roomID)))
+        .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, roomID)))
         .andThen { case _ => conn.close() })
       .map(_ => Unit)
   }
@@ -118,7 +118,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper with RoomLocalMana
       .map(resultOfJoinToRooms)
   }
 
-  override def enterPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
+  override def enterPublicRoom(playersNumber: Int)(implicit user: User with Address): Future[Unit] = {
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(enterRoom)
@@ -209,10 +209,11 @@ object RoomLocalDAO {
           PRIMARY KEY (${Room.FIELD_IDENTIFIER})
         )
       """
-  private val createUserTableSql = // TODO:  change api to receive user address and save this information
+  private val createUserTableSql =
     s"""
         CREATE TABLE user (
           ${User.FIELD_USERNAME} VARCHAR(50) NOT NULL,
+          ${User.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
           $userToRoomLinkField VARCHAR(100),
           PRIMARY KEY (${User.FIELD_USERNAME}),
           CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
@@ -222,7 +223,7 @@ object RoomLocalDAO {
   private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
 
   private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
-  private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?)"
+  private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?, ?)"
   private val deleteUserFormRoomSql = s"DELETE FROM user WHERE ${User.FIELD_USERNAME} = ?"
   private val deleteRoomSql = s"DELETE FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
   private val selectARoomIDSql = s"SELECT ${Room.FIELD_IDENTIFIER} FROM room WHERE ${Room.FIELD_IDENTIFIER} = ?"
@@ -270,27 +271,34 @@ object RoomLocalDAO {
     * Utility method to convert a result set to a room sequence
     */
   private def resultOfJoinToRooms(resultSet: ResultSet): Seq[Room] = { // review maybe with for comprehension
-    val roomsToUsers: mutable.Map[String, Seq[User]] = mutable.HashMap()
+    val roomsUsers: mutable.Map[String, Seq[User with Address]] = mutable.HashMap()
     val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
-    resultSet.getResults.foreach(resultRow => {
-      val roomID = resultRow.getString(0)
-      val userName = if (resultRow.hasNull(3)) None else Some(resultRow.getString(3))
+    val roomIDPos = 0
+    val roomNamePos = 1
+    val roomPlayersPos = 2
+    val userNamePos = 3
+    val userAddressPos = 4
 
-      if (roomsToUsers.contains(roomID)) {
-        userName.foreach(name => roomsToUsers(roomID) = roomsToUsers(roomID) :+ User(name))
+    resultSet.getResults foreach (resultRow => {
+      val roomID = resultRow getString roomIDPos
+      val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
+      val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
+
+      if (roomsUsers contains roomID) {
+        userName.foreach(name => roomsUsers(roomID) = roomsUsers(roomID) :+ User(name, userAddress.get))
       } else {
-        val roomName = resultRow.getString(1)
-        val roomNeededPlayers = resultRow.getInteger(2)
+        val roomName = resultRow getString roomNamePos
+        val roomNeededPlayers = resultRow getInteger roomPlayersPos
         roomsInfo(roomID) = (roomName, roomNeededPlayers)
         userName match {
-          case Some(name) => roomsToUsers(roomID) = Seq(User(name))
-          case None => roomsToUsers(roomID) = Seq()
+          case Some(name) => roomsUsers(roomID) = Seq(User(name, userAddress.get))
+          case None => roomsUsers(roomID) = Seq()
         }
       }
     })
 
     (for (
-      roomUsers <- roomsToUsers;
+      roomUsers <- roomsUsers;
       roomInfo <- roomsInfo if roomUsers._1 == roomInfo._1;
       room = Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2)
     ) yield room).toSeq
