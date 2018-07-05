@@ -14,6 +14,15 @@ sealed trait User {
 }
 
 /**
+  * A trait describing an address
+  *
+  * @author Enrico Siboni
+  */
+sealed trait Address {
+  def address: String
+}
+
+/**
   * Companion object
   *
   * @author Enrico Siboni
@@ -21,12 +30,19 @@ sealed trait User {
 object User {
   def apply(username: String): User = UserDefault(username)
 
+  def apply(username: String, address: String): User with Address = UserWithAddress(username, address)
+
   def unapply(toExtract: User): Option[String] = Some(toExtract.username)
+
+  def unapply(toExtract: User with Address): Option[(String, String)] = Some(toExtract.username, toExtract.address)
+
 
   private case class UserDefault(username: String) extends User
 
+  private case class UserWithAddress(username: String, address: String) extends User with Address
 
   val FIELD_USERNAME = "user_username"
+  val FIELD_ADDRESS = "user_address"
 
   /**
     * Converters for User
@@ -34,20 +50,27 @@ object User {
   object Converters {
 
     implicit class RichUser(user: User) {
-      def toJson: JsonObject = Json.obj(
-        (FIELD_USERNAME, user.username)
-      )
+      def toJson: JsonObject = Json obj ((FIELD_USERNAME, user.username))
+    }
+
+    implicit class RichUserWithAddress(user: User with Address) extends RichUser(user: User) {
+      override def toJson: JsonObject = super.toJson put(FIELD_ADDRESS, user.address)
     }
 
     implicit class JsonUserConverter(json: JsonObject) {
-      def toUser: User = {
-        if (json.containsKey(FIELD_USERNAME))
-          User(json.getString(FIELD_USERNAME))
-        else
-          throw new ParseException(s"User JsonParsing: The input doesn't contain $FIELD_USERNAME --> ${json.encodePrettily()}", 0)
-      }
+      def toUser: User =
+        if (json containsKey FIELD_USERNAME) User(json.getString(FIELD_USERNAME))
+        else throw parseError("User JsonParsing", s"The input doesn't contain $FIELD_USERNAME --> ${json encodePrettily()}")
     }
 
+    implicit class JsonUserWithAddressConverter(json: JsonObject) extends JsonUserConverter(json) {
+      def toUserWithAddress: User with Address =
+        if (json containsKey FIELD_ADDRESS) User(super.toUser.username, json getString FIELD_ADDRESS)
+        else throw parseError("User with Address JsonParsing", s"The input doesn't contain $FIELD_ADDRESS --> ${json encodePrettily()}")
+    }
+
+    private def parseError(context: String, errorMessage: String): ParseException =
+      new ParseException(s"$context: $errorMessage", 0)
   }
 
 }
