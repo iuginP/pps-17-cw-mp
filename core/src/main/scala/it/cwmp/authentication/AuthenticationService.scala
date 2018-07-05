@@ -1,14 +1,13 @@
 package it.cwmp.authentication
 
 import io.netty.handler.codec.http.HttpHeaderNames
-
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-import io.vertx.scala.ext.web.client.WebClient
+import io.vertx.scala.core.Vertx
+import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.model.User
 import it.cwmp.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait AuthenticationService {
@@ -22,7 +21,21 @@ trait AuthenticationService {
 
 object AuthenticationService {
 
-  def apply(client: WebClient): AuthenticationService = new AuthenticationServiceImpl(client)
+  val DEFAULT_HOST = "localhost"
+  val DEFAULT_PORT = 8666
+
+  def apply(implicit vertx: Vertx): AuthenticationService =
+    AuthenticationService(DEFAULT_HOST, DEFAULT_PORT)
+
+  def apply(host: String)(implicit vertx: Vertx): AuthenticationService =
+    AuthenticationService(host, DEFAULT_PORT)
+
+  def apply(host: String, port: Int)(implicit vertx: Vertx): AuthenticationService =
+    new AuthenticationServiceImpl(WebClient.create(vertx,
+      WebClientOptions()
+        .setDefaultHost(host)
+        .setDefaultPort(port)
+        .setKeepAlive(false)))
 
   class AuthenticationServiceImpl(client: WebClient) extends AuthenticationService {
 
@@ -68,4 +81,5 @@ object AuthenticationService {
           })
       }
   }
+
 }

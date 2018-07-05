@@ -6,7 +6,7 @@ import it.cwmp.testing.VerticleTesting
 import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
 
-class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
+class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
   private def client = {
     val options = WebClientOptions()
