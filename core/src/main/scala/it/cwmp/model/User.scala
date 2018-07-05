@@ -32,9 +32,11 @@ object User {
 
   def apply(username: String, address: String): User with Address = UserWithAddress(username, address)
 
-  def unapply(toExtract: User): Option[String] = Some(toExtract.username)
+  def unapply(toExtract: User): Option[String] =
+    Some(toExtract.username)
 
-  def unapply(toExtract: User with Address): Option[(String, String)] = Some(toExtract.username, toExtract.address)
+  def unapply(toExtract: User with Address)(implicit d: DummyImplicit): Option[(String, String)] =
+    Some(toExtract.username, toExtract.address)
 
 
   private case class UserDefault(username: String) extends User
