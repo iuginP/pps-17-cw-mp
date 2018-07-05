@@ -1,8 +1,9 @@
 package it.cwmp.room
 
 import io.vertx.core.Handler
+import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.lang.scala.json.{Json, JsonObject}
+import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.AuthenticationService
 import it.cwmp.model.{Address, Room, User}
@@ -47,9 +48,9 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
     * Handles the creation of a private room
     */
   private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    routingContext.request().bodyHandler(body =>
-      validateUserOrSendError.andThen({case x=>println(x)}).map(_ =>
-        extractIncomingRoomFromBody(body.toJsonObject) match {
+    routingContext.request().bodyHandler(body => {
+      validateUserOrSendError.map(_ =>
+        extractIncomingRoomFromBody(body) match {
           case Some((roomName, neededPlayers)) =>
             daoFuture.map(_.createRoom(roomName, neededPlayers)
               .onComplete {
@@ -58,12 +59,19 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
               })
           case None =>
             sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR no Room JSON in body"))
-        }))
+        })
+    })
 
-    def extractIncomingRoomFromBody(jsonObject: JsonObject): Option[(String, Int)] =
-      if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS))
-        Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
-      else None
+    def extractIncomingRoomFromBody(body: Buffer): Option[(String, Int)] = {
+      try {
+        val jsonObject = body.toJsonObject
+        if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS))
+          Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
+        else None
+      } catch {
+        case _: Throwable => None
+      }
+    }
   }
 
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
