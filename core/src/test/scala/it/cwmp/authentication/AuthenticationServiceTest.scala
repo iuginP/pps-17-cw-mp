@@ -1,7 +1,5 @@
 package it.cwmp.authentication
 
-import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.testing.VerticleTesting
 import javax.xml.ws.http.HTTPException
 import org.scalatest.Matchers
@@ -68,9 +66,6 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
         .flatMap(_ => auth.login(username, passwordWrong))
-          .andThen({
-            case e => println(e)
-          })
         .onComplete({
           case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)

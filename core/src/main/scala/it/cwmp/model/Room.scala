@@ -32,7 +32,7 @@ object Room {
             participants: Seq[User with Address] = Seq()): Room = {
 
     if (roomID.isEmpty) throw new IllegalArgumentException("Room ID empty")
-    if (roomName.isEmpty) throw new IllegalAccessException("Room name empty")
+    if (roomName.isEmpty) throw new IllegalArgumentException("Room name empty")
     if (neededPlayersNumber < 1) throw new IllegalArgumentException("Room needed players less than one")
 
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)
@@ -54,7 +54,7 @@ object Room {
 
   val FIELD_IDENTIFIER = "room_identifier"
   val FIELD_NAME = "room_name"
-  val FIELD_NEEDED_PLAYERS = "room_needed_players"
+  val FIELD_NEEDED_PLAYERS = "room_players"
   val FIELD_PARTICIPANTS = "room_participants"
 
   /**

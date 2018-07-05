@@ -39,11 +39,6 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomsApiWrapper with RoomLocalMana
   import RoomLocalDAO.stringsToJsonArray
 
   override def initialize(): Future[Unit] = {
-    var randomIDs: Seq[Int] = Seq()
-    // generate three different random IDs
-    do randomIDs = for (_ <- 0 until 3; random = Random.nextInt(Int.MaxValue)) yield random
-    while (randomIDs.distinct.size != 3)
-
     localJDBCClient.getConnectionFuture()
       .flatMap(conn => conn.executeFuture(dropUserTableSql)
         .flatMap(_ => conn.executeFuture(dropRoomTableSql))
@@ -279,7 +274,7 @@ object RoomLocalDAO {
     val userNamePos = 3
     val userAddressPos = 4
 
-    resultSet.getResults foreach (resultRow => {
+    for (resultRow <- resultSet.getResults) {
       val roomID = resultRow getString roomIDPos
       val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
       val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
@@ -295,7 +290,7 @@ object RoomLocalDAO {
           case None => roomsUsers(roomID) = Seq()
         }
       }
-    })
+    }
 
     (for (
       roomUsers <- roomsUsers;

@@ -3,7 +3,7 @@ package it.cwmp.testing
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.core.DeploymentOptions
-import org.scalatest.BeforeAndAfter
+import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -15,13 +15,13 @@ import scala.util.{Failure, Success}
   *
   * @tparam A the type of the verticle to test
   */
-abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends VertxTest with BeforeAndAfter {
+abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends VertxTest with BeforeAndAfterEach {
 
   private var deploymentId = ""
 
   def config(): JsonObject = Json.emptyObj()
 
-  before {
+  override protected def beforeEach(): Unit = {
     deploymentId = Await.result(
       vertx
         .deployVerticleFuture("scala:" + implicitly[TypeTag[A]].tpe.typeSymbol.fullName,
@@ -32,12 +32,9 @@ abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends VertxTest w
         },
       10000.millis
     )
-    beforeAbs()
   }
 
-  def beforeAbs(): Unit = {} // TODO: whatch for changing this (mixin in BeforeAdnAfterEach maybe?)
-
-  after {
+  override protected def afterEach(): Unit = {
     Await.result(
       vertx.undeployFuture(deploymentId)
         .andThen {
@@ -46,9 +43,5 @@ abstract class VerticleTesting[A <: ScalaVerticle : TypeTag] extends VertxTest w
         },
       10000.millis
     )
-    afterAbs()
   }
-
-  def afterAbs(): Unit = {}
-
 }

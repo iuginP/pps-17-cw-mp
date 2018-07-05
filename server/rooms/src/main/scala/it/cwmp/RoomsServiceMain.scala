@@ -10,7 +10,7 @@ import it.cwmp.room.RoomsServiceVerticle
   */
 object RoomsServiceMain extends App {
 
-  Vertx.vertx().deployVerticle(new RoomsServiceVerticle)
+  Vertx.vertx().deployVerticle(RoomsServiceVerticle())
 
   println("Deploying RoomServiceVerticle... ") // TODO replace with logger logging
 }

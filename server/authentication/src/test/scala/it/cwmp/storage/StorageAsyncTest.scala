@@ -22,7 +22,8 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
 
   var storageFuture: Future[StorageAsync] = _
 
-  override def beforeAbs(): Unit = {
+  override protected def beforeEach(): Unit = {
+    super.beforeEach()
     val storage = StorageAsync(getDefaultClient())
     storageFuture = storage.init().map(_ => storage)
   }

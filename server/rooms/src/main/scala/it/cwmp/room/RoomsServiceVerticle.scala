@@ -1,14 +1,14 @@
 package it.cwmp.room
 
-import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.{Json, JsonObject}
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.controller.rooms.RoomsApiWrapper
-import it.cwmp.model.{Room, User}
+import it.cwmp.authentication.AuthenticationService
+import it.cwmp.model.{Address, Room, User}
+import it.cwmp.room.RoomsServiceVerticle._
 import it.cwmp.utils.HttpUtils
+import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.Future
 import scala.util.{Failure, Random, Success}
@@ -18,26 +18,24 @@ import scala.util.{Failure, Random, Success}
   *
   * @author Enrico Siboni
   */
-class RoomsServiceVerticle extends ScalaVerticle {
+case class RoomsServiceVerticle() extends ScalaVerticle {
 
-  private val USER_NOT_AUTHENTICATED = "User is not authenticated"
-  private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
-  private val INVALID_PARAMETER_ERROR = "Invalid parameters:"
-  private val INTERNAL_SERVER_ERROR = "Internal server error"
-  private val RESOURCE_NOT_FOUND = "Resource not found"
-
-  private var daoFuture: Future[RoomsApiWrapper] = _
+  private var daoFuture: Future[RoomLocalDAO] = _
 
   override def startFuture(): Future[_] = {
-
     val storageHelper = RoomLocalDAO(vertx)
     daoFuture = storageHelper.initialize().map(_ => storageHelper)
 
     val router = Router.router(vertx)
-    router post "/api/rooms" handler createRoomHandler
-    router get "/api/rooms" handler listRoomsHandler
-    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler enterRoomHandler
-    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}/info" handler retrieveRoomInfoHandler
+    router post "/api/rooms" handler createPrivateRoomHandler
+    router put s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler enterPrivateRoomHandler
+    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler privateRoomInfoHandler
+    router delete s"/api/rooms/:${Room.FIELD_IDENTIFIER}/self" handler exitPrivateRoomHandler
+
+    router get "/api/rooms" handler listPublicRoomsHandler
+    router put s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}" handler enterPublicRoomHandler
+    router get s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}" handler publicRoomInfoHandler
+    router delete s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}/self" handler exitPublicRoomHandler
 
     vertx
       .createHttpServer()
@@ -45,42 +43,33 @@ class RoomsServiceVerticle extends ScalaVerticle {
       .listenFuture(8667)
   }
 
-  private def createRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    var bodyJson: JsonObject = Json.emptyObj()
-    routingContext.request().bodyHandler(body => {
-      bodyJson = body.toJsonObject
-    })
+  /**
+    * Handles the creation of a private room
+    */
+  private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    routingContext.request().bodyHandler(body =>
+      validateUserOrSendError.andThen({case x=>println(x)}).map(_ =>
+        extractIncomingRoomFromBody(body.toJsonObject) match {
+          case Some((roomName, neededPlayers)) =>
+            daoFuture.map(_.createRoom(roomName, neededPlayers)
+              .onComplete {
+                case Success(generatedID) => sendResponse(201, Some(generatedID))
+                case Failure(ex) => sendResponse(400, Some(ex.getMessage))
+              })
+          case None =>
+            sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR no Room JSON in body"))
+        }))
 
-    validateUserOrSendError.map(_ => {
-      extractRoomFromBody(bodyJson) match {
-        case Some((roomName, neededPlayers)) =>
-          daoFuture.map(_.createRoom(roomName, neededPlayers)
-            .onComplete {
-              case Success(generatedID) => sendResponse(201, Some(generatedID))
-              case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
-            })
-        case None =>
-          sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR no Room JSON in body"))
-      }
-    })
+    def extractIncomingRoomFromBody(jsonObject: JsonObject): Option[(String, Int)] =
+      if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS))
+        Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
+      else None
   }
 
-  private def listRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
-    validateUserOrSendError.map(_ => {
-      daoFuture.map(_.listPublicRooms().onComplete {
-        case Success(rooms) =>
-          import Room.Converters._
-          sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
-
-        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
-      })
-    })
-  }
-
-  private def enterRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+  private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
       // TODO: GET_USER
-      implicit val testUser: User = User(s"Test${Random.nextInt()}")
+      implicit val testUser: User with Address = User(s"Test${Random.nextInt()}", "fakeAddress")
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomID) if roomID == "public" =>
           daoFuture.map(_.enterPublicRoom(roomID.toInt).onComplete {
@@ -94,12 +83,12 @@ class RoomsServiceVerticle extends ScalaVerticle {
             case Failure(_) => sendResponse(404, Some(RESOURCE_NOT_FOUND))
           })
 
-        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")) // TODO: refactor with below method
+        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}"))
       }
     })
   }
 
-  private def retrieveRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
+  private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
     validateUserOrSendError.map(_ => {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
@@ -114,53 +103,72 @@ class RoomsServiceVerticle extends ScalaVerticle {
     })
   }
 
+  private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+
+  }
+
+  private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
+    validateUserOrSendError.map(_ => {
+      daoFuture.map(_.listPublicRooms().onComplete {
+        case Success(rooms) =>
+          import Room.Converters._
+          sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
+
+        case Failure(_) => sendResponse(500, Some(INTERNAL_SERVER_ERROR))
+      })
+    })
+  }
+
+  private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+
+  }
+
+  private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
+
+  }
+
+  private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+
+  }
+
+
   /**
     * Checks whether the user is authenticated;
     * if token not provided sends back 400
     * if token invalid sends back 401
     *
     * @param routingContext the context in which to check
+    * @return the future that will contain the user if successfully validated
     */
   private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
-    (for (
-      httpToken <- routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString);
-      jwtOption = HttpUtils.buildJwtAuthentication(httpToken);
-      jwToken <- jwtOption
-    ) yield {
-
-      // TODO: Utilizzare l'AuthenticationServiceHelper
-      val webClient = WebClient.create(vertx, WebClientOptions().setDefaultHost("127.0.0.1").setDefaultPort(8666))
-      webClient.get("/api/validate")
-        .putHeader(HttpHeaderNames.AUTHORIZATION.toString, jwToken)
-        .sendFuture()
-        .flatMap(response => response.statusCode() match {
-          case 200 => Future.successful(User(response.bodyAsString.get))
-          case 400 =>
-            sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
-            Future.failed(new Exception(TOKEN_NOT_PROVIDED_OR_INVALID))
-          case 401 =>
-            sendResponse(401, Some(USER_NOT_AUTHENTICATED))
-            Future.failed(new Exception(USER_NOT_AUTHENTICATED))
-        })
-    }) match {
-      case Some(userFuture) => userFuture
+    HttpUtils.getRequestAuthorizationHeader(routingContext.request()) match {
       case None =>
         sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
-        Future.failed(new Exception(TOKEN_NOT_PROVIDED_OR_INVALID))
+        Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
+
+      case Some(authorizationToken) =>
+        AuthenticationService(vertx).validate(authorizationToken)
+          .recoverWith {
+            case ex: HTTPException =>
+              sendResponse(ex.getStatusCode, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
+              Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
+          }
     }
   }
+}
 
+/**
+  * Companion object
+  *
+  * @author Enrico Siboni
+  */
+object RoomsServiceVerticle {
 
-  /**
-    * Utility method to extract room parameters from json
-    *
-    * @return the information retrieved
-    */
-  private def extractRoomFromBody(jsonObject: JsonObject): Option[(String, Int)] = {
-    if (jsonObject.containsKey(Room.FIELD_NAME) && jsonObject.containsKey(Room.FIELD_NEEDED_PLAYERS))
-      Some((jsonObject.getString(Room.FIELD_NAME), jsonObject.getInteger(Room.FIELD_NEEDED_PLAYERS)))
-    else None
-  }
+  private val USER_NOT_AUTHENTICATED = "User is not authenticated"
+  private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
+  private val INVALID_PARAMETER_ERROR = "Invalid parameters: "
+  private val INTERNAL_SERVER_ERROR = "Internal server error"
+  private val RESOURCE_NOT_FOUND = "Resource not found"
 
   /**
     * @param routingContext the routing context on which to extract
@@ -187,5 +195,4 @@ class RoomsServiceVerticle extends ScalaVerticle {
       case None => response.end()
     }
   }
-
 }
