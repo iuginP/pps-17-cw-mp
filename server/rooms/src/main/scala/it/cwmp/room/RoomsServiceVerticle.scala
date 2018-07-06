@@ -5,7 +5,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.authentication.AuthenticationService
+import it.cwmp.authentication.Validation
 import it.cwmp.model.{Address, Room, User}
 import it.cwmp.room.RoomsServiceVerticle._
 import it.cwmp.utils.HttpUtils
@@ -19,7 +19,7 @@ import scala.util.{Failure, Random, Success}
   *
   * @author Enrico Siboni
   */
-case class RoomsServiceVerticle() extends ScalaVerticle {
+case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) extends ScalaVerticle {
 
   private var daoFuture: Future[RoomLocalDAO] = _
 
@@ -41,7 +41,7 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
     vertx
       .createHttpServer()
       .requestHandler(router.accept _)
-      .listenFuture(8667)
+      .listenFuture(DEFAULT_PORT)
   }
 
   /**
@@ -155,7 +155,7 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
         Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
 
       case Some(authorizationToken) =>
-        AuthenticationService(vertx).validate(authorizationToken)
+        validationStrategy.validate(authorizationToken)
           .recoverWith {
             case ex: HTTPException =>
               sendResponse(ex.getStatusCode, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
@@ -171,6 +171,8 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
   * @author Enrico Siboni
   */
 object RoomsServiceVerticle {
+
+  val DEFAULT_PORT = 8667
 
   val API_CREATE_PRIVATE_ROOM_URL = "/api/rooms"
   val API_ENTER_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"

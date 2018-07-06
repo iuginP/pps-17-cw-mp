@@ -4,47 +4,54 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.http.HttpMethod
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
-import it.cwmp.authentication.{AuthenticationService, AuthenticationServiceVerticle}
-import it.cwmp.model.Room
-import it.cwmp.testing.VerticleTesting
-import org.scalatest.{BeforeAndAfterEach, Matchers}
+import it.cwmp.authentication.Validation
+import it.cwmp.model.{Address, Room, User}
+import it.cwmp.testing.VertxTest
+import javax.xml.ws.http.HTTPException
+import org.scalatest.{BeforeAndAfterEach, Matchers, SequentialNestedSuiteExecution}
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
   * Test class for RoomsServiceVerticle
   *
   * @author Enrico Siboni
   */
-class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matchers with BeforeAndAfterEach {
+class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach with SequentialNestedSuiteExecution {
 
   private val roomsServiceHost = "127.0.0.1"
   private val roomsServicePort = 8667
-  private var webClient: WebClient = _
 
-  private val testUserUsername = "Enrico"
-  private val testUserPassword = "password"
-
-  private var testUserToken: Future[String] = _
-  private var authenticationServiceDeploymentID: Future[String] = _
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-    authenticationServiceDeploymentID = vertx.deployVerticleFuture(new AuthenticationServiceVerticle)
-
-    webClient = WebClient.create(vertx,
+  private val webClient: WebClient =
+    WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost(roomsServiceHost)
         .setDefaultPort(roomsServicePort))
 
-    testUserToken =
-      authenticationServiceDeploymentID
-        .flatMap(_ => AuthenticationService(vertx).signUp(testUserUsername, testUserPassword))
-  }
+  private val myAuthorizedUser: User with Address = User("Enrico", "address")
+  private val myCorrectToken = "CORRECT_TOKEN"
 
-  override protected def afterEach(): Unit = {
-    authenticationServiceDeploymentID.foreach(vertx.undeploy)
-    super.afterEach()
+  private var deploymentID: String = _
+
+  override protected def beforeEach(): Unit =
+    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy())), 10000.millis)
+
+
+  override protected def afterEach(): Unit =
+    Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
+
+  /**
+    * A validation testing strategy
+    *
+    * @author Enrico Siboni
+    */
+  private case class TestValidationStrategy() extends Validation[String, User] {
+    override def validate(input: String): Future[User] = input match {
+      case token if token == myCorrectToken => Future.successful(myAuthorizedUser)
+      case token if token == null || token.isEmpty => Future.failed(new HTTPException(400))
+      case _ => Future.failed(new HTTPException(401))
+    }
   }
 
   private val roomName = "Stanza"
@@ -54,40 +61,35 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     val creationApi = "/api/rooms"
 
     it("should succeed when the user is authenticated and input is valid") {
-      testUserToken.flatMap(token =>
-        webClient.post(creationApi)
-          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
-          .sendJsonObjectFuture(roomCreationJson(roomName, playersNumber)))
+      webClient.post(creationApi)
+        .putHeader(HttpHeaderNames.AUTHORIZATION.toString, myCorrectToken)
+        .sendJsonObjectFuture(roomCreationJson(roomName, playersNumber))
         .flatMap(res => assert(res.statusCode() == 201 && res.bodyAsString().isDefined))
     }
 
     describe("should fail") {
       it("if no room is sent with request") {
-        testUserToken.flatMap(token =>
-          webClient.post(creationApi)
-            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
-            .sendFuture())
+        webClient.post(creationApi)
+          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, myCorrectToken)
+          .sendFuture()
           .flatMap(res => res statusCode() shouldEqual 400)
       }
       it("if body is malformed") {
-        testUserToken.flatMap(token =>
-          webClient.post(creationApi)
-            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
-            .sendJsonFuture("Ciao"))
+        webClient.post(creationApi)
+          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, myCorrectToken)
+          .sendJsonFuture("Ciao")
           .flatMap(res => res statusCode() shouldEqual 400)
       }
       it("if the roomName sent is empty") {
-        testUserToken.flatMap(token =>
-          webClient.post(creationApi)
-            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
-            .sendJsonFuture(roomCreationJson("", playersNumber)))
+        webClient.post(creationApi)
+          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, myCorrectToken)
+          .sendJsonFuture(roomCreationJson("", playersNumber))
           .flatMap(res => res statusCode() shouldEqual 400)
       }
       it("if the playersNumber isn't valid") {
-        testUserToken.flatMap(token =>
-          webClient.post(creationApi)
-            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
-            .sendJsonFuture(roomCreationJson(roomName, 0)))
+        webClient.post(creationApi)
+          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, myCorrectToken)
+          .sendJsonFuture(roomCreationJson(roomName, 0))
           .flatMap(res => res statusCode() shouldEqual 400)
       }
     }
@@ -119,13 +121,12 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
   describe("Room Entering") {
     it("should succeed if user is authenticated and room is present") {
       val roomName = "Stanza"
-      testUserToken.flatMap(token => {
-        createRoom(roomName, 4, token).flatMap(response => {
+      createRoom(roomName, 4, myCorrectToken)
+        .flatMap(response => {
           val roomID = response.body().get.toString()
-          enterRoom(roomID, token)
+          enterRoom(roomID, myCorrectToken)
             .map(res => res.statusCode() shouldEqual 200)
         })
-      })
     }
 
     // TODO: verify user inside after entering
@@ -180,39 +181,36 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     describe("should fail") {
       for (apiCall <- roomApiInteractions) {
         it(s"if token not provided, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          authenticationServiceDeploymentID.flatMap(_ => // needs to wait authentication service deployment
-            apiCall match {
-              case (GET, url) => Future.successful(webClient.get(url))
-              case (POST, url) => Future.successful(webClient.post(url))
-              case (PUT, url) => Future.successful(webClient.put(url))
-              case (DELETE, url) => Future.successful(webClient.delete(url))
-              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
-            })
+          (apiCall match {
+            case (GET, url) => Future.successful(webClient.get(url))
+            case (POST, url) => Future.successful(webClient.post(url))
+            case (PUT, url) => Future.successful(webClient.put(url))
+            case (DELETE, url) => Future.successful(webClient.delete(url))
+            case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+          })
             .flatMap(_.sendFuture())
             .flatMap(res => res statusCode() shouldEqual 400)
         }
         it(s"if token wrong, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          authenticationServiceDeploymentID.flatMap(_ =>
-            apiCall match {
-              case (GET, url) => Future.successful(webClient.get(url))
-              case (POST, url) => Future.successful(webClient.post(url))
-              case (PUT, url) => Future.successful(webClient.put(url))
-              case (DELETE, url) => Future.successful(webClient.delete(url))
-              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
-            })
+          (apiCall match {
+            case (GET, url) => Future.successful(webClient.get(url))
+            case (POST, url) => Future.successful(webClient.post(url))
+            case (PUT, url) => Future.successful(webClient.put(url))
+            case (DELETE, url) => Future.successful(webClient.delete(url))
+            case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+          })
             .flatMap(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, "token")
               .sendFuture())
-            .flatMap(res => res statusCode() shouldEqual 400)
+            .flatMap(res => res statusCode() shouldEqual 401)
         }
         it(s"if token isn't valid, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          authenticationServiceDeploymentID.flatMap(_ =>
-            apiCall match {
-              case (GET, url) => Future.successful(webClient.get(url))
-              case (POST, url) => Future.successful(webClient.post(url))
-              case (PUT, url) => Future.successful(webClient.put(url))
-              case (DELETE, url) => Future.successful(webClient.delete(url))
-              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
-            })
+          (apiCall match {
+            case (GET, url) => Future.successful(webClient.get(url))
+            case (POST, url) => Future.successful(webClient.post(url))
+            case (PUT, url) => Future.successful(webClient.put(url))
+            case (DELETE, url) => Future.successful(webClient.delete(url))
+            case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+          })
             .flatMap(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
               .sendFuture())
             .flatMap(res => res statusCode() shouldEqual 401)
