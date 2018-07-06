@@ -24,20 +24,16 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerValidation)
 
-    val client = JDBCClient.createShared(vertx, new JsonObject()
-      .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
-      .put("driver_class", "org.hsqldb.jdbcDriver")
-      .put("max_pool_size", 30)
-      .put("user", "SA")
-      .put("password", ""))
-    storage = StorageAsync(client)
-    storage.init().flatMap(_ => {
-      // Launch the server only after the DB has been initialized
-      vertx
-        .createHttpServer()
-        .requestHandler(router.accept _)
-        .listenFuture(8666)
-    })
+    vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+      .map(client => StorageAsync(client))
+      .andThen({case Success(storage) => this.storage = storage})
+      .flatMap(storage => storage.init())
+      .flatMap(_ =>
+        vertx
+          .createHttpServer()
+          .requestHandler(router.accept _)
+          .listenFuture(8666))
   }
 
   private def sendError(statusCode: Int,  response: HttpServerResponse): Unit = {
