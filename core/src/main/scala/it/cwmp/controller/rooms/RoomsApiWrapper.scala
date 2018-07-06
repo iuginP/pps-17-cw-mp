@@ -211,6 +211,9 @@ object RoomsApiWrapper {
           case httpCode => Future.failed(RoomsServiceException(httpCode, response.bodyAsString().get))
         })
 
+    // TODO: duplicated code from RoomsService test... ehat to do??
+    // TODO: maybe i can use this wrapper where possible and do manual http call where needed in tests
+
     /**
       * Utility method to create a client request with certain parameters
       */
