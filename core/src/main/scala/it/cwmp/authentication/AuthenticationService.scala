@@ -34,8 +34,7 @@ object AuthenticationService {
     new AuthenticationServiceImpl(WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost(host)
-        .setDefaultPort(port)
-        .setKeepAlive(false)))
+        .setDefaultPort(port)))
 
   class AuthenticationServiceImpl(client: WebClient) extends AuthenticationService {
 

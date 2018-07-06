@@ -1,6 +1,7 @@
 package it.cwmp.room
 
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.vertx.core.http.HttpMethod
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.authentication.{AuthenticationService, AuthenticationServiceVerticle}
@@ -29,12 +30,13 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
+    authenticationServiceDeploymentID = vertx.deployVerticleFuture(new AuthenticationServiceVerticle)
+
     webClient = WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost(roomsServiceHost)
         .setDefaultPort(roomsServicePort))
 
-    authenticationServiceDeploymentID = vertx.deployVerticleFuture(new AuthenticationServiceVerticle)
     testUserToken =
       authenticationServiceDeploymentID
         .flatMap(_ => AuthenticationService(vertx).signUp(testUserUsername, testUserPassword))
@@ -51,7 +53,7 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
   describe("Room Creation") {
     val creationApi = "/api/rooms"
 
-    it("should succeed when the user is authenticated") {
+    it("should succeed when the user is authenticated and input is valid") {
       testUserToken.flatMap(token =>
         webClient.post(creationApi)
           .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
@@ -60,23 +62,6 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     }
 
     describe("should fail") {
-      it("if token isn't provided") {
-        webClient.post(creationApi)
-          .sendJsonObjectFuture(roomCreationJson(roomName, playersNumber))
-          .flatMap(res => res statusCode() shouldEqual 400)
-      }
-      it("if token is wrong") {
-        webClient.post(creationApi)
-          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, "token")
-          .sendJsonObjectFuture(roomCreationJson(roomName, playersNumber))
-          .flatMap(res => res statusCode() shouldEqual 400)
-      }
-      it("if token isn't valid") {
-        webClient.post(creationApi)
-          .putHeader(HttpHeaderNames.AUTHORIZATION.toString, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
-          .sendJsonObjectFuture(roomCreationJson(roomName, playersNumber))
-          .flatMap(res => res statusCode() shouldEqual 401)
-      }
       it("if no room is sent with request") {
         testUserToken.flatMap(token =>
           webClient.post(creationApi)
@@ -89,6 +74,20 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
           webClient.post(creationApi)
             .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
             .sendJsonFuture("Ciao"))
+          .flatMap(res => res statusCode() shouldEqual 400)
+      }
+      it("if the roomName sent is empty") {
+        testUserToken.flatMap(token =>
+          webClient.post(creationApi)
+            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
+            .sendJsonFuture(roomCreationJson("", playersNumber)))
+          .flatMap(res => res statusCode() shouldEqual 400)
+      }
+      it("if the playersNumber isn't valid") {
+        testUserToken.flatMap(token =>
+          webClient.post(creationApi)
+            .putHeader(HttpHeaderNames.AUTHORIZATION.toString, token)
+            .sendJsonFuture(roomCreationJson(roomName, 0)))
           .flatMap(res => res statusCode() shouldEqual 400)
       }
     }
@@ -163,8 +162,63 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     // TODO: verify info modification after user entering
   }
 
-  describe("Room") {
-    // TODO: raggrupare qui tutti i fallimenti dovuti al token non valido sulle varie chiamate, cercando di non duplicare codice
+  describe("Room Api") {
+    import HttpMethod._
+    val roomApiInteractions = {
+      import RoomsServiceVerticle._
+      Seq(
+        (POST, API_CREATE_PRIVATE_ROOM_URL),
+        (PUT, API_ENTER_PRIVATE_ROOM_URL),
+        (GET, API_PRIVATE_ROOM_INFO_URL),
+        (DELETE, API_EXIT_PRIVATE_ROOM_URL),
+        (GET, API_LIST_PUBLIC_ROOMS_URL),
+        (PUT, API_ENTER_PUBLIC_ROOM_URL),
+        (GET, API_PUBLIC_ROOM_INFO_URL),
+        (DELETE, API_EXIT_PUBLIC_ROOM_URL))
+    }
+
+    describe("should fail") {
+      for (apiCall <- roomApiInteractions) {
+        it(s"if token not provided, doing ${apiCall._1.toString} on ${apiCall._2}") {
+          authenticationServiceDeploymentID.flatMap(_ => // needs to wait authentication service deployment
+            apiCall match {
+              case (GET, url) => Future.successful(webClient.get(url))
+              case (POST, url) => Future.successful(webClient.post(url))
+              case (PUT, url) => Future.successful(webClient.put(url))
+              case (DELETE, url) => Future.successful(webClient.delete(url))
+              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+            })
+            .flatMap(_.sendFuture())
+            .flatMap(res => res statusCode() shouldEqual 400)
+        }
+        it(s"if token wrong, doing ${apiCall._1.toString} on ${apiCall._2}") {
+          authenticationServiceDeploymentID.flatMap(_ =>
+            apiCall match {
+              case (GET, url) => Future.successful(webClient.get(url))
+              case (POST, url) => Future.successful(webClient.post(url))
+              case (PUT, url) => Future.successful(webClient.put(url))
+              case (DELETE, url) => Future.successful(webClient.delete(url))
+              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+            })
+            .flatMap(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, "token")
+              .sendFuture())
+            .flatMap(res => res statusCode() shouldEqual 400)
+        }
+        it(s"if token isn't valid, doing ${apiCall._1.toString} on ${apiCall._2}") {
+          authenticationServiceDeploymentID.flatMap(_ =>
+            apiCall match {
+              case (GET, url) => Future.successful(webClient.get(url))
+              case (POST, url) => Future.successful(webClient.post(url))
+              case (PUT, url) => Future.successful(webClient.put(url))
+              case (DELETE, url) => Future.successful(webClient.delete(url))
+              case _ => Future.failed(new IllegalStateException("Unrecognized HTTP method"))
+            })
+            .flatMap(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
+              .sendFuture())
+            .flatMap(res => res statusCode() shouldEqual 401)
+        }
+      }
+    }
   }
 
 

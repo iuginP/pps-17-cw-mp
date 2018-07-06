@@ -28,15 +28,15 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
     daoFuture = storageHelper.initialize().map(_ => storageHelper)
 
     val router = Router.router(vertx)
-    router post "/api/rooms" handler createPrivateRoomHandler
-    router put s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler enterPrivateRoomHandler
-    router get s"/api/rooms/:${Room.FIELD_IDENTIFIER}" handler privateRoomInfoHandler
-    router delete s"/api/rooms/:${Room.FIELD_IDENTIFIER}/self" handler exitPrivateRoomHandler
+    router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler
+    router put API_ENTER_PRIVATE_ROOM_URL handler enterPrivateRoomHandler
+    router get API_PRIVATE_ROOM_INFO_URL handler privateRoomInfoHandler
+    router delete API_EXIT_PRIVATE_ROOM_URL handler exitPrivateRoomHandler
 
-    router get "/api/rooms" handler listPublicRoomsHandler
-    router put s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}" handler enterPublicRoomHandler
-    router get s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}" handler publicRoomInfoHandler
-    router delete s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}/self" handler exitPublicRoomHandler
+    router get API_LIST_PUBLIC_ROOMS_URL handler listPublicRoomsHandler
+    router put API_ENTER_PUBLIC_ROOM_URL handler enterPublicRoomHandler
+    router get API_PUBLIC_ROOM_INFO_URL handler publicRoomInfoHandler
+    router delete API_EXIT_PUBLIC_ROOM_URL handler exitPublicRoomHandler
 
     vertx
       .createHttpServer()
@@ -112,7 +112,7 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
   }
 
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-
+    validateUserOrSendError.map(_ => sendResponse(200, Some("TODO")))
   }
 
   private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
@@ -128,15 +128,15 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
   }
 
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-
+    validateUserOrSendError.map(_ => sendResponse(200, Some("TODO")))
   }
 
   private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
-
+    validateUserOrSendError.map(_ => sendResponse(200, Some("TODO")))
   }
 
   private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-
+    validateUserOrSendError.map(_ => sendResponse(200, Some("TODO")))
   }
 
 
@@ -171,6 +171,16 @@ case class RoomsServiceVerticle() extends ScalaVerticle {
   * @author Enrico Siboni
   */
 object RoomsServiceVerticle {
+
+  val API_CREATE_PRIVATE_ROOM_URL = "/api/rooms"
+  val API_ENTER_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
+  val API_PRIVATE_ROOM_INFO_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
+  val API_EXIT_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}/self"
+
+  val API_LIST_PUBLIC_ROOMS_URL = "/api/rooms"
+  val API_ENTER_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
+  val API_PUBLIC_ROOM_INFO_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
+  val API_EXIT_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}/self"
 
   private val USER_NOT_AUTHENTICATED = "User is not authenticated"
   private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
