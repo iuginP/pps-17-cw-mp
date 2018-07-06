@@ -6,7 +6,10 @@ dependencies {
     implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
     implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
 
-    runtimeOnly 'org.hsqldb:hsqldb:2.0.0'
+    runtimeOnly 'org.hsqldb:hsqldb:2.4.0'
 
+    // Test dependencies from authentication implementation
     testImplementation project(':server:authentication')
+    // Test dependencies from authentication tests (resources too)
+    testImplementation project(path: ':server:authentication', configuration: 'testOutput')
 }
