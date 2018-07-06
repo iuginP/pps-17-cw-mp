@@ -2,8 +2,8 @@ package it.cwmp.authentication
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
+import it.cwmp.utils.HttpUtils
 import it.cwmp.testing.VerticleTesting
-import it.cwmp.client.utils.HttpUtils
 import org.scalatest.Matchers
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {

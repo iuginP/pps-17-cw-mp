@@ -6,8 +6,8 @@ import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.jdbc.JDBCClient
+import it.cwmp.utils.HttpUtils
 import it.cwmp.storage.StorageAsync
-import it.cwmp.client.utils.HttpUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

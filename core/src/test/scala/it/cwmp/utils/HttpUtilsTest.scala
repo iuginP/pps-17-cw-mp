@@ -1,5 +1,6 @@
-package it.cwmp.client.utils
+package it.cwmp.utils
 
+import HttpUtils
 import org.scalatest.FunSpec
 
 class HttpUtilsTest extends  FunSpec{

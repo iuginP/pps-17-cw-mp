@@ -1,8 +1,7 @@
 package it.cwmp.client.view
 
-import it.cwmp.client.controller.{AuthenticationController, OpeningController}
+import it.cwmp.client.controller.AuthenticationController
 import it.cwmp.client.utils.{LayoutRes, StringRes}
-import javafx.application.Platform
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.layout.Pane

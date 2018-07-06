@@ -1,4 +1,4 @@
-package it.cwmp.client.utils
+package it.cwmp.utils
 
 import java.util.Base64
 
