@@ -4,8 +4,8 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.testing.VerticleTesting
-import it.cwmp.utils.HttpUtils
-import org.scalatest.Matchers
+import it.cwmp.utils.{HttpUtils, Utils}
+import org.scalatest.{BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
   *
   * @author Enrico Siboni
   */
-class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matchers {
+class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with BeforeAndAfterEach with Matchers {
 
   private val roomsServiceHost = "127.0.0.1"
   private val roomsServicePort = 8667
@@ -24,8 +24,8 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
   private val authenticationSignUpUrl = "/api/signup" // TODO: questi campi non serviranno più quando ci sarà l'helper
   private val authenticationValidationUrl = "/api/validate"
 
-  private val testUserUsername = "Enrico"
-  private val testUserPassword = "password"
+  private var testUserUsername: String = _
+  private var testUserPassword: String = _
   private var testUserToken: Promise[String] = _
 
   private var authenticationDeploymentID: Future[String] = _
@@ -51,6 +51,10 @@ class RoomsServiceTest extends VerticleTesting[RoomsServiceVerticle] with Matche
     }
   }
 
+  override def beforeEach(): Unit = {
+    testUserUsername = Utils.randomString(10)
+    testUserPassword = Utils.randomString(10)
+  }
 
   describe("Room Creation") {
     it("should succeed when the user is authenticated") {
