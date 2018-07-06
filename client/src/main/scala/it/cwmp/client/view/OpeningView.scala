@@ -23,7 +23,6 @@ class OpeningView extends View {
     val loader: FXMLLoader = new FXMLLoader(getClass.getResource(LayoutRes.openingLayout))
     val root: Pane = loader.load[Pane]
     controller = loader.getController[OpeningController]
-    controller.stage = mainStage
     val scene: Scene = new Scene(root)
 
     mainStage.setOnCloseRequest((_) => {
