@@ -11,13 +11,7 @@ import scala.util.Failure
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
-  private val auth = AuthenticationService(
-    WebClient.create(Vertx.vertx(),
-    WebClientOptions()
-      .setDefaultHost("localhost")
-      .setDefaultPort(8666)
-      .setKeepAlive(false))
-  )
+  private val auth = AuthenticationService(vertx)
 
   describe("Signup") {
     it("when right should succed") {
@@ -36,7 +30,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       auth.signUp(username, password)
         .flatMap(_ => auth.signUp(username, password))
         .onComplete({
-          case Failure(e: HTTPException) if e.getStatusCode == 400 => promiseResult.success()
+          case Failure(e: HTTPException) if e.getStatusCode == 400 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
         })
       promiseResult.future.map(_ => succeed)
@@ -60,7 +54,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val promiseResult: Promise[Unit] = Promise()
       auth.login(username, password)
         .onComplete({
-          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success()
+          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
         })
       promiseResult.future.map(_ => succeed)
@@ -78,7 +72,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
             case e => println(e)
           })
         .onComplete({
-          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success()
+          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
         })
       promiseResult.future.map(_ => succeed)
@@ -101,7 +95,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val promiseResult: Promise[Unit] = Promise()
       auth.validate(myToken)
         .onComplete({
-          case Failure(e: HTTPException) if e.getStatusCode == 400 => promiseResult.success()
+          case Failure(e: HTTPException) if e.getStatusCode == 400 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
         })
       promiseResult.future.map(_ => succeed)
@@ -113,7 +107,7 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val promiseResult: Promise[Unit] = Promise()
       auth.validate(myToken)
         .onComplete({
-          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success()
+          case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
         })
       promiseResult.future.map(_ => succeed)
