@@ -21,6 +21,7 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     val router = Router.router(vertx)
 
     router.post("/api/signup").handler(handlerSignup)
+    router.post("/api/signout").handler(handlerSignout)
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerValidation)
 
@@ -63,6 +64,23 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
         }
       }
     }
+  }
+
+  private def handlerSignout(routingContext: RoutingContext): Unit = {
+    val response: HttpServerResponse = routingContext.response()
+    for (
+      authorizationHeader <- routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString);
+      token <- HttpUtils.readJwtAuthentication(authorizationHeader);
+      username <- JwtUtils.decodeUsernameToken(token)
+    ) yield {
+      // If every check pass, username contains the username contained in the token and we can check it exists
+      storage.signoutFuture(username).onComplete {
+        case Success(_) => response setStatusCode 202 end
+        case Failure(_) => sendError(401, response)
+      }
+      return
+    }
+    sendError(400, response)
   }
 
   private def handlerLogin(routingContext: RoutingContext): Unit = {
