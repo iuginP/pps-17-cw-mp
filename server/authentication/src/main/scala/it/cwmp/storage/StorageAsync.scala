@@ -34,8 +34,7 @@ object StorageAsync {
       getConnection().flatMap(conn => {
         // create a test table
         conn.executeFuture("""
-          DROP TABLE authorization IF EXISTS;
-          CREATE TABLE authorization (
+          CREATE TABLE IF NOT EXISTS authorization (
             auth_username VARCHAR(45) NOT NULL,
             auth_password VARCHAR(45) NOT NULL,
             auth_salt CHAR(32) NOT NULL,
