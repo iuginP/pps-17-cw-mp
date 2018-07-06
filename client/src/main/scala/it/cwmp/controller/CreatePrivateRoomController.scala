@@ -1,8 +1,9 @@
 package it.cwmp.controller
 
 import javafx.application.Platform
-import javafx.scene.control.{CheckBox, PasswordField, Spinner, TextField}
+import javafx.scene.control._
 import javafx.fxml.FXML
+import javafx.scene.control.Alert.AlertType
 import javafx.stage.Stage
 
 class CreatePrivateRoomController extends ViewController{
@@ -26,6 +27,10 @@ class CreatePrivateRoomController extends ViewController{
     Platform.runLater(() => {
       if (checkParam()){
         //todo fare richiesta
+      }else{
+        val alert = new Alert(AlertType.ERROR, "Errore nell'inserimeto di un campo",
+          ButtonType.OK)
+        alert.showAndWait
       }
     })
   }
@@ -40,33 +45,38 @@ class CreatePrivateRoomController extends ViewController{
   @FXML
   private def onClickReset(): Unit = {
     Platform.runLater(() => {
-      resetFields
+      resetFields()
     })
   }
 
   private def checkParam(): Boolean ={
-    if(roomName.getText() != "" || pass_hidden.getText() != ""){
+    if((showPassword.isSelected && plain_password.getText() != "" && roomName.getText != "") ||
+      (!showPassword.isSelected && pass_hidden.getText() != "" && roomName.getText != "")){
       true
+    }else{
+      false
     }
-    false
   }
 
   def showHidePassword(): Unit = {
     if (showPassword.isSelected) {
-      plain_password.setText(pass_hidden.getText)
-      plain_password.setVisible(true)
-      pass_hidden.setVisible(false)
+      plain_password setText pass_hidden.getText
+      plain_password setVisible true
+      pass_hidden setVisible false
       return
     }
     pass_hidden.setText(plain_password.getText)
-    pass_hidden.setVisible(true)
-    plain_password.setVisible(false)
+    pass_hidden setVisible true
+    plain_password setVisible false
   }
 
   private def resetFields(): Unit = {
-    roomName setText("")
+    roomName setText ""
     numPlayer getValueFactory() setValue 2
-    pass_hidden setText("")
-    showPassword setSelected(false)
+    pass_hidden setText ""
+    plain_password setText ""
+    showPassword setSelected false
+    pass_hidden setVisible true
+    plain_password setVisible false
   }
 }

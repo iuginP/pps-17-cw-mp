@@ -14,5 +14,6 @@ object StringRes {
   val signInTitle: String = "Login"
 
   //CreatePrivateRoomView
-  val CreatePrivateRoomTitle = "Create private room"
+  val CreatePrivateRoomTitle = "Crea una stanza privata"
+
 }
