@@ -17,9 +17,7 @@ class OpeningView extends View {
     **/
   override def start(): Unit = {
     val mainStage = new Stage
-    mainStage setTitle StringRes.openingTitle
-    /*mainStage setHeight 400
-    mainStage setWidth 600*/
+    mainStage setTitle StringRes.appName
     mainStage setResizable false
 
     val loader: FXMLLoader = new FXMLLoader(getClass.getResource(LayoutRes.openingLayout))

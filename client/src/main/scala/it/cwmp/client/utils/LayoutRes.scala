@@ -8,4 +8,6 @@ object LayoutRes {
   val openingLayout: String = "/openingLayout.fxml"
 
   val signInLayout: String = "/signInLayout.fxml"
+
+  val signUpLayout: String = "/signUpLayout.fxml"
 }

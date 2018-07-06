@@ -7,7 +7,7 @@ import javafx.scene.Scene
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
 
-class SignInView extends View {
+class SignUpView extends View {
 
   var controller: AuthenticationController = _
 
@@ -19,7 +19,7 @@ class SignInView extends View {
     mainStage setTitle StringRes.appName
     mainStage setResizable false
 
-    val loader: FXMLLoader = new FXMLLoader(getClass.getResource(LayoutRes.signInLayout))
+    val loader: FXMLLoader = new FXMLLoader(getClass.getResource(LayoutRes.signUpLayout))
     val root: Pane = loader.load[Pane]
     controller = loader.getController[AuthenticationController]
     controller.stage = mainStage

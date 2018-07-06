@@ -9,7 +9,5 @@ object StringRes {
 
   val appName: String = "Cell Wars MultiPlayer"
 
-  val openingTitle: String = appName
-
   val signInTitle: String = "Login"
 }

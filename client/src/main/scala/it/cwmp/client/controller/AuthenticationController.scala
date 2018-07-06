@@ -11,6 +11,12 @@ class AuthenticationController extends ViewController {
 
   @FXML
   private def onClickSignIn(): Unit = {
+
+  }
+
+  @FXML
+  private def onClickSignUp(): Unit = {
+
   }
 
 }

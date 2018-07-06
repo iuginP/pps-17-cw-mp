@@ -1,6 +1,7 @@
 package it.cwmp.client.controller
 
-import it.cwmp.client.view.{OpeningView, SignInView}
+import it.cwmp.client.utils.ViewUtils
+import it.cwmp.client.view.{OpeningView, SignInView, SignUpView}
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.stage.Stage
@@ -23,11 +24,7 @@ class OpeningController extends ViewController {
 
   @FXML
   private def onClickSignUp(): Unit = {
-    val alert = new Alert(AlertType.CONFIRMATION, "Prova prova?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL)
-    alert.showAndWait
-
-    if (alert.getResult eq ButtonType.YES) {
-
-    }
+    val view: SignUpView = new SignUpView
+    view.start()
   }
 }
