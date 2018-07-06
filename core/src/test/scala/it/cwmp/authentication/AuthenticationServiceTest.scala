@@ -1,7 +1,5 @@
 package it.cwmp.authentication
 
-import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.testing.VerticleTesting
 import javax.xml.ws.http.HTTPException
 import org.scalatest.Matchers

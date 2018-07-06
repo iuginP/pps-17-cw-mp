@@ -62,7 +62,8 @@ object AuthenticationService {
             authHeader)
           .sendFuture()
           .map(res => res statusCode() match {
-            case 200 => res.bodyAsString().get
+            case 200 => {Thread.sleep(5000)
+              res.bodyAsString().get}
             case code => throw new HTTPException(code)
           })
       }

@@ -1,20 +1,13 @@
 package it.cwmp.client.controller
 
-import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
-import it.cwmp.authentication.AuthenticationService
 import javafx.fxml.FXML
 import javafx.scene.control.{PasswordField, TextField}
+import javax.xml.ws.http.HTTPException
 
-class SignUpController extends ViewController {
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-  private val auth = AuthenticationService(
-    WebClient.create(Vertx.vertx(),
-      WebClientOptions()
-        .setDefaultHost("localhost")
-        .setDefaultPort(8666)
-        .setKeepAlive(false))
-  )
+class SignUpController extends AuthenticationController {
 
   @FXML
   private var tfUsername: TextField = _
@@ -28,11 +21,18 @@ class SignUpController extends ViewController {
 
   @FXML
   private def onClickSignUp(): Unit = {
-    val username = tfUsername getText
-    val password = pfPassword getText
-    val passwordConfirm = pfPasswordConfirm getText
+    val username = tfUsername.getText
+    val password = pfPassword.getText
+    val passwordConfirm = pfPasswordConfirm.getText
+
     // TODO: various controls
 
+    auth.signUp(username, password).onComplete {
+      case Success(value) => println(s"Sign up completed! Token: $value")
+      case Failure(e: HTTPException) => e.getStatusCode match {
+        case 400 => println(s"Error! Code: 400") // TODO: handle error
+        case _ => // TODO: handle error default
+      }
+    }
   }
-
 }
