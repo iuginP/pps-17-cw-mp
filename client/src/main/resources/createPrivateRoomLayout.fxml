@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <?import javafx.scene.text.Font?>
-<GridPane  maxHeight="-Infinity"
-           maxWidth="-Infinity"
-           minHeight="-Infinity"
-           minWidth="-Infinity"
-           xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="it.cwmp.controller.CreatePrivateRoomController"
-           prefHeight="400.0" prefWidth="600.0"
-           hgap="10"
-           alignment="center">
+
+<GridPane maxHeight="-Infinity"
+          maxWidth="-Infinity"
+          minHeight="-Infinity"
+          minWidth="-Infinity"
+          xmlns="http://javafx.com/javafx"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="it.cwmp.controller.CreatePrivateRoomController"
+          prefHeight="400.0" prefWidth="600.0"
+          hgap="30"
+          vgap="10"
+          alignment="center">
 
     <children>
 
@@ -32,7 +30,7 @@
                 <Font size="24.0" />
             </font>
         </Label>
-        <Spinner fx:id="spinner" GridPane.rowIndex="1" GridPane.columnIndex="1">
+        <Spinner fx:id="numPlayer" id="numPlayer" GridPane.rowIndex="1" GridPane.columnIndex="1">
             <valueFactory>
                 <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
             </valueFactory>
@@ -45,10 +43,10 @@
         </Label>
         <PasswordField GridPane.rowIndex="2" GridPane.columnIndex="1" id="roomPassword" fx:id="roomPassword" layoutX="115.0" layoutY="28.0" />
 
-        <CheckBox GridPane.rowIndex="3" GridPane.columnIndex="1" fx:id="showPassword" text="Mostra password" />
+        <CheckBox GridPane.rowIndex="3" GridPane.columnIndex="1" fx:id="showPassword" text="Mostra password" onAction="#onChecked"/>
 
-        <Button GridPane.rowIndex="4" GridPane.columnIndex="0" layoutX="111.0" layoutY="95.0" mnemonicParsing="false" onAction="#onClickCreate" prefHeight="30.0" prefWidth="70.0" text="Crea" />
-        <Button GridPane.rowIndex="4" GridPane.columnIndex="1" layoutX="111.0" layoutY="95.0" mnemonicParsing="false" onAction="#onClickReset" prefHeight="30.0" prefWidth="70.0" text="Reset" />
+        <Button GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0" mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0" prefWidth="70.0" text="Crea" />
+        <Button GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0" mnemonicParsing="false" onAction="#onClickReset" prefHeight="25.0" prefWidth="70.0" text="Reset" />
 
     </children>
 
