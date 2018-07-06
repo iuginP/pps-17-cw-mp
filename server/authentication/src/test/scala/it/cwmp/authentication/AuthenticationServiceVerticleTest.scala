@@ -6,6 +6,8 @@ import it.cwmp.testing.VerticleTesting
 import it.cwmp.utils.HttpUtils
 import org.scalatest.Matchers
 
+import scala.util.Random
+
 class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
   private def client = {
@@ -18,8 +20,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
 
   describe("Signup") {
     it("when right should succed") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
 
       HttpUtils.buildBasicAuthentication(username, password) match {
         case None => fail
@@ -49,8 +51,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
     }
 
     it("when username already exist should fail") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
 
       HttpUtils.buildBasicAuthentication(username, password) match {
         case None => fail
@@ -75,8 +77,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
 
   describe("Login") {
     it("when right should succed") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
 
       HttpUtils.buildBasicAuthentication(username, password) match {
         case None => fail
@@ -115,8 +117,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
     }
 
     it("when user does not exists should fail") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
 
       HttpUtils.buildBasicAuthentication(username, password) match {
         case None => fail
@@ -130,8 +132,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
     }
 
     it("when password is wrong should fail") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
       val passwordWrong = "passwordWRONG"
 
       HttpUtils.buildBasicAuthentication(username, password) match {
@@ -157,8 +159,8 @@ class AuthenticationServiceVerticleTest extends VerticleTesting[AuthenticationSe
 
   describe("Validation") {
     it("when right should succed") {
-      val username = "username"
-      val password = "password"
+      val username = Random.nextString(10)
+      val password = Random.nextString(10)
       HttpUtils.buildBasicAuthentication(username, password) match {
         case None => fail
         case Some(token) => client.post("/api/signup")
