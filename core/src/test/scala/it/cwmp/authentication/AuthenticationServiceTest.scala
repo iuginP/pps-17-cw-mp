@@ -9,7 +9,7 @@ import scala.util.Failure
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
-  private val auth = AuthenticationService(vertx)
+  private val auth = AuthenticationService()(vertx)
 
   describe("Signup") {
     it("when right should succed") {
