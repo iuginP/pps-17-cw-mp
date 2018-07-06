@@ -14,7 +14,9 @@ class CreatePrivateRoomController extends ViewController{
   @FXML
   private var numPlayer: Spinner[Integer] = _
   @FXML
-  private var roomPassword: PasswordField = _
+  private var pass_hidden: PasswordField = _
+  @FXML
+  private var plain_password: TextField = _
   @FXML
   private var showPassword: CheckBox = _
 
@@ -31,7 +33,7 @@ class CreatePrivateRoomController extends ViewController{
   @FXML
   private def onChecked(): Unit = {
     Platform.runLater(() => {
-
+      showHidePassword()
     })
   }
 
@@ -43,16 +45,28 @@ class CreatePrivateRoomController extends ViewController{
   }
 
   private def checkParam(): Boolean ={
-    if(roomName.getText() != "" || roomPassword.getText() != ""){
+    if(roomName.getText() != "" || pass_hidden.getText() != ""){
       true
     }
     false
   }
 
+  def showHidePassword(): Unit = {
+    if (showPassword.isSelected) {
+      plain_password.setText(pass_hidden.getText)
+      plain_password.setVisible(true)
+      pass_hidden.setVisible(false)
+      return
+    }
+    pass_hidden.setText(plain_password.getText)
+    pass_hidden.setVisible(true)
+    plain_password.setVisible(false)
+  }
+
   private def resetFields(): Unit = {
     roomName setText("")
     numPlayer getValueFactory() setValue 2
-    roomPassword setText("")
+    pass_hidden setText("")
     showPassword setSelected(false)
   }
 }

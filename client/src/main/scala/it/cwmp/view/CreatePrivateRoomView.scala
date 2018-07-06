@@ -13,6 +13,7 @@ class CreatePrivateRoomView extends View {
   var controller: CreatePrivateRoomController = _
 
   override def start(): Unit = {
+
     val mainStage = new Stage
     mainStage setTitle StringRes.CreatePrivateRoomTitle
     /*mainStage setHeight 400
