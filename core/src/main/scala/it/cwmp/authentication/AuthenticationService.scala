@@ -53,7 +53,6 @@ object AuthenticationService {
             case Success(res) => Failure(new HTTPException(res.statusCode()))
             case Failure(f) => Failure(f)
           })
-          .andThen({ case Failure(e: HTTPException) => println(e.getStatusCode) })
       }
 
     override def login(username: String, password: String): Future[String] =

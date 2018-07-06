@@ -1,13 +1,12 @@
 package it.cwmp.authentication
 
-import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.testing.VerticleTesting
+import it.cwmp.utils.Utils
 import javax.xml.ws.http.HTTPException
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
-import scala.util.{Failure, Random}
+import scala.util.Failure
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
@@ -15,16 +14,16 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
 
   describe("Signup") {
     it("when right should succed") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
 
       auth.signUp(username, password)
         .map(res => res shouldNot be("")) // TODO controllare il body per la presenza del token
     }
 
     it("when username already exist should fail") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
 
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
@@ -39,8 +38,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
 
   describe("Login") {
     it("when right should succed") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
 
       auth.signUp(username, password)
         .flatMap(_ => auth.login(username, password))
@@ -48,8 +47,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when user does not exists should fail") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
 
       val promiseResult: Promise[Unit] = Promise()
       auth.login(username, password)
@@ -61,9 +60,9 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
     }
 
     it("when password is wrong should fail") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
-      val passwordWrong = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
+      val passwordWrong = Utils.randomString(10)
 
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
@@ -81,8 +80,8 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
 
   describe("Validation") {
     it("when right should succed") {
-      val username = Random.nextString(10)
-      val password = Random.nextString(10)
+      val username = Utils.randomString(10)
+      val password = Utils.randomString(10)
 
       auth.signUp(username, password)
         .flatMap(token => auth.validate(token))

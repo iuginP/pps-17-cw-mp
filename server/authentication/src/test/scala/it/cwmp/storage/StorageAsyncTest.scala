@@ -5,9 +5,9 @@ import org.scalatest.Matchers
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.testing.VerticleTesting
+import it.cwmp.utils.Utils
 
 import scala.concurrent.Future
-import scala.util.Random
 
 class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
@@ -27,7 +27,7 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
     describe("sign up") {
       describe("should fail with error") {
         it("when username empty") {
-          val password = Random.nextString(10)
+          val password = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.signupFuture("", password))
@@ -35,7 +35,7 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
           }
         }
         it("when password empty") {
-          val username = Random.nextString(10)
+          val username = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.signupFuture(username, ""))
@@ -43,8 +43,8 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
           }
         }
         it("when username already present") {
-          val username = Random.nextString(10)
-          val password = Random.nextString(10)
+          val username = Utils.randomString(10)
+          val password = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
@@ -55,8 +55,8 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
       }
       describe("should succeed") {
         it("when all right") {
-          val username = Random.nextString(10)
-          val password = Random.nextString(10)
+          val username = Utils.randomString(10)
+          val password = Utils.randomString(10)
           storageFuture
             .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
             .flatMap(storage => storage.signoutFuture(username))
@@ -75,7 +75,7 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
           }
         }
         it("when username doesn't exists") {
-          val username = Random.nextString(10)
+          val username = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.signoutFuture(username))
@@ -85,8 +85,8 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
       }
       describe("should succeed") {
         it("when all right") {
-          val username = Random.nextString(10)
-          val password = Random.nextString(10)
+          val username = Utils.randomString(10)
+          val password = Utils.randomString(10)
           storageFuture
             .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
             .flatMap(storage => storage.signoutFuture(username))
@@ -98,7 +98,7 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
     describe("login") {
       describe("should fail with error") {
         it("when username empty") {
-          val password = Random.nextString(10)
+          val password = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.loginFuture("", password))
@@ -106,7 +106,7 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
           }
         }
         it("when username doesn't exists") {
-          val username = Random.nextString(10)
+          val username = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.loginFuture(username, ""))
@@ -114,9 +114,9 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
           }
         }
         it("when password is wrong") {
-          val username = Random.nextString(10)
-          val password = Random.nextString(10)
-          val passwordWrong = Random.nextString(10)
+          val username = Utils.randomString(10)
+          val password = Utils.randomString(10)
+          val passwordWrong = Utils.randomString(10)
           recoverToSucceededIf[Exception] {
             storageFuture
               .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
@@ -128,8 +128,8 @@ class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] wi
       }
       describe("should succeed") {
         it("when all right") {
-          val username = Random.nextString(10)
-          val password = Random.nextString(10)
+          val username = Utils.randomString(10)
+          val password = Utils.randomString(10)
           storageFuture
             .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
             .flatMap(storage => storage.loginFuture(username, password).map(_ => storage))
