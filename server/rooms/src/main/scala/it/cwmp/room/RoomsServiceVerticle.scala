@@ -21,12 +21,13 @@ import scala.util.{Failure, Success}
   */
 case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) extends ScalaVerticle {
 
-  private var daoFuture: Future[RoomLocalDAO] = _
+  private var daoFuture: Future[RoomDAO] = _
 
   override def startFuture(): Future[_] = {
     val storageHelper = RoomLocalDAO(vertx)
     daoFuture = storageHelper.initialize().map(_ => storageHelper)
 
+    import it.cwmp.controller.rooms.RoomsApiWrapper._
     val router = Router.router(vertx)
     router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler
     router put API_ENTER_PRIVATE_ROOM_URL handler enterPrivateRoomHandler
@@ -77,6 +78,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
     * Handles entering in a private room
     */
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    // TODO: gestire il rimepimento di una stanza
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressFromBody(body)) match {
@@ -146,6 +148,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
     * Handles entering in a public room
     */
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    // TODO: gestire il raggiungimento del numero di giocatori prestabilito
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         val playersNumberOption = try extractRequestParam(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
@@ -242,18 +245,6 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
   * @author Enrico Siboni
   */
 object RoomsServiceVerticle {
-
-  val DEFAULT_PORT = 8667 // TODO: move to wrapper when completed
-
-  val API_CREATE_PRIVATE_ROOM_URL = "/api/rooms"
-  val API_ENTER_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
-  val API_PRIVATE_ROOM_INFO_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
-  val API_EXIT_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}/self"
-
-  val API_LIST_PUBLIC_ROOMS_URL = "/api/rooms"
-  val API_ENTER_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
-  val API_PUBLIC_ROOM_INFO_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
-  val API_EXIT_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}/self"
 
   private val USER_NOT_AUTHENTICATED = "User is not authenticated"
   private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"

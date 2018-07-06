@@ -14,7 +14,7 @@ import scala.concurrent.Future
   */
 class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach {
 
-  private var daoFuture: Future[RoomLocalDAO] = _
+  private var daoFuture: Future[RoomDAO] = _
 
   private val roomName = "Stanza"
 
@@ -209,7 +209,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
       it("should show only public rooms") {
         daoFuture.flatMap(dao => dao.createRoom(roomName, publicRoomPlayersNumber)
           .flatMap(_ => dao.listPublicRooms()))
-          .flatMap(_.forall(_.identifier.contains(RoomsApiWrapper.publicPrefix)) shouldBe true)
+          .flatMap(_.forall(_.identifier.contains(RoomLocalDAO.publicPrefix)) shouldBe true)
       }
     }
 

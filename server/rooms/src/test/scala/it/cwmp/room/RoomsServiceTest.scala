@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpMethod._
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.authentication.Validation
+import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.{Address, Room, User}
 import it.cwmp.testing.VertxTest
 import javax.xml.ws.http.HTTPException
@@ -25,7 +26,7 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
     WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost("localhost")
-        .setDefaultPort(RoomsServiceVerticle.DEFAULT_PORT))
+        .setDefaultPort(RoomsApiWrapper.DEFAULT_PORT))
 
   private val myAuthorizedUser: User with Address = User("Enrico", "address")
   private val mySecondAuthorizedUser: User with Address = User("Enrico2", "address2")
@@ -63,7 +64,7 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
 
   describe("Private Room") {
     describe("Creation") {
-      val creationApi = RoomsServiceVerticle.API_CREATE_PRIVATE_ROOM_URL
+      val creationApi = RoomsApiWrapper.API_CREATE_PRIVATE_ROOM_URL
 
       it("should succeed when the user is authenticated and input is valid") {
         createPrivateRoom(roomName, playersNumber, myCorrectToken)
@@ -93,7 +94,7 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
     }
 
     describe("Entering") {
-      val enterApi = RoomsServiceVerticle.API_ENTER_PRIVATE_ROOM_URL
+      val enterApi = RoomsApiWrapper.API_ENTER_PRIVATE_ROOM_URL
 
       it("should succeed when the user is authenticated, input is valid and room non full") {
         createPrivateRoom(roomName, playersNumber, myCorrectToken)
@@ -225,6 +226,8 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
     }
 
     describe("Entering") {
+      val enterPublicRoomApi = RoomsApiWrapper.API_ENTER_PUBLIC_ROOM_URL
+
       describe("should succeed") {
         it("if room with such players number exists") {
           enterPublicRoom(playersNumber, myAuthorizedUser.address, myCorrectToken)
@@ -245,6 +248,16 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
         it("if there's no room with such players number") {
           enterPublicRoom(20, myAuthorizedUser.address, myCorrectToken)
             .flatMap(_ statusCode() shouldBe 404)
+        }
+        it("if address not provided") {
+          createClientRequestWithToken(webClient, PUT, enterPublicRoomApi, myCorrectToken)
+            .sendFuture()
+            .flatMap(_ statusCode() shouldBe 400)
+        }
+        it("if address message malformed") {
+          createClientRequestWithToken(webClient, PUT, enterPublicRoomApi, myCorrectToken)
+            .sendJsonFuture("Ciao")
+            .flatMap(_ statusCode() shouldBe 400)
         }
         it("if user is already inside a room") {
           enterPublicRoom(2, myAuthorizedUser.address, myCorrectToken)
@@ -314,7 +327,7 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
 
   describe("Room Api") {
     val roomApiInteractions = {
-      import RoomsServiceVerticle._
+      import RoomsApiWrapper._
       Seq(
         (POST, API_CREATE_PRIVATE_ROOM_URL),
         (PUT, API_ENTER_PRIVATE_ROOM_URL),
@@ -381,47 +394,47 @@ class RoomsServiceTest extends VertxTest with Matchers with BeforeAndAfterEach w
 
   // TODO: la parte qui sotto magari modificata sar da riportare nel RoomsServiceHelper
   private def createPrivateRoom(roomName: String, neededPlayers: Int, userToken: String) = {
-    createClientRequestWithToken(webClient, POST, RoomsServiceVerticle.API_CREATE_PRIVATE_ROOM_URL, userToken)
+    createClientRequestWithToken(webClient, POST, RoomsApiWrapper.API_CREATE_PRIVATE_ROOM_URL, userToken)
       .sendJsonObjectFuture(roomForCreationJson(roomName, neededPlayers))
   }
 
   private def enterPrivateRoom(roomID: String, userAddress: String, userToken: String) = {
-    createClientRequestWithToken(webClient, PUT, RoomsServiceVerticle.API_ENTER_PRIVATE_ROOM_URL, userToken)
+    createClientRequestWithToken(webClient, PUT, RoomsApiWrapper.API_ENTER_PRIVATE_ROOM_URL, userToken)
       .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
       .sendJsonObjectFuture(addressForEnteringJson(userAddress))
   }
 
   private def privateRoomInfo(roomID: String, userToken: String) = {
-    createClientRequestWithToken(webClient, GET, RoomsServiceVerticle.API_PRIVATE_ROOM_INFO_URL, userToken)
+    createClientRequestWithToken(webClient, GET, RoomsApiWrapper.API_PRIVATE_ROOM_INFO_URL, userToken)
       .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
       .sendFuture()
   }
 
   private def exitPrivateRoom(roomID: String, userToken: String) = {
-    createClientRequestWithToken(webClient, DELETE, RoomsServiceVerticle.API_EXIT_PRIVATE_ROOM_URL, userToken)
+    createClientRequestWithToken(webClient, DELETE, RoomsApiWrapper.API_EXIT_PRIVATE_ROOM_URL, userToken)
       .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
       .sendFuture()
   }
 
   private def listPublicRooms(userToken: String) = {
-    createClientRequestWithToken(webClient, GET, RoomsServiceVerticle.API_LIST_PUBLIC_ROOMS_URL, userToken)
+    createClientRequestWithToken(webClient, GET, RoomsApiWrapper.API_LIST_PUBLIC_ROOMS_URL, userToken)
       .sendFuture()
   }
 
   private def enterPublicRoom(playersNumber: Int, userAddress: String, userToken: String) = {
-    createClientRequestWithToken(webClient, PUT, RoomsServiceVerticle.API_ENTER_PUBLIC_ROOM_URL, userToken)
+    createClientRequestWithToken(webClient, PUT, RoomsApiWrapper.API_ENTER_PUBLIC_ROOM_URL, userToken)
       .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString)
       .sendJsonObjectFuture(addressForEnteringJson(userAddress))
   }
 
   private def publicRoomInfo(playersNumber: Int, userToken: String) = {
-    createClientRequestWithToken(webClient, GET, RoomsServiceVerticle.API_PUBLIC_ROOM_INFO_URL, userToken)
+    createClientRequestWithToken(webClient, GET, RoomsApiWrapper.API_PUBLIC_ROOM_INFO_URL, userToken)
       .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString)
       .sendFuture()
   }
 
   private def exitPublicRoom(playersNumber: Int, userToken: String) = {
-    createClientRequestWithToken(webClient, DELETE, RoomsServiceVerticle.API_EXIT_PUBLIC_ROOM_URL, userToken)
+    createClientRequestWithToken(webClient, DELETE, RoomsApiWrapper.API_EXIT_PUBLIC_ROOM_URL, userToken)
       .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString)
       .sendFuture()
   }
