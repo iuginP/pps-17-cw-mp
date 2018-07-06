@@ -1,9 +1,4 @@
 dependencies {
-    implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
-
     testImplementation project(':server:testing')
-    // Test dependencies from authentication implementation
     testImplementation project(':server:authentication')
-    // Test dependencies from authentication tests (resources too)
-    testImplementation project(path: ':server:authentication', configuration: 'testOutput')
 }

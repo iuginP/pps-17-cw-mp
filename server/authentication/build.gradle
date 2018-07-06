@@ -2,20 +2,9 @@ apply plugin: 'application'
 
 mainClassName = 'AuthenticationServiceMain'
 
-configurations {
-    testOutput
-}
-
 dependencies {
-    testOutput sourceSets.test.output
-
     implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
     implementation 'com.pauldijou:jwt-core_2.12:0.16.0'
-    implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
-    runtimeOnly 'mysql:mysql-connector-java:5.1.13'
-
-    testImplementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
-    testRuntimeOnly 'org.hsqldb:hsqldb:2.4.0'
 }
 
 tasks.withType(Test) {
