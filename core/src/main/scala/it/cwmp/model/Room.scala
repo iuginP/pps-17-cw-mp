@@ -26,20 +26,23 @@ sealed trait Room {
   */
 object Room {
 
+  import it.cwmp.utils.Utils.parameterEmptyCheck
+
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
             participants: Seq[User with Address] = Seq()): Room = {
 
-    if (roomID.isEmpty) throw new IllegalArgumentException("Room ID empty")
-    if (roomName.isEmpty) throw new IllegalArgumentException("Room name empty")
+    parameterEmptyCheck(roomID, "Room ID empty")
+    parameterEmptyCheck(roomName, "Room name empty")
     if (neededPlayersNumber < 1) throw new IllegalArgumentException("Room needed players less than one")
 
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)
   }
 
   def unapply(toExtract: Room): Option[(String, String, Int, Seq[User with Address])] =
-    Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
+    if (toExtract eq null) None
+    else Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
 
   /**
     * Default implementation for Room

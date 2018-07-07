@@ -3,6 +3,7 @@ package it.cwmp.model
 import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import it.cwmp.utils.Utils
 
 /**
   * A trait describing the user
@@ -28,15 +29,24 @@ sealed trait Address {
   * @author Enrico Siboni
   */
 object User {
-  def apply(username: String): User = UserDefault(username)
+  import Utils.parameterEmptyCheck
 
-  def apply(username: String, address: String): User with Address = UserWithAddress(username, address)
+  def apply(username: String): User = {
+    parameterEmptyCheck(username, "Username empty")
+    UserDefault(username)
+  }
+
+  def apply(username: String, address: String): User with Address = {
+    parameterEmptyCheck(username, "Username empty")
+    parameterEmptyCheck(address, "Address empty")
+    UserWithAddress(username, address)
+  }
 
   def unapply(toExtract: User): Option[String] =
-    Some(toExtract.username)
+    if (toExtract eq null) None else Some(toExtract.username)
 
   def unapply(toExtract: User with Address)(implicit d: DummyImplicit): Option[(String, String)] =
-    Some(toExtract.username, toExtract.address)
+    if (toExtract eq null) None else Some(toExtract.username, toExtract.address)
 
 
   private case class UserDefault(username: String) extends User
