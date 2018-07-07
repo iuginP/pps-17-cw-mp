@@ -9,6 +9,7 @@ import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait AuthenticationService extends Validation[String, User] {
 
@@ -44,9 +45,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .map(res => res statusCode() match {
-            case 201 => res.bodyAsString().get
-            case code => throw new HTTPException(code)
+          .transform({
+            case Success(res) if res.statusCode() == 201 => Success(res.bodyAsString().get)
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
           })
       }
 
@@ -58,9 +60,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .map(res => res statusCode() match {
-            case 200 => res.bodyAsString().get
-            case code => throw new HTTPException(code)
+          .transform({
+            case Success(res) if res.statusCode() == 200 => Success(res.bodyAsString().get)
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
           })
       }
 
@@ -72,9 +75,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .map(res => res statusCode() match {
-            case 200 => User(res.bodyAsString().get)
-            case code => throw new HTTPException(code)
+          .transform({
+            case Success(res) if res.statusCode() == 200 => Success(User(res.bodyAsString().get))
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
           })
       }
   }
