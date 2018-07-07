@@ -16,4 +16,7 @@ object StringRes {
   //CreatePrivateRoomView
   val CreatePrivateRoomTitle = "Crea una stanza privata"
 
+
+  //RoomManagerView
+  val RoomManagerTitle = "Gestione stanze"
 }

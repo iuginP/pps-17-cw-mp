@@ -10,4 +10,6 @@ object LayoutRes {
   val signInLayout: String = "/signInLayout.fxml"
 
   val createPrivateRoomLayout: String = "/createPrivateRoomLayout.fxml"
+
+  val roomManagerLayout: String = "/roomManagerLayout.fxml"
 }
