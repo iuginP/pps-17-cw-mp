@@ -29,16 +29,16 @@ sealed trait Address {
   * @author Enrico Siboni
   */
 object User {
-  import Utils.parameterEmptyCheck
+  import Utils.emptyString
 
   def apply(username: String): User = {
-    parameterEmptyCheck(username, "Username empty")
+    require(!emptyString(username), "Username empty")
     UserDefault(username)
   }
 
   def apply(username: String, address: String): User with Address = {
-    parameterEmptyCheck(username, "Username empty")
-    parameterEmptyCheck(address, "Address empty")
+    require(!emptyString(username), "Username empty")
+    require(!emptyString(address), "Address empty")
     UserWithAddress(username, address)
   }
 
@@ -58,6 +58,8 @@ object User {
 
   /**
     * Converters for User
+    *
+    * @author Enrico Siboni
     */
   object Converters {
 

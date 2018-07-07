@@ -1,4 +1,4 @@
-package it.cwmp.room
+package it.cwmp.controller.rooms
 
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.VertxExecutionContext
@@ -6,8 +6,9 @@ import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
+import it.cwmp.controller.rooms.RoomLocalDAO._
 import it.cwmp.model.{Address, Room, User}
-import it.cwmp.room.RoomLocalDAO._
+import it.cwmp.utils.Utils
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -424,8 +425,8 @@ object RoomLocalDAO {
     */
   private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] =
     Future {
-      import it.cwmp.utils.Utils.parameterEmptyCheck
-      parameterEmptyCheck(toCheck, errorMessage)
+      import Utils.emptyString
+      require(!emptyString(toCheck), errorMessage)
     }
 
   /**

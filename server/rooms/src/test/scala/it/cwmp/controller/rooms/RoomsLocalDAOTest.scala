@@ -1,6 +1,5 @@
-package it.cwmp.room
+package it.cwmp.controller.rooms
 
-import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.{Address, User}
 import it.cwmp.testing.VertxTest
 import org.scalatest.{BeforeAndAfterEach, Matchers}
@@ -26,6 +25,7 @@ class RoomsLocalDAOTest extends VertxTest with Matchers with BeforeAndAfterEach 
     daoFuture = localDAO.initialize().map(_ => localDAO)
   }
 
+  // TODO: review code
   describe("Private Room") {
     val playersNumber = 2
 

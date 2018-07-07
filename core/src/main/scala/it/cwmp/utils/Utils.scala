@@ -5,11 +5,10 @@ object Utils {
   def randomString(length: Int) = scala.util.Random.alphanumeric.take(length).mkString
 
   /**
-    * Utility method to check emptiness of a parameter, and if so raise an IllegalArgumentException
+    * Utility method to test if a string is empty
     *
-    * @param parameter    the string parameter to check
-    * @param errorMessage the error message to attach to exception
+    * @param string the string to test
+    * @return true if string is empty, false otherwise
     */
-  def parameterEmptyCheck[X](parameter: Traversable[X], errorMessage: String): Unit =
-    if (parameter == null || parameter.isEmpty) throw new IllegalArgumentException(errorMessage)
+  def emptyString(string: String): Boolean = string == null || string.isEmpty
 }

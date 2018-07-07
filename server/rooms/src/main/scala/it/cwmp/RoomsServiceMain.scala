@@ -2,7 +2,7 @@ package it.cwmp
 
 import io.vertx.scala.core.Vertx
 import it.cwmp.authentication.AuthenticationService
-import it.cwmp.room.RoomsServiceVerticle
+import it.cwmp.controller.rooms.RoomsServiceVerticle
 
 /**
   * Object that implements the Rooms micro-service entry-point

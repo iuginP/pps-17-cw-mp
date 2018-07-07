@@ -3,6 +3,7 @@ package it.cwmp.model
 import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import it.cwmp.utils.Utils
 
 /**
   * Trait that describes the Room
@@ -25,16 +26,15 @@ sealed trait Room {
   * @author Enrico Siboni
   */
 object Room {
-
-  import it.cwmp.utils.Utils.parameterEmptyCheck
+  import Utils.emptyString
 
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
             participants: Seq[User with Address] = Seq()): Room = {
 
-    parameterEmptyCheck(roomID, "Room ID empty")
-    parameterEmptyCheck(roomName, "Room name empty")
+    require(!emptyString(roomID), "Room ID empty")
+    require(!emptyString(roomName), "Room name empty")
     if (neededPlayersNumber < 1) throw new IllegalArgumentException("Room needed players less than one")
 
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)

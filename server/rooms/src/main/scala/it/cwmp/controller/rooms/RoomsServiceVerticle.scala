@@ -1,4 +1,4 @@
-package it.cwmp.room
+package it.cwmp.controller.rooms
 
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
@@ -7,7 +7,7 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
 import it.cwmp.model.{Room, User}
-import it.cwmp.room.RoomsServiceVerticle._
+import RoomsServiceVerticle._
 import it.cwmp.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
