@@ -7,3 +7,7 @@ dependencies {
 
     implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
 }
+
+tasks.withType(Test) {
+    maxParallelForks = 1
+}

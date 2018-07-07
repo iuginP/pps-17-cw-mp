@@ -1,19 +1,19 @@
 package it.cwmp.storage
 
 import io.vertx.core.json.JsonObject
-import org.scalatest.Matchers
 import io.vertx.scala.ext.jdbc.JDBCClient
-import it.cwmp.authentication.AuthenticationServiceVerticle
-import it.cwmp.testing.VerticleTesting
+import it.cwmp.testing.VertxTest
 import it.cwmp.utils.Utils
+import org.scalatest.{BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.Future
 
-class StorageAsyncTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
+class StorageAsyncTest extends VertxTest with Matchers with BeforeAndAfterEach {
 
   var storageFuture: Future[StorageAsync] = _
 
-  override def beforeAbs(): Unit = {
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     storageFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
       .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
       .flatMap(client => {

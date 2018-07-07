@@ -11,13 +11,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-trait AuthenticationService {
+trait AuthenticationService extends Validation[String, User] {
 
   def signUp(username: String, password: String): Future[String]
 
   def login(username: String, password: String): Future[String]
-
-  def validate(token: String): Future[User]
 }
 
 object AuthenticationService {
@@ -25,7 +23,7 @@ object AuthenticationService {
   val DEFAULT_HOST = "localhost"
   val DEFAULT_PORT = 8666
 
-  def apply(implicit vertx: Vertx): AuthenticationService =
+  def apply()(implicit vertx: Vertx): AuthenticationService =
     AuthenticationService(DEFAULT_HOST, DEFAULT_PORT)
 
   def apply(host: String)(implicit vertx: Vertx): AuthenticationService =
@@ -35,8 +33,7 @@ object AuthenticationService {
     new AuthenticationServiceImpl(WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost(host)
-        .setDefaultPort(port)
-        .setKeepAlive(false)))
+        .setDefaultPort(port)))
 
   class AuthenticationServiceImpl(client: WebClient) extends AuthenticationService {
 

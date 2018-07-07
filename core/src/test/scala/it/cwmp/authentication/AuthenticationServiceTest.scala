@@ -10,7 +10,7 @@ import scala.util.Failure
 
 class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
 
-  private val auth = AuthenticationService(vertx)
+  private val auth = AuthenticationService()(vertx)
 
   describe("Signup") {
     it("when right should succed") {
@@ -67,9 +67,6 @@ class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVer
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
         .flatMap(_ => auth.login(username, passwordWrong))
-          .andThen({
-            case e => println(e)
-          })
         .onComplete({
           case Failure(e: HTTPException) if e.getStatusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
