@@ -127,23 +127,24 @@ object RoomsApiWrapper {
   val DEFAULT_HOST = "localhost"
   val DEFAULT_PORT = 8667
 
-  def apply()(implicit vertx: Vertx): RoomsApiWrapper = RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
+  def apply(): RoomsApiWrapper = RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
 
-  def apply(host: String)(implicit vertx: Vertx): RoomsApiWrapper = RoomsApiWrapper(host, DEFAULT_PORT)
+  def apply(host: String): RoomsApiWrapper = RoomsApiWrapper(host, DEFAULT_PORT)
 
-  def apply(host: String, port: Int)(implicit vertx: Vertx): RoomsApiWrapper = RoomsApiWrapperDefault(host, port)
+  def apply(host: String, port: Int): RoomsApiWrapper = RoomsApiWrapperDefault(host, port)
 
   /**
     * Implementation of the Api Wrapper for rooms service
     *
     * @param host  the host with which this wrapper will communicate
     * @param port  the port on which this wrapper will communicate
-    * @param vertx the vertx instance to use
     *
     */
-  private case class RoomsApiWrapperDefault(host: String, port: Int)(implicit vertx: Vertx) extends RoomsApiWrapper {
+  private case class RoomsApiWrapperDefault(host: String, port: Int) extends RoomsApiWrapper {
 
+    private val vertx: Vertx = Vertx.vertx
     private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
+
     private val client: WebClient = WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost(host)

@@ -23,14 +23,14 @@ object AuthenticationService {
   val DEFAULT_HOST = "localhost"
   val DEFAULT_PORT = 8666
 
-  def apply()(implicit vertx: Vertx): AuthenticationService =
+  def apply(): AuthenticationService =
     AuthenticationService(DEFAULT_HOST, DEFAULT_PORT)
 
-  def apply(host: String)(implicit vertx: Vertx): AuthenticationService =
+  def apply(host: String): AuthenticationService =
     AuthenticationService(host, DEFAULT_PORT)
 
-  def apply(host: String, port: Int)(implicit vertx: Vertx): AuthenticationService =
-    new AuthenticationServiceImpl(WebClient.create(vertx,
+  def apply(host: String, port: Int): AuthenticationService =
+    new AuthenticationServiceImpl(WebClient.create(Vertx.vertx,
       WebClientOptions()
         .setDefaultHost(host)
         .setDefaultPort(port)))
