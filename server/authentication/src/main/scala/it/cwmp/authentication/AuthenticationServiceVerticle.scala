@@ -21,18 +21,14 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     val router = Router.router(vertx)
 
     router.post("/api/signup").handler(handlerSignup)
+    router.post("/api/signout").handler(handlerSignout)
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerValidation)
 
-    val client = JDBCClient.createShared(vertx, new JsonObject()
-      .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
-      .put("driver_class", "org.hsqldb.jdbcDriver")
-      .put("max_pool_size", 30)
-      .put("user", "SA")
-      .put("password", ""))
-
-    val storageAsync = StorageAsync(client)
-    storageFuture = StorageAsync(client).init().map(_ => storageAsync)
+    storageFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+      .map(client => StorageAsync(client))
+      .flatMap(storage => storage.init().map(_ => storage))
 
     vertx
       .createHttpServer()
@@ -66,6 +62,23 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
         })
       }
     }
+  }
+
+  private def handlerSignout(routingContext: RoutingContext): Unit = {
+    val response: HttpServerResponse = routingContext.response()
+    for (
+      authorizationHeader <- routingContext.request().headers().get(HttpHeaderNames.AUTHORIZATION.toString);
+      token <- HttpUtils.readJwtAuthentication(authorizationHeader);
+      username <- JwtUtils.decodeUsernameToken(token)
+    ) yield {
+      // If every check pass, username contains the username contained in the token and we can check it exists
+      storageFuture.map(_.signoutFuture(username).onComplete {
+        case Success(_) => response setStatusCode 202 end
+        case Failure(_) => sendError(401, response)
+      })
+      return
+    }
+    sendError(400, response)
   }
 
   private def handlerLogin(routingContext: RoutingContext): Unit = {

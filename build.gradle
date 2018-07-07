@@ -39,6 +39,17 @@ subprojects {
     }
 }
 
+configure(subprojects.findAll { it.name == 'core' || it.name == 'authentication' || it.name == 'rooms' }) {
+
+    dependencies {
+        implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
+        implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
+
+        runtimeOnly 'mysql:mysql-connector-java:5.1.13'
+
+        testRuntimeOnly 'org.hsqldb:hsqldb:2.4.0'
+    }
+}
 
 buildscript {
     repositories {
