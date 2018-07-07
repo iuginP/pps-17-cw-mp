@@ -2,6 +2,9 @@ package it.cwmp.utils
 
 import java.util.Base64
 
+import io.netty.handler.codec.http.HttpHeaderNames
+import io.vertx.scala.core.http.HttpServerRequest
+
 object HttpUtils {
 
   private val PREFIX_BASIC = "Basic"
@@ -23,7 +26,7 @@ object HttpUtils {
       val credentialFromHeader = header.split(s"$PREFIX_BASIC ")(1)
       //decodifico il payload e ottengo, quando è possibile, username e password in chiaro
       val headerDecoded = new String(Base64.getDecoder.decode(credentialFromHeader)).split(":")
-      if(headerDecoded(0).nonEmpty && headerDecoded.nonEmpty) {
+      if (headerDecoded(0).nonEmpty && headerDecoded.nonEmpty) {
         Some(headerDecoded(0), headerDecoded(1))
       } else {
         None
@@ -40,7 +43,7 @@ object HttpUtils {
 
   def readJwtAuthentication(header: String): Option[String] = Option(header) match {
     case Some(s) if s.nonEmpty => {
-      try{
+      try {
         //divido la stringa "Barer " dalla parte in Base64
         s.split(s"$PREFIX_JWT ")(1) match {
           case s if s.nonEmpty => Some(s)
@@ -52,4 +55,13 @@ object HttpUtils {
     }
     case _ => None
   }
+
+  /**
+    * Utility method to extract authorization header from a routing context
+    *
+    * @param request the request on which to extract
+    * @return the optional containing optionally the authorization content
+    */
+  def getRequestAuthorizationHeader(request: HttpServerRequest): Option[String] =
+    request.headers().get(HttpHeaderNames.AUTHORIZATION.toString)
 }
