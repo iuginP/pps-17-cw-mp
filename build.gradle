@@ -1,3 +1,7 @@
+group = projectGroup
+version = projectVersion
+description = projectDescription
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -17,6 +21,10 @@ subprojects {
     apply plugin: 'pmd'
     apply plugin: 'checkstyle'
 
+    sourceCompatibility = "$jdkVersion"
+    javadoc.destinationDir = file("$docsFolderJava/${it.path}")
+    scaladoc.destinationDir = file("$docsFolderScala/${it.path}")
+    
     dependencies {
         implementation 'org.scala-lang:scala-library:2.12.2'
         // TODO add logger dependency
@@ -31,6 +39,17 @@ subprojects {
     }
 }
 
+configure(subprojects.findAll { it.name == 'core' || it.name == 'authentication' || it.name == 'rooms' }) {
+
+    dependencies {
+        implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
+        implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
+
+        runtimeOnly 'mysql:mysql-connector-java:5.1.13'
+
+        testRuntimeOnly 'org.hsqldb:hsqldb:2.4.0'
+    }
+}
 
 buildscript {
     repositories {
@@ -43,3 +62,5 @@ buildscript {
         classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
     }
 }
+
+defaultTasks 'clean', 'build', 'javadoc', 'scaladoc'
