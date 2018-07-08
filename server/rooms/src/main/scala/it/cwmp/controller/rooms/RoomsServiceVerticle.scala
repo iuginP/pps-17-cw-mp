@@ -11,6 +11,7 @@ import it.cwmp.model.{Room, User}
 import it.cwmp.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -78,13 +79,12 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
     * Handles entering in a private room
     */
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    // TODO: gestire il rimepimento di una stanza
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressFromBody(body)) match {
           case (Some(roomID), Some(userAddress)) =>
-            daoFuture.map(_.enterRoom(roomID)(User(user.username, userAddress)).onComplete {
-              case Success(_) => sendResponse(200, None)
+            daoFuture.map(implicit dao => dao.enterRoom(roomID)(User(user.username, userAddress)).onComplete {
+              case Success(_) => handlePrivateRoomFilling(roomID).andThen({ case Failure(_) => sendResponse(200, None) })
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
@@ -149,7 +149,6 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
     * Handles entering in a public room
     */
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    // TODO: gestire il raggiungimento del numero di giocatori prestabilito
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         val playersNumberOption = try extractRequestParam(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
@@ -158,8 +157,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
         }
         (playersNumberOption, extractAddressFromBody(body)) match {
           case (Some(playersNumber), Some(userAddress)) =>
-            daoFuture.map(_.enterPublicRoom(playersNumber)(User(user.username, userAddress)).onComplete {
-              case Success(_) => sendResponse(200, None)
+            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(User(user.username, userAddress)).onComplete {
+              case Success(_) => handlePublicRoomFilling(playersNumber).andThen({ case Failure(_) => sendResponse(200, None) })
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
@@ -271,6 +270,51 @@ object RoomsServiceVerticle {
     } catch {
       case _: Throwable => None
     }
+  }
+
+  /**
+    * Method that manages the filling of private rooms
+    */
+  private def handlePrivateRoomFilling(roomID: String)(implicit roomDAO: RoomDAO, routingContext: RoutingContext): Future[Unit] = {
+    handleRoomFilling(roomDAO.roomInfo(roomID),
+      roomDAO.deleteRoom(roomID).map(_ => sendResponse(200, None)))
+  }
+
+  /**
+    * Method that manages the filling of public rooms
+    */
+  private def handlePublicRoomFilling(playersNumber: Int)(implicit roomDAO: RoomDAO, routingContext: RoutingContext): Future[Unit] = {
+    handleRoomFilling(roomDAO.publicRoomInfo(playersNumber),
+      roomDAO.deleteAndRecreatePublicRoom(playersNumber).map(_ => sendResponse(200, None)))
+  }
+
+  /**
+    * Describes how to behave when a room is filled out
+    *
+    * @param roomFuture            the future that will contain the room
+    * @param onRetrievedRoomAction the action to do if the room is full
+    * @return a future that completes when all players received addresses
+    */
+  private[this] def handleRoomFilling(roomFuture: Future[Room], onRetrievedRoomAction: => Future[Unit]): Future[Unit] = {
+    roomFuture.filter(roomIsFull)
+      .flatMap(fullRoom => {
+        onRetrievedRoomAction
+        sendParticipantAddresses(fullRoom)
+      })
+  }
+
+  /**
+    * Describes when a room is full
+    */
+  private def roomIsFull(room: Room): Boolean = room.participants.size == room.neededPlayersNumber
+
+  /**
+    * Method to cummunicate to clients that the game can start because of reaching the specified number of players
+    *
+    * @param room the room wehere players are waiting in
+    */
+  private def sendParticipantAddresses(room: Room): Future[Unit] = {
+    Future.successful(Unit) // TODO: implement communication with client
   }
 
   /**

@@ -66,12 +66,12 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
           .flatMap(roomID => enterPrivateRoom(roomID)
             .flatMap(_ => enterPrivateRoom(roomID))) httpStatusCodeEquals 400
       }
-      it("if the room is full") {
+      it("if the room was already filled") {
         val playersNumber = 2
         createAPrivateRoomAndGetID(roomName, playersNumber)
           .flatMap(roomID => enterPrivateRoom(roomID)
             .flatMap(_ => enterPrivateRoom(roomID)(webClient, mySecondAuthorizedUser, mySecondCorrectToken))
-            .flatMap(_ => enterPrivateRoom(roomID)(webClient, myThirdAuthorizedUser, myThirdCorrectToken))) httpStatusCodeEquals 400
+            .flatMap(_ => enterPrivateRoom(roomID)(webClient, myThirdAuthorizedUser, myThirdCorrectToken))) httpStatusCodeEquals 404
       }
     }
   }
@@ -132,6 +132,16 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
         (enterPublicRoom(playersNumber) flatMap (_ => publicRoomInfo(playersNumber)))
           .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get.contains(myFirstAuthorizedUser.username)))
       }
+      it("even when the room was filled in past") {
+        enterPublicRoom(2)
+          .flatMap(_ => enterPublicRoom(2)(webClient, mySecondAuthorizedUser, mySecondCorrectToken))
+          .flatMap(_ => enterPublicRoom(2)(webClient, myThirdAuthorizedUser, myThirdCorrectToken))
+          .flatMap(_ => publicRoomInfo(2))
+          .flatMap(res => assert(res.statusCode() == 200 &&
+            !res.bodyAsString().get.contains(myFirstAuthorizedUser.username) &&
+            !res.bodyAsString().get.contains(mySecondAuthorizedUser.username) &&
+            res.bodyAsString().get.contains(myThirdAuthorizedUser.username)))
+      }
     }
 
     describe("should fail") {
@@ -145,11 +155,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
       }
       it("if same user is already inside a room") {
         (enterPublicRoom(2) flatMap (_ => enterPublicRoom(3))) httpStatusCodeEquals 400
-      }
-      it("if room is full") {
-        enterPublicRoom(2)
-          .flatMap(_ => enterPublicRoom(2)(webClient, mySecondAuthorizedUser, mySecondCorrectToken))
-          .flatMap(_ => enterPublicRoom(2)(webClient, myThirdAuthorizedUser, myThirdCorrectToken)) httpStatusCodeEquals 400
       }
     }
   }

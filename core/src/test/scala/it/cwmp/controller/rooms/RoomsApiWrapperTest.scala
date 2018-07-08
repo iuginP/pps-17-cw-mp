@@ -110,6 +110,13 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
           .flatMap(_ => publicRoomInfo(playersNumber))
           .flatMap(_.participants should contain(myFirstAuthorizedUser))
       }
+      it("even when the room was filled in past") {
+        enterPublicRoom(2)
+          .flatMap(_ => enterPublicRoom(2)(mySecondAuthorizedUser, mySecondCorrectToken))
+          .flatMap(_ => enterPublicRoom(2)(myThirdAuthorizedUser, myThirdCorrectToken))
+          .flatMap(_ => publicRoomInfo(2))
+          .flatMap(_.participants should contain only myThirdAuthorizedUser)
+      }
     }
 
     describe("should fail") {
@@ -118,13 +125,6 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       it("if same user is already inside a room") {
         recoverToSucceededIf[RoomsServiceException] {
           enterPublicRoom(2) flatMap (_ => enterPublicRoom(3))
-        }
-      }
-      it("if room is full") {
-        recoverToSucceededIf[RoomsServiceException] {
-          enterPublicRoom(2)
-            .flatMap(_ => enterPublicRoom(2)(mySecondAuthorizedUser, mySecondCorrectToken))
-            .flatMap(_ => enterPublicRoom(2)(myThirdAuthorizedUser, myThirdCorrectToken))
         }
       }
     }
