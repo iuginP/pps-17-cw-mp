@@ -12,4 +12,11 @@ object StringRes {
   val openingTitle: String = appName
 
   val signInTitle: String = "Login"
+
+  //CreatePrivateRoomView
+  val CreatePrivateRoomTitle = "Crea una stanza privata"
+
+
+  //RoomManagerView
+  val RoomManagerTitle = "Gestione stanze"
 }
