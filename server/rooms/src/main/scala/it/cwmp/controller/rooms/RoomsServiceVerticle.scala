@@ -24,7 +24,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
   private var daoFuture: Future[RoomDAO] = _
 
   override def startFuture(): Future[_] = {
-    val storageHelper = RoomLocalDAO(vertx)
+    val storageHelper = RoomsLocalDAO(vertx)
     daoFuture = storageHelper.initialize().map(_ => storageHelper)
 
     import it.cwmp.controller.rooms.RoomsApiWrapper._

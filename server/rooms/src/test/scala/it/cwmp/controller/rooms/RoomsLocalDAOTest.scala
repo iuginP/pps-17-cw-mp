@@ -19,7 +19,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
   private implicit val user: User with Address = User("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
-    val localDAO = RoomLocalDAO(vertx)
+    val localDAO = RoomsLocalDAO(vertx)
     daoFuture = localDAO.initialize().map(_ => localDAO)
   }
 
@@ -149,7 +149,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
     it("should show only public rooms") {
       daoFuture.flatMap(dao => dao.createRoom("TestRoom", 2)
         .flatMap(_ => dao.listPublicRooms()))
-        .flatMap(_.forall(_.identifier.contains(RoomLocalDAO.publicPrefix)) shouldBe true)
+        .flatMap(_.forall(_.identifier.contains(RoomsLocalDAO.publicPrefix)) shouldBe true)
     }
   }
 
@@ -271,34 +271,34 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
       val fakePlayersNumber = 2
 
       it("createRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).createRoom(fakeRoomName, fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).createRoom(fakeRoomName, fakePlayersNumber))
       }
       it("enterRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).enterRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterRoom(fakeRoomID))
       }
       it("roomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).roomInfo(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).roomInfo(fakeRoomID))
       }
       it("exitRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).exitRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitRoom(fakeRoomID))
       }
       it("listPublicRooms") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).listPublicRooms())
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).listPublicRooms())
       }
       it("enterPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).enterPublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterPublicRoom(fakePlayersNumber))
       }
       it("publicRoomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).publicRoomInfo(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).publicRoomInfo(fakePlayersNumber))
       }
       it("exitPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).exitPublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitPublicRoom(fakePlayersNumber))
       }
       it("deleteRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).deleteRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteRoom(fakeRoomID))
       }
       it("deleteAndRecreatePublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomLocalDAO(vertx).deleteAndRecreatePublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteAndRecreatePublicRoom(fakePlayersNumber))
       }
     }
   }

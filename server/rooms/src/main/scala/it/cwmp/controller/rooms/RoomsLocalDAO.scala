@@ -6,7 +6,7 @@ import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
-import it.cwmp.controller.rooms.RoomLocalDAO._
+import it.cwmp.controller.rooms.RoomsLocalDAO._
 import it.cwmp.model.{Address, Room, User}
 import it.cwmp.utils.Utils
 
@@ -126,7 +126,7 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
+case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
   private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
   private var notInitialized = true
   private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
@@ -141,7 +141,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
   private val DELETING_NON_FULL_ROOM_ERROR = "Cannot delete room if it's not full"
 
-  import RoomLocalDAO.stringsToJsonArray
+  import RoomsLocalDAO.stringsToJsonArray
 
   def initialize(): Future[Unit] = {
     localJDBCClient.getConnectionFuture()
@@ -281,7 +281,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
 /**
   * Companion Object
   */
-object RoomLocalDAO {
+object RoomsLocalDAO {
 
   val publicPrefix: String = "public"
 
