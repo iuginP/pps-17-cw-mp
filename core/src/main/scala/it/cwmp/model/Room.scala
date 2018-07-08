@@ -3,6 +3,7 @@ package it.cwmp.model
 import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import it.cwmp.utils.Utils
 
 /**
   * Trait that describes the Room
@@ -25,21 +26,23 @@ sealed trait Room {
   * @author Enrico Siboni
   */
 object Room {
+  import Utils.emptyString
 
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
             participants: Seq[User with Address] = Seq()): Room = {
 
-    if (roomID.isEmpty) throw new IllegalArgumentException("Room ID empty")
-    if (roomName.isEmpty) throw new IllegalArgumentException("Room name empty")
+    require(!emptyString(roomID), "Room ID empty")
+    require(!emptyString(roomName), "Room name empty")
     if (neededPlayersNumber < 1) throw new IllegalArgumentException("Room needed players less than one")
 
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)
   }
 
   def unapply(toExtract: Room): Option[(String, String, Int, Seq[User with Address])] =
-    Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
+    if (toExtract eq null) None
+    else Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
 
   /**
     * Default implementation for Room
@@ -90,7 +93,7 @@ object Room {
           && (jsonObject containsKey FIELD_NEEDED_PLAYERS) && (jsonObject containsKey FIELD_PARTICIPANTS)) {
 
           var userSeq = Seq[User with Address]()
-          jsonObject.getJsonArray(FIELD_PARTICIPANTS).getList forEach (jsonUser => {
+          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser => {
             import User.Converters._
             userSeq = Json.fromObjectString(jsonUser.toString).toUserWithAddress +: userSeq
           })

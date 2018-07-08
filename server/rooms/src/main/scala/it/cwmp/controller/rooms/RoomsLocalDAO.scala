@@ -1,4 +1,4 @@
-package it.cwmp.room
+package it.cwmp.controller.rooms
 
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.VertxExecutionContext
@@ -6,10 +6,12 @@ import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
+import it.cwmp.controller.rooms.RoomsLocalDAO._
 import it.cwmp.model.{Address, Room, User}
-import it.cwmp.room.RoomLocalDAO._
+import it.cwmp.utils.Utils
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.Random
@@ -124,7 +126,7 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
+case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
   private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
   private var notInitialized = true
   private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
@@ -139,7 +141,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
   private val DELETING_NON_FULL_ROOM_ERROR = "Cannot delete room if it's not full"
 
-  import RoomLocalDAO.stringsToJsonArray
+  import RoomsLocalDAO.stringsToJsonArray
 
   def initialize(): Future[Unit] = {
     localJDBCClient.getConnectionFuture()
@@ -158,7 +160,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
     checkInitialization(notInitialized)
-      .flatMap(_ => emptyStringCheck(roomName, EMPTY_ROOM_NAME_ERROR))
+      .flatMap(_ => stringCheckFuture(roomName, EMPTY_ROOM_NAME_ERROR))
       .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => getNotAlreadyPresentRoomID(conn, generateRandomRoomID())
@@ -185,7 +187,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
 
   override def roomInfo(roomID: String): Future[Room] = {
     checkInitialization(notInitialized)
-      .flatMap(_ => emptyStringCheck(roomID, EMPTY_ROOM_ID_ERROR))
+      .flatMap(_ => stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
         .flatMap(_ => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID)))
@@ -279,7 +281,7 @@ case class RoomLocalDAO(vertx: Vertx) extends RoomDAO {
 /**
   * Companion Object
   */
-object RoomLocalDAO {
+object RoomsLocalDAO {
 
   val publicPrefix: String = "public"
 
@@ -421,9 +423,11 @@ object RoomLocalDAO {
   /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
     */
-  private def emptyStringCheck(toCheck: String, errorMessage: String): Future[Unit] =
-    if (toCheck == null || toCheck.isEmpty) Future.failed(new IllegalArgumentException(errorMessage))
-    else Future.successful(Unit)
+  private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] =
+    Future {
+      import Utils.emptyString
+      require(!emptyString(toCheck), errorMessage)
+    }
 
   /**
     * @return a succeeded Future if playersNumber is correct, a failed Future otherwise
