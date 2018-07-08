@@ -3,9 +3,8 @@ package it.cwmp.testing.server.rooms
 import it.cwmp.authentication.Validation
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.model.{Address, User}
-import it.cwmp.testing.VertxTest
 import javax.xml.ws.http.HTTPException
-import org.scalatest.{BeforeAndAfterEach, Matchers}
+import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -18,7 +17,7 @@ import scala.concurrent.{Await, Future}
   *
   * @author Enrico Siboni
   */
-abstract class RoomsServiceWebTesting extends VertxTest with Matchers with BeforeAndAfterEach {
+abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEach {
 
   protected implicit val myFirstAuthorizedUser: User with Address = User("Enrico1", "address1")
   protected val mySecondAuthorizedUser: User with Address = User("Enrico2", "address2")
@@ -36,7 +35,7 @@ abstract class RoomsServiceWebTesting extends VertxTest with Matchers with Befor
     Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
 
   /**
-    * A validation strategy for testing
+    * A validation strategy for user tokens during testing
     *
     * @author Enrico Siboni
     */

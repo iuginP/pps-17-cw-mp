@@ -93,7 +93,7 @@ object Room {
           && (jsonObject containsKey FIELD_NEEDED_PLAYERS) && (jsonObject containsKey FIELD_PARTICIPANTS)) {
 
           var userSeq = Seq[User with Address]()
-          jsonObject.getJsonArray(FIELD_PARTICIPANTS).getList forEach (jsonUser => {
+          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser => {
             import User.Converters._
             userSeq = Json.fromObjectString(jsonUser.toString).toUserWithAddress +: userSeq
           })

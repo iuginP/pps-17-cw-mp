@@ -6,8 +6,8 @@ import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
+import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.model.{Room, User}
-import RoomsServiceVerticle._
 import it.cwmp.utils.HttpUtils
 import javax.xml.ws.http.HTTPException
 
@@ -138,7 +138,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
       daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
           import Room.Converters._
-          sendResponse(200, Some(Json.arr(rooms.map(_.toJson)).encode()))
+          val jsonArray = rooms.foldLeft(Json emptyArr())(_ add _.toJson)
+          sendResponse(200, Some(jsonArray encode()))
         case Failure(ex) => sendResponse(400, Some(ex.getMessage))
       })
     })
