@@ -12,7 +12,7 @@ if [ -n "$GITHUB_API_KEY" ]
 	cd $HOME
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "travis-ci"
-  git clone --quiet --branch=gh-pages https://iugin:$GITHUB_API_KEY@github.com/iuginP/pps-17-cw-mp-tests gh-pages > /dev/null
+  git clone --quiet --branch=gh-pages https://iugin:$GITHUB_API_KEY@github.com/iuginP/pps-17-cw-mp gh-pages > /dev/null
   cd gh-pages
   git rm -rf ./java
   git rm -rf ./scala
