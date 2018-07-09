@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Button?>
+
+<GridPane maxHeight="-Infinity"
+          maxWidth="-Infinity"
+          minHeight="-Infinity"
+          minWidth="-Infinity"
+          xmlns="http://javafx.com/javafx"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="it.cwmp.controller.CreatePrivateRoomController"
+          prefHeight="400.0" prefWidth="600.0"
+          hgap="30"
+          vgap="10"
+          alignment="TOP_CENTER">
+
+    <children>
+
+        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0" layoutY="68.0" text="Identificativo della stanza">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="roomId" fx:id="roomId" layoutX="115.0" layoutY="28.0" />
+
+        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0" layoutY="68.0" text="Password">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <PasswordField GridPane.rowIndex="1" GridPane.columnIndex="1" id="pass_hidden" fx:id="pass_hidden" layoutX="115.0" layoutY="28.0" />
+
+        <Button GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0" mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0" prefWidth="70.0" text="Entra" />
+
+    </children>
+
+</GridPane>
