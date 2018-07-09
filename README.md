@@ -2,10 +2,10 @@
 
 ## Documentazione
  * Core
-    - [Scala](/scala/:core/)
+    - [Scala](/pps-17-cw-mp/scala/:core/)
  * Server testing
-    - [Scala](/scala/:server:testing/)
+    - [Scala](/pps-17-cw-mp/scala/:server:testing/)
  * Server authentication-service
-    - [Scala](/scala/:server:authentication/)
+    - [Scala](/pps-17-cw-mp/scala/:server:authentication/)
  * Server rooms-service
-    - [Scala](/scala/:server:rooms/)
+    - [Scala](/pps-17-cw-mp/scala/:server:rooms/)
