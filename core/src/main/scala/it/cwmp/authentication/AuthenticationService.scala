@@ -60,17 +60,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-<<<<<<< HEAD
-          .map(res => res statusCode() match {
-            case 200 => {Thread.sleep(5000)
-              res.bodyAsString().get}
-            case code => throw new HTTPException(code)
-=======
           .transform({
             case Success(res) if res.statusCode() == 200 => Success(res.bodyAsString().get)
             case Success(res) => Failure(new HTTPException(res.statusCode()))
             case Failure(f) => Failure(f)
->>>>>>> develop
           })
       }
 

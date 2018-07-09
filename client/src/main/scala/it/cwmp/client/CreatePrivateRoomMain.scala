@@ -1,6 +1,5 @@
-package it.cwmp
+package it.cwmp.client
 
-import it.cwmp.client.controller.CreatePrivateRoomController
 import it.cwmp.client.view.CreatePrivateRoomView
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel

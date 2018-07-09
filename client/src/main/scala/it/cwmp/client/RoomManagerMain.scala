@@ -1,4 +1,4 @@
-package it.cwmp
+package it.cwmp.client
 
 import it.cwmp.client.view.RoomsManagerView
 import javafx.application.Platform
