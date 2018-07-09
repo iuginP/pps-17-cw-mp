@@ -127,7 +127,7 @@ trait RoomDAO {
   * @author Enrico Siboni
   */
 case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
-  private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
+  private val localJDBCClient = JDBCClient.createNonShared(vertx, localConfig)
   private var notInitialized = true
   private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
