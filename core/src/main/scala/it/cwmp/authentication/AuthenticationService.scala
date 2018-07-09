@@ -9,14 +9,13 @@ import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
-trait AuthenticationService {
+trait AuthenticationService extends Validation[String, User] {
 
   def signUp(username: String, password: String): Future[String]
 
   def login(username: String, password: String): Future[String]
-
-  def validate(token: String): Future[User]
 }
 
 object AuthenticationService {
@@ -24,18 +23,17 @@ object AuthenticationService {
   val DEFAULT_HOST = "localhost"
   val DEFAULT_PORT = 8666
 
-  def apply(implicit vertx: Vertx): AuthenticationService =
+  def apply(): AuthenticationService =
     AuthenticationService(DEFAULT_HOST, DEFAULT_PORT)
 
-  def apply(host: String)(implicit vertx: Vertx): AuthenticationService =
+  def apply(host: String): AuthenticationService =
     AuthenticationService(host, DEFAULT_PORT)
 
-  def apply(host: String, port: Int)(implicit vertx: Vertx): AuthenticationService =
-    new AuthenticationServiceImpl(WebClient.create(vertx,
+  def apply(host: String, port: Int): AuthenticationService =
+    new AuthenticationServiceImpl(WebClient.create(Vertx.vertx,
       WebClientOptions()
         .setDefaultHost(host)
-        .setDefaultPort(port)
-        .setKeepAlive(false)))
+        .setDefaultPort(port)))
 
   class AuthenticationServiceImpl(client: WebClient) extends AuthenticationService {
 
@@ -47,9 +45,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .map(res => res statusCode() match {
-            case 201 => res.bodyAsString().get
-            case code => throw new HTTPException(code)
+          .transform({
+            case Success(res) if res.statusCode() == 201 => Success(res.bodyAsString().get)
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
           })
       }
 
@@ -61,10 +60,17 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
+<<<<<<< HEAD
           .map(res => res statusCode() match {
             case 200 => {Thread.sleep(5000)
               res.bodyAsString().get}
             case code => throw new HTTPException(code)
+=======
+          .transform({
+            case Success(res) if res.statusCode() == 200 => Success(res.bodyAsString().get)
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
+>>>>>>> develop
           })
       }
 
@@ -76,9 +82,10 @@ object AuthenticationService {
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .map(res => res statusCode() match {
-            case 200 => User(res.bodyAsString().get)
-            case code => throw new HTTPException(code)
+          .transform({
+            case Success(res) if res.statusCode() == 200 => Success(User(res.bodyAsString().get))
+            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Failure(f) => Failure(f)
           })
       }
   }

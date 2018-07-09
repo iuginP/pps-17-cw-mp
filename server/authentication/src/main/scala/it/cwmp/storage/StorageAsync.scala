@@ -4,8 +4,8 @@ import io.vertx.core.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.SQLConnection
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
-import ExecutionContext.Implicits.global
 
 trait StorageAsync {
 
@@ -31,19 +31,16 @@ object StorageAsync {
     }
 
     override def init(): Future[Unit] = {
-      getConnection().flatMap(conn => {
+      getConnection().flatMap(conn =>
         // create a test table
         conn.executeFuture("""
-          DROP TABLE authorization IF EXISTS;
-          CREATE TABLE authorization (
+          CREATE TABLE IF NOT EXISTS authorization (
             auth_username VARCHAR(45) NOT NULL,
             auth_password VARCHAR(45) NOT NULL,
             auth_salt CHAR(32) NOT NULL,
             PRIMARY KEY (auth_username))
-          """).map(_ => {
-          conn.close()
-        })
-      })
+          """)
+          .andThen({ case _ => conn.close() }))
     }
 
     override def signupFuture(username: String, password: String): Future[Unit] = {
@@ -51,15 +48,14 @@ object StorageAsync {
         || password == null || password.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().flatMap(conn => {
+        getConnection().flatMap(conn =>
           // insert the user in the authorization table
-          conn.updateWithParamsFuture("""
+          conn.updateWithParamsFuture(
+            """
             INSERT INTO authorization values (?, ?, ?)
             """, new JsonArray().add(username).add(password).add("SALT"))
-            .map(res => {
-              conn.close()
-            })
-        })
+            .andThen({ case _ => conn.close() }))
+          .map(_ => Unit)
       }
     }
 
@@ -67,14 +63,15 @@ object StorageAsync {
       if (username == null || username.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().flatMap(conn => {
+        getConnection().flatMap(conn =>
           // insert the user in the authorization table
-          conn.updateWithParamsFuture("""
+          conn.updateWithParamsFuture(
+            """
             DELETE FROM authorization WHERE auth_username = ?
-            """, new JsonArray().add(username)).map(_ => {
-            conn.close()
-          })
-        })
+            """, new JsonArray().add(username))
+            .andThen({ case _ => conn.close() }))
+          .map(_ => Unit)
+
       }
     }
 
@@ -83,20 +80,18 @@ object StorageAsync {
         || password == null || password.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().flatMap(conn => {
+        getConnection().flatMap(conn =>
           // check the user against the authorization table
-          conn.queryWithParamsFuture("""
+          conn.queryWithParamsFuture(
+            """
             SELECT *
             FROM authorization
             WHERE auth_username = ?
             AND auth_password = ?
-            """, new JsonArray().add(username).add(password)).map(res => {
-            conn.close()
-            if (res.getResults.isEmpty) {
-              throw new Exception
-            }
-          })
-        })
+            """, new JsonArray().add(username).add(password))
+            .map(res => if (res.getResults.isEmpty) throw new Exception)
+            .andThen({ case _ => conn.close() })
+        )
       }
     }
 
@@ -104,20 +99,18 @@ object StorageAsync {
       if (username == null || username.isEmpty) {
         Future.failed(new Exception())
       } else {
-        getConnection().flatMap(conn => {
+        getConnection().flatMap(conn =>
           // check the user against the authorization table
-          conn.queryWithParamsFuture("""
+          conn.queryWithParamsFuture(
+            """
             SELECT *
             FROM authorization
             WHERE auth_username = ?
-            """, new JsonArray().add(username)).map(res => {
-            conn.close()
-            if (res.getResults.isEmpty) {
-              throw new Exception
-            }
-          })
-        })
+            """, new JsonArray().add(username))
+            .map(res => if (res.getResults.isEmpty) throw new Exception)
+            .andThen({ case _ => conn.close() }))
       }
     }
   }
+
 }
