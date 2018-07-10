@@ -1,9 +1,9 @@
-package it.cwmp.view
+package it.cwmp.client.view
 
-import it.cwmp.controller.CreatePrivateRoomController
-import it.cwmp.utils.{LayoutRes, StringRes}
+import it.cwmp.client.controller.CreatePrivateRoomController
+import it.cwmp.client.utils.{LayoutRes, StringRes}
 import javafx.application.Platform
-import javafx.fxml.{FXMLLoader}
+import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.layout.Pane
 import javafx.stage.Stage

@@ -1,4 +1,4 @@
-package it.cwmp.controller
+package it.cwmp.client.controller
 
 import java.net.URL
 import java.util.ResourceBundle

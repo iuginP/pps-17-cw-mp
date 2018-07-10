@@ -1,9 +1,9 @@
-package it.cwmp.controller
+package it.cwmp.client.controller
 
 import javafx.application.Platform
-import javafx.scene.control._
 import javafx.fxml.FXML
 import javafx.scene.control.Alert.AlertType
+import javafx.scene.control._
 import javafx.stage.Stage
 
 class CreatePrivateRoomController extends ViewController{
