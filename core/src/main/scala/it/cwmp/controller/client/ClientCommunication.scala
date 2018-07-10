@@ -1,6 +1,7 @@
 package it.cwmp.controller.client
 
 import io.vertx.lang.scala.json.Json
+import it.cwmp.controller.ApiClient
 import it.cwmp.model.User
 
 import scala.concurrent.Future
@@ -44,6 +45,8 @@ object ClientCommunication {
       val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, address) =>
         jsonArray add Json.obj((User.FIELD_ADDRESS, address))
       }
+
+      // need to know the format of address provided ti server to separate into port and host parts
 
       // TODO: send addresses to the client
       Future.successful(Unit)
