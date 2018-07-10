@@ -8,10 +8,10 @@
 | Il client deve poter entrare e uscire in una stanza specifica o randomica (lato client)
 |                      | 3       | I client devono poter creare una stanza (protetta)                         | Davide    |  30                   | 
 |                      | 4       | I client devono poter entrare in una stanza (protetta)                     | Davide    |  30                   | 
-|                      | 5       | I client devono poter entrare in una stanza pubblica di una certa dimensione (2,3,4) | Davide             | 50 | 
+|                      | 5       | I client devono poter entrare in una stanza pubblica di una certa dimensione (2,3,4) | Davide| 50              | 
 | Produzione documentazione
 |                      | 6       | Documentazione della progettazione e implementazione dell'autenticazione   |           |  5                    | 
-|                      | 7       | Documentazione della progettazione e implementazione delle stanze          |           |  5                    | 
+|                      | 7       | Documentazione della progettazione e implementazione delle stanze          | Enrico    |  5                    | 0 |
 | I client instaurano una connessione tra di loro
 |                      | 8       | Decidere come il server contatterà il client per comunicare i partecipanti alla partita a tutti |         | 20 | 
 |                      | 9       | Invio dei dati da parte del server                                         |           |  10                   | 

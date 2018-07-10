@@ -127,7 +127,7 @@ trait RoomDAO {
   * @author Enrico Siboni
   */
 case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
-  private val localJDBCClient = JDBCClient.createShared(vertx, localConfig)
+  private val localJDBCClient = JDBCClient.createNonShared(vertx, localConfig)
   private var notInitialized = true
   private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
@@ -249,7 +249,7 @@ case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
                          deleteFuture = conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))) yield deleteFuture)
           .flatMap(Future.sequence(_)) // waits for all to complete
           .flatMap(_ => conn.updateWithParamsFuture(deleteRoomSql, Seq(roomID)))
-          .andThen({ case _ => conn.close() })))
+          .andThen { case _ => conn.close() }))
       .map(_ => Unit)
   }
 
@@ -259,7 +259,7 @@ case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
       .flatMap(deleteRoom)
       .flatMap(_ => localJDBCClient.getConnectionFuture())
       .flatMap(conn => createPublicRoom(conn, playersNumber)
-        .andThen({ case _ => conn.close() }))
+        .andThen { case _ => conn.close() })
   }
 
   /**
@@ -286,7 +286,7 @@ object RoomsLocalDAO {
   val publicPrefix: String = "public"
 
   private def localConfig: JsonObject = new JsonObject()
-    .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
+    .put("url", "jdbc:hsqldb:mem:test")
     .put("driver_class", "org.hsqldb.jdbcDriver")
     .put("max_pool_size", 30)
     .put("user", "SA")

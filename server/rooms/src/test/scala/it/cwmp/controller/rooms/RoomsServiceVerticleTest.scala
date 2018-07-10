@@ -18,11 +18,15 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
 
   import RoomsApiWrapper._
 
-  private implicit val webClient: WebClient =
-    WebClient.create(vertx,
+  private implicit var webClient: WebClient = _
+
+  override protected def beforeEach(): Unit = {
+    super.beforeEach()
+    webClient = WebClient.create(vertx,
       WebClientOptions()
         .setDefaultHost("localhost")
         .setDefaultPort(DEFAULT_PORT))
+  }
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     val creationApi = API_CREATE_PRIVATE_ROOM_URL
