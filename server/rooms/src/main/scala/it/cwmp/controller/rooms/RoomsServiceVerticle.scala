@@ -7,9 +7,9 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Room, User}
 import it.cwmp.utils.HttpUtils
-import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -228,12 +228,9 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
       case Some(authorizationToken) =>
         validationStrategy.validate(authorizationToken)
           .recoverWith {
-            case ex: HTTPException if ex.getStatusCode == 401 =>
-              sendResponse(ex.getStatusCode, Some(USER_NOT_AUTHENTICATED))
-              Future.failed(new IllegalAccessException(USER_NOT_AUTHENTICATED))
-            case ex: HTTPException =>
-              sendResponse(ex.getStatusCode, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
-              Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
+            case HTTPException(statusCode, errorMessage) =>
+              sendResponse(statusCode, errorMessage)
+              Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
           }
     }
   }
@@ -246,7 +243,6 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
   */
 object RoomsServiceVerticle {
 
-  private val USER_NOT_AUTHENTICATED = "User is not authenticated"
   private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
   private val INVALID_PARAMETER_ERROR = "Invalid parameters: "
 
