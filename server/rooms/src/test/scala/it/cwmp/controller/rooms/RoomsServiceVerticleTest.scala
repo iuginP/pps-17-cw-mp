@@ -2,7 +2,8 @@ package it.cwmp.controller.rooms
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod._
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
+import it.cwmp.controller.ApiClient
 import it.cwmp.model.Room
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.server.rooms.RoomsWebServiceTesting
@@ -14,7 +15,7 @@ import scala.concurrent.Future
   *
   * @author Enrico Siboni
   */
-class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers {
+class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers with ApiClient {
 
   import RoomsApiWrapper._
 
@@ -22,10 +23,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
-    webClient = WebClient.create(vertx,
-      WebClientOptions()
-        .setDefaultHost("localhost")
-        .setDefaultPort(DEFAULT_PORT))
+    webClient = createWebClient("localhost", DEFAULT_PORT, vertx)
   }
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {

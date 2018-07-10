@@ -33,9 +33,7 @@ object ClientCommunication {
   /**
     * Default implementation for client communication
     */
-  private case class ClientCommunicationDefault() extends ClientCommunication {
-
-    // TODO: use web client?? maybe a refactoring of all those api wrappers should be done in a general ApiWrapper
+  private case class ClientCommunicationDefault() extends ClientCommunication /*with ApiClient*/ {
 
     override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] = {
       // TODO: al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
