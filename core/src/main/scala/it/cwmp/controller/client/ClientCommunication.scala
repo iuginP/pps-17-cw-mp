@@ -15,10 +15,10 @@ trait ClientCommunication {
   /**
     * Sends the addresses to the client
     *
-    * @param addresses the addresses to send
+    * @param toSend the addresses to send
     * @return a Future that completes when the client received the data
     */
-  def sendParticipantAddresses(addresses: Seq[String]): Future[Unit]
+  def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit]
 
 }
 
@@ -27,22 +27,23 @@ trait ClientCommunication {
   */
 object ClientCommunication {
 
-  def apply(url: String): ClientCommunication = ClientCommunicationDefault(url)
+  def apply(): ClientCommunication = ClientCommunicationDefault()
 
 
   /**
     * Default implementation for client communication
-    *
-    * @param clientUrl the url at which to find the client
     */
-  private case class ClientCommunicationDefault(clientUrl: String) extends ClientCommunication {
+  private case class ClientCommunicationDefault() extends ClientCommunication {
 
     // TODO: use web client?? maybe a refactoring of all those api wrappers should be done in a general ApiWrapper
 
-    override def sendParticipantAddresses(addresses: Seq[String]): Future[Unit] = {
-      // TODO: qui bisogna assicurarsi che il client riceva i dati, al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
+    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] = {
+      // TODO: al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
+      // TODO: questo è il punto in cui cercare di far ricevere i dati al client
+      // in caso un client non sia più disponibile il server, passerà oltre, e gli altri client (se più di 1)
+      // giocheranno tra di loro; il server non ha più responsabilità
 
-      val addressesJSONArray = addresses.foldLeft(Json emptyArr()) { (jsonArray, address) =>
+      val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, address) =>
         jsonArray add Json.obj((User.FIELD_ADDRESS, address))
       }
 
