@@ -37,7 +37,7 @@ object ClientCommunication {
     */
   private case class ClientCommunicationDefault(clientUrl: String) extends ClientCommunication {
 
-    // TODO: use web client?? maybe a refactoring of all those api wrappers should be done
+    // TODO: use web client?? maybe a refactoring of all those api wrappers should be done in a general ApiWrapper
 
     override def sendParticipantAddresses(addresses: Seq[String]): Future[Unit] = {
       // TODO: qui bisogna assicurarsi che il client riceva i dati, al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
