@@ -1,6 +1,7 @@
 package it.cwmp.client.view.room
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
+import it.cwmp.client.controller.ClientControllerMessages
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -9,6 +10,7 @@ import javafx.embed.swing.JFXPanel
   */
 object RoomViewMessages {
 
+  case object InitController
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
     * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
@@ -29,6 +31,7 @@ object RoomViewActor {
 class RoomViewActor extends Actor{
 
   var roomFXController: RoomFXController = _
+  var controllerActor: ActorRef = _
 
   /**
     * Questo metodo viene invocato alla creazione dell'attore. Non va mai chiamato direttamente!
@@ -40,9 +43,8 @@ class RoomViewActor extends Actor{
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
-      roomFXController = RoomFXController(
-        (name: String, nPlayer: Int) => println("RoomActorView", name, nPlayer) // TODO implementare invio messaggio al controller
-      )
+      roomFXController = RoomFXController((name: String, nPlayer: Int) =>
+        controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer))
     })
   }
 
@@ -52,7 +54,7 @@ class RoomViewActor extends Actor{
     * I messaggi che questo attore è ingrado di ricevere sono raggruppati in [[RoomViewMessages]]
     */
   override def receive: Receive = {
-    case RoomViewMessages.ShowGUI =>
-      Platform runLater(() => roomFXController.showGUI())
+    case RoomViewMessages.InitController => controllerActor = sender()
+    case RoomViewMessages.ShowGUI => Platform runLater(() => roomFXController.showGUI())
   }
 }
