@@ -4,6 +4,6 @@ package it.cwmp.exceptions
   * A class describing an Http Exception
   *
   * @param statusCode   the HTTP code of error
-  * @param errorMessage the error message
+  * @param message the error message
   */
-sealed case class HTTPException(statusCode: Int, errorMessage: Option[String] = None) extends RuntimeException
+sealed case class HTTPException(statusCode: Int, message: Option[String] = None) extends RuntimeException
