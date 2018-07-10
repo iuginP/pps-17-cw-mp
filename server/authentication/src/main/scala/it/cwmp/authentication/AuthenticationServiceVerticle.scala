@@ -5,11 +5,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
-<<<<<<< HEAD
-=======
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.storage.StorageAsync
->>>>>>> develop
 import it.cwmp.utils.HttpUtils
 import it.cwmp.storage.StorageAsync
 
