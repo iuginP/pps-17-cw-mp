@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
+<?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import javafx.collections.FXCollections?>
+<?import java.lang.*?>
 
-<Pane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-      minWidth="-Infinity" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121">
+<Pane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121" maxHeight="-Infinity"
+      maxWidth="-Infinity" minHeight="-Infinity"
+      minWidth="-Infinity" prefHeight="500.0" prefWidth="620.0">
     <children>
-        <TabPane xmlns:fx="http://www.w3.org/2001/XInclude" fx:id="tabPane"
-                 xmlns="http://javafx.com/javafx/8.0.40" prefHeight="500.0" prefWidth="620.0">
+        <TabPane fx:id="tabPane" prefHeight="500.0" prefWidth="620.0">
             <tabs>
                 <Tab fx:id="privateRoomTab" text="Private" closable="false">
-                    <BorderPane>
-                        <GridPane prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://www.w3.org/2001/XInclude">
-
-                            <TitledPane GridPane.rowIndex="0" GridPane.columnIndex="0" text="Crea la tua stanza"
-                                        prefWidth="600.0" collapsible="true">
-                                <GridPane maxHeight="-Infinity"
-                                          maxWidth="-Infinity"
-                                          minHeight="-Infinity"
-                                          minWidth="-Infinity"
-                                          xmlns="http://javafx.com/javafx"
-                                          xmlns:fx="http://javafx.com/fxml"
-                                          prefHeight="400.0" prefWidth="600.0"
-                                          hgap="30"
-                                          vgap="10"
-                                          alignment="TOP_CENTER">
-
+                    <VBox>
+                        <children>
+                            <!-- Pane per la crezione della stanza -->
+                            <TitledPane text="Crea la tua stanza" prefWidth="Infinity" collapsible="true">
+                                <!-- Contenuto pane -->
+                                <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
                                     <children>
-
                                         <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
                                                layoutY="68.0" text="Nome della stanza">
                                             <font>
@@ -39,7 +28,6 @@
                                         </Label>
                                         <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="roomName"
                                                    fx:id="roomName" layoutX="115.0" layoutY="28.0"/>
-
                                         <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
                                                layoutY="68.0" text="Numero dei giocatori">
                                             <font>
@@ -52,14 +40,6 @@
                                                 <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
                                             </valueFactory>
                                         </Spinner>
-
-                                        <Label GridPane.rowIndex="2" GridPane.columnIndex="0" layoutX="240.0"
-                                               layoutY="68.0" text="Password">
-                                            <font>
-                                                <Font size="24.0"/>
-                                            </font>
-                                        </Label>
-
                                         <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
                                                 GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
                                                 mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
@@ -68,22 +48,47 @@
                                                 GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
                                                 mnemonicParsing="false" onAction="#onClickReset" prefHeight="25.0"
                                                 prefWidth="70.0" text="Reset"/>
-
                                     </children>
-
                                 </GridPane>
                             </TitledPane>
-
-                            <TitledPane GridPane.rowIndex="1" GridPane.columnIndex="0" text="Entra in una stanza"
-                                        prefWidth="600.0" collapsible="true">
-
+                        </children>
+                        <children>
+                            <!-- Pane per entrare in una stanza privata -->
+                            <TitledPane text="Entra in una stanza" prefWidth="Infinity" collapsible="true">
+                                <!-- Contenuto pane -->
+                                <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
+                                    <children>
+                                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
+                                               layoutY="68.0" text="Identificativo della stanza">
+                                            <font>
+                                                <Font size="24.0"/>
+                                            </font>
+                                        </Label>
+                                        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="roomId"
+                                                   fx:id="roomId" layoutX="115.0" layoutY="28.0"/>
+                                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
+                                               layoutY="68.0" text="Password">
+                                            <font>
+                                                <Font size="24.0"/>
+                                            </font>
+                                        </Label>
+                                        <PasswordField GridPane.rowIndex="1" GridPane.columnIndex="1" id="pass_hidden"
+                                                       fx:id="pass_hidden" layoutX="115.0" layoutY="28.0"/>
+                                        <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                                GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                                                mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
+                                                prefWidth="70.0" text="Entra"/>
+                                    </children>
+                                </GridPane>
                             </TitledPane>
-                        </GridPane>
-                    </BorderPane>
+                        </children>
+                    </VBox>
                 </Tab>
                 <Tab fx:id="publicRomTab" text="Pubbliche" closable="false">
-                    <VBox xmlns:fx="http://javafx.com/fxml">
+                    <VBox>
                         <children>
+                            <!-- Pane per entrare in una stanza pubblica -->
+                            <!-- Contenuto pane -->
                             <ListView fx:id="listPublicRooms">
                                 <items>
                                     <FXCollections fx:factory="observableArrayList">
@@ -94,13 +99,11 @@
                                         <String fx:value="Stanza 5"/>
                                     </FXCollections>
                                 </items>
-
                             </ListView>
                         </children>
                     </VBox>
                 </Tab>
             </tabs>
         </TabPane>
-
     </children>
 </Pane>
