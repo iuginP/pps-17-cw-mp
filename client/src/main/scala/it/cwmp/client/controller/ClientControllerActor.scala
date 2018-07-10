@@ -11,6 +11,9 @@ object ClientControllerMessages {
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica per la gestione delle lobby delle stanze.
     * Quando lo ricevuto, viene mostrata all'utente l'interfaccia grafica.
+    *
+    * @param name è il nome della stanza da creare
+    * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
     */
   case class RoomCreatePrivate(name: String, nPlayer: Int)
 }
