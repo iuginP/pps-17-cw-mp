@@ -8,7 +8,7 @@ import javafx.scene.control._
 import javafx.stage.Stage
 
 trait SignUpFXStrategy {
-  def onCreate(username: String, password: String, passwordConfirm: String): Unit
+  def onSignUp(username: String, password: String): Unit
 }
 
 object SignUpFXController {
@@ -41,7 +41,7 @@ class SignUpFXController(strategy: SignUpFXStrategy) extends FXController with F
         password <- getTextFieldValue(pfPassword, "È necessario inserire la password");
         passwordConfirm <- getTextFieldValue(pfPasswordConfirm, "È necessario inserire nuovamente la password")
         // TODO: controllare uguaglianza delle password
-      ) yield strategy.onCreate(username, password, passwordConfirm)
+      ) yield strategy.onSignUp(username, password)
     })
   }
 

@@ -44,7 +44,6 @@ class SignInFXController(strategy: SignInFXStrategy) extends FXController with F
 
   @FXML
   private def onClickSignUp(): Unit = {
-    println("Cliccato su request sign up")
     strategy.onRequestSignUp()
   }
 

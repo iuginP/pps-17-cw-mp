@@ -32,13 +32,15 @@ class AuthenticationViewActor extends Actor{
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
+      // TODO: ha senso definire tutto qui dentro?
       signInFXController = SignInFXController(new SignInFXStrategy {
         override def onSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
         override def onRequestSignUp(): Unit = {
-          signUpFXController = SignUpFXController((username: String, password: String, passwordConfirm: String) => ???)
-          signUpFXController showGUI
+          signUpFXController = SignUpFXController((username: String, password: String) =>
+          controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password))
+          signUpFXController showGUI()
         }
       })
     })
@@ -46,6 +48,6 @@ class AuthenticationViewActor extends Actor{
 
   override def receive: Receive = {
     case AuthenticationViewMessages.InitController => controllerActor = sender()
-    case AuthenticationViewMessages.ShowGUI => Platform runLater(() => signInFXController.showGUI())
+    case AuthenticationViewMessages.ShowGUI => Platform runLater(() => signInFXController showGUI())
   }
 }
