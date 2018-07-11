@@ -31,7 +31,9 @@ object ClientControllerActor {
   * @author Davide Borficchia
   */
 class ClientControllerActor(system: ActorSystem) extends Actor{
-
+  /**
+    * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
+    */
   var roomViewActor: ActorRef = _
 
   /**
