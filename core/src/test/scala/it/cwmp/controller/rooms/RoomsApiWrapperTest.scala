@@ -1,5 +1,6 @@
 package it.cwmp.controller.rooms
 
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.testing.server.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
 
@@ -23,10 +24,10 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
 
     describe("should fail") {
       it("if roomName empty") {
-        recoverToSucceededIf[RoomsServiceException](createRoom("", playersNumber))
+        recoverToSucceededIf[HTTPException](createRoom("", playersNumber))
       }
       it("if playersNumber not correct") {
-        recoverToSucceededIf[RoomsServiceException](createRoom(roomName, 0))
+        recoverToSucceededIf[HTTPException](createRoom(roomName, 0))
       }
     }
   }
@@ -40,13 +41,13 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       onWrongRoomID(enterRoom)
 
       it("if user is already inside a room") {
-        recoverToSucceededIf[RoomsServiceException] {
+        recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID) flatMap (_ => enterRoom(roomID)))
         }
       }
       it("if the room is full") {
         val playersNumber = 2
-        recoverToSucceededIf[RoomsServiceException] {
+        recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber)
             .flatMap(roomID => enterRoom(roomID)
               .flatMap(_ => enterRoom(roomID)(mySecondAuthorizedUser, mySecondCorrectToken))
@@ -88,10 +89,10 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       onWrongRoomID(exitRoom)
 
       it("if user is not inside the room") {
-        recoverToSucceededIf[RoomsServiceException](createRoom(roomName, playersNumber) flatMap exitRoom)
+        recoverToSucceededIf[HTTPException](createRoom(roomName, playersNumber) flatMap exitRoom)
       }
       it("if user is inside another room") {
-        recoverToSucceededIf[RoomsServiceException] {
+        recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber)
             .flatMap(roomID => createRoom(roomName, playersNumber)
               .flatMap(otherRoomID => enterRoom(otherRoomID)) flatMap (_ => exitRoom(roomID)))
@@ -123,7 +124,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       onWrongPlayersNumber(enterPublicRoom)
 
       it("if same user is already inside a room") {
-        recoverToSucceededIf[RoomsServiceException] {
+        recoverToSucceededIf[HTTPException] {
           enterPublicRoom(2) flatMap (_ => enterPublicRoom(3))
         }
       }
@@ -165,10 +166,10 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       onWrongPlayersNumber(exitPublicRoom)
 
       it("if user is not inside the room") {
-        recoverToSucceededIf[RoomsServiceException](exitPublicRoom(playersNumber))
+        recoverToSucceededIf[HTTPException](exitPublicRoom(playersNumber))
       }
       it("if user is inside another room") {
-        recoverToSucceededIf[RoomsServiceException] {
+        recoverToSucceededIf[HTTPException] {
           enterPublicRoom(2) flatMap (_ => exitPublicRoom(3))
         }
       }
@@ -177,19 +178,19 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
 
   override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
     it("if roomID is empty") {
-      recoverToSucceededIf[RoomsServiceException](apiCall(""))
+      recoverToSucceededIf[HTTPException](apiCall(""))
     }
     it("if provided roomID is not present") {
-      recoverToSucceededIf[RoomsServiceException](apiCall("1233124"))
+      recoverToSucceededIf[HTTPException](apiCall("1233124"))
     }
   }
 
   override protected def onWrongPlayersNumber(apiCall: (Int) => Future[_]): Unit = {
     it("if players number provided less than 2") {
-      recoverToSucceededIf[RoomsServiceException](apiCall(0))
+      recoverToSucceededIf[HTTPException](apiCall(0))
     }
     it("if room with such players number doesn't exist") {
-      recoverToSucceededIf[RoomsServiceException](apiCall(20))
+      recoverToSucceededIf[HTTPException](apiCall(20))
     }
   }
 
@@ -201,42 +202,42 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
     describe("should fail calling") {
       describe("createRoom") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](createRoom(fakeRoomName, fakePlayersNumber)(token))
+          recoverToSucceededIf[HTTPException](createRoom(fakeRoomName, fakePlayersNumber)(token))
         }
       }
       describe("enterRoom") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](enterRoom(fakeRoomID)(myFirstAuthorizedUser, token))
+          recoverToSucceededIf[HTTPException](enterRoom(fakeRoomID)(myFirstAuthorizedUser, token))
         }
       }
       describe("roomInfo") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](roomInfo(fakeRoomID)(token))
+          recoverToSucceededIf[HTTPException](roomInfo(fakeRoomID)(token))
         }
       }
       describe("exitRoom") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](exitRoom(fakeRoomID)(token))
+          recoverToSucceededIf[HTTPException](exitRoom(fakeRoomID)(token))
         }
       }
       describe("listPublicRooms") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](listPublicRooms()(token))
+          recoverToSucceededIf[HTTPException](listPublicRooms()(token))
         }
       }
       describe("enterPublicRoom") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](enterPublicRoom(fakePlayersNumber)(myFirstAuthorizedUser, token))
+          recoverToSucceededIf[HTTPException](enterPublicRoom(fakePlayersNumber)(myFirstAuthorizedUser, token))
         }
       }
       describe("publicRoomInfo") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](publicRoomInfo(fakePlayersNumber)(token))
+          recoverToSucceededIf[HTTPException](publicRoomInfo(fakePlayersNumber)(token))
         }
       }
       describe("exitPublicRoom") {
         shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[RoomsServiceException](exitPublicRoom(fakePlayersNumber)(token))
+          recoverToSucceededIf[HTTPException](exitPublicRoom(fakePlayersNumber)(token))
         }
       }
 
