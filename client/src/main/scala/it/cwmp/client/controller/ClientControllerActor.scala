@@ -38,7 +38,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
     * quando viene creato l'attore [[ClientControllerActor]].
     * Il suo compito è quello di creare l'attore [[RoomViewActor]].
-    * Una voltacreato inizializza e mostra la GUI
+    * Una volta creato inizializza e mostra la GUI
     */
   override def preStart(): Unit = {
     super.preStart()

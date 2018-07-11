@@ -9,7 +9,10 @@ import javafx.embed.swing.JFXPanel
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object RoomViewMessages {
-
+  /**
+    * Questo messaggio rappresenta l'inizializzazione del controller che verrà poi utilizzato per le rispote che verrano inviate al mittente.
+    * Quando ricevuto, inizializzo il controller.
+    */
   case object InitController
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
@@ -29,8 +32,13 @@ object RoomViewActor {
   * @author Davide Borficchia
   */
 class RoomViewActor extends Actor{
-
+  /**
+    * roomFXController il controller che gestisce la view della lobby delle stanze
+    */
   var roomFXController: RoomFXController = _
+  /**
+    * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
+    */
   var controllerActor: ActorRef = _
 
   /**
