@@ -33,7 +33,7 @@ class ApiClientActor() extends Actor{
   private val apiWrapper = RoomsApiWrapper()
   import apiWrapper._
   def roomManagerBehaviour: Receive = {
-    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
+    case ApiClientMessages.RoomCreatePrivate(name, nPlayer, token) =>
       createRoom(name, nPlayer)(token).onComplete({
         case Success(s) => println(s)
         case Failure(e) => e.printStackTrace()
