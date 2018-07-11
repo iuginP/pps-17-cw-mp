@@ -1,6 +1,7 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import it.cwmp.client.model.{ApiClientActor, ApiClientMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 
 /**
@@ -15,7 +16,7 @@ object ClientControllerMessages {
     * @param name è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
     */
-  case class RoomCreatePrivate(name: String, nPlayer: Int)
+  case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
 }
 
 object ClientControllerActor {
@@ -35,6 +36,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
   var roomViewActor: ActorRef = _
+  var roomApiClientActor: ActorRef = _
 
   /**
     * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
@@ -45,11 +47,13 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
+    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient")
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
     roomViewActor ! RoomViewMessages.ShowGUI
   }
+
   /**
     * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
@@ -71,6 +75,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     *
     */
   def roomManagerBehaviour: Receive = {
-    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer) => println("prova", name, nPlayer) // TODO crea stanza
+    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
+      roomApiClientActor ! ApiClientMessages.RoomCreatePrivate(name, nPlayer, token)
   }
 }
