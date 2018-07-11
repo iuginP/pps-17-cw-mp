@@ -6,6 +6,7 @@ import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
+import it.cwmp.controller.client.ClientCommunication
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Room, User}
@@ -20,7 +21,8 @@ import scala.util.{Failure, Success}
   *
   * @author Enrico Siboni
   */
-case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) extends ScalaVerticle {
+case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
+                                implicit val clientCommunicationStrategy: ClientCommunication) extends ScalaVerticle {
 
   private var daoFuture: Future[RoomDAO] = _
 
@@ -84,7 +86,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
         (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressFromBody(body)) match {
           case (Some(roomID), Some(userAddress)) =>
             daoFuture.map(implicit dao => dao.enterRoom(roomID)(User(user.username, userAddress)).onComplete {
-              case Success(_) => handlePrivateRoomFilling(roomID).andThen({ case Failure(_) => sendResponse(200, None) })
+              case Success(_) => handlePrivateRoomFilling(roomID).onComplete { case Failure(_) => sendResponse(200, None) }
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
@@ -158,7 +160,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User]) ex
         (playersNumberOption, extractAddressFromBody(body)) match {
           case (Some(playersNumber), Some(userAddress)) =>
             daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(User(user.username, userAddress)).onComplete {
-              case Success(_) => handlePublicRoomFilling(playersNumber).andThen({ case Failure(_) => sendResponse(200, None) })
+              case Success(_) => handlePublicRoomFilling(playersNumber).onComplete { case Failure(_) => sendResponse(200, None) }
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
@@ -269,19 +271,21 @@ object RoomsServiceVerticle {
   }
 
   /**
-    * Method that manages the filling of private rooms
+    * Method that manages the filling of private rooms, fails if the room is not full
     */
-  private def handlePrivateRoomFilling(roomID: String)(implicit roomDAO: RoomDAO, routingContext: RoutingContext): Future[Unit] = {
+  private def handlePrivateRoomFilling(roomID: String)
+                                      (implicit roomDAO: RoomDAO, routingContext: RoutingContext, communicationStrategy: ClientCommunication): Future[Unit] = {
     handleRoomFilling(roomDAO.roomInfo(roomID),
-      roomDAO.deleteRoom(roomID).map(_ => sendResponse(200, None)))
+      roomDAO deleteRoom roomID map (_ => sendResponse(200, None)))
   }
 
   /**
-    * Method that manages the filling of public rooms
+    * Method that manages the filling of public rooms, fails if the room is not full
     */
-  private def handlePublicRoomFilling(playersNumber: Int)(implicit roomDAO: RoomDAO, routingContext: RoutingContext): Future[Unit] = {
+  private def handlePublicRoomFilling(playersNumber: Int)
+                                     (implicit roomDAO: RoomDAO, routingContext: RoutingContext, communicationStrategy: ClientCommunication): Future[Unit] = {
     handleRoomFilling(roomDAO.publicRoomInfo(playersNumber),
-      roomDAO.deleteAndRecreatePublicRoom(playersNumber).map(_ => sendResponse(200, None)))
+      roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200, None)))
   }
 
   /**
@@ -291,7 +295,9 @@ object RoomsServiceVerticle {
     * @param onRetrievedRoomAction the action to do if the room is full
     * @return a future that completes when all players received addresses
     */
-  private[this] def handleRoomFilling(roomFuture: Future[Room], onRetrievedRoomAction: => Future[Unit]): Future[Unit] = {
+  private[this] def handleRoomFilling(roomFuture: Future[Room],
+                                      onRetrievedRoomAction: => Future[Unit])
+                                     (implicit communicationStrategy: ClientCommunication): Future[Unit] = {
     roomFuture.filter(roomIsFull)
       .flatMap(fullRoom => {
         onRetrievedRoomAction
@@ -305,12 +311,15 @@ object RoomsServiceVerticle {
   private def roomIsFull(room: Room): Boolean = room.participants.size == room.neededPlayersNumber
 
   /**
-    * Method to cummunicate to clients that the game can start because of reaching the specified number of players
+    * Method to communicate to clients that the game can start because of reaching the specified number of players
     *
-    * @param room the room wehere players are waiting in
+    * @param room the room where players are waiting in
     */
-  private def sendParticipantAddresses(room: Room): Future[Unit] = {
-    Future.successful(Unit) // TODO: implement communication with client
+  private def sendParticipantAddresses(room: Room)(implicit communicationStrategy: ClientCommunication): Future[Unit] = {
+    val participantAddresses = for (participant <- room.participants) yield participant.address
+    Future.sequence {
+      participantAddresses map (address => communicationStrategy.sendParticipantAddresses(address, participantAddresses filter (_ != address)))
+    } map (_ => Unit)
   }
 
   /**

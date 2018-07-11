@@ -2,6 +2,7 @@ package it.cwmp
 
 import io.vertx.scala.core.Vertx
 import it.cwmp.authentication.AuthenticationService
+import it.cwmp.controller.client.ClientCommunication
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 
 /**
@@ -12,7 +13,7 @@ import it.cwmp.controller.rooms.RoomsServiceVerticle
 object RoomsServiceMain extends App {
 
   private implicit val vertx: Vertx = Vertx.vertx()
-  vertx.deployVerticle(RoomsServiceVerticle(AuthenticationService()))
+  vertx.deployVerticle(RoomsServiceVerticle(AuthenticationService(), ClientCommunication()))
 
   println("Deploying RoomServiceVerticle... ") // TODO replace with logger logging
 }

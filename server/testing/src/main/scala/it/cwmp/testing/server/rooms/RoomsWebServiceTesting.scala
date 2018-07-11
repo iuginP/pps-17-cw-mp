@@ -1,6 +1,7 @@
 package it.cwmp.testing.server.rooms
 
 import it.cwmp.authentication.Validation
+import it.cwmp.controller.client.ClientCommunication
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, User}
@@ -29,13 +30,13 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   private var deploymentID: String = _
 
   override protected def beforeEach(): Unit =
-    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy())), 10000.millis)
+    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestClientCommunication())), 10000.millis)
 
   override protected def afterEach(): Unit =
     Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
 
   /**
-    * A validation strategy for user tokens during testing
+    * A mocked validation strategy for user tokens during testing
     *
     * @author Enrico Siboni
     */
@@ -47,6 +48,16 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
       case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
       case _ => Future.failed(HTTPException(401))
     }
+  }
+
+  /**
+    * A mocked communication strategy vs clients to use during tests
+    *
+    * @author Enrico Siboni
+    */
+  private case class TestClientCommunication() extends ClientCommunication {
+    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] =
+      Future.successful(Unit)
   }
 
 }
