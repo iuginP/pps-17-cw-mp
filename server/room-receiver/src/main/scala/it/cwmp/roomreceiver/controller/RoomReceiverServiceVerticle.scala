@@ -47,8 +47,9 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: Seq[Par
       try {
         var result = List[Participant]()
         val jsonArray = body.toJsonArray
+        import Participant.Converters._
         jsonArray.forEach {
-          case jsonObject: JsonObject => Participant(jsonObject).foreach(participant => result = result :+ participant)
+          case jsonObject: JsonObject => result = result :+ jsonObject.toParticipant
         }
         Some(result)
       } catch {

@@ -5,11 +5,12 @@ import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Participant
+import it.cwmp.model.Participant.Converters._
 import it.cwmp.testing.VertxTest
 import org.scalatest.{BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{Await, Promise}
 import scala.util.{Failure, Success}
 
 class RoomReceiverServiceVerticleTest extends VertxTest with BeforeAndAfterEach with Matchers {

@@ -9,7 +9,7 @@ import it.cwmp.authentication.Validation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Room, User}
+import it.cwmp.model.{Participant, Room, User}
 import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -85,13 +85,17 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
       validateUserOrSendError.map(user => {
         (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressFromBody(body)) match {
           case (Some(roomID), Some(userAddress)) =>
-            daoFuture.map(implicit dao => dao.enterRoom(roomID)(User(user.username, userAddress)).onComplete {
-              case Success(_) => handlePrivateRoomFilling(roomID).onComplete { case Failure(_) => sendResponse(200, None) }
+            daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, userAddress)).onComplete {
+              case Success(_) => handlePrivateRoomFilling(roomID)
+                .transform({
+                  case Success(_) => Failure(new Exception())
+                  case Failure(_) => Success(Unit)})
+                .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${User.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Participant.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -159,13 +163,17 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
         }
         (playersNumberOption, extractAddressFromBody(body)) match {
           case (Some(playersNumber), Some(userAddress)) =>
-            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(User(user.username, userAddress)).onComplete {
-              case Success(_) => handlePublicRoomFilling(playersNumber).onComplete { case Failure(_) => sendResponse(200, None) }
+            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, userAddress)).onComplete {
+              case Success(_) => handlePublicRoomFilling(playersNumber)
+                .transform({
+                  case Success(_) => Failure(new Exception())
+                  case Failure(_) => Success(Unit)})
+                .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${User.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Participant.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -263,7 +271,7 @@ object RoomsServiceVerticle {
   private def extractAddressFromBody(body: Buffer): Option[String] = {
     try {
       val jsonObject = body.toJsonObject
-      if (jsonObject containsKey User.FIELD_ADDRESS) Some(jsonObject getString User.FIELD_ADDRESS)
+      if (jsonObject containsKey Participant.FIELD_ADDRESS) Some(jsonObject getString Participant.FIELD_ADDRESS)
       else None
     } catch {
       case _: Throwable => None
@@ -316,9 +324,9 @@ object RoomsServiceVerticle {
     * @param room the room where players are waiting in
     */
   private def sendParticipantAddresses(room: Room)(implicit communicationStrategy: RoomReceiverApiWrapper): Future[Unit] = {
-    val participantAddresses = for (participant <- room.participants) yield participant.address
+    val participantList = for (participant <- room.participants) yield participant
     Future.sequence {
-      participantAddresses map (address => communicationStrategy.sendParticipantAddresses(address, participantAddresses filter (_ != address)))
+      participantList map (participant => communicationStrategy.sendParticipantAddresses(participant.address, participantList filter (_ != participant)))
     } map (_ => Unit)
   }
 
