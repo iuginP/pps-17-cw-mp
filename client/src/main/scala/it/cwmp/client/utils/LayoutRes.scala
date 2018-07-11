@@ -5,11 +5,11 @@ package it.cwmp.client.utils
   **/
 object LayoutRes {
 
-  val openingLayout: String = "/layouts/signInLayout.fxml"
+  val openingLayout: String = "/layouts/authenticationSignInLayout.fxml"
 
-  val signInLayout: String = "/signInLayout.fxml"
+  val signInLayout: String = "/layouts/authenticationSignInLayout.fxml"
 
-  val signUpLayout: String = "/signUpLayout.fxml"
+  val signUpLayout: String = "/layouts/authenticationSignUpLayout.fxml"
 
   val roomManagerLayout: String = "/layouts/roomManagerLayout.fxml"
 }

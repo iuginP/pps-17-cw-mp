@@ -1,12 +1,17 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object ClientControllerMessages {
+
+  case class AuthenticationPerformSignIn(username: String, password: String)
+
+  case class AuthenticationPerformSignUp(username: String, password: String)
 
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica per la gestione delle lobby delle stanze.
@@ -30,23 +35,40 @@ object ClientControllerActor {
   */
 class ClientControllerActor(system: ActorSystem) extends Actor{
 
+  var authenticationViewActor: ActorRef = _
   var roomViewActor: ActorRef = _
 
   override def preStart(): Unit = {
     super.preStart()
-    // Initialize all actors
+
+    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
+    authenticationViewActor ! AuthenticationViewMessages.InitController
+    // TODO debug, remove before release
+    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
+
+    /*// Initialize all actors
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
-    roomViewActor ! RoomViewMessages.ShowGUI
+    roomViewActor ! RoomViewMessages.ShowGUI*/
   }
 
-  def receive = roomManagerBehaviour
+  def receive = authenticationManagerBehaviour
   //possibilità di aggiungere altri behavior
   //.orElse[Any, Unit](receiveAddItem)
 
+  def becomeAuthenticationManager(): Unit = {
+    context.become(authenticationManagerBehaviour)
+  }
+
   def becomeRoomsManager(): Unit = {
     context.become(roomManagerBehaviour)
+  }
+
+
+  def authenticationManagerBehaviour: Receive = {
+    case ClientControllerMessages.AuthenticationPerformSignIn(username, password) => println(s"Perform sign-in with: $username, $password") // TODO crea stanza
+    case ClientControllerMessages.AuthenticationPerformSignUp(username, password) => println(s"Perform sign-up with: $username, $password") // TODO crea stanza
   }
 
   /**

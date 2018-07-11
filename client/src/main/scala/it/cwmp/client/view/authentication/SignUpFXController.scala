@@ -12,7 +12,7 @@ trait SignUpFXStrategy {
 }
 
 object SignUpFXController {
-  def apply(strategy: SignUpFXStrategy): SignUpFXStrategy = {
+  def apply(strategy: SignUpFXStrategy): SignUpFXController = {
     require(strategy != null)
     new SignUpFXController(strategy)
   }

@@ -8,7 +8,9 @@ import javafx.scene.control._
 import javafx.stage.Stage
 
 trait SignInFXStrategy {
-  def onCreate(username: String, password: String): Unit
+  def onSignIn(username: String, password: String): Unit
+
+  def onRequestSignUp(): Unit
 }
 
 object SignInFXController {
@@ -36,13 +38,14 @@ class SignInFXController(strategy: SignInFXStrategy) extends FXController with F
       for(
         username <- getTextFieldValue(pfPassword, "È necessario inserire lo username");
         password <- getTextFieldValue(pfPassword, "È necessario inserire la password")
-      ) yield strategy.onCreate(username, password)
+      ) yield strategy.onSignIn(username, password)
     })
   }
 
   @FXML
   private def onClickSignUp(): Unit = {
-
+    println("Cliccato su request sign up")
+    strategy.onRequestSignUp()
   }
 
   @FXML
