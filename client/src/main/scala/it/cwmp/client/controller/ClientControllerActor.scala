@@ -59,7 +59,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
   //.orElse[Any, Unit](receiveAddItem)
 
   /**
-    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la loby delle stanze
+    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   def becomeRoomsManager(): Unit = {
     context.become(roomManagerBehaviour)
