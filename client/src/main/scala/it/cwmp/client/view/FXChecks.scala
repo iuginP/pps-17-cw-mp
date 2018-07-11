@@ -1,6 +1,6 @@
 package it.cwmp.client.view
 
-import javafx.scene.control.{CheckBox, Spinner, TextField}
+import javafx.scene.control.{CheckBox, PasswordField, Spinner, TextField}
 
 trait FXChecks extends FXController {
   def getTextFieldValue(field: TextField): Option[String] =
@@ -9,7 +9,7 @@ trait FXChecks extends FXController {
 
   def getTextFieldValue(field: TextField, message: String): Option[String] =
     getTextFieldValue(field) match {
-      case s @ Some(_) => s
+      case s@Some(_) => s
       case None => showError(message); None
     }
 
@@ -19,7 +19,7 @@ trait FXChecks extends FXController {
 
   def getSpinnerFieldValue[A](spinner: Spinner[A], message: String): Option[A] =
     getSpinnerFieldValue(spinner) match {
-      case s @ Some(_) => s
+      case s@Some(_) => s
       case None => showError(message); None
     }
 
@@ -29,7 +29,7 @@ trait FXChecks extends FXController {
 
   def getCheckedBoxValue(checkBox: CheckBox, message: String): Option[Boolean] =
     getCheckedBoxValue(checkBox) match {
-      case s @ Some(_) => s
+      case s@Some(_) => s
       case None => showError(message); None
     }
 }

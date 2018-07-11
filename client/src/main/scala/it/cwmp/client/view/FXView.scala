@@ -10,6 +10,7 @@ import javafx.stage.Stage
 trait FXView {
 
   protected def layout(): String
+  protected def title(): String
   protected def stage(): Stage
   protected def controller(): FXController
 
@@ -20,7 +21,7 @@ trait FXView {
     val pane: Pane = loader.load()
 
     //setto il titolo della finestra
-    stage setTitle StringRes.RoomManagerTitle
+    stage setTitle title
     stage setResizable false
 
     //stabilisco cosa fare alla chiusura della finestra

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+        <Label layoutX="135.0" layoutY="28.0" text="Benvenuto! Effettua l'accesso per giocare.">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+
+        <Label layoutX="173.0" layoutY="96.0" text="Username">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <TextField fx:id="tfUsername" layoutX="251.0" layoutY="91.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </TextField>
+        <Label layoutX="175.0" layoutY="144.0" text="Password">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <PasswordField fx:id="pfPassword" layoutX="252.0" layoutY="139.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </PasswordField>
+        <Button fx:id="btnReset" layoutX="176.0" layoutY="192.0" mnemonicParsing="false" onAction="#onClickReset" prefHeight="30.0" prefWidth="85.0" text="Reset" />
+        <Button fx:id="btnSignIn" layoutX="342.0" layoutY="192.0" mnemonicParsing="false" onAction="#onClickSignIn" prefHeight="30.0" prefWidth="85.0" text="Login" />
+
+        <Label fx:id="lSignUp" layoutX="176.0" layoutY="250.0" onMouseClicked="#onClickSignUp" text="Non hai un account? Registrati!">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+    </children>
+
+</Pane>

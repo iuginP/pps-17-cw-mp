@@ -11,8 +11,9 @@ object StringRes {
 
   // Authentication
   val signInTitle: String = "Login"
+  val signUpTitle: String = "Registrazione"
 
   //RoomManagerView
-  val RoomManagerTitle = "Gestione stanze"
-  val CreatePrivateRoomTitle = "Crea una stanza privata"
+  val roomManagerTitle = "Gestione stanze"
+  val createPrivateRoomTitle = "Crea una stanza privata"
 }
