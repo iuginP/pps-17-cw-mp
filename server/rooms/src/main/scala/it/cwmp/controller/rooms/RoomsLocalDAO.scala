@@ -7,7 +7,7 @@ import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.controller.rooms.RoomsLocalDAO._
-import it.cwmp.model.{Address, Room, User}
+import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.utils.Utils
 
 import scala.collection.mutable
@@ -40,7 +40,7 @@ trait RoomDAO {
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: User with Address): Future[Unit]
+  def enterRoom(roomID: String)(implicit user: Participant): Future[Unit]
 
   /**
     * Retrieves room information
@@ -78,7 +78,7 @@ trait RoomDAO {
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int)(implicit user: User with Address): Future[Unit]
+  def enterPublicRoom(playersNumber: Int)(implicit user: Participant): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players
@@ -170,7 +170,7 @@ case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
       )
   }
 
-  override def enterRoom(roomID: String)(implicit user: User with Address): Future[Unit] = {
+  override def enterRoom(roomID: String)(implicit user: Participant): Future[Unit] = {
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
       .flatMap(_ => localJDBCClient.getConnectionFuture())
@@ -218,7 +218,7 @@ case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
       .map(resultOfJoinToRooms)
   }
 
-  override def enterPublicRoom(playersNumber: Int)(implicit user: User with Address): Future[Unit] = {
+  override def enterPublicRoom(playersNumber: Int)(implicit user: Participant): Future[Unit] = {
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(enterRoom)
@@ -315,7 +315,7 @@ object RoomsLocalDAO {
     s"""
         CREATE TABLE user (
           ${User.FIELD_USERNAME} VARCHAR(50) NOT NULL,
-          ${User.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
+          ${Participant.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
           $userToRoomLinkField VARCHAR(100),
           PRIMARY KEY (${User.FIELD_USERNAME}),
           CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
@@ -373,7 +373,7 @@ object RoomsLocalDAO {
     * Utility method to convert a result set to a room sequence
     */
   private def resultOfJoinToRooms(resultSet: ResultSet): Seq[Room] = { // review maybe with for comprehension
-    val roomsUsers: mutable.Map[String, Seq[User with Address]] = mutable.HashMap()
+    val roomsUsers: mutable.Map[String, Seq[Participant]] = mutable.HashMap()
     val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
     val roomIDPos = 0
     val roomNamePos = 1
@@ -387,13 +387,13 @@ object RoomsLocalDAO {
       val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
 
       if (roomsUsers contains roomID) {
-        userName.foreach(name => roomsUsers(roomID) = roomsUsers(roomID) :+ User(name, userAddress.get))
+        userName.foreach(name => roomsUsers(roomID) = roomsUsers(roomID) :+ Participant(name, userAddress.get))
       } else {
         val roomName = resultRow getString roomNamePos
         val roomNeededPlayers = resultRow getInteger roomPlayersPos
         roomsInfo(roomID) = (roomName, roomNeededPlayers)
         userName match {
-          case Some(name) => roomsUsers(roomID) = Seq(User(name, userAddress.get))
+          case Some(name) => roomsUsers(roomID) = Seq(Participant(name, userAddress.get))
           case None => roomsUsers(roomID) = Seq()
         }
       }

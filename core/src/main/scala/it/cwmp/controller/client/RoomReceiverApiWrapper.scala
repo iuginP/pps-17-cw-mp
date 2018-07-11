@@ -1,8 +1,8 @@
 package it.cwmp.controller.client
 
 import io.vertx.lang.scala.json.Json
-import it.cwmp.controller.ApiClient
-import it.cwmp.model.User
+import it.cwmp.model.{Address, Participant}
+import it.cwmp.model.Participant.Converters._
 
 import scala.concurrent.Future
 
@@ -11,7 +11,7 @@ import scala.concurrent.Future
   *
   * @author Enrico Siboni
   */
-trait ClientCommunication {
+trait RoomReceiverApiWrapper {
 
   /**
     * Sends the addresses to the client
@@ -19,31 +19,34 @@ trait ClientCommunication {
     * @param toSend the addresses to send
     * @return a Future that completes when the client received the data
     */
-  def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit]
+  def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit]
 
 }
 
 /**
   * Companion object
   */
-object ClientCommunication {
+object RoomReceiverApiWrapper {
 
-  def apply(): ClientCommunication = ClientCommunicationDefault()
+  def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
+  val DEFAULT_PORT = 8668
+
+  def apply(): RoomReceiverApiWrapper = RoomReceiverApiWrapperDefault()
 
 
   /**
     * Default implementation for client communication
     */
-  private case class ClientCommunicationDefault() extends ClientCommunication /*with ApiClient*/ {
+  private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper /*with ApiClient*/ {
 
-    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] = {
+    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
       // TODO: al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
       // TODO: questo è il punto in cui cercare di far ricevere i dati al client
       // in caso un client non sia più disponibile il server, passerà oltre, e gli altri client (se più di 1)
       // giocheranno tra di loro; il server non ha più responsabilità
 
-      val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, address) =>
-        jsonArray add Json.obj((User.FIELD_ADDRESS, address))
+      val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, participant) =>
+        jsonArray add participant.toJson
       }
 
       // need to know the format of address provided ti server to separate into port and host parts

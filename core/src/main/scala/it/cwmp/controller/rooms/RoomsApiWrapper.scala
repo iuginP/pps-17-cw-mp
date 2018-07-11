@@ -7,10 +7,11 @@ import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Address, Room, User}
+import it.cwmp.model.{Address, Participant, Room, User}
+import it.cwmp.model.Participant.Converters._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -44,7 +45,7 @@ trait RoomsApiWrapper {
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: User with Address, userToken: String): Future[Unit]
+  def enterRoom(roomID: String)(implicit user: Participant, userToken: String): Future[Unit]
 
   /**
     * Retrieves room information
@@ -85,7 +86,7 @@ trait RoomsApiWrapper {
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int)(implicit user: User with Address, userToken: String): Future[Unit]
+  def enterPublicRoom(playersNumber: Int)(implicit user: Participant, userToken: String): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players
@@ -153,7 +154,7 @@ object RoomsApiWrapper {
       RoomsApiWrapper.createPrivateRoom(roomName, playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), 201))
 
-    override def enterRoom(roomID: String)(implicit user: User with Address, userToken: String): Future[Unit] =
+    override def enterRoom(roomID: String)(implicit user: Participant, userToken: String): Future[Unit] =
       RoomsApiWrapper.enterPrivateRoom(roomID)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
@@ -179,7 +180,7 @@ object RoomsApiWrapper {
           }
         }, 200))
 
-    override def enterPublicRoom(playersNumber: Int)(implicit user: User with Address, userToken: String): Future[Unit] =
+    override def enterPublicRoom(playersNumber: Int)(implicit user: Participant, userToken: String): Future[Unit] =
       RoomsApiWrapper.enterPublicRoom(playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
@@ -215,9 +216,9 @@ object RoomsApiWrapper {
   /**
     * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
     */
-  private[rooms] def enterPrivateRoom(roomID: String)(implicit webClient: WebClient, user: User with Address, userToken: String) = {
+  private[rooms] def enterPrivateRoom(roomID: String)(implicit webClient: WebClient, participant: Participant, userToken: String) = {
     createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonObjectFuture(addressForEnteringJson(user.address)))
+      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonObjectFuture(participant.toJson))
   }
 
   /**
@@ -247,9 +248,9 @@ object RoomsApiWrapper {
   /**
     * Wrapper method to do REST HTTP call to RoomsService enterPublicRoom API
     */
-  private[rooms] def enterPublicRoom(playersNumber: Int)(implicit webClient: WebClient, user: User with Address, userToken: String) = {
+  private[rooms] def enterPublicRoom(playersNumber: Int)(implicit webClient: WebClient, participant: Participant, userToken: String) = {
     createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonObjectFuture(addressForEnteringJson(user.address)))
+      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonObjectFuture(participant.toJson))
   }
 
   /**
@@ -294,11 +295,5 @@ object RoomsApiWrapper {
     */
   private[rooms] def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
     Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))
-
-  /**
-    * Handle method to create JSON to use in entering API
-    */
-  private[rooms] def addressForEnteringJson(address: String): JsonObject =
-    Json.obj((User.FIELD_ADDRESS, address))
 
 }

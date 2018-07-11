@@ -17,7 +17,7 @@ sealed trait Room {
 
   def neededPlayersNumber: Int
 
-  def participants: Seq[User with Address]
+  def participants: Seq[Participant]
 }
 
 /**
@@ -31,7 +31,7 @@ object Room {
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
-            participants: Seq[User with Address] = Seq()): Room = {
+            participants: Seq[Participant] = Seq()): Room = {
 
     require(!emptyString(roomID), "Room ID empty")
     require(!emptyString(roomName), "Room name empty")
@@ -40,7 +40,7 @@ object Room {
     RoomDefault(roomID, roomName, neededPlayersNumber, participants)
   }
 
-  def unapply(toExtract: Room): Option[(String, String, Int, Seq[User with Address])] =
+  def unapply(toExtract: Room): Option[(String, String, Int, Seq[Participant])] =
     if (toExtract eq null) None
     else Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
 
@@ -52,7 +52,7 @@ object Room {
   private case class RoomDefault(identifier: String,
                                  name: String,
                                  neededPlayersNumber: Int,
-                                 participants: Seq[User with Address]) extends Room
+                                 participants: Seq[Participant]) extends Room
 
 
   val FIELD_IDENTIFIER = "room_identifier"
@@ -74,12 +74,12 @@ object Room {
       */
     implicit class RichRoom(room: Room) {
       def toJson: JsonObject = {
-        import User.Converters._
+        import Participant.Converters._
         Json.obj(
           (FIELD_IDENTIFIER, room.identifier),
           (FIELD_NAME, room.name),
           (FIELD_NEEDED_PLAYERS, room.neededPlayersNumber),
-          (FIELD_PARTICIPANTS, for (user <- room.participants) yield user.toJson)
+          (FIELD_PARTICIPANTS, for (participant <- room.participants) yield participant.toJson)
         )
       }
     }
@@ -92,10 +92,10 @@ object Room {
         if ((jsonObject containsKey FIELD_IDENTIFIER) && (jsonObject containsKey FIELD_NAME)
           && (jsonObject containsKey FIELD_NEEDED_PLAYERS) && (jsonObject containsKey FIELD_PARTICIPANTS)) {
 
-          var userSeq = Seq[User with Address]()
+          var userSeq = Seq[Participant]()
           jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser => {
-            import User.Converters._
-            userSeq = Json.fromObjectString(jsonUser.toString).toUserWithAddress +: userSeq
+            import Participant.Converters._
+            userSeq = Json.fromObjectString(jsonUser.toString).toParticipant +: userSeq
           })
 
           Room(

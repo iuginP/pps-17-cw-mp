@@ -1,10 +1,10 @@
 package it.cwmp.testing.server.rooms
 
 import it.cwmp.authentication.Validation
-import it.cwmp.controller.client.ClientCommunication
+import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Address, User}
+import it.cwmp.model.{Address, Participant, User}
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.duration._
@@ -20,9 +20,9 @@ import scala.concurrent.{Await, Future}
   */
 abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEach {
 
-  protected implicit val myFirstAuthorizedUser: User with Address = User("Enrico1", "address1")
-  protected val mySecondAuthorizedUser: User with Address = User("Enrico2", "address2")
-  protected val myThirdAuthorizedUser: User with Address = User("Enrico3", "address3")
+  protected implicit val myFirstAuthorizedUser: Participant = Participant("Enrico1", "address1")
+  protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "address2")
+  protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "address3")
   protected implicit val myFirstCorrectToken: String = "CORRECT_TOKEN_1"
   protected val mySecondCorrectToken = "CORRECT_TOKEN_2"
   protected val myThirdCorrectToken = "CORRECT_TOKEN_3"
@@ -30,7 +30,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   private var deploymentID: String = _
 
   override protected def beforeEach(): Unit =
-    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestClientCommunication())), 10000.millis)
+    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper())), 10000.millis)
 
   override protected def afterEach(): Unit =
     Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
@@ -55,8 +55,8 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
     *
     * @author Enrico Siboni
     */
-  private case class TestClientCommunication() extends ClientCommunication {
-    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] =
+  private case class TestRoomReceiverApiWrapper() extends RoomReceiverApiWrapper {
+    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit] =
       Future.successful(Unit)
   }
 

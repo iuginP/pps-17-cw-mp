@@ -39,7 +39,7 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name == 'core' || it.name == 'authentication' || it.name == 'rooms' }) {
+configure(subprojects.findAll { it.name == 'core' || it.name == 'authentication' || it.name == 'rooms' || it.name == 'room-receiver' }) {
 
     dependencies {
         implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
