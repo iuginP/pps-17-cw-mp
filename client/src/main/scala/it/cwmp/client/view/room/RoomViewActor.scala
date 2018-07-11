@@ -52,7 +52,7 @@ class RoomViewActor extends Actor{
     Platform setImplicitExit false
     Platform runLater(() => {
       roomFXController = RoomFXController((name: String, nPlayer: Int) =>
-        controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer, "token")) //todo token usato per test
+        controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXJuYW1lIn0.wvbVcqB3Har4WQUumakzpZNPQstOgnlkMLSJjTMopQc")) //todo token usato per test
     })
   }
 
