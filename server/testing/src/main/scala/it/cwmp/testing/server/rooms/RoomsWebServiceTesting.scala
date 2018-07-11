@@ -3,8 +3,8 @@ package it.cwmp.testing.server.rooms
 import it.cwmp.authentication.Validation
 import it.cwmp.controller.client.ClientCommunication
 import it.cwmp.controller.rooms.RoomsServiceVerticle
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, User}
-import javax.xml.ws.http.HTTPException
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.duration._
@@ -45,8 +45,8 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
       case token if token == myFirstCorrectToken => Future.successful(myFirstAuthorizedUser)
       case token if token == mySecondCorrectToken => Future.successful(mySecondAuthorizedUser)
       case token if token == myThirdCorrectToken => Future.successful(myThirdAuthorizedUser)
-      case token if token == null || token.isEmpty => Future.failed(new HTTPException(400))
-      case _ => Future.failed(new HTTPException(401))
+      case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
+      case _ => Future.failed(HTTPException(401))
     }
   }
 

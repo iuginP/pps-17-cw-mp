@@ -3,9 +3,9 @@ package it.cwmp.authentication
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
 import it.cwmp.utils.HttpUtils
-import javax.xml.ws.http.HTTPException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,7 +47,7 @@ object AuthenticationService {
           .sendFuture()
           .transform({
             case Success(res) if res.statusCode() == 201 => Success(res.bodyAsString().get)
-            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
             case Failure(f) => Failure(f)
           })
       }
@@ -62,7 +62,7 @@ object AuthenticationService {
           .sendFuture()
           .transform({
             case Success(res) if res.statusCode() == 200 => Success(res.bodyAsString().get)
-            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Success(res) => Failure(HTTPException(res.statusCode()))// TODO: add an error message as second argument of HTTP exception
             case Failure(f) => Failure(f)
           })
       }
@@ -77,7 +77,7 @@ object AuthenticationService {
           .sendFuture()
           .transform({
             case Success(res) if res.statusCode() == 200 => Success(User(res.bodyAsString().get))
-            case Success(res) => Failure(new HTTPException(res.statusCode()))
+            case Success(res) => Failure(HTTPException(res.statusCode()))// TODO: add an error message as second argument of HTTP exception
             case Failure(f) => Failure(f)
           })
       }

@@ -1,11 +1,11 @@
 package it.cwmp.client.controller
 
+import it.cwmp.exceptions.HTTPException
 import javafx.fxml.FXML
 import javafx.scene.control.{PasswordField, TextField}
-import javax.xml.ws.http.HTTPException
 
-import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 class SignUpController extends AuthenticationController {
 
@@ -29,7 +29,7 @@ class SignUpController extends AuthenticationController {
 
     auth.signUp(username, password).onComplete {
       case Success(value) => println(s"Sign up completed! Token: $value")
-      case Failure(e: HTTPException) => e.getStatusCode match {
+      case Failure(HTTPException(statusCode, errorMessage)) => statusCode match {
         case 400 => println(s"Error! Code: 400") // TODO: handle error
         case _ => // TODO: handle error default
       }

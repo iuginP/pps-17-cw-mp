@@ -7,8 +7,9 @@ import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
 import it.cwmp.controller.ApiClient
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Room, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -197,9 +198,9 @@ object RoomsApiWrapper {
       * Utility method to handle the Service response
       */
     private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
-      successHttpCodes find (_ == response.statusCode()) match {
+      successHttpCodes find (_ == response.statusCode) match {
         case Some(_) => onSuccessFuture
-        case None => Future.failed(RoomsServiceException(response.statusCode(), response.bodyAsString().get))
+        case None => Future.failed(HTTPException(response.statusCode, response.bodyAsString))
       }
   }
 

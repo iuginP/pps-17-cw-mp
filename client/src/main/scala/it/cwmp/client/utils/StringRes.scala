@@ -9,12 +9,10 @@ object StringRes {
 
   val appName: String = "Cell Wars MultiPlayer"
 
+  // Authentication
   val signInTitle: String = "Login"
-
-  //CreatePrivateRoomView
-  val CreatePrivateRoomTitle = "Crea una stanza privata"
-
 
   //RoomManagerView
   val RoomManagerTitle = "Gestione stanze"
+  val CreatePrivateRoomTitle = "Crea una stanza privata"
 }
