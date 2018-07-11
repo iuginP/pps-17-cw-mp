@@ -11,7 +11,7 @@ import scala.concurrent.Future
   *
   * @author Enrico Siboni
   */
-trait ClientCommunication {
+trait RoomReceiverApiWrapper {
 
   /**
     * Sends the addresses to the client
@@ -26,15 +26,18 @@ trait ClientCommunication {
 /**
   * Companion object
   */
-object ClientCommunication {
+object RoomReceiverApiWrapper {
 
-  def apply(): ClientCommunication = ClientCommunicationDefault()
+  def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
+  val DEFAULT_PORT = 8668
+
+  def apply(): RoomReceiverApiWrapper = RoomReceiverApiWrapperDefault()
 
 
   /**
     * Default implementation for client communication
     */
-  private case class ClientCommunicationDefault() extends ClientCommunication /*with ApiClient*/ {
+  private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper /*with ApiClient*/ {
 
     override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] = {
       // TODO: al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi

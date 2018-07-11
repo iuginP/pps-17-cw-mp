@@ -10,7 +10,7 @@ import it.cwmp.utils.Utils
   *
   * @author Enrico Siboni
   */
-sealed trait User {
+trait User {
   def username: String
 }
 
@@ -19,7 +19,7 @@ sealed trait User {
   *
   * @author Enrico Siboni
   */
-sealed trait Address {
+trait Address {
   def address: String
 }
 

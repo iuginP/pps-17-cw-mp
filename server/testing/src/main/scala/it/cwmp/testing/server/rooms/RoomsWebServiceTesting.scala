@@ -1,7 +1,7 @@
 package it.cwmp.testing.server.rooms
 
 import it.cwmp.authentication.Validation
-import it.cwmp.controller.client.ClientCommunication
+import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, User}
@@ -30,7 +30,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   private var deploymentID: String = _
 
   override protected def beforeEach(): Unit =
-    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestClientCommunication())), 10000.millis)
+    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper())), 10000.millis)
 
   override protected def afterEach(): Unit =
     Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
@@ -55,7 +55,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
     *
     * @author Enrico Siboni
     */
-  private case class TestClientCommunication() extends ClientCommunication {
+  private case class TestRoomReceiverApiWrapper() extends RoomReceiverApiWrapper {
     override def sendParticipantAddresses(clientAddress: String, toSend: Seq[String]): Future[Unit] =
       Future.successful(Unit)
   }
