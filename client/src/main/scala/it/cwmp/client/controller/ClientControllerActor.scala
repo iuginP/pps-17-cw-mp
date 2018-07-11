@@ -32,6 +32,12 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
 
   var roomViewActor: ActorRef = _
 
+  /**
+    * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
+    * quando viene creato l'attore [[ClientControllerActor]].
+    * Il suo compito è quello di creare l'attore [[RoomViewActor]].
+    * Una voltacreato inizializza e mostra la GUI
+    */
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
@@ -40,11 +46,17 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     // TODO debug, remove before release
     roomViewActor ! RoomViewMessages.ShowGUI
   }
-
+  /**
+    * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
+    * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
+    */
   def receive = roomManagerBehaviour
   //possibilità di aggiungere altri behavior
   //.orElse[Any, Unit](receiveAddItem)
 
+  /**
+    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la loby delle stanze
+    */
   def becomeRoomsManager(): Unit = {
     context.become(roomManagerBehaviour)
   }
@@ -57,7 +69,4 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
   def roomManagerBehaviour: Receive = {
     case ClientControllerMessages.RoomCreatePrivate(name, nPlayer) => println("prova", name, nPlayer) // TODO crea stanza
   }
-
-
-
 }
