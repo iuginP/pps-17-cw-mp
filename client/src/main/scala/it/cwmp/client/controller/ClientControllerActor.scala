@@ -26,6 +26,8 @@ object ClientControllerActor {
   * Questa classe rappresenta l'attore del controller del client che ha il compito
   * di fare da tramite tra le view e i model.
   *
+  * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
+  *
   * @author Davide Borficchia
   */
 class ClientControllerActor(system: ActorSystem) extends Actor{
