@@ -45,6 +45,13 @@ class SignInFXController(strategy: SignInFXStrategy) extends FXController with F
 
   }
 
+  @FXML
+  private def onClickReset(): Unit = {
+    Platform.runLater(() => {
+      resetFields()
+    })
+  }
+
   override def resetFields(): Unit = {
     tfUsername setText ""
     pfPassword setText ""
