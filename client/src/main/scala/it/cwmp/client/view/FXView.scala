@@ -1,6 +1,5 @@
 package it.cwmp.client.view
 
-import it.cwmp.client.utils.StringRes
 import javafx.application.Platform
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
@@ -26,6 +25,7 @@ trait FXView {
 
     //stabilisco cosa fare alla chiusura della finestra
     stage.setOnCloseRequest( _ => {
+      // TODO: cambiare logica, non sempre è necessario chiudere
       Platform.exit()
       System.exit(0)
     })
