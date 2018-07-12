@@ -1,7 +1,7 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages}
+import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages, ApiClientOutgoingMessages}
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 
@@ -48,7 +48,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
-    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient")
+    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
@@ -64,22 +64,27 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
   /**
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
-  def becomeRoomsManager(): Unit = {
+  private def becomeRoomsManager(): Unit = {
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
   }
 
   /**
-    * Questo metodo rappresenta il behavior da avere quando si sta gestendo la lobby delle stanze.
+    * Questo metodo rappresenta il behavior che si ha quando si sta gestendo la lobby delle stanze.
     * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
     *
     */
-  def roomManagerBehaviour: Receive = {
+  private def roomManagerBehaviour: Receive = {
     case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, token)
   }
 
-  import it.cwmp.client.model.ApiClientOutgoingMessages._
-  def apiClientReceiverBehaviour: Receive = {
+  /**
+    * Questo è il behavior che sta in ascolto del successo o meno di una chiamata fatta ad un servizio online tramite l'ApiClientActor.
+    * I messaggi che questo attore, in questo behavoir, è in grado di ricevere sono raggruppati in [[ApiClientOutgoingMessages]]
+    *
+    */
+  import ApiClientOutgoingMessages._
+  private def apiClientReceiverBehaviour: Receive = {
     case RoomCreatePrivateSuccesful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
