@@ -57,6 +57,8 @@ class RoomViewActor extends Actor with AlertActor {
           controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
         override def onEnterPrivate(idRoom: String): Unit =
           controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+        override def onEnterPublic(nPlayer: Int): Unit =
+          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
       })
     })
   }
