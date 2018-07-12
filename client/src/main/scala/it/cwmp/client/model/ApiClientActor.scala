@@ -1,7 +1,6 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
-import it.cwmp.client.controller.ClientControllerMessages
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.Participant
 
