@@ -3,7 +3,6 @@ package it.cwmp.client.model
 import akka.actor.Actor
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.Participant
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
