@@ -10,13 +10,7 @@ import it.cwmp.model.Participant
 
 import scala.concurrent.Future
 
-object RoomReceiverServiceVerticle {
-
-  def apply(url: String, receptionStrategy: Seq[Participant] => Unit): RoomReceiverServiceVerticle =
-    new RoomReceiverServiceVerticle(url, receptionStrategy)
-}
-
-case class RoomReceiverServiceVerticle(token: String, receptionStrategy: Seq[Participant] => Unit) extends ScalaVerticle {
+case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends ScalaVerticle {
 
   var server: HttpServer = _
 
@@ -43,7 +37,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: Seq[Par
           routingContext.response() setStatusCode 400 end s"Invalid parameter: no participant list JSON in body"
       })
 
-    def extractIncomingParticipantListFromBody(body: Buffer): Option[Seq[Participant]] = {
+    def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
       try {
         var result = List[Participant]()
         val jsonArray = body.toJsonArray
