@@ -2,6 +2,7 @@ package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
+import it.cwmp.client.view.AlertActor
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -31,11 +32,11 @@ object RoomViewActor {
   *
   * @author Davide Borficchia
   */
-class RoomViewActor extends Actor{
+class RoomViewActor extends Actor with AlertActor {
   /**
     * roomFXController il controller che gestisce la view della lobby delle stanze
     */
-  var roomFXController: RoomFXController = _
+  var fxController: RoomFXController = _
   /**
     * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
     */
@@ -51,7 +52,7 @@ class RoomViewActor extends Actor{
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
-      roomFXController = RoomFXController((name: String, nPlayer: Int) =>
+      fxController = RoomFXController((name: String, nPlayer: Int) =>
         controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXJuYW1lIn0.wvbVcqB3Har4WQUumakzpZNPQstOgnlkMLSJjTMopQc")) //todo token usato per test
     })
   }
@@ -61,8 +62,8 @@ class RoomViewActor extends Actor{
     * Non va mai chiamato direttamente!
     * I messaggi che questo attore è ingrado di ricevere sono raggruppati in [[RoomViewMessages]]
     */
-  override def receive: Receive = {
+  override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
-    case RoomViewMessages.ShowGUI => Platform runLater(() => roomFXController.showGUI())
+    case RoomViewMessages.ShowGUI => Platform runLater(() => fxController.showGUI())
   }
 }
