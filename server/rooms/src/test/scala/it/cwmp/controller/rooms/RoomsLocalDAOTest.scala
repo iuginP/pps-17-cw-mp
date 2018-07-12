@@ -23,9 +23,9 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
   private implicit val user: Participant = Participant("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
-    daoFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+    daoFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
       .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-      .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
+      .map(client => RoomsLocalDAO(client))
       .flatMap(storage => storage.initialize().map(_ => storage))
   }
 
@@ -276,9 +276,9 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
       val fakeRoomID = "12342134"
       val fakePlayersNumber = 2
       
-      val uninitializedDaoFuture: Future[RoomsLocalDAO] = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+      val uninitializedDaoFuture: Future[RoomsLocalDAO] = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
         .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-        .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
+        .map(client => RoomsLocalDAO(client))
 
       it("createRoom") {
         uninitializedDaoFuture.flatMap(_.createRoom(fakeRoomName, fakePlayersNumber)).transform({
@@ -317,9 +317,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
           }).map(_ => succeed)
       }
       it("publicRoomInfo") {
-        uninitializedDaoFuture.flatMap(_.publicRoomInfo(fakePlayersNumber)).andThen({
-          case e => println(e)
-        }).transform({
+        uninitializedDaoFuture.flatMap(_.publicRoomInfo(fakePlayersNumber)).transform({
             case Failure(_: IllegalStateException) => Success(Unit)
             case _ => Failure(new Exception)
           }).map(_ => succeed)

@@ -11,7 +11,5 @@ import org.scalatest.AsyncFunSpec
   */
 abstract class VertxTest extends AsyncFunSpec {
   val vertx: Vertx = Vertx.vertx
-  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(
-    vertx.getOrCreateContext()
-  )
+  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 }

@@ -29,9 +29,9 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   private var daoFuture: Future[RoomDAO] = _
 
   override def startFuture(): Future[_] = {
-    daoFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+    daoFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
       .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-      .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
+      .map(client => RoomsLocalDAO(client))
       .flatMap(storage => storage.initialize().map(_ => storage))
 
     import it.cwmp.controller.rooms.RoomsApiWrapper._
