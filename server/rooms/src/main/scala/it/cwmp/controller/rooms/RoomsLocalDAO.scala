@@ -126,10 +126,8 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
-  private val localJDBCClient = JDBCClient.createNonShared(vertx, localConfig)
+case class RoomsLocalDAO(localJDBCClient: JDBCClient, implicit val executionContext: VertxExecutionContext) extends RoomDAO {
   private var notInitialized = true
-  private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
 
   private val PUBLIC_ROOM_MAX_SIZE = 4
   private val EMPTY_ROOM_NAME_ERROR = "Room name must not be empty!"
@@ -284,13 +282,6 @@ case class RoomsLocalDAO(vertx: Vertx) extends RoomDAO {
 object RoomsLocalDAO {
 
   val publicPrefix: String = "public"
-
-  private def localConfig: JsonObject = new JsonObject()
-    .put("url", "jdbc:hsqldb:mem:test")
-    .put("driver_class", "org.hsqldb.jdbcDriver")
-    .put("max_pool_size", 30)
-    .put("user", "SA")
-    .put("password", "")
 
   /**
     * Utility method to check if DAO is initialized
