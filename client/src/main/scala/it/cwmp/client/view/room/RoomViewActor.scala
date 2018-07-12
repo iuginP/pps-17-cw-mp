@@ -52,8 +52,12 @@ class RoomViewActor extends Actor with AlertActor {
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
-      fxController = RoomFXController((name: String, nPlayer: Int) =>
-        controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXJuYW1lIn0.wvbVcqB3Har4WQUumakzpZNPQstOgnlkMLSJjTMopQc")) //todo token usato per test
+      fxController = RoomFXController(new RoomFXStrategy {
+        override def onCreate(name: String, nPlayer: Int): Unit =
+          controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
+        override def onEnterPrivate(idRoom: String): Unit =
+          controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+      })
     })
   }
 

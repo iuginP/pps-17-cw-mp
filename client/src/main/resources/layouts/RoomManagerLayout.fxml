@@ -9,102 +9,79 @@
 <Pane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121" maxHeight="-Infinity"
       maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="500.0" prefWidth="620.0">
-    <children>
-        <TabPane fx:id="tabPane" prefHeight="500.0" prefWidth="620.0">
-            <tabs>
-                <Tab fx:id="privateRoomTab" text="Private" closable="false">
-                    <VBox>
-                        <children>
-                            <!-- Pane per la crezione della stanza -->
-                            <TitledPane text="Crea la tua stanza" prefWidth="Infinity" collapsible="true">
-                                <!-- Contenuto pane -->
-                                <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
-                                    <children>
-                                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
-                                               layoutY="68.0" text="Nome della stanza">
-                                            <font>
-                                                <Font size="24.0"/>
-                                            </font>
-                                        </Label>
-                                        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_cr_roomName"
-                                                   fx:id="pr_cr_roomName" layoutX="115.0" layoutY="28.0"/>
-                                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
-                                               layoutY="68.0" text="Numero dei giocatori">
-                                            <font>
-                                                <Font size="24.0"/>
-                                            </font>
-                                        </Label>
-                                        <Spinner fx:id="pr_cr_numPlayer" id="numPlayer" GridPane.rowIndex="1"
-                                                 GridPane.columnIndex="1">
-                                            <valueFactory>
-                                                <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
-                                            </valueFactory>
-                                        </Spinner>
-                                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
-                                                GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
-                                                mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
-                                                prefWidth="70.0" text="Crea"/>
-                                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
-                                                GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                                                mnemonicParsing="false" onAction="#onClickReset" prefHeight="25.0"
-                                                prefWidth="70.0" text="Reset"/>
-                                    </children>
-                                </GridPane>
-                            </TitledPane>
-                        </children>
-                        <children>
-                            <!-- Pane per entrare in una stanza privata -->
-                            <TitledPane text="Entra in una stanza" prefWidth="Infinity" collapsible="true">
-                                <!-- Contenuto pane -->
-                                <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
-                                    <children>
-                                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
-                                               layoutY="68.0" text="Identificativo della stanza">
-                                            <font>
-                                                <Font size="24.0"/>
-                                            </font>
-                                        </Label>
-                                        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_et_roomID"
-                                                   fx:id="pr_et_roomID" layoutX="115.0" layoutY="28.0"/>
-                                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
-                                               layoutY="68.0" text="Password">
-                                            <font>
-                                                <Font size="24.0"/>
-                                            </font>
-                                        </Label>
-                                        <PasswordField GridPane.rowIndex="1" GridPane.columnIndex="1" id="pr_et_pass_hidden"
-                                                       fx:id="pr_et_password" layoutX="115.0" layoutY="28.0"/>
-                                        <!-- TODO sostituire onClickCreate con onClickEnter -->
-                                        <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
-                                                GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                                                mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
-                                                prefWidth="70.0" text="Entra"/>
-                                    </children>
-                                </GridPane>
-                            </TitledPane>
-                        </children>
-                    </VBox>
-                </Tab>
-                <Tab fx:id="publicRomTab" text="Pubbliche" closable="false">
-                    <VBox>
-                        <children>
-                            <!-- Pane per entrare in una stanza pubblica -->
-                            <!-- Contenuto pane -->
-                            <ListView fx:id="listPublicRooms">
-                                <items>
-                                    <FXCollections fx:factory="observableArrayList">
-                                        <String fx:value="Stanza 1"/>
-                                        <String fx:value="Stanza 2"/>
-                                        <String fx:value="Stanza 3"/>
-                                        <String fx:value="Stanza 4"/>
-                                        <String fx:value="Stanza 5"/>
-                                    </FXCollections>
-                                </items>
-                            </ListView>
-                        </children>
-                    </VBox>
-                </Tab>
-            </tabs>
-        </TabPane>
-    </children>
+    <TabPane fx:id="tabPane" prefHeight="500.0" prefWidth="620.0">
+        <Tab fx:id="privateRoomTab" text="Private" closable="false">
+            <VBox>
+                <!-- Pane per la crezione della stanza -->
+                <TitledPane text="Crea la tua stanza" prefWidth="Infinity">
+                    <!-- Contenuto pane -->
+                    <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
+                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
+                               layoutY="68.0" text="Nome della stanza">
+                            <font>
+                                <Font size="24.0"/>
+                            </font>
+                        </Label>
+                        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_cr_roomName"
+                                   fx:id="pr_cr_roomName" layoutX="115.0" layoutY="28.0"/>
+                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
+                               layoutY="68.0" text="Numero dei giocatori">
+                            <font>
+                                <Font size="24.0"/>
+                            </font>
+                        </Label>
+                        <Spinner fx:id="pr_cr_numPlayer" id="numPlayer" GridPane.rowIndex="1"
+                                 GridPane.columnIndex="1">
+                            <valueFactory>
+                                <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
+                            </valueFactory>
+                        </Spinner>
+                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
+                                GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
+                                mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
+                                prefWidth="70.0" text="Crea"/>
+                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
+                                GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                                mnemonicParsing="false" onAction="#onClickReset" prefHeight="25.0"
+                                prefWidth="70.0" text="Reset"/>
+                    </GridPane>
+                </TitledPane>
+                <!-- Pane per entrare in una stanza privata -->
+                <TitledPane text="Entra in una stanza" prefWidth="Infinity">
+                    <!-- Contenuto pane -->
+                    <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
+                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" layoutX="240.0"
+                               layoutY="68.0" text="Identificativo della stanza">
+                            <font>
+                                <Font size="24.0"/>
+                            </font>
+                        </Label>
+                        <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_et_roomID"
+                                   fx:id="pr_et_roomID" layoutX="115.0" layoutY="28.0"/>
+                        <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                                mnemonicParsing="false" onAction="#onClickEnter" prefHeight="25.0"
+                                prefWidth="70.0" text="Entra"/>
+                    </GridPane>
+                </TitledPane>
+            </VBox>
+        </Tab>
+        <Tab fx:id="publicRomTab" text="Pubbliche" closable="false">
+            <VBox>
+                <!-- Pane per entrare in una stanza pubblica -->
+                <!-- Contenuto pane -->
+                <ListView fx:id="listPublicRooms">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Stanza 1"/>
+                            <String fx:value="Stanza 2"/>
+                            <String fx:value="Stanza 3"/>
+                            <String fx:value="Stanza 4"/>
+                            <String fx:value="Stanza 5"/>
+                        </FXCollections>
+                    </items>
+                </ListView>
+            </VBox>
+        </Tab>
+    </TabPane>
 </Pane>
