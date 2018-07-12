@@ -8,6 +8,7 @@ import it.cwmp.model.Participant
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
@@ -108,29 +109,26 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     case RoomCreatePrivate(name, nPlayer) =>
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
-      // Apre il server in ricezione per la lista dei partecipanti
-      listenForParticipantListFuture(
-        // Quando ha ricevuto la lista dei partecipanti dal server
-        participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
-      ).onComplete({ // Una volta creato
-          case Success(url) => // Richiede all'api actor di entrare nella stanza
-            roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-              idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
-          case Failure(error) => // Invia un messaggio di errore alla GUI
-            roomViewActor ! AlertMessages.Error("Error", error.getMessage)
-        })
+      enterRoom().map(url =>
+        roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
+          idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
+      )
     case RoomEnterPublic(nPlayer) =>
-      // Apre il server in ricezione per la lista dei partecipanti
-      listenForParticipantListFuture(
-        // Quando ha ricevuto la lista dei partecipanti dal server
-        participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
-      ).onComplete({ // Una volta creato
-        case Success(url) => // Richiede all'api actor di entrare nella stanza
-          roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-            nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
-        case Failure(error) => // Invia un messaggio di errore alla GUI
-          roomViewActor ! AlertMessages.Error("Error", error.getMessage)
-      })
+      enterRoom().map(url =>
+        roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
+          nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
+      )
+  }
+
+  private def enterRoom(): Future[String] = {
+    // Apre il server in ricezione per la lista dei partecipanti
+    listenForParticipantListFuture(
+      // Quando ha ricevuto la lista dei partecipanti dal server
+      participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
+    ).andThen({ // Una volta creato
+      case Failure(error) => // Invia un messaggio di errore alla GUI
+        roomViewActor ! AlertMessages.Error("Error", error.getMessage)
+    })
   }
 
   /**
