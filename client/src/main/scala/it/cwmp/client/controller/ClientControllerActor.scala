@@ -1,9 +1,13 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages, ApiClientOutgoingMessages}
+import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
+import it.cwmp.model.Participant
+
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
@@ -39,11 +43,17 @@ object ClientControllerActor {
   *
   * @author Davide Borficchia
   */
-class ClientControllerActor(system: ActorSystem) extends Actor {
+class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
   // TODO debug token
+  val username = "pippo"
   val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
 
+  /**
+    * Questo attore è quello che si occupa di gestire la partita di gioco.
+    * Sono questi attori, per ciascun client, a connettersi nel cluster e gestire lo svolgimento del gioco.
+    */
+  var playerActor: ActorRef = _
   /**
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
@@ -59,6 +69,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
+    playerActor = system.actorOf(Props[PlayerActor], "player")
     roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
@@ -89,7 +100,17 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
     case RoomCreatePrivate(name, nPlayer) =>
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
-      roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(idRoom, jwtToken)
+      // Apre il server in ricezione per la lista dei partecipanti
+      listenForParticipantListFuture(
+        // Quando ha ricevuto la lista dei partecipanti dal server
+        participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
+      ).onComplete({ // Una volta creato
+          case Success(url) => // Richiede all'api actor di entrare nella stanza
+            roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
+              idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          case Failure(error) => // Invia un messaggio di errore alla GUI
+            roomViewActor ! AlertMessages.Error("Error", error.getMessage)
+        })
   }
 
   /**

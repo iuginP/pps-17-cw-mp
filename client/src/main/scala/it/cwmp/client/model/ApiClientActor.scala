@@ -26,9 +26,11 @@ object ApiClientIncomingMessages {
     * Quando lo ricevo, inoltro la richiesta al servizio online.
     *
     * @param idRoom è l'id della stanza nella quale voglio entrare
+    * @param participant è il partecipante che si vuole far entrare nella stanza
+    * @param webAddress è l'indirizzo del web server in ascolto per la lista dei partecipanti
     * @param token è il token d'autenticazione per poter fare le richieste
     */
-  case class RoomEnterPrivate(idRoom: String, token: String)
+  case class RoomEnterPrivate(idRoom: String, participant: Participant, webAddress: String, token: String)
 }
 
 /**
@@ -88,9 +90,9 @@ class ApiClientActor() extends Actor{
         case Success(t) => senderTmp ! RoomCreatePrivateSuccesful(t)
         case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
       })
-    case RoomEnterPrivate(idRoom, token) =>
+    case RoomEnterPrivate(idRoom, participant, webAddress, token) =>
       val senderTmp = sender
-      enterRoom(idRoom)(Participant("pippo","address"), token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterRoom(idRoom)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
         case Success(_) => senderTmp ! RoomEnterPrivateSuccesful
         case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
