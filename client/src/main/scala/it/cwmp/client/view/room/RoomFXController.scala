@@ -10,7 +10,7 @@ import javafx.stage.Stage
 trait RoomFXStrategy {
   def onCreate(name: String, nPlayer: Int): Unit
   def onEnterPrivate(idRoom: String): Unit
-  def onEnterPublic(nPlayer: Integer): Unit
+  def onEnterPublic(nPlayer: Int): Unit
 }
 
 object RoomFXController {
@@ -26,16 +26,14 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   protected val stage: Stage = new Stage
   protected val controller: FXController = this
 
-  protected val twoPlayer = 2 //TODO va bene?
-  protected val threePlayer = 3 //TODO va bene?
-  protected val fourPlayer = 4 //TODO va bene?
-
   @FXML
   private var pr_cr_roomName: TextField = _
   @FXML
   private var pr_cr_numPlayer: Spinner[Integer] = _
   @FXML
   private var pr_et_roomID: TextField = _
+  @FXML
+  private var pub_et_numPlayer: Spinner[Integer] = _
 
   //creare una stanza privata
   @FXML
@@ -71,21 +69,11 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
 
   //Componenti tab stanze pubbliche
   @FXML
-  private def onClickRoomTwoPlayers(): Unit = {
+  private def onClickRoomPublic(): Unit = {
     Platform.runLater(() => {
-      strategy.onEnterPublic(twoPlayer)
-    })
-  }
-  @FXML
-  private def onClickRoomThreePlayers(): Unit = {
-    Platform.runLater(() => {
-      strategy.onEnterPublic(threePlayer)
-    })
-  }
-  @FXML
-  private def onClickRoomFourPlayers(): Unit = {
-    Platform.runLater(() => {
-      strategy.onEnterPublic(fourPlayer)
+      for(
+        nPlayer <- getSpinnerFieldValue(pub_et_numPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
+      ) yield strategy.onEnterPublic(nPlayer)
     })
   }
 }

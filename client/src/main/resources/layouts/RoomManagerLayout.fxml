@@ -69,18 +69,16 @@
                 <!-- Pane per entrare in una stanza pubblica -->
                 <!-- Contenuto pane -->
                 <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
-                    <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
-                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                            mnemonicParsing="false" onAction="#onClickRoomTwoPlayers" prefHeight="25.0"
-                            text="Gioca con 2 giocatori"/>
-                    <Button GridPane.rowIndex="2" GridPane.columnIndex="1"
-                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                            mnemonicParsing="false" onAction="#onClickRoomThreePlayers" prefHeight="25.0"
-                            text="Gioca con 3 giocatori"/>
-                    <Button GridPane.rowIndex="2" GridPane.columnIndex="2"
-                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                            mnemonicParsing="false" onAction="#onClickRoomFourPlayers" prefHeight="25.0"
-                            text="Gioca con 4 giocatori"/>
+                    <Spinner fx:id="pub_et_numPlayer" id="numPlayer" GridPane.rowIndex="1"
+                             GridPane.columnIndex="1">
+                        <valueFactory>
+                            <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
+                        </valueFactory>
+                    </Spinner>
+                    <Button GridPane.rowIndex="1" GridPane.columnIndex="2"
+                            GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
+                            mnemonicParsing="false" onAction="#onClickRoomPublic" prefHeight="25.0"
+                            text="Entra" />
                 </GridPane>
             </VBox>
         </Tab>
