@@ -1,10 +1,14 @@
 package it.cwmp.controller.rooms
 
+import io.vertx.core.json.JsonObject
+import io.vertx.lang.scala.VertxExecutionContext
+import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.model.{Address, Participant, User}
 import it.cwmp.testing.server.rooms.RoomsTesting
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * Test class for local RoomsDAO
@@ -19,8 +23,10 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
   private implicit val user: Participant = Participant("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
-    val localDAO = RoomsLocalDAO(vertx)
-    daoFuture = localDAO.initialize().map(_ => localDAO)
+    daoFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+      .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
+      .flatMap(storage => storage.initialize().map(_ => storage))
   }
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
@@ -269,36 +275,72 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
       val fakeRoomName = "Stanza"
       val fakeRoomID = "12342134"
       val fakePlayersNumber = 2
+      
+      val uninitializedDaoFuture: Future[RoomsLocalDAO] = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+        .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+        .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
 
       it("createRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).createRoom(fakeRoomName, fakePlayersNumber))
+        uninitializedDaoFuture.flatMap(_.createRoom(fakeRoomName, fakePlayersNumber)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("enterRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterRoom(fakeRoomID))
+        uninitializedDaoFuture.flatMap(_.enterRoom(fakeRoomID)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("roomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).roomInfo(fakeRoomID))
+        uninitializedDaoFuture.flatMap(_.roomInfo(fakeRoomID)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("exitRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitRoom(fakeRoomID))
+        uninitializedDaoFuture.flatMap(_.exitRoom(fakeRoomID)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("listPublicRooms") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).listPublicRooms())
+        uninitializedDaoFuture.flatMap(_.listPublicRooms()).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("enterPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterPublicRoom(fakePlayersNumber))
+        uninitializedDaoFuture.flatMap(_.enterPublicRoom(fakePlayersNumber)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("publicRoomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).publicRoomInfo(fakePlayersNumber))
+        uninitializedDaoFuture.flatMap(_.publicRoomInfo(fakePlayersNumber)).andThen({
+          case e => println(e)
+        }).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("exitPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitPublicRoom(fakePlayersNumber))
+        uninitializedDaoFuture.flatMap(_.exitPublicRoom(fakePlayersNumber)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("deleteRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteRoom(fakeRoomID))
+        uninitializedDaoFuture.flatMap(_.deleteRoom(fakeRoomID)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
       it("deleteAndRecreatePublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteAndRecreatePublicRoom(fakePlayersNumber))
+        uninitializedDaoFuture.flatMap(_.deleteAndRecreatePublicRoom(fakePlayersNumber)).transform({
+            case Failure(_: IllegalStateException) => Success(Unit)
+            case _ => Failure(new Exception)
+          }).map(_ => succeed)
       }
     }
   }

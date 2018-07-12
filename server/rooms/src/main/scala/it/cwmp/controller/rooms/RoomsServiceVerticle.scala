@@ -2,8 +2,10 @@ package it.cwmp.controller.rooms
 
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
-import io.vertx.lang.scala.ScalaVerticle
+import io.vertx.core.json.JsonObject
+import io.vertx.lang.scala.{ScalaVerticle, VertxExecutionContext}
 import io.vertx.lang.scala.json.Json
+import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
@@ -27,8 +29,10 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   private var daoFuture: Future[RoomDAO] = _
 
   override def startFuture(): Future[_] = {
-    val storageHelper = RoomsLocalDAO(vertx)
-    daoFuture = storageHelper.initialize().map(_ => storageHelper)
+    daoFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
+      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+      .map(client => RoomsLocalDAO(client, VertxExecutionContext(vertx.getOrCreateContext())))
+      .flatMap(storage => storage.initialize().map(_ => storage))
 
     import it.cwmp.controller.rooms.RoomsApiWrapper._
     val router = Router.router(vertx)
