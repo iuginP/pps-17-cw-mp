@@ -9,6 +9,7 @@ import javafx.stage.Stage
 
 trait RoomFXStrategy {
   def onCreate(name: String, nPlayer: Int): Unit
+  def onEnterPrivate(idRoom: String): Unit
 }
 
 object RoomFXController {
@@ -28,6 +29,8 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   private var pr_cr_roomName: TextField = _
   @FXML
   private var pr_cr_numPlayer: Spinner[Integer] = _
+  @FXML
+  private var pr_et_roomID: TextField = _
 
   //creare una stanza privata
   @FXML
@@ -50,5 +53,14 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   override def resetFields(): Unit = {
     pr_cr_roomName setText ""
     pr_cr_numPlayer getValueFactory() setValue 2
+  }
+
+  @FXML
+  private def onClickEnter(): Unit = {
+    Platform.runLater(() => {
+      for(
+        id_room <- getTextFieldValue(pr_et_roomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
+      ) yield strategy.onEnterPrivate(id_room)
+    })
   }
 }

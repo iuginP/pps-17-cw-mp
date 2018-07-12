@@ -3,6 +3,7 @@ package it.cwmp.client.model
 import akka.actor.Actor
 import it.cwmp.client.controller.ClientControllerMessages
 import it.cwmp.controller.rooms.RoomsApiWrapper
+import it.cwmp.model.Participant
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
@@ -13,13 +14,23 @@ import scala.util.{Failure, Success}
 object ApiClientIncomingMessages {
 
   /**
-    * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica per la gestione delle lobby delle stanze.
-    * Quando lo ricevuto, viene mostrata all'utente l'interfaccia grafica.
+    * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
+    * Quando lo ricevo, inoltro la richiesta al servizio online.
     *
     * @param name è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
+    * @param token è il token d'autenticazione per poter fare le richieste
     */
   case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
+
+  /**
+    * Questo messaggio gestisce la volontà di entrare in  una stanza privata.
+    * Quando lo ricevo, inoltro la richiesta al servizio online.
+    *
+    * @param idRoom è l'id della stanza nella quale voglio entrare
+    * @param token è il token d'autenticazione per poter fare le richieste
+    */
+  case class RoomEnterPrivate(idRoom: String, token: String)
 }
 
 /**
@@ -38,6 +49,9 @@ object ApiClientOutgoingMessages {
     * @param reason è il motivo che ha generato il fallimento
     */
   case class RoomCreatePrivateFailure(reason: String)
+
+  case object RoomEnterPrivateSuccesful
+  case class RoomEnterPrivateFailure(reason: String)
 }
 
 import ApiClientIncomingMessages._
@@ -67,6 +81,12 @@ class ApiClientActor() extends Actor{
       createRoom(name, nPlayer)(token).onComplete({
         case Success(t) => senderTmp ! RoomCreatePrivateSuccesful(t)
         case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
+      })
+    case RoomEnterPrivate(idRoom, token) =>
+      val senderTmp = sender
+      enterRoom(idRoom)(Participant("pippo","address"), token).onComplete({ //todo utilizzare il vero PARTICIPANT
+        case Success(_) => senderTmp ! RoomEnterPrivateSuccesful
+        case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
   }
 }

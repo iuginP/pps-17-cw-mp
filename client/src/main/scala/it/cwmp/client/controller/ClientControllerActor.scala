@@ -11,13 +11,20 @@ import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 object ClientControllerMessages {
 
   /**
-    * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica per la gestione delle lobby delle stanze.
-    * Quando lo ricevuto, viene mostrata all'utente l'interfaccia grafica.
+    * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
+    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
     *
     * @param name è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
     */
-  case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
+  case class RoomCreatePrivate(name: String, nPlayer: Int)
+  /**
+    * Questo messaggio gestisce la volontà di entrare in una stanza privata.
+    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
+    *
+    * @param idRoom è l'id che identifica la stanza privata
+    */
+  case class RoomEnterPrivate(idRoom: String)
 }
 
 object ClientControllerActor {
@@ -33,6 +40,10 @@ object ClientControllerActor {
   * @author Davide Borficchia
   */
 class ClientControllerActor(system: ActorSystem) extends Actor {
+
+  // TODO debug token
+  val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
+
   /**
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
@@ -73,9 +84,12 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
     * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
     *
     */
+  import it.cwmp.client.controller.ClientControllerMessages._
   private def roomManagerBehaviour: Receive = {
-    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
-      roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, token)
+    case RoomCreatePrivate(name, nPlayer) =>
+      roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
+    case RoomEnterPrivate(idRoom) =>
+      roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(idRoom, jwtToken)
   }
 
   /**
@@ -88,5 +102,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor {
     case RoomCreatePrivateSuccesful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+    case RoomEnterPrivateSuccesful => roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
+    case RoomEnterPrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
   }
 }
