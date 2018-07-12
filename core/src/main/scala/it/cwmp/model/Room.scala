@@ -1,9 +1,7 @@
 package it.cwmp.model
 
-import java.text.ParseException
-
 import io.vertx.lang.scala.json.{Json, JsonObject}
-import it.cwmp.utils.Utils
+import it.cwmp.utils.Utils._
 
 /**
   * Trait that describes the Room
@@ -26,7 +24,6 @@ sealed trait Room {
   * @author Enrico Siboni
   */
 object Room {
-  import Utils.emptyString
 
   def apply(roomID: String,
             roomName: String,
@@ -104,8 +101,8 @@ object Room {
             jsonObject getInteger FIELD_NEEDED_PLAYERS,
             userSeq)
         } else {
-          throw new ParseException(s"The input doesn't contain one or more of: " +
-            s"$FIELD_IDENTIFIER, $FIELD_NAME, $FIELD_NEEDED_PLAYERS, $FIELD_PARTICIPANTS --> ${jsonObject.encodePrettily()}", 0)
+          throw parseException("Room Parsing", s"The input doesn't contain one or more of: " +
+            s"$FIELD_IDENTIFIER, $FIELD_NAME, $FIELD_NEEDED_PLAYERS, $FIELD_PARTICIPANTS --> ${jsonObject.encodePrettily()}")
         }
       }
     }
