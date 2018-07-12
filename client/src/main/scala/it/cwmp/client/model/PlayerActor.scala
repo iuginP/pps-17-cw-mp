@@ -28,6 +28,7 @@ class PlayerActor extends Actor {
   }
 
   private def connectTo(participants: List[Participant]): Unit = {
+    // If it's the first of the list, then he creates the cluster.
     if (participants.head.address == self.path.address.toString) {
       val cluster = Cluster(context.system)
       cluster.joinSeedNodes(participants.map(_.address).map(AddressFromURIString(_)))
