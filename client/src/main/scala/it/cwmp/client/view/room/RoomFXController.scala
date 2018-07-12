@@ -63,4 +63,13 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
       ) yield strategy.onEnterPrivate(id_room)
     })
   }
+
+  //Componenti tab stanze pubbliche
+  @FXML
+  private def onClickRoomTwoPlayers(): Unit = ???
+  @FXML
+  private def onClickRoomThreePlayers(): Unit = ???
+  @FXML
+  private def onClickRoomFourPlayers(): Unit = ???
+
 }

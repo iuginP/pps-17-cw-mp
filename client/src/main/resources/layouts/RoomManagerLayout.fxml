@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import java.lang.*?>
 
 <Pane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121" maxHeight="-Infinity"
       maxWidth="-Infinity" minHeight="-Infinity"
@@ -70,17 +68,20 @@
             <VBox>
                 <!-- Pane per entrare in una stanza pubblica -->
                 <!-- Contenuto pane -->
-                <ListView fx:id="listPublicRooms">
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="Stanza 1"/>
-                            <String fx:value="Stanza 2"/>
-                            <String fx:value="Stanza 3"/>
-                            <String fx:value="Stanza 4"/>
-                            <String fx:value="Stanza 5"/>
-                        </FXCollections>
-                    </items>
-                </ListView>
+                <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
+                    <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
+                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                            mnemonicParsing="false" onAction="#onClickRoomTwoPlayers" prefHeight="25.0"
+                            text="Gioca con 2 giocatori"/>
+                    <Button GridPane.rowIndex="2" GridPane.columnIndex="1"
+                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                            mnemonicParsing="false" onAction="#onClickRoomThreePlayers" prefHeight="25.0"
+                            text="Gioca con 3 giocatori"/>
+                    <Button GridPane.rowIndex="2" GridPane.columnIndex="2"
+                            GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
+                            mnemonicParsing="false" onAction="#onClickRoomFourPlayers" prefHeight="25.0"
+                            text="Gioca con 4 giocatori"/>
+                </GridPane>
             </VBox>
         </Tab>
     </TabPane>
