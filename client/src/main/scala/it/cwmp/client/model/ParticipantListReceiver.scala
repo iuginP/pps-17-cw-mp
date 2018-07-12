@@ -9,6 +9,7 @@ import it.cwmp.roomreceiver.controller.RoomReceiverServiceVerticle
 import it.cwmp.utils.Utils
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait ParticipantListReceiver {
 
