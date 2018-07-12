@@ -1,13 +1,12 @@
 package it.cwmp.authentication
 
 import io.netty.handler.codec.http.HttpHeaderNames
-import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.utils.HttpUtils
 import it.cwmp.storage.StorageAsync
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -25,8 +24,9 @@ class AuthenticationServiceVerticle extends ScalaVerticle {
     router.get("/api/login").handler(handlerLogin)
     router.get("/api/validate").handler(handlerValidation)
 
-    storageFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
-      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+    storageFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
+      .map(_.toJsonObject)
+      .map(JDBCClient.createShared(vertx, _))
       .map(client => StorageAsync(client))
       .flatMap(storage => storage.init().map(_ => storage))
 

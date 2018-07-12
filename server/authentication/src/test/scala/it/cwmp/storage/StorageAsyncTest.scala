@@ -1,6 +1,5 @@
 package it.cwmp.storage
 
-import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.testing.VertxTest
 import it.cwmp.utils.Utils
@@ -14,8 +13,9 @@ class StorageAsyncTest extends VertxTest with Matchers with BeforeAndAfterEach {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    storageFuture = vertx.fileSystem.readFileFuture("service/jdbc_config.json")
-      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
+    storageFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
+      .map(_.toJsonObject)
+      .map(JDBCClient.createShared(vertx, _))
       .flatMap(client => {
         client.querySingleFuture("DROP SCHEMA PUBLIC CASCADE")
           .map(_ => StorageAsync(client))

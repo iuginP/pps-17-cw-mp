@@ -4,14 +4,13 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
-import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.model.Participant.Converters._
+import it.cwmp.model.{Participant, Room}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -145,10 +144,7 @@ object RoomsApiWrapper {
     */
   private class RoomsApiWrapperDefault(host: String, port: Int) extends RoomsApiWrapper with ApiClient {
 
-    private val vertx: Vertx = Vertx.vertx
-    private implicit val executionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
-
-    private implicit val client: WebClient = createWebClient(host, port, vertx)
+    private implicit val client: WebClient = createWebClient(host, port, Vertx.vertx)
 
     override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] =
       RoomsApiWrapper.createPrivateRoom(roomName, playersNumber)
