@@ -1,7 +1,8 @@
 package it.cwmp.controller.client
 
 import io.vertx.lang.scala.json.Json
-import it.cwmp.model.{Address, Participant}
+import it.cwmp.controller.ApiClient
+import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
 
 import scala.concurrent.Future
@@ -29,6 +30,7 @@ trait RoomReceiverApiWrapper {
 object RoomReceiverApiWrapper {
 
   def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
+
   val DEFAULT_PORT = 8668
 
   def apply(): RoomReceiverApiWrapper = RoomReceiverApiWrapperDefault()
@@ -37,22 +39,22 @@ object RoomReceiverApiWrapper {
   /**
     * Default implementation for client communication
     */
-  private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper /*with ApiClient*/ {
+  private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper with ApiClient {
 
     override def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
-      // TODO: al ritorno da questa funzione in caso di errori non saranno effettuati altri tentaivi
-      // TODO: questo è il punto in cui cercare di far ricevere i dati al client
-      // in caso un client non sia più disponibile il server, passerà oltre, e gli altri client (se più di 1)
-      // giocheranno tra di loro; il server non ha più responsabilità
 
       val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, participant) =>
         jsonArray add participant.toJson
       }
 
-      // need to know the format of address provided ti server to separate into port and host parts
+      import scala.concurrent.ExecutionContext.Implicits.global
 
-      // TODO: send addresses to the client
-      Future.successful(Unit)
+      createWebClient()
+        .post(clientAddress)
+        .sendJsonFuture(addressesJSONArray)
+        .map(_ => Unit)
+
+      // should implement a retry strategy?
     }
   }
 
