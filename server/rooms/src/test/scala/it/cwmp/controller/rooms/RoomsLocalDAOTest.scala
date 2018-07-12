@@ -1,14 +1,12 @@
 package it.cwmp.controller.rooms
 
 import io.vertx.core.json.JsonObject
-import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.ext.jdbc.JDBCClient
-import it.cwmp.model.{Address, Participant, User}
+import it.cwmp.model.Participant
 import it.cwmp.testing.server.rooms.RoomsTesting
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 /**
   * Test class for local RoomsDAO
@@ -23,10 +21,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
   private implicit val user: Participant = Participant("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
-    daoFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-      .map(client => RoomsLocalDAO(client))
-      .flatMap(storage => storage.initialize().map(_ => storage))
+    daoFuture = createRoomLocalDAO flatMap (dao => dao.initialize() map (_ => dao))
   }
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
@@ -275,71 +270,51 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
       val fakeRoomName = "Stanza"
       val fakeRoomID = "12342134"
       val fakePlayersNumber = 2
-      
-      val uninitializedDaoFuture: Future[RoomsLocalDAO] = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-        .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-        .map(client => RoomsLocalDAO(client))
 
       it("createRoom") {
-        uninitializedDaoFuture.flatMap(_.createRoom(fakeRoomName, fakePlayersNumber)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.createRoom(fakeRoomName, fakePlayersNumber)))
       }
       it("enterRoom") {
-        uninitializedDaoFuture.flatMap(_.enterRoom(fakeRoomID)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.enterRoom(fakeRoomID)))
       }
       it("roomInfo") {
-        uninitializedDaoFuture.flatMap(_.roomInfo(fakeRoomID)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.roomInfo(fakeRoomID)))
       }
       it("exitRoom") {
-        uninitializedDaoFuture.flatMap(_.exitRoom(fakeRoomID)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.exitRoom(fakeRoomID)))
       }
       it("listPublicRooms") {
-        uninitializedDaoFuture.flatMap(_.listPublicRooms()).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.listPublicRooms()))
       }
       it("enterPublicRoom") {
-        uninitializedDaoFuture.flatMap(_.enterPublicRoom(fakePlayersNumber)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.enterPublicRoom(fakePlayersNumber)))
       }
       it("publicRoomInfo") {
-        uninitializedDaoFuture.flatMap(_.publicRoomInfo(fakePlayersNumber)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.publicRoomInfo(fakePlayersNumber)))
       }
       it("exitPublicRoom") {
-        uninitializedDaoFuture.flatMap(_.exitPublicRoom(fakePlayersNumber)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.exitPublicRoom(fakePlayersNumber)))
       }
       it("deleteRoom") {
-        uninitializedDaoFuture.flatMap(_.deleteRoom(fakeRoomID)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.deleteRoom(fakeRoomID)))
       }
       it("deleteAndRecreatePublicRoom") {
-        uninitializedDaoFuture.flatMap(_.deleteAndRecreatePublicRoom(fakePlayersNumber)).transform({
-            case Failure(_: IllegalStateException) => Success(Unit)
-            case _ => Failure(new Exception)
-          }).map(_ => succeed)
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.deleteAndRecreatePublicRoom(fakePlayersNumber)))
       }
     }
   }
+
+  /**
+    * @return the created RoomsLocalDAO to test
+    */
+  private def createRoomLocalDAO: Future[RoomsLocalDAO] =
+    loadLocalDBConfig.map(JDBCClient.createShared(vertx, _))
+      .flatMap(client => client.querySingleFuture("DROP SCHEMA PUBLIC CASCADE")
+        .map(_ => RoomsLocalDAO(client)))
+
+  /**
+    * @return the Future containing local database configuration JSON
+    */
+  private def loadLocalDBConfig: Future[JsonObject] =
+    vertx fileSystem() readFileFuture "database/jdbc_config.json" map (_.toJsonObject)
 }

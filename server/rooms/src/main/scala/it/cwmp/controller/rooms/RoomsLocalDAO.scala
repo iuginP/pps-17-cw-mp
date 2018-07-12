@@ -1,13 +1,10 @@
 package it.cwmp.controller.rooms
 
-import io.vertx.core.json.JsonObject
-import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.lang.scala.json.JsonArray
-import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.controller.rooms.RoomsLocalDAO._
-import it.cwmp.model.{Address, Participant, Room, User}
+import it.cwmp.model.{Participant, Room, User}
 import it.cwmp.utils.Utils
 
 import scala.collection.mutable
@@ -142,18 +139,23 @@ case class RoomsLocalDAO(client: JDBCClient)
   import RoomsLocalDAO.stringsToJsonArray
 
   def initialize(): Future[Unit] = {
-    client.getConnectionFuture()
-      .flatMap(conn => conn.executeFuture(dropUserTableSql)
-        .flatMap(_ => conn.executeFuture(dropRoomTableSql))
-        .flatMap(_ => conn.executeFuture(createRoomTableSql))
+
+    def createDefaultPublicRooms(conn: SQLConnection) =
+      Future.sequence { // waits all creation future to end, or returns the failed one
+        for (playersNumber <- 2 to PUBLIC_ROOM_MAX_SIZE;
+             creationFuture = createPublicRoom(conn, playersNumber)) yield creationFuture
+      }
+
+    client.getConnectionFuture
+      .flatMap(conn => conn.executeFuture(createRoomTableSql)
         .flatMap(_ => conn.executeFuture(createUserTableSql))
-        .map(_ =>
-          for (playersNumber <- 2 to PUBLIC_ROOM_MAX_SIZE;
-               creationFuture = createPublicRoom(conn, playersNumber)) yield creationFuture)
-        .flatMap(Future.sequence(_)) // waits all creation future to end, or returns the failed one
         .map(_ => notInitialized = false)
-        .andThen { case _ => conn.close() }
-      )
+        .flatMap(_ => listPublicRooms())
+        .filter(_.isEmpty) // executes next operation only if there are no public rooms yet
+        .flatMap(_ => createDefaultPublicRooms(conn))
+        .recover { case _: NoSuchElementException => Unit } // recover to success, if filter made future fail
+        .andThen { case _ => conn.close() })
+      .map(_ => Unit)
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
@@ -295,7 +297,7 @@ object RoomsLocalDAO {
   private val userToRoomLinkField = "user_room"
   private val createRoomTableSql =
     s"""
-        CREATE TABLE room (
+        CREATE TABLE IF NOT EXISTS room (
           ${Room.FIELD_IDENTIFIER} VARCHAR(100) NOT NULL,
           ${Room.FIELD_NAME} VARCHAR(50) NOT NULL,
           ${Room.FIELD_NEEDED_PLAYERS} INT NOT NULL,
@@ -304,7 +306,7 @@ object RoomsLocalDAO {
       """
   private val createUserTableSql =
     s"""
-        CREATE TABLE user (
+        CREATE TABLE IF NOT EXISTS user (
           ${User.FIELD_USERNAME} VARCHAR(50) NOT NULL,
           ${Participant.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
           $userToRoomLinkField VARCHAR(100),
@@ -312,8 +314,6 @@ object RoomsLocalDAO {
           CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
         )
       """
-  private val dropUserTableSql = "DROP TABLE user IF EXISTS"
-  private val dropRoomTableSql = "DROP TABLE room IF EXISTS"
 
   private val insertNewRoomSql = "INSERT INTO room VALUES (?, ?, ?)"
   private val insertUserInRoomSql = "INSERT INTO user VALUES (?, ?, ?)"

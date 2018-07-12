@@ -3,8 +3,9 @@ package it.cwmp.controller.rooms
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
-import io.vertx.lang.scala.{ScalaVerticle, VertxExecutionContext}
+import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
+import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.authentication.Validation
@@ -14,8 +15,7 @@ import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Participant, Room, User}
 import it.cwmp.utils.HttpUtils
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 /**
@@ -29,10 +29,10 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   private var daoFuture: Future[RoomDAO] = _
 
   override def startFuture(): Future[_] = {
-    daoFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-      .map(config => JDBCClient.createShared(vertx, new JsonObject(config)))
-      .map(client => RoomsLocalDAO(client))
-      .flatMap(storage => storage.initialize().map(_ => storage))
+    daoFuture = loadLocalDBConfig(vertx)
+      .map(JDBCClient.createShared(vertx, _))
+      .map(RoomsLocalDAO(_))
+      .flatMap(dao => dao.initialize() map (_ => dao))
 
     import it.cwmp.controller.rooms.RoomsApiWrapper._
     val router = Router.router(vertx)
@@ -93,7 +93,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Success(_) => handlePrivateRoomFilling(roomID)
                 .transform({
                   case Success(_) => Failure(new Exception())
-                  case Failure(_) => Success(Unit)})
+                  case Failure(_) => Success(Unit)
+                })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
@@ -171,7 +172,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Success(_) => handlePublicRoomFilling(playersNumber)
                 .transform({
                   case Success(_) => Failure(new Exception())
-                  case Failure(_) => Success(Unit)})
+                  case Failure(_) => Success(Unit)
+                })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
@@ -261,6 +263,14 @@ object RoomsServiceVerticle {
   private val INVALID_PARAMETER_ERROR = "Invalid parameters: "
 
   /**
+    * A method to retrieve the database configuration
+    *
+    * @return the JsonObject representing database configuration
+    */
+  private def loadLocalDBConfig(vertx: Vertx)(implicit executionContext: ExecutionContext): Future[JsonObject] =
+    vertx fileSystem() readFileFuture "database/jdbc_config.json" map (_.toJsonObject)
+
+  /**
     * @param routingContext the routing context on which to extract
     * @return the extracted room name
     */
@@ -286,18 +296,24 @@ object RoomsServiceVerticle {
     * Method that manages the filling of private rooms, fails if the room is not full
     */
   private def handlePrivateRoomFilling(roomID: String)
-                                      (implicit roomDAO: RoomDAO, routingContext: RoutingContext, communicationStrategy: RoomReceiverApiWrapper): Future[Unit] = {
-    handleRoomFilling(roomDAO.roomInfo(roomID),
-      roomDAO deleteRoom roomID map (_ => sendResponse(200, None)))
+                                      (implicit roomDAO: RoomDAO,
+                                       routingContext: RoutingContext,
+                                       communicationStrategy: RoomReceiverApiWrapper,
+                                       executionContext: ExecutionContext): Future[Unit] = {
+    handleRoomFilling(roomFuture = roomDAO.roomInfo(roomID),
+      onRetrievedRoomAction = roomDAO deleteRoom roomID map (_ => sendResponse(200, None)))
   }
 
   /**
     * Method that manages the filling of public rooms, fails if the room is not full
     */
   private def handlePublicRoomFilling(playersNumber: Int)
-                                     (implicit roomDAO: RoomDAO, routingContext: RoutingContext, communicationStrategy: RoomReceiverApiWrapper): Future[Unit] = {
-    handleRoomFilling(roomDAO.publicRoomInfo(playersNumber),
-      roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200, None)))
+                                     (implicit roomDAO: RoomDAO,
+                                      routingContext: RoutingContext,
+                                      communicationStrategy: RoomReceiverApiWrapper,
+                                      executionContext: ExecutionContext): Future[Unit] = {
+    handleRoomFilling(roomFuture = roomDAO.publicRoomInfo(playersNumber),
+      onRetrievedRoomAction = roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200, None)))
   }
 
   /**
@@ -309,7 +325,8 @@ object RoomsServiceVerticle {
     */
   private[this] def handleRoomFilling(roomFuture: Future[Room],
                                       onRetrievedRoomAction: => Future[Unit])
-                                     (implicit communicationStrategy: RoomReceiverApiWrapper): Future[Unit] = {
+                                     (implicit communicationStrategy: RoomReceiverApiWrapper,
+                                      executionContext: ExecutionContext): Future[Unit] = {
     roomFuture.filter(roomIsFull)
       .flatMap(fullRoom => {
         onRetrievedRoomAction
@@ -327,7 +344,9 @@ object RoomsServiceVerticle {
     *
     * @param room the room where players are waiting in
     */
-  private def sendParticipantAddresses(room: Room)(implicit communicationStrategy: RoomReceiverApiWrapper): Future[Unit] = {
+  private def sendParticipantAddresses(room: Room)
+                                      (implicit communicationStrategy: RoomReceiverApiWrapper,
+                                       executionContext: ExecutionContext): Future[Unit] = {
     val participantList = for (participant <- room.participants) yield participant
     Future.sequence {
       participantList map (participant => communicationStrategy.sendParticipantAddresses(participant.address, participantList filter (_ != participant)))
