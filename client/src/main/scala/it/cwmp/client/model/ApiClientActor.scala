@@ -10,7 +10,7 @@ import scala.util.{Failure, Success}
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
-object ApiClientMessages {
+object ApiClientIncomingMessages {
 
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica per la gestione delle lobby delle stanze.
@@ -22,28 +22,42 @@ object ApiClientMessages {
   case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
 }
 
+/**
+  * Questo oggetto contiene tutti i messaggi che questo attore può inviare.
+  */
+object ApiClientOutgoingMessages {
+
+  case class RoomCreatePrivateSuccesful(token: String)
+  case class RoomCreatePrivateFailure(reason: String)
+}
+
+import ApiClientIncomingMessages._
+import ApiClientOutgoingMessages._
+
 object ApiClientActor {
   def apply(): ApiClientActor = new ApiClientActor()
 }
 
 class ApiClientActor() extends Actor{
 
-  def receive = roomManagerBehaviour
+  /**
+    * Possono essere ricevut imessaggi di tipo [[ApiClientIncomingMessages]] ed inviati quelli di tipo [[ApiClientOutgoingMessages]]
+    * @return [[Receive]] che gestisce tutti i messaggi corrispondenti alle richieste che è possibile inviare ai servizi online
+    */
+  // Tutti i behaviour sono attivi in contemporanea, la separazione è solo logica per una migliore leggibilità
+  override def receive: Receive = roomManagerBehaviour // orElse ...
 
+  /*
+   * Behaviour che gestisce tutte le chiamate al servizio di gestione delle stanze.
+   */
   private val apiWrapper = RoomsApiWrapper()
   import apiWrapper._
-  def roomManagerBehaviour: Receive = {
-    case ApiClientMessages.RoomCreatePrivate(name, nPlayer, token) =>
+  private def roomManagerBehaviour: Receive = {
+    case RoomCreatePrivate(name, nPlayer, token) =>
+      val senderTmp = sender
       createRoom(name, nPlayer)(token).onComplete({
-        case Success(s) => println(s)
-        case Failure(e) => e.printStackTrace()
+        case Success(t) => senderTmp ! RoomCreatePrivateSuccesful(t)
+        case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
       })
-  }
-
-  /**
-    * Imposta il behavior del [[ApiClientActor]] in modo da gestire solo la lobby delle stanze
-    */
-  def becomeRoomsManager(): Unit = {
-    context.become(roomManagerBehaviour)
   }
 }

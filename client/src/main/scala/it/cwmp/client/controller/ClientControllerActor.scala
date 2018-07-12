@@ -1,7 +1,8 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import it.cwmp.client.model.{ApiClientActor, ApiClientMessages}
+import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages}
+import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 
 /**
@@ -31,7 +32,7 @@ object ClientControllerActor {
   *
   * @author Davide Borficchia
   */
-class ClientControllerActor(system: ActorSystem) extends Actor{
+class ClientControllerActor(system: ActorSystem) extends Actor {
   /**
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
@@ -58,15 +59,13 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
-  def receive = roomManagerBehaviour
-  //possibilità di aggiungere altri behavior
-  //.orElse[Any, Unit](receiveAddItem)
+  override def receive: Receive = apiClientReceiverBehaviour orElse roomManagerBehaviour
 
   /**
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   def becomeRoomsManager(): Unit = {
-    context.become(roomManagerBehaviour)
+    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
   }
 
   /**
@@ -76,6 +75,13 @@ class ClientControllerActor(system: ActorSystem) extends Actor{
     */
   def roomManagerBehaviour: Receive = {
     case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
-      roomApiClientActor ! ApiClientMessages.RoomCreatePrivate(name, nPlayer, token)
+      roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, token)
+  }
+
+  import it.cwmp.client.model.ApiClientOutgoingMessages._
+  def apiClientReceiverBehaviour: Receive = {
+    case RoomCreatePrivateSuccesful(token) =>
+      roomViewActor ! AlertMessages.Info("Token", token)
+    case RoomCreatePrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
   }
 }
