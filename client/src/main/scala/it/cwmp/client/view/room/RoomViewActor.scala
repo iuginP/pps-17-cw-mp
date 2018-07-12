@@ -20,6 +20,12 @@ object RoomViewMessages {
     * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
     */
   case object ShowGUI
+  /**
+    * Questo messaggio rappresenta la scelta della "tipologia" di stanza pubblica alla quale ci si vuole unire.
+    * Quando ricevuto, inoltra la richiesta all'attore del controller.
+    * @param nPlayer è il numero di giocatori con i quali si giocherà
+    */
+  case class SelectedPublicRoom(nPlayer: Integer)
 }
 
 object RoomViewActor {
@@ -57,6 +63,8 @@ class RoomViewActor extends Actor with AlertActor {
           controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
         override def onEnterPrivate(idRoom: String): Unit =
           controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+        override def onEnterPublic(nPlayer: Integer): Unit =
+          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
       })
     })
   }
@@ -69,5 +77,6 @@ class RoomViewActor extends Actor with AlertActor {
   override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
     case RoomViewMessages.ShowGUI => Platform runLater(() => fxController.showGUI())
+    case RoomViewMessages.SelectedPublicRoom(nPlayer) => println("RoomViewActor " + nPlayer)
   }
 }

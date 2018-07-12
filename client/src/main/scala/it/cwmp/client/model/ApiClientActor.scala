@@ -31,6 +31,14 @@ object ApiClientIncomingMessages {
     * @param token è il token d'autenticazione per poter fare le richieste
     */
   case class RoomEnterPrivate(idRoom: String, participant: Participant, webAddress: String, token: String)
+
+  /**
+    * Questo messaggio gestisce la volontà di entrare in una stanza pubblica
+    * Quando lo ricevo, inoltro la richiesta al servizio online.
+    *
+    * @param nPlayer è il numero dei partecipanti a quella stanza
+    */
+  case class RoomEnterPublic(nPlayer: Integer, participant: Participant, webAddress: String, token: String)
 }
 
 /**
@@ -53,6 +61,19 @@ object ApiClientOutgoingMessages {
     * Questo messaggio rappresenta che si è entrati in una stanza privata
     */
   case object RoomEnterPrivateSuccesful
+  /**
+    * Questo messaggio rappresenta che si è entrati in una stanza pubblica
+    */
+  case object  RoomEnterPublicSuccesful
+  /**
+    * Questo messaggio rappresenta che non si è entrati in una stanza pubblica
+    */
+  /**
+    * Questo messaggio rappresenta il fallimento nella entrata in una stanza pubblica.
+    *
+    * @param reason è il motivo che ha generato il fallimento
+    */
+  case class RoomEnterPublicFailure(reason: String)
 
   /**
     * Questo messaggio rappresenta il fallimento quando si prova ad entrare in una stanza privata
@@ -96,5 +117,12 @@ class ApiClientActor() extends Actor{
         case Success(_) => senderTmp ! RoomEnterPrivateSuccesful
         case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
+    case RoomEnterPublic(nPlayer, participant, webAddress, token) => //TODO serve webAddress
+      val senderTmp = sender
+      enterPublicRoom(nPlayer)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
+        case Success(_) => senderTmp ! RoomEnterPublicSuccesful
+        case Failure(error) => senderTmp ! RoomEnterPublicFailure(error.getMessage)
+      })
+
   }
 }

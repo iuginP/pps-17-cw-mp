@@ -10,6 +10,7 @@ import javafx.stage.Stage
 trait RoomFXStrategy {
   def onCreate(name: String, nPlayer: Int): Unit
   def onEnterPrivate(idRoom: String): Unit
+  def onEnterPublic(nPlayer: Integer): Unit
 }
 
 object RoomFXController {
@@ -24,6 +25,10 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val stage: Stage = new Stage
   protected val controller: FXController = this
+
+  protected val twoPlayer = 2 //TODO va bene?
+  protected val threePlayer = 3 //TODO va bene?
+  protected val fourPlayer = 4 //TODO va bene?
 
   @FXML
   private var pr_cr_roomName: TextField = _
@@ -66,10 +71,21 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
 
   //Componenti tab stanze pubbliche
   @FXML
-  private def onClickRoomTwoPlayers(): Unit = ???
+  private def onClickRoomTwoPlayers(): Unit = {
+    Platform.runLater(() => {
+      strategy.onEnterPublic(twoPlayer)
+    })
+  }
   @FXML
-  private def onClickRoomThreePlayers(): Unit = ???
+  private def onClickRoomThreePlayers(): Unit = {
+    Platform.runLater(() => {
+      strategy.onEnterPublic(threePlayer)
+    })
+  }
   @FXML
-  private def onClickRoomFourPlayers(): Unit = ???
-
+  private def onClickRoomFourPlayers(): Unit = {
+    Platform.runLater(() => {
+      strategy.onEnterPublic(fourPlayer)
+    })
+  }
 }

@@ -29,6 +29,14 @@ object ClientControllerMessages {
     * @param idRoom è l'id che identifica la stanza privata
     */
   case class RoomEnterPrivate(idRoom: String)
+
+  /**
+    * Questo messaggio gestisce la volontà di entrare in una stanza pubblica.
+    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
+    *
+    * @param nPlayer è il numero dei partecipanti con i quali si vuole giocare
+    */
+  case class RoomEnterPublic(nPlayer: Integer)
 }
 
 object ClientControllerActor {
@@ -111,6 +119,18 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
           case Failure(error) => // Invia un messaggio di errore alla GUI
             roomViewActor ! AlertMessages.Error("Error", error.getMessage)
         })
+    case RoomEnterPublic(nPlayer) =>
+      // Apre il server in ricezione per la lista dei partecipanti
+      listenForParticipantListFuture(
+        // Quando ha ricevuto la lista dei partecipanti dal server
+        participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
+      ).onComplete({ // Una volta creato
+        case Success(url) => // Richiede all'api actor di entrare nella stanza
+          roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
+            nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
+        case Failure(error) => // Invia un messaggio di errore alla GUI
+          roomViewActor ! AlertMessages.Error("Error", error.getMessage)
+      })
   }
 
   /**
@@ -122,8 +142,15 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   private def apiClientReceiverBehaviour: Receive = {
     case RoomCreatePrivateSuccesful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
-    case RoomCreatePrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccesful => roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
-    case RoomEnterPrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+    case RoomCreatePrivateFailure(reason) =>
+      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+    case RoomEnterPrivateSuccesful =>
+      roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
+    case RoomEnterPrivateFailure(reason) =>
+      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+    case RoomEnterPublicSuccesful =>
+      roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
+    case RoomEnterPublicFailure(reason) =>
+      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
   }
 }
