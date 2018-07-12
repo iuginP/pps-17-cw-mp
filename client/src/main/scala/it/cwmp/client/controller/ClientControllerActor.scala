@@ -143,14 +143,14 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     case RoomCreatePrivateSuccesful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
-      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
     case RoomEnterPrivateSuccesful =>
       roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
-      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
     case RoomEnterPublicSuccesful =>
       roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
-      AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
   }
 }
