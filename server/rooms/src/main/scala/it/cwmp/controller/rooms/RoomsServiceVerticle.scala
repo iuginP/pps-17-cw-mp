@@ -93,7 +93,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Success(_) => handlePrivateRoomFilling(roomID)
                 .transform({
                   case Success(_) => Failure(new Exception())
-                  case Failure(_) => Success(Unit)
+                  case Failure(_: NoSuchElementException) => Success(Unit)
+                  case Failure(ex) => println(ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
@@ -172,7 +173,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Success(_) => handlePublicRoomFilling(playersNumber)
                 .transform({
                   case Success(_) => Failure(new Exception())
-                  case Failure(_) => Success(Unit)
+                  case Failure(_: NoSuchElementException) => Success(Unit)
+                  case Failure(ex) => println(ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
@@ -349,7 +351,7 @@ object RoomsServiceVerticle {
                                        executionContext: ExecutionContext): Future[Unit] = {
     val participantList = for (participant <- room.participants) yield participant
     Future.sequence {
-      participantList map (participant => communicationStrategy.sendParticipantAddresses(participant.address, participantList filter (_ != participant)))
+      participantList map (participant => communicationStrategy.sendParticipantAddresses(participant.address, participantList))
     } map (_ => Unit)
   }
 

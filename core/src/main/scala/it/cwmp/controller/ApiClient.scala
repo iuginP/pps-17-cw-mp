@@ -11,6 +11,11 @@ import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
 trait ApiClient {
 
   /**
+    * @return A new WebClient
+    */
+  def createWebClient(): WebClient = WebClient.create(Vertx.vertx)
+
+  /**
     * Creates a new WebClient that will do it's calls to "host" at "port"
     *
     * @param host the host to contact

@@ -10,12 +10,6 @@ import it.cwmp.model.Participant
 
 import scala.concurrent.Future
 
-object RoomReceiverServiceVerticle {
-
-  def apply(url: String, receptionStrategy: Seq[Participant] => Unit): RoomReceiverServiceVerticle =
-    new RoomReceiverServiceVerticle(url, receptionStrategy)
-}
-
 case class RoomReceiverServiceVerticle(token: String, receptionStrategy: Seq[Participant] => Unit) extends ScalaVerticle {
 
   var server: HttpServer = _

@@ -1,7 +1,7 @@
 package it.cwmp.roomreceiver.controller
 
 import io.vertx.lang.scala.json.Json
-import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
+import it.cwmp.controller.ApiClient
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Participant
@@ -13,20 +13,14 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 import scala.util.{Failure, Success}
 
-class RoomReceiverServiceVerticleTest extends VertxTest with BeforeAndAfterEach with Matchers {
+class RoomReceiverServiceVerticleTest extends VertxTest with BeforeAndAfterEach with Matchers with ApiClient {
 
   private val token = "barabba"
   private val wrongToken = "rabarbaro"
   private val list = Participant("Nome", "Indirizzo") :: Participant("Nome1", "Indirizzo1") :: List[Participant]()
   private var promiseList: Promise[Seq[Participant]] = _
 
-  private def client = {
-    val options = WebClientOptions()
-      .setDefaultHost("localhost")
-      .setDefaultPort(RoomReceiverApiWrapper.DEFAULT_PORT)
-      .setKeepAlive(false)
-    WebClient.create(vertx, options)
-  }
+  private def client = createWebClient("localhost", RoomReceiverApiWrapper.DEFAULT_PORT, vertx)
 
   private var deploymentID: String = _
 
@@ -71,7 +65,7 @@ class RoomReceiverServiceVerticleTest extends VertxTest with BeforeAndAfterEach 
             .sendFuture()
             .transform({
               case Success(res) if res.statusCode() == 201 => Success(Unit)
-              case Success(res) => Failure(HTTPException(res.statusCode()))// TODO: add an error message as second argument of HTTP exception
+              case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
               case Failure(f) => Failure(f)
             })
             .flatMap(_ => client.post(RoomReceiverApiWrapper.API_RECEIVE_PARTICIPANTS_URL(token))
