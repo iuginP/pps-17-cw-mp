@@ -10,6 +10,13 @@ object PlayerIncomingMessages {
   case object EndGame
 }
 
+/**
+  * Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.
+  * Innanzi tutto all'avvio della partita crea un cluster con gli altri partecipanti; poi
+  * mantiene attivo uno stato condiviso per fare in modo che la partita sia coerente per tutti i partecipanti.
+  *
+  * @author Eugenio Pierfederici
+  */
 import it.cwmp.client.model.PlayerIncomingMessages._
 class PlayerActor extends Actor {
 
