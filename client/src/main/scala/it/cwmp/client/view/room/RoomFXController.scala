@@ -1,7 +1,7 @@
 package it.cwmp.client.view.room
 
 import it.cwmp.client.utils.LayoutRes
-import it.cwmp.client.view.{FXChecks, FXController, FXView}
+import it.cwmp.client.view.{FXAlerts, FXChecks, FXController, FXView}
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
@@ -18,24 +18,25 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks {
+class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val stage: Stage = new Stage
   protected val controller: FXController = this
 
   @FXML
-  private var roomName: TextField = _
+  private var pr_cr_roomName: TextField = _
   @FXML
-  private var numPlayer: Spinner[Integer] = _
+  private var pr_cr_numPlayer: Spinner[Integer] = _
 
+  //creare una stanza privata
   @FXML
   private def onClickCreate(): Unit = {
     Platform.runLater(() => {
       for(
-        name <- getTextFieldValue(roomName, "Il nome non può essere vuoto");
-        nPlayer <- getSpinnerFieldValue(numPlayer, "Deve essere selezionato il numero di giocatori")
-      ) yield strategy.onCreate(name, nPlayer) // TODO correggere, discuterne con enry
+        name <- getTextFieldValue(pr_cr_roomName, "Il nome non può essere vuoto"); // TODO parametrize input
+        nPlayer <- getSpinnerFieldValue(pr_cr_numPlayer, "Deve essere selezionato il numero di giocatori")
+      ) yield strategy.onCreate(name, nPlayer)
     })
   }
 
@@ -47,8 +48,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   }
 
   override def resetFields(): Unit = {
-    roomName setText ""
-    numPlayer getValueFactory() setValue 2
+    pr_cr_roomName setText ""
+    pr_cr_numPlayer getValueFactory() setValue 2
   }
-
 }

@@ -1,6 +1,8 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages, ApiClientOutgoingMessages}
+import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 
 /**
@@ -15,7 +17,7 @@ object ClientControllerMessages {
     * @param name è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
     */
-  case class RoomCreatePrivate(name: String, nPlayer: Int)
+  case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
 }
 
 object ClientControllerActor {
@@ -26,38 +28,65 @@ object ClientControllerActor {
   * Questa classe rappresenta l'attore del controller del client che ha il compito
   * di fare da tramite tra le view e i model.
   *
+  * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
+  *
   * @author Davide Borficchia
   */
-class ClientControllerActor(system: ActorSystem) extends Actor{
-
+class ClientControllerActor(system: ActorSystem) extends Actor {
+  /**
+    * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
+    */
   var roomViewActor: ActorRef = _
+  var roomApiClientActor: ActorRef = _
 
+  /**
+    * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
+    * quando viene creato l'attore [[ClientControllerActor]].
+    * Il suo compito è quello di creare l'attore [[RoomViewActor]].
+    * Una volta creato inizializza e mostra la GUI
+    */
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
+    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
     roomViewActor ! RoomViewMessages.ShowGUI
   }
 
-  def receive = roomManagerBehaviour
-  //possibilità di aggiungere altri behavior
-  //.orElse[Any, Unit](receiveAddItem)
+  /**
+    * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
+    * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
+    */
+  override def receive: Receive = apiClientReceiverBehaviour orElse roomManagerBehaviour
 
-  def becomeRoomsManager(): Unit = {
-    context.become(roomManagerBehaviour)
+  /**
+    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
+    */
+  private def becomeRoomsManager(): Unit = {
+    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
   }
 
   /**
-    * Questo metodo rappresenta il behavior da avere quando si sta gestendo la lobby delle stanze.
+    * Questo metodo rappresenta il behavior che si ha quando si sta gestendo la lobby delle stanze.
     * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
     *
     */
-  def roomManagerBehaviour: Receive = {
-    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer) => println("prova", name, nPlayer) // TODO crea stanza
+  private def roomManagerBehaviour: Receive = {
+    case ClientControllerMessages.RoomCreatePrivate(name, nPlayer, token) =>
+      roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, token)
   }
 
-
-
+  /**
+    * Questo è il behavior che sta in ascolto del successo o meno di una chiamata fatta ad un servizio online tramite l'ApiClientActor.
+    * I messaggi che questo attore, in questo behavoir, è in grado di ricevere sono raggruppati in [[ApiClientOutgoingMessages]]
+    *
+    */
+  import ApiClientOutgoingMessages._
+  private def apiClientReceiverBehaviour: Receive = {
+    case RoomCreatePrivateSuccesful(token) =>
+      roomViewActor ! AlertMessages.Info("Token", token)
+    case RoomCreatePrivateFailure(reason) => AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+  }
 }
