@@ -49,8 +49,16 @@ object ApiClientOutgoingMessages {
     * @param reason è il motivo che ha generato il fallimento
     */
   case class RoomCreatePrivateFailure(reason: String)
-
+  /**
+    * Questo messaggio rappresenta che si è entrati in una stanza privata
+    */
   case object RoomEnterPrivateSuccesful
+
+  /**
+    * Questo messaggio rappresenta il fallimento quando si prova ad entrare in una stanza privata
+    *
+    * @param reason è il motivo del fallimento
+    */
   case class RoomEnterPrivateFailure(reason: String)
 }
 
