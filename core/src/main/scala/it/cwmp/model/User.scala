@@ -1,7 +1,5 @@
 package it.cwmp.model
 
-import java.text.ParseException
-
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import it.cwmp.utils.Utils._
 
@@ -56,11 +54,6 @@ object User {
         else throw parseException("User JsonParsing", s"The input doesn't contain $FIELD_USERNAME --> ${json encodePrettily()}")
     }
 
-    /**
-      * @return the ParseException filled with error string
-      */
-    private[model] def parseException(context: String, errorMessage: String): ParseException =
-      new ParseException(s"$context: $errorMessage", 0)
   }
 
 }
