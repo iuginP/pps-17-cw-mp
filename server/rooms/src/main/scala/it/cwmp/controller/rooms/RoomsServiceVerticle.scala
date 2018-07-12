@@ -12,7 +12,7 @@ import it.cwmp.authentication.Validation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Participant, Room, User}
+import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -101,7 +101,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Participant.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -181,7 +181,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Participant.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -287,7 +287,7 @@ object RoomsServiceVerticle {
   private def extractAddressFromBody(body: Buffer): Option[String] = {
     try {
       val jsonObject = body.toJsonObject
-      if (jsonObject containsKey Participant.FIELD_ADDRESS) Some(jsonObject getString Participant.FIELD_ADDRESS)
+      if (jsonObject containsKey Address.FIELD_ADDRESS) Some(jsonObject getString Address.FIELD_ADDRESS)
       else None
     } catch {
       case _: Throwable => None

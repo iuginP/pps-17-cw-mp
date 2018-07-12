@@ -4,7 +4,7 @@ import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.controller.rooms.RoomsLocalDAO._
-import it.cwmp.model.{Participant, Room, User}
+import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.utils.Utils
 
 import scala.collection.mutable
@@ -14,6 +14,8 @@ import scala.util.Random
 
 /**
   * A trait that describes the Rooms Data Access Object
+  *
+  * @author Enrico Siboni
   */
 trait RoomDAO {
 
@@ -31,12 +33,12 @@ trait RoomDAO {
     * Enters a room
     *
     * @param roomID the identifier of the room
-    * @param user   the user that wants to enter
+    * @param playerAddress   the user that wants to enter
     * @return the future that completes when the user has entered,
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: Participant): Future[Unit]
+  def enterRoom(roomID: String)(implicit playerAddress: Participant): Future[Unit]
 
   /**
     * Retrieves room information
@@ -308,7 +310,7 @@ object RoomsLocalDAO {
     s"""
         CREATE TABLE IF NOT EXISTS user (
           ${User.FIELD_USERNAME} VARCHAR(50) NOT NULL,
-          ${Participant.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
+          ${Address.FIELD_ADDRESS} VARCHAR(255) NOT NULL,
           $userToRoomLinkField VARCHAR(100),
           PRIMARY KEY (${User.FIELD_USERNAME}),
           CONSTRAINT FK_userRooms FOREIGN KEY ($userToRoomLinkField) REFERENCES room(${Room.FIELD_IDENTIFIER})
