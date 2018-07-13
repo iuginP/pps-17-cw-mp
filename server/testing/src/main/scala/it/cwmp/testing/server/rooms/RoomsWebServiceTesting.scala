@@ -25,9 +25,9 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "address2")
   protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "address3")
   private val correctTokens = "CORRECT_TOKEN_1" :: "CORRECT_TOKEN_2" :: "CORRECT_TOKEN_3" :: Nil
-  protected implicit val myFirstCorrectToken: String = HttpUtils.buildJwtAuthentication(correctTokens(0)).get
-  protected val mySecondCorrectToken = HttpUtils.buildJwtAuthentication(correctTokens(1)).get
-  protected val myThirdCorrectToken = HttpUtils.buildJwtAuthentication(correctTokens(2)).get
+  protected implicit val myFirstCorrectToken: String = correctTokens(0)
+  protected val mySecondCorrectToken = correctTokens(1)
+  protected val myThirdCorrectToken = correctTokens(2)
 
   protected val notificationAddress = Address("notificationAddress")
 
@@ -58,10 +58,10 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
       * @param authorizationHeader the header to verify
       * @return the future that will contain the future output
       */
-    override def verifyAuthorization(authorizationHeader: String): Future[User] = authorizationHeader match {
-      case token if token == myFirstCorrectToken => Future.successful(myFirstAuthorizedUser)
-      case token if token == mySecondCorrectToken => Future.successful(mySecondAuthorizedUser)
-      case token if token == myThirdCorrectToken => Future.successful(myThirdAuthorizedUser)
+    override def verifyAuthorization(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
+      case Some(token) if token == correctTokens(0) => Future.successful(myFirstAuthorizedUser)
+      case Some(token) if token == correctTokens(1) => Future.successful(mySecondAuthorizedUser)
+      case Some(token) if token == correctTokens(2) => Future.successful(myThirdAuthorizedUser)
       case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
       case _ => Future.failed(HTTPException(401))
     }
