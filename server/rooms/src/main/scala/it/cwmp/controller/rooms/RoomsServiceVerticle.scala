@@ -238,18 +238,19 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * @return the future that will contain the user if successfully validated
     */
   private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
-    HttpUtils.getRequestAuthorizationHeader(routingContext.request()) match {
+    (for (
+      authorizationHeader <- HttpUtils.getRequestAuthorizationHeader(routingContext.request());
+      authorizationToken <- HttpUtils.readJwtAuthentication(authorizationHeader)
+    ) yield validationStrategy.validate(authorizationToken)
+      .recoverWith {
+        case HTTPException(statusCode, errorMessage) =>
+          sendResponse(statusCode, errorMessage)
+          Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
+      }) match {
       case None =>
         sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
         Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
-
-      case Some(authorizationToken) =>
-        validationStrategy.validate(authorizationToken)
-          .recoverWith {
-            case HTTPException(statusCode, errorMessage) =>
-              sendResponse(statusCode, errorMessage)
-              Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
-          }
+      case Some(s) => s
     }
   }
 }
