@@ -27,6 +27,8 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   protected val mySecondCorrectToken = "CORRECT_TOKEN_2"
   protected val myThirdCorrectToken = "CORRECT_TOKEN_3"
 
+  protected val notificationAddress = Address("notificationAddress")
+
   private var deploymentID: String = _
 
   override protected def beforeEach(): Unit =
