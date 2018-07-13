@@ -12,7 +12,7 @@ import it.cwmp.authentication.Validation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.{Participant, Room, User}
+import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -87,9 +87,9 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
-        (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressFromBody(body)) match {
-          case (Some(roomID), Some(userAddress)) =>
-            daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, userAddress)).onComplete {
+        (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
+          case (Some(roomID), Some(addresses)) =>
+            daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
               case Success(_) => handlePrivateRoomFilling(roomID)
                 .transform({
                   case Success(_) => Failure(new Exception())
@@ -101,7 +101,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Participant.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -113,7 +113,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     validateUserOrSendError.map(_ => {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
-          daoFuture.map(_.roomInfo(roomId).onComplete {
+          daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
             case Success(room) =>
               import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
@@ -167,9 +167,9 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
         catch {
           case _: Throwable => None
         }
-        (playersNumberOption, extractAddressFromBody(body)) match {
-          case (Some(playersNumber), Some(userAddress)) =>
-            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, userAddress)).onComplete {
+        (playersNumberOption, extractAddressesFromBody(body)) match {
+          case (Some(playersNumber), Some(addresses)) =>
+            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
               case Success(_) => handlePublicRoomFilling(playersNumber)
                 .transform({
                   case Success(_) => Failure(new Exception())
@@ -181,7 +181,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Participant.FIELD_ADDRESS}"))
+          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -196,7 +196,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
         case _: Throwable => None
       }) match {
         case Some(playersNumber) =>
-          daoFuture.map(_.publicRoomInfo(playersNumber).onComplete {
+          daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
             case Success(room) =>
               import Room.Converters._
               sendResponse(200, Some(room.toJson.encode()))
@@ -282,13 +282,17 @@ object RoomsServiceVerticle {
 
   /**
     * @param body the body where to extract
-    * @return the extracted Address
+    * @return the extracted Addresses
     */
-  private def extractAddressFromBody(body: Buffer): Option[String] = {
+  private def extractAddressesFromBody(body: Buffer): Option[(Address, Address)] = {
     try {
-      val jsonObject = body.toJsonObject
-      if (jsonObject containsKey Participant.FIELD_ADDRESS) Some(jsonObject getString Participant.FIELD_ADDRESS)
-      else None
+      val jsonArray = body.toJsonArray
+      val userAddressJson = jsonArray.getJsonObject(0)
+      val userNotificationAddressJson = jsonArray.getJsonObject(1)
+      if ((userAddressJson containsKey Address.FIELD_ADDRESS) && (userNotificationAddressJson containsKey Address.FIELD_ADDRESS)) {
+        import Address.Converters._
+        Some((userAddressJson.toAddress, userNotificationAddressJson.toAddress))
+      } else None
     } catch {
       case _: Throwable => None
     }
@@ -302,7 +306,7 @@ object RoomsServiceVerticle {
                                        routingContext: RoutingContext,
                                        communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
-    handleRoomFilling(roomFuture = roomDAO.roomInfo(roomID),
+    handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
       onRetrievedRoomAction = roomDAO deleteRoom roomID map (_ => sendResponse(200, None)))
   }
 
@@ -314,25 +318,25 @@ object RoomsServiceVerticle {
                                       routingContext: RoutingContext,
                                       communicationStrategy: RoomReceiverApiWrapper,
                                       executionContext: ExecutionContext): Future[Unit] = {
-    handleRoomFilling(roomFuture = roomDAO.publicRoomInfo(playersNumber),
+    handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
       onRetrievedRoomAction = roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200, None)))
   }
 
   /**
     * Describes how to behave when a room is filled out
     *
-    * @param roomFuture            the future that will contain the room
+    * @param roomInformationFuture the future that will contain the room and addresses of users to contact
     * @param onRetrievedRoomAction the action to do if the room is full
     * @return a future that completes when all players received addresses
     */
-  private[this] def handleRoomFilling(roomFuture: Future[Room],
+  private[this] def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])],
                                       onRetrievedRoomAction: => Future[Unit])
                                      (implicit communicationStrategy: RoomReceiverApiWrapper,
                                       executionContext: ExecutionContext): Future[Unit] = {
-    roomFuture.filter(roomIsFull)
-      .flatMap(fullRoom => {
+    roomInformationFuture.map(tuple => tuple._1).filter(roomIsFull)
+      .flatMap(_ => {
         onRetrievedRoomAction
-        sendParticipantAddresses(fullRoom)
+        sendParticipantAddresses(roomInformationFuture.value.get.get)
       })
   }
 
@@ -344,14 +348,15 @@ object RoomsServiceVerticle {
   /**
     * Method to communicate to clients that the game can start because of reaching the specified number of players
     *
-    * @param room the room where players are waiting in
+    * @param roomInformation the room where players are waiting in
     */
-  private def sendParticipantAddresses(room: Room)
+  private def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
                                       (implicit communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
-    val participantList = for (participant <- room.participants) yield participant
+    val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
+    val players = for (player <- roomInformation._1.participants) yield player
     Future.sequence {
-      participantList map (participant => communicationStrategy.sendParticipantAddresses(participant.address, participantList))
+      notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
     } map (_ => Unit)
   }
 

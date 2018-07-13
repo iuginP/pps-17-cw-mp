@@ -4,11 +4,11 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
-import it.cwmp.model.Participant
+import it.cwmp.model.{Address, Participant}
 
-import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Failure
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
@@ -19,10 +19,11 @@ object ClientControllerMessages {
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
     * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
     *
-    * @param name è il nome della stanza da creare
+    * @param name    è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
     */
   case class RoomCreatePrivate(name: String, nPlayer: Int)
+
   /**
     * Questo messaggio gestisce la volontà di entrare in una stanza privata.
     * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
@@ -37,7 +38,8 @@ object ClientControllerMessages {
     *
     * @param nPlayer è il numero dei partecipanti con i quali si vuole giocare
     */
-  case class RoomEnterPublic(nPlayer: Integer)
+  case class RoomEnterPublic(nPlayer: Int)
+
 }
 
 object ClientControllerActor {
@@ -49,13 +51,11 @@ object ClientControllerActor {
   * di fare da tramite tra le view e i model.
   *
   * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
-  *
   * @author Davide Borficchia
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
   // TODO debug token
-  val username = "pippo"
   val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
 
   /**
@@ -104,23 +104,25 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
     *
     */
+
   import it.cwmp.client.controller.ClientControllerMessages._
+
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-          idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          idRoom, Address(playerActor.path.address.toString), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-          nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          nPlayer, Address(playerActor.path.address.toString), url, jwtToken)
       )
   }
 
-  private def enterRoom(): Future[String] = {
+  private def enterRoom(): Future[Address] = {
     // Apre il server in ricezione per la lista dei partecipanti
     listenForParticipantListFuture(
       // Quando ha ricevuto la lista dei partecipanti dal server
@@ -136,17 +138,19 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * I messaggi che questo attore, in questo behavoir, è in grado di ricevere sono raggruppati in [[ApiClientOutgoingMessages]]
     *
     */
+
   import ApiClientOutgoingMessages._
+
   private def apiClientReceiverBehaviour: Receive = {
-    case RoomCreatePrivateSuccesful(token) =>
+    case RoomCreatePrivateSuccessful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccesful =>
+    case RoomEnterPrivateSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPublicSuccesful =>
+    case RoomEnterPublicSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
