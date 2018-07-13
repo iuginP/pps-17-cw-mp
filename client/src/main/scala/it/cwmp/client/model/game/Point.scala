@@ -1,4 +1,5 @@
-package it.cwmp.client.view.game.model
+package it.cwmp.client.model.game
+
 /**
   * Classe che rappresenta una coppia di valori che identificano un punto
   *

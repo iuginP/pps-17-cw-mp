@@ -1,5 +1,6 @@
 package it.cwmp.client.view.game
 
+import it.cwmp.client.model.game.Point
 import it.cwmp.client.view.game.model._
 import javafx.application.Application
 import javafx.scene.canvas.Canvas
@@ -23,7 +24,7 @@ class GameFX extends Application with ObjectDrawer {
     root.getChildren.add(canvas)
     implicit val graphicsContex = canvas.getGraphicsContext2D
 
-    val cells = Cell(Point(20,20)) :: Cell(Point(90,400)) :: Cell(Point(200,150)) :: Nil
+    val cells = ViewCell(Point(20,20)) :: ViewCell(Point(90,400)) :: ViewCell(Point(200,150)) :: Nil
 
     cells.foreach(drawCell)
 

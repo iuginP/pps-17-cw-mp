@@ -20,9 +20,9 @@ import scala.concurrent.{Await, Future}
   */
 abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEach {
 
-  protected implicit val myFirstAuthorizedUser: Participant = Participant("Enrico1", "address1")
-  protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "address2")
-  protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "address3")
+  protected implicit val myFirstAuthorizedUser: Participant = Participant("Enrico1", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
+  protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
+  protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
   protected implicit val myFirstCorrectToken: String = "CORRECT_TOKEN_1"
   protected val mySecondCorrectToken = "CORRECT_TOKEN_2"
   protected val myThirdCorrectToken = "CORRECT_TOKEN_3"
