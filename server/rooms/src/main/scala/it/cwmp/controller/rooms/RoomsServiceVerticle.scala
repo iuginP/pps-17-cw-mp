@@ -354,9 +354,9 @@ object RoomsServiceVerticle {
                                       (implicit communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
     val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
-    val playersAddresses = for (playerAddress <- roomInformation._1.participants) yield playerAddress
+    val players = for (player <- roomInformation._1.participants) yield player
     Future.sequence {
-      notificationAddresses map (notificationAddress => communicationStrategy.sendParticipantAddresses(notificationAddress.address, playersAddresses))
+      notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
     } map (_ => Unit)
   }
 

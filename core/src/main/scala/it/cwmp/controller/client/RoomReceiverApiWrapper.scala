@@ -15,12 +15,12 @@ import scala.concurrent.Future
 trait RoomReceiverApiWrapper {
 
   /**
-    * Sends the addresses to the client
+    * Sends the participants to the client
     *
-    * @param toSend the addresses to send
+    * @param toSend the participants to send
     * @return a Future that completes when the client received the data
     */
-  def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit]
+  def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit]
 
 }
 
@@ -41,7 +41,7 @@ object RoomReceiverApiWrapper {
     */
   private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper with ApiClient {
 
-    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
+    override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
 
       val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, participant) =>
         jsonArray add participant.toJson

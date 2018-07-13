@@ -58,7 +58,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
     * @author Enrico Siboni
     */
   private case class TestRoomReceiverApiWrapper() extends RoomReceiverApiWrapper {
-    override def sendParticipantAddresses(clientAddress: String, toSend: Seq[Participant]): Future[Unit] =
+    override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] =
       Future.successful(Unit)
   }
 
