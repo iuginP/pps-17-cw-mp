@@ -24,7 +24,7 @@ class GameFX extends Application with ObjectDrawer {
     root.getChildren.add(canvas)
     implicit val graphicsContex = canvas.getGraphicsContext2D
 
-    val cells = Cell(Point(20,20), Color.GREEN) :: Cell(Point(90,400), Color.RED) :: Cell(Point(200,150), Color.cyan) :: Nil
+    val cells = Cell(Point(20,20), Color.GREEN) :: Cell(Point(90,400), Color.RED, 40) :: Cell(Point(200,150), Color.cyan, 200) :: Nil
     //Disegno prima gli archi in modo da non vederli sopra le celle
     drawArch(cells(0), cells(1))
     drawArch(cells(1), cells(2))

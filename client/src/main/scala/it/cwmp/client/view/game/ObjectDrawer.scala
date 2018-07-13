@@ -43,6 +43,7 @@ trait ObjectDrawer {
     */
   def drawArch(firstCell: Cell, secondCell: Cell)(implicit graphicsContex: GraphicsContext): Unit = {
     graphicsContex.setStroke(awtColorToFxColor(firstCell.color))
+    graphicsContex.setLineWidth(3.0)
     graphicsContex.strokeLine(firstCell.center.x, firstCell.center.y,
       secondCell.center.x, secondCell.center.y)
   }
