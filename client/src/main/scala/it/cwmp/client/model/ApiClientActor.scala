@@ -20,7 +20,7 @@ object ApiClientIncomingMessages {
     * @param username identification chosen by the player to access the system
     * @param password password chosen during sign up
     */
-  case class AuthenticationSignIn(username: String, password: String)
+  case class AuthenticationPerformSignIn(username: String, password: String)
 
   /**
     * Message indicating the need to create a new account.
@@ -29,7 +29,7 @@ object ApiClientIncomingMessages {
     * @param username identification chosen by the player to register in the system
     * @param password password chosen to authenticate in the system
     */
-  case class AuthenticationSignUp(username: String, password: String)
+  case class AuthenticationPerformSignUp(username: String, password: String)
 
   /**
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
@@ -175,13 +175,13 @@ class ApiClientActor() extends Actor{
   private val authenticationApiWrapper = AuthenticationService()
   import authenticationApiWrapper._
   private def authenticationBehaviour: Receive = {
-    case AuthenticationSignIn(username, password) =>
+    case AuthenticationPerformSignIn(username, password) =>
       val senderTmp = sender
       login(username, password).onComplete({
         case Success(token) => senderTmp ! AuthenticationSignInSuccessful(token)
         case Failure(reason) => senderTmp ! AuthenticationSignInFailure(reason getMessage)
       })
-    case AuthenticationSignUp(username, password) =>
+    case AuthenticationPerformSignUp(username, password) =>
       val senderTmp = sender
       signUp(username, password).onComplete({
         case Success(token) => senderTmp ! AuthenticationSignUpSuccessful(token)

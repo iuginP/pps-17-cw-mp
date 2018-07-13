@@ -3,10 +3,11 @@ package it.cwmp.client.controller
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
+import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 import it.cwmp.model.Participant
 
-import scala.util.{Failure}
+import scala.util.Failure
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -60,7 +61,7 @@ object ClientControllerActor {
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
   // TODO debug token
-  val username = "pippo"
+  val debugUsername = "pippo"
   val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
 
   /**
@@ -76,6 +77,8 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
 
 
   var authenticationViewActor: ActorRef = _
+  // TODO: averli separati?
+  var authenticationApiClientActor: ActorRef = _
 
   /**
     * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
@@ -86,10 +89,11 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   override def preStart(): Unit = {
     super.preStart()
 
-    /*authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
+    authenticationApiClientActor = system.actorOf(Props[ApiClientActor], "authenticationAPIClient")
+    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
     authenticationViewActor ! AuthenticationViewMessages.InitController
     // TODO debug, remove before release
-    authenticationViewActor ! AuthenticationViewMessages.ShowGUI*/
+    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
 
     // Initialize all actors
     playerActor = system.actorOf(Props[PlayerActor], "player")
@@ -106,26 +110,23 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     */
   override def receive: Receive = apiClientReceiverBehaviour orElse roomManagerBehaviour
 
+
+  def becomeAuthenticationManager(): Unit = {
+    context.become(authenticationManagerBehaviour)
+  }
+
   /**
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   private def becomeRoomsManager(): Unit = {
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
-
-
-    def receive = authenticationManagerBehaviour
-    //possibilità di aggiungere altri behavior
-    //.orElse[Any, Unit](receiveAddItem)
-
-    def becomeAuthenticationManager(): Unit = {
-      context.become(authenticationManagerBehaviour)
-    }
   }
 
-
   def authenticationManagerBehaviour: Receive = {
-    case ClientControllerMessages.AuthenticationPerformSignIn(username, password) => println(s"Perform sign-in with: $username, $password") // TODO crea stanza
-    case ClientControllerMessages.AuthenticationPerformSignUp(username, password) => println(s"Perform sign-up with: $username, $password") // TODO crea stanza
+    case ClientControllerMessages.AuthenticationPerformSignIn(username, password) =>
+      authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
+    case ClientControllerMessages.AuthenticationPerformSignUp(username, password) =>
+      authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
   }
 
   /**
@@ -142,12 +143,12 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     case RoomEnterPrivate(idRoom) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-          idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          idRoom, Participant(debugUsername, playerActor.path.address.toString), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-          nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          nPlayer, Participant(debugUsername, playerActor.path.address.toString), url, jwtToken)
       )
   }
 
@@ -170,7 +171,18 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
 
   import it.cwmp.client.model.ApiClientOutgoingMessages._
 
+  // TODO: qui lasciamo il behaviuor misto?
+  // TODO: dall'altra parte non gestiamo la cosa?
   private def apiClientReceiverBehaviour: Receive = {
+    case AuthenticationSignInSuccessful(token) =>
+      authenticationViewActor ! AlertMessages.Info(s"Sign in", s"You're in! Token: $token")
+    case AuthenticationSignInFailure(reason) =>
+      authenticationViewActor ! AlertMessages.Error("Warning", reason)
+    case AuthenticationSignUpSuccessful(token) =>
+      authenticationViewActor ! AlertMessages.Info(s"Sign up", s"You're registered! Token: $token")
+    case AuthenticationSignUpFailure(reason) =>
+      authenticationViewActor ! AlertMessages.Error("Warning", reason)
+
     case RoomCreatePrivateSuccessful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
