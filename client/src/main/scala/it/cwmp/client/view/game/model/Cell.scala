@@ -1,6 +1,7 @@
 package it.cwmp.client.view.game.model
 
-import javafx.scene.paint.Color
+import java.awt.Color
+
 
 /**
   * Classe che rappresenta una cella

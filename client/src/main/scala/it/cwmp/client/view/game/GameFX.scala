@@ -1,9 +1,9 @@
 package it.cwmp.client.view.game
 
+import java.awt.Color
 import it.cwmp.client.view.game.model._
 import javafx.application.Application
 import javafx.scene.canvas.Canvas
-import javafx.scene.paint.Color
 import javafx.scene.{Group, Scene}
 import javafx.stage.Stage
 
@@ -24,13 +24,17 @@ class GameFX extends Application with ObjectDrawer {
     root.getChildren.add(canvas)
     implicit val graphicsContex = canvas.getGraphicsContext2D
 
-    val cells = Cell(Point(20,20), Color.GREEN) :: Cell(Point(90,400), Color.RED) :: Cell(Point(200,150), Color.LIGHTBLUE) :: Nil
+    val cells = Cell(Point(20,20), Color.GREEN) :: Cell(Point(90,400), Color.RED) :: Cell(Point(200,150), Color.cyan) :: Nil
     //Disegno prima gli archi in modo da non vederli sopra le celle
     drawArch(cells(0), cells(1))
     drawArch(cells(1), cells(2))
     drawArch(cells(2), cells(0))
 
-    cells.foreach(drawCell)
+    //cells.foreach(drawCell)
+
+    root.getChildren.add(drawCell(cells(0)))
+    root.getChildren.add(drawCell(cells(1)))
+    root.getChildren.add(drawCell(cells(2)))
 
     primaryStage setScene theScene
     primaryStage.show()
