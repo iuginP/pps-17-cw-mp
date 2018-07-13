@@ -114,12 +114,12 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     case RoomEnterPrivate(idRoom) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-          idRoom, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          idRoom, Address(playerActor.path.address.toString), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-          nPlayer, Participant(username, playerActor.path.address.toString), url, jwtToken)
+          nPlayer, Address(playerActor.path.address.toString), url, jwtToken)
       )
   }
 
@@ -147,11 +147,11 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccesful =>
+    case RoomEnterPrivateSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPublicSuccesful =>
+    case RoomEnterPublicSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
