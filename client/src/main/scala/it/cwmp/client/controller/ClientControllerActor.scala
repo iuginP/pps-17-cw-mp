@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
-import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
+import it.cwmp.client.view.room.RoomViewActor
 import it.cwmp.model.Participant
 
 import scala.util.Failure
@@ -16,8 +16,22 @@ import scala.concurrent.Future
   */
 object ClientControllerMessages {
 
+  /**
+    * Message indicating the need to log into the system.
+    * When the system receives it, it sends the request to the authentication online service.
+    *
+    * @param username identification chosen by the player to access the system
+    * @param password password chosen during sign up
+    */
   case class AuthenticationPerformSignIn(username: String, password: String)
 
+  /**
+    * Message indicating the need to create a new account.
+    * When the system receives it, it sends the request to the authentication online service.
+    *
+    * @param username identification chosen by the player to register in the system
+    * @param password password chosen to authenticate in the system
+    */
   case class AuthenticationPerformSignUp(username: String, password: String)
 
   /**
@@ -69,13 +83,16 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Sono questi attori, per ciascun client, a connettersi nel cluster e gestire lo svolgimento del gioco.
     */
   var playerActor: ActorRef = _
+
   /**
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
   var roomViewActor: ActorRef = _
   var roomApiClientActor: ActorRef = _
 
-
+  /**
+    * Actor for the management of authentication processes to which the relative messages will be sent.
+    */
   var authenticationViewActor: ActorRef = _
   // TODO: averli separati?
   var authenticationApiClientActor: ActorRef = _
@@ -97,20 +114,23 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
 
     // Initialize all actors
     playerActor = system.actorOf(Props[PlayerActor], "player")
-    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
+    /*oomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
-    roomViewActor ! RoomViewMessages.ShowGUI
+    roomViewActor ! RoomViewMessages.ShowGUI*/
   }
 
   /**
     * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
-  override def receive: Receive = apiClientReceiverBehaviour orElse roomManagerBehaviour
+  // TODO: vanno tutti in orElse?
+  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse roomManagerBehaviour
 
-
+  /**
+    * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
+    */
   def becomeAuthenticationManager(): Unit = {
     context.become(authenticationManagerBehaviour)
   }
@@ -122,10 +142,18 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
   }
 
+
+  import it.cwmp.client.controller.ClientControllerMessages._
+
+  /**
+    * Behavior to be applied to manage authentication processes.
+    * Messages that can be processed in this behavior are shown in [[ClientControllerMessages]]
+    *
+    */
   def authenticationManagerBehaviour: Receive = {
-    case ClientControllerMessages.AuthenticationPerformSignIn(username, password) =>
+    case AuthenticationPerformSignIn(username, password) =>
       authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
-    case ClientControllerMessages.AuthenticationPerformSignUp(username, password) =>
+    case AuthenticationPerformSignUp(username, password) =>
       authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
   }
 
@@ -134,9 +162,6 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
     *
     */
-
-  import it.cwmp.client.controller.ClientControllerMessages._
-
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)

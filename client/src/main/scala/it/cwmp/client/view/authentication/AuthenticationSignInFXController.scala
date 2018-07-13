@@ -36,7 +36,7 @@ class SignInFXController(strategy: SignInFXStrategy) extends FXController with F
   private def onClickSignIn(): Unit = {
     Platform.runLater(() => {
       for(
-        username <- getTextFieldValue(pfPassword, "È necessario inserire lo username");
+        username <- getTextFieldValue(tfUsername, "È necessario inserire lo username");
         password <- getTextFieldValue(pfPassword, "È necessario inserire la password")
       ) yield strategy.onSignIn(username, password)
     })
