@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
-import it.cwmp.client.view.room.RoomViewActor
+import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 import it.cwmp.model.Participant
 
 import scala.util.Failure
@@ -113,8 +113,8 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     authenticationViewActor ! AuthenticationViewMessages.ShowGUI
 
     // Initialize all actors
-    playerActor = system.actorOf(Props[PlayerActor], "player")
-    /*oomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
+    /*playerActor = system.actorOf(Props[PlayerActor], "player")
+    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release

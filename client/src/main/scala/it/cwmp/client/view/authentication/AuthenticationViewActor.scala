@@ -20,11 +20,13 @@ object AuthenticationViewActor {
   def apply(): AuthenticationViewActor = new AuthenticationViewActor()
 }
 
-class AuthenticationViewActor extends Actor {
+class AuthenticationViewActor extends Actor with AlertActor {
 
   var signInFXController: SignInFXController = _
   var signUpFXController: SignUpFXController = _
   var controllerActor: ActorRef = _
+
+  override def fxController: FXAlerts = signUpFXController
 
   override def preStart(): Unit = {
     super.preStart()
