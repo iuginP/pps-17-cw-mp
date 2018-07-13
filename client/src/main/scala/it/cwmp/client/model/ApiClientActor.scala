@@ -122,15 +122,15 @@ class ApiClientActor() extends Actor {
         case Success(t) => senderTmp ! RoomCreatePrivateSuccessful(t)
         case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
       })
-    case RoomEnterPrivate(idRoom, participant, webAddress, token) =>
+    case RoomEnterPrivate(idRoom, address, webAddress, token) =>
       val senderTmp = sender
-      enterRoom(idRoom, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterRoom(idRoom, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPrivateSuccessful
         case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
-    case RoomEnterPublic(nPlayer, participant, webAddress, token) => //TODO serve webAddress
+    case RoomEnterPublic(nPlayer, address, webAddress, token) =>
       val senderTmp = sender
-      enterPublicRoom(nPlayer, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterPublicRoom(nPlayer, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPublicSuccessful
         case Failure(error) => senderTmp ! RoomEnterPublicFailure(error.getMessage)
       })
