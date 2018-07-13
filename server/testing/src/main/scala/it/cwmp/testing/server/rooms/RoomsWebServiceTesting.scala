@@ -1,10 +1,11 @@
 package it.cwmp.testing.server.rooms
 
-import it.cwmp.authentication.Validation
+import it.cwmp.authentication.{HttpValidation, Validation}
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
+import it.cwmp.utils.HttpUtils
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.duration._
@@ -23,9 +24,10 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
   protected implicit val myFirstAuthorizedUser: Participant = Participant("Enrico1", "address1")
   protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "address2")
   protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "address3")
-  protected implicit val myFirstCorrectToken: String = "CORRECT_TOKEN_1"
-  protected val mySecondCorrectToken = "CORRECT_TOKEN_2"
-  protected val myThirdCorrectToken = "CORRECT_TOKEN_3"
+  private val correctTokens = "CORRECT_TOKEN_1" :: "CORRECT_TOKEN_2" :: "CORRECT_TOKEN_3" :: Nil
+  protected implicit val myFirstCorrectToken: String = HttpUtils.buildJwtAuthentication(correctTokens(0)).get
+  protected val mySecondCorrectToken = HttpUtils.buildJwtAuthentication(correctTokens(1)).get
+  protected val myThirdCorrectToken = HttpUtils.buildJwtAuthentication(correctTokens(2)).get
 
   protected val notificationAddress = Address("notificationAddress")
 
@@ -42,8 +44,21 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
     *
     * @author Enrico Siboni
     */
-  private case class TestValidationStrategy() extends Validation[String, User] {
+  private case class TestValidationStrategy() extends HttpValidation[User] {
     override def validate(input: String): Future[User] = input match {
+      case token if token == correctTokens(0) => Future.successful(myFirstAuthorizedUser)
+      case token if token == correctTokens(1) => Future.successful(mySecondAuthorizedUser)
+      case token if token == correctTokens(2) => Future.successful(myThirdAuthorizedUser)
+      case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
+      case _ => Future.failed(HTTPException(401))
+    }
+
+    /**
+      *
+      * @param authorizationHeader the header to verify
+      * @return the future that will contain the future output
+      */
+    override def verifyAuthorization(authorizationHeader: String): Future[User] = authorizationHeader match {
       case token if token == myFirstCorrectToken => Future.successful(myFirstAuthorizedUser)
       case token if token == mySecondCorrectToken => Future.successful(mySecondAuthorizedUser)
       case token if token == myThirdCorrectToken => Future.successful(myThirdAuthorizedUser)
