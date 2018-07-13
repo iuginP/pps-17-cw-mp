@@ -4,13 +4,13 @@ import akka.actor.{Actor, ActorRef, AddressFromURIString}
 import akka.cluster.Cluster
 import akka.cluster.ddata.{DistributedData, Flag, FlagKey}
 import akka.cluster.ddata.Replicator.{Changed, Subscribe, Update, WriteAll}
-import it.cwmp.model.Participant
+import it.cwmp.model.{Address, Participant}
 
 import scala.concurrent.duration._
 
 object PlayerIncomingMessages {
 
-  case class StartGame(participantList: List[Participant])
+  case class StartGame(participantList: List[Address])
   case object EndGame
 }
 
@@ -48,7 +48,7 @@ class PlayerActor extends Actor {
     case EndGame => backToLobby
   }
 
-  private def connectTo(participants: List[Participant]): Unit = {
+  private def connectTo(participants: List[Address]): Unit = {
     // If it's the first of the list, then he creates the cluster.
     if (participants.head.address == self.path.address.toString) {
       cluster.joinSeedNodes(participants.map(_.address).map(AddressFromURIString(_)))
