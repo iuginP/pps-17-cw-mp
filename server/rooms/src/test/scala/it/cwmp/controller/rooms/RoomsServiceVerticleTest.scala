@@ -4,7 +4,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
-import it.cwmp.model.Room
+import it.cwmp.model.{Address, Room}
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.server.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
@@ -53,12 +53,12 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
   override protected def privateRoomEnteringTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed when the user is authenticated, input is valid and room non full") {
       createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => (enterPrivateRoom(roomID) httpStatusCodeEquals 200)
+        .flatMap(roomID => (enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress) httpStatusCodeEquals 200)
           .flatMap(cleanUpRoom(roomID, _)))
     }
 
     describe("should fail") {
-      onWrongRoomID(enterPrivateRoom)
+      onWrongRoomID(enterPrivateRoom(_, myFirstAuthorizedUser, notificationAddress))
 
       it("if address not provided") {
         createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL) flatMap (_.sendFuture()) httpStatusCodeEquals 400
@@ -68,16 +68,16 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
       }
       it("if user is already inside a room") {
         createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => enterPrivateRoom(roomID)
-            .flatMap(_ => enterPrivateRoom(roomID) httpStatusCodeEquals 400)
+          .flatMap(roomID => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+            .flatMap(_ => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress) httpStatusCodeEquals 400)
             .flatMap(cleanUpRoom(roomID, _)))
       }
       it("if the room was already filled") {
         val playersNumber = 2
         createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => enterPrivateRoom(roomID)
-            .flatMap(_ => enterPrivateRoom(roomID)(webClient, mySecondAuthorizedUser, mySecondCorrectToken))
-            .flatMap(_ => enterPrivateRoom(roomID)(webClient, myThirdAuthorizedUser, myThirdCorrectToken))) httpStatusCodeEquals 404
+          .flatMap(roomID => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+            .flatMap(_ => enterPrivateRoom(roomID, mySecondAuthorizedUser, notificationAddress)(webClient, mySecondCorrectToken))
+            .flatMap(_ => enterPrivateRoom(roomID, myThirdAuthorizedUser, notificationAddress)(webClient, myThirdCorrectToken))) httpStatusCodeEquals 404
       }
     }
   }
@@ -103,12 +103,12 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
       createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoom(roomID)
+        .flatMap(roomID => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress)
           .flatMap(_ => exitPrivateRoom(roomID))) httpStatusCodeEquals 200
     }
     it("user should not be inside after it") {
       createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoom(roomID)
+        .flatMap(roomID => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress)
           .flatMap(_ => exitPrivateRoom(roomID))
           .flatMap(_ => privateRoomInfo(roomID)))
         .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(myFirstAuthorizedUser.username)))
@@ -123,7 +123,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
       it("if user is inside another room") {
         createAPrivateRoomAndGetID(roomName, playersNumber)
           .flatMap(roomID => createAPrivateRoomAndGetID(roomName, playersNumber)
-            .flatMap(otherRoomID => enterPrivateRoom(roomID)
+            .flatMap(otherRoomID => enterPrivateRoom(roomID, myFirstAuthorizedUser, notificationAddress)
               .flatMap(_ => exitPrivateRoom(otherRoomID) httpStatusCodeEquals 400))
             .flatMap(cleanUpRoom(roomID, _)))
       }
@@ -133,17 +133,17 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
   override protected def publicRoomEnteringTests(playersNumber: Int): Unit = {
     describe("should succeed") {
       it("if room with such players number exists") {
-        enterPublicRoom(playersNumber) httpStatusCodeEquals 200 flatMap (cleanUpRoom(playersNumber, _))
+        enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) httpStatusCodeEquals 200 flatMap (cleanUpRoom(playersNumber, _))
       }
       it("and the user should be inside it") {
-        (enterPublicRoom(playersNumber) flatMap (_ => publicRoomInfo(playersNumber)))
+        (enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
           .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get.contains(myFirstAuthorizedUser.username)))
           .flatMap(cleanUpRoom(playersNumber, _))
       }
       it("even when the room was filled in past") {
-        enterPublicRoom(2)
-          .flatMap(_ => enterPublicRoom(2)(webClient, mySecondAuthorizedUser, mySecondCorrectToken))
-          .flatMap(_ => enterPublicRoom(2)(webClient, myThirdAuthorizedUser, myThirdCorrectToken))
+        enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress)
+          .flatMap(_ => enterPublicRoom(2, mySecondAuthorizedUser, notificationAddress)(webClient, mySecondCorrectToken))
+          .flatMap(_ => enterPublicRoom(2, myThirdAuthorizedUser, notificationAddress)(webClient, myThirdCorrectToken))
           .flatMap(_ => publicRoomInfo(2))
           .flatMap(res => assert(res.statusCode() == 200 &&
             !res.bodyAsString().get.contains(myFirstAuthorizedUser.username) &&
@@ -154,7 +154,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
     }
 
     describe("should fail") {
-      onWrongPlayersNumber(enterPublicRoom)
+      onWrongPlayersNumber(enterPublicRoom(_, myFirstAuthorizedUser, notificationAddress))
 
       it("if address not provided") {
         createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL) flatMap (_.sendFuture()) httpStatusCodeEquals 400
@@ -163,7 +163,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
         createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL) flatMap (_.sendJsonFuture("Ciao")) httpStatusCodeEquals 400
       }
       it("if same user is already inside a room") {
-        (enterPublicRoom(2) flatMap (_ => enterPublicRoom(3)))
+        enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress)
+          .flatMap(_ => enterPublicRoom(3, myFirstAuthorizedUser, notificationAddress))
           .httpStatusCodeEquals(400) flatMap (cleanUpRoom(playersNumber, _))
       }
     }
@@ -180,7 +181,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
       publicRoomInfo(playersNumber) httpStatusCodeEquals 200
     }
     it("should show entered players") {
-      (enterPublicRoom(playersNumber) flatMap (_ => publicRoomInfo(playersNumber)))
+      (enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
         .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get.contains(myFirstAuthorizedUser.username)))
         .flatMap(cleanUpRoom(playersNumber, _))
     }
@@ -192,10 +193,10 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      (enterPublicRoom(playersNumber) flatMap (_ => exitPublicRoom(playersNumber))) httpStatusCodeEquals 200
+      (enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) httpStatusCodeEquals 200
     }
     it("user should not be inside after it") {
-      enterPublicRoom(playersNumber)
+      enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress)
         .flatMap(_ => exitPublicRoom(playersNumber))
         .flatMap(_ => publicRoomInfo(playersNumber))
         .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(myFirstAuthorizedUser.username)))
@@ -208,7 +209,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers 
         exitPublicRoom(playersNumber) httpStatusCodeEquals 400
       }
       it("if user is inside another room") {
-        (enterPublicRoom(2) flatMap (_ => exitPublicRoom(3)))
+        (enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress) flatMap (_ => exitPublicRoom(3)))
           .httpStatusCodeEquals(400) flatMap (cleanUpRoom(playersNumber, _))
       }
     }
