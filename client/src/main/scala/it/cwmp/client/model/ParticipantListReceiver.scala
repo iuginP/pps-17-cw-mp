@@ -2,8 +2,10 @@ package it.cwmp.client.model
 
 import java.net.InetAddress
 
+import io.vertx.scala.core.Vertx
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.model.Participant
+import it.cwmp.roomreceiver.controller.RoomReceiverServiceVerticle
 import it.cwmp.utils.Utils
 
 import scala.concurrent.Future

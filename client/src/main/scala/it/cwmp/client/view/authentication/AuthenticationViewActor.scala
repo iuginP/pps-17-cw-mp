@@ -2,6 +2,7 @@ package it.cwmp.client.view.authentication
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
+import it.cwmp.client.view.{AlertActor, FXAlerts}
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -19,7 +20,7 @@ object AuthenticationViewActor {
   def apply(): AuthenticationViewActor = new AuthenticationViewActor()
 }
 
-class AuthenticationViewActor extends Actor{
+class AuthenticationViewActor extends Actor {
 
   var signInFXController: SignInFXController = _
   var signUpFXController: SignUpFXController = _

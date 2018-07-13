@@ -1,13 +1,12 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import it.cwmp.client.model.{ApiClientActor, ApiClientIncomingMessages, PlayerActor, PlayerIncomingMessages}
+import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
-import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 import it.cwmp.model.Participant
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -172,15 +171,15 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   import it.cwmp.client.model.ApiClientOutgoingMessages._
 
   private def apiClientReceiverBehaviour: Receive = {
-    case RoomCreatePrivateSuccesful(token) =>
+    case RoomCreatePrivateSuccessful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccesful =>
+    case RoomEnterPrivateSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
-    case RoomEnterPublicSuccesful =>
+    case RoomEnterPublicSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe

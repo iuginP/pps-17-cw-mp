@@ -1,7 +1,7 @@
 package it.cwmp.client.view.authentication
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
-import it.cwmp.client.view.{FXChecks, FXController, FXView}
+import it.cwmp.client.view.{FXAlerts, FXChecks, FXController, FXView}
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
@@ -20,7 +20,7 @@ object SignInFXController {
   }
 }
 
-class SignInFXController(strategy: SignInFXStrategy) extends FXController with FXView with FXChecks {
+class SignInFXController(strategy: SignInFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
 
   protected val layout: String = LayoutRes.signInLayout
   protected val title: String = StringRes.appName

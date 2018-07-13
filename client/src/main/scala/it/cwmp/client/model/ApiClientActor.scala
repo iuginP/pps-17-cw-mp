@@ -1,8 +1,10 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
+import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.Participant
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
@@ -10,6 +12,24 @@ import scala.util.{Failure, Success}
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object ApiClientIncomingMessages {
+
+  /**
+    * Message indicating the need to log into the system.
+    * When the system receives it, it sends the request to the online service.
+    *
+    * @param username identification chosen by the player to access the system
+    * @param password password chosen during sign up
+    */
+  case class AuthenticationSignIn(username: String, password: String)
+
+  /**
+    * Message indicating the need to create a new account.
+    * When the system receives it, it sends the request to the online service.
+    *
+    * @param username identification chosen by the player to register in the system
+    * @param password password chosen to authenticate in the system
+    */
+  case class AuthenticationSignUp(username: String, password: String)
 
   /**
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
@@ -46,11 +66,35 @@ object ApiClientIncomingMessages {
   */
 object ApiClientOutgoingMessages {
   /**
+    * Message that represents the successfully access to the system.
+    *
+    * @param token user identification token within the system
+    */
+  case class AuthenticationSignInSuccessful(token: String)
+  /**
+    * Message representing the failure of access to the system.
+    *
+    * @param reason reason that generated the failure
+    */
+  case class AuthenticationSignInFailure(reason: String)
+  /**
+    * Message that represents the successfully registration in the system.
+    *
+    * @param token user identification token within the system
+    */
+  case class AuthenticationSignUpSuccessful(token: String)
+  /**
+    * Message representing the failure of registration in the system.
+    *
+    * @param reason reason that generated the failure
+    */
+  case class AuthenticationSignUpFailure(reason: String)
+  /**
     * Questo messaggio rappresenta il successo della crazione di una stanza privata.
     *
     * @param token è il token identificativo che restitusice il model dopo che la stanza viene creata correttamente
     */
-  case class RoomCreatePrivateSuccesful(token: String)
+  case class RoomCreatePrivateSuccessful(token: String)
   /**
     * Questo messaggio rappresenta il fallimento nella crazione di una stanza privata.
     *
@@ -60,11 +104,11 @@ object ApiClientOutgoingMessages {
   /**
     * Questo messaggio rappresenta che si è entrati in una stanza privata
     */
-  case object RoomEnterPrivateSuccesful
+  case object RoomEnterPrivateSuccessful
   /**
     * Questo messaggio rappresenta che si è entrati in una stanza pubblica
     */
-  case object  RoomEnterPublicSuccesful
+  case object  RoomEnterPublicSuccessful
   /**
     * Questo messaggio rappresenta che non si è entrati in una stanza pubblica
     */
@@ -97,31 +141,51 @@ class ApiClientActor() extends Actor{
     * @return [[Receive]] che gestisce tutti i messaggi corrispondenti alle richieste che è possibile inviare ai servizi online
     */
   // Tutti i behaviour sono attivi in contemporanea, la separazione è solo logica per una migliore leggibilità
-  override def receive: Receive = roomManagerBehaviour // orElse ...
+  override def receive: Receive = authenticationBehaviour orElse roomManagerBehaviour// orElse ...
 
   /*
    * Behaviour che gestisce tutte le chiamate al servizio di gestione delle stanze.
    */
-  private val apiWrapper = RoomsApiWrapper()
-  import apiWrapper._
+  private val roomApiWrapper = RoomsApiWrapper()
+  import roomApiWrapper._
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer, token) =>
       val senderTmp = sender
       createRoom(name, nPlayer)(token).onComplete({
-        case Success(t) => senderTmp ! RoomCreatePrivateSuccesful(t)
+        case Success(t) => senderTmp ! RoomCreatePrivateSuccessful(t)
         case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
       })
     case RoomEnterPrivate(idRoom, participant, webAddress, token) =>
       val senderTmp = sender
       enterRoom(idRoom)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
-        case Success(_) => senderTmp ! RoomEnterPrivateSuccesful
+        case Success(_) => senderTmp ! RoomEnterPrivateSuccessful
         case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
     case RoomEnterPublic(nPlayer, participant, webAddress, token) => //TODO serve webAddress
       val senderTmp = sender
       enterPublicRoom(nPlayer)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
-        case Success(_) => senderTmp ! RoomEnterPublicSuccesful
+        case Success(_) => senderTmp ! RoomEnterPublicSuccessful
         case Failure(error) => senderTmp ! RoomEnterPublicFailure(error.getMessage)
+      })
+  }
+
+  /*
+    * Behavior that handles the calls to the authentication management service.
+    */
+  private val authenticationApiWrapper = AuthenticationService()
+  import authenticationApiWrapper._
+  private def authenticationBehaviour: Receive = {
+    case AuthenticationSignIn(username, password) =>
+      val senderTmp = sender
+      login(username, password).onComplete({
+        case Success(token) => senderTmp ! AuthenticationSignInSuccessful(token)
+        case Failure(reason) => senderTmp ! AuthenticationSignInFailure(reason getMessage)
+      })
+    case AuthenticationSignUp(username, password) =>
+      val senderTmp = sender
+      signUp(username, password).onComplete({
+        case Success(token) => senderTmp ! AuthenticationSignUpSuccessful(token)
+        case Failure(reason) => senderTmp ! AuthenticationSignUpFailure(reason getMessage)
       })
 
   }
