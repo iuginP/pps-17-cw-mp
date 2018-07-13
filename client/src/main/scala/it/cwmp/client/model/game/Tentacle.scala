@@ -46,21 +46,15 @@ object Tentacle {
     *
     * Every second a distance of 1 is traveled
     */
-  val defaultSpeedStrategy = TentacleSpeedStrategyDefault()
-
-  private case class TentacleSpeedStrategyDefault() extends SizingStrategy[Long, Int] {
-    override def sizeOf(elapsedTimeInMillis: Long): Int = (elapsedTimeInMillis / 1000).toInt
-  }
+  val defaultSpeedStrategy: SizingStrategy[Long, Int] =
+    (elapsedTimeInMillis: Long) => (elapsedTimeInMillis / 1000).toInt
 
   /**
     * Default coloring strategy for tentacles
     *
     * Copies the color of starting cell
     */
-  val defaultColoringStrategy = TentacleColoringStrategyDefault()
-
-  private case class TentacleColoringStrategyDefault() extends ColoringStrategy[Tentacle, Color] {
-    override def colorOf(thing: Tentacle): Color = Cell.defaultColoringStrategy.colorOf(thing.startCell)
-  }
+  val defaultColoringStrategy: ColoringStrategy[Tentacle, Color] =
+    (tentacle: Tentacle) => Cell.defaultColoringStrategy.colorOf(tentacle.startCell)
 
 }

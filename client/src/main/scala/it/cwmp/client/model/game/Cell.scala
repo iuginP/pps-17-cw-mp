@@ -51,40 +51,27 @@ object Cell {
   /**
     * Default cell coloring strategy
     */
-  val defaultColoringStrategy = CellColouringStrategy()
-
-  private case class CellColouringStrategy() extends ColoringStrategy[Cell, Color] {
-    override def colorOf(cell: Cell): Color =
-      cell.owner.username.charAt(0) match {
-        case 'd' => Color.GREEN
-        case 'e' => Color.RED
-        case _ => Color.BROWN
-      }
-  }
+  val defaultColoringStrategy: ColoringStrategy[Cell, Color] =
+    (cell: Cell) => cell.owner.username.charAt(0) match {
+      case 'd' => Color.GREEN
+      case 'e' => Color.RED
+      case _ => Color.BROWN
+    }
 
   /**
     * The default sizing strategy
     *
     * doubles size when cell has more than 100 energy
     */
-  val defaultSizingStrategy: SizingStrategy[Cell, Int] = CellSizingStrategy()
-
-  private case class CellSizingStrategy() extends SizingStrategy[Cell, Int] {
-    /**
-      * @return the diameter of the cell
-      */
-    override def sizeOf(cell: Cell): Int =
-      if (cell.energy > 100) Constants.cellSize * 2 else Constants.cellSize
-  }
+  val defaultSizingStrategy: SizingStrategy[Cell, Int] =
+    (cell: Cell) => if (cell.energy > 100) Constants.cellSize * 2 else Constants.cellSize
 
   /**
     * The default evolution strategy for cells
     *
     * adds 1 to energy each second
     */
-  val cellEvolutionStrategy = EvolutionStrategyDefault()
-
-  private case class EvolutionStrategyDefault() extends EvolutionStrategy[Cell, Long] {
+  val cellEvolutionStrategy: EvolutionStrategy[Cell, Long] = new EvolutionStrategy[Cell, Long] {
     private var residualTime: Long = 0
 
     override def evolveAccordingTo(elapsedTime: Long, cell: Cell): Cell = {
