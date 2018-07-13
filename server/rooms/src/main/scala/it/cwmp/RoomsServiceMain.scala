@@ -12,7 +12,7 @@ import it.cwmp.controller.rooms.RoomsServiceVerticle
   */
 object RoomsServiceMain extends App {
 
-  private implicit val vertx: Vertx = Vertx.vertx()
+  private val vertx: Vertx = Vertx.vertx()
   vertx.deployVerticle(RoomsServiceVerticle(AuthenticationService(), RoomReceiverApiWrapper()))
 
   println("Deploying RoomServiceVerticle... ") // TODO replace with logger logging

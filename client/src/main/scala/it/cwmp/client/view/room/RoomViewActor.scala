@@ -2,6 +2,7 @@ package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
+import it.cwmp.client.view.AlertActor
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -9,7 +10,10 @@ import javafx.embed.swing.JFXPanel
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object RoomViewMessages {
-
+  /**
+    * Questo messaggio rappresenta l'inizializzazione del controller che verrà poi utilizzato per le rispote che verrano inviate al mittente.
+    * Quando ricevuto, inizializzo il controller.
+    */
   case object InitController
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
@@ -28,9 +32,14 @@ object RoomViewActor {
   *
   * @author Davide Borficchia
   */
-class RoomViewActor extends Actor{
-
-  var roomFXController: RoomFXController = _
+class RoomViewActor extends Actor with AlertActor {
+  /**
+    * roomFXController il controller che gestisce la view della lobby delle stanze
+    */
+  var fxController: RoomFXController = _
+  /**
+    * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
+    */
   var controllerActor: ActorRef = _
 
   /**
@@ -43,8 +52,14 @@ class RoomViewActor extends Actor{
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
-      roomFXController = RoomFXController((name: String, nPlayer: Int) =>
-        controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer))
+      fxController = RoomFXController(new RoomFXStrategy {
+        override def onCreate(name: String, nPlayer: Int): Unit =
+          controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
+        override def onEnterPrivate(idRoom: String): Unit =
+          controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+        override def onEnterPublic(nPlayer: Int): Unit =
+          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
+      })
     })
   }
 
@@ -53,8 +68,8 @@ class RoomViewActor extends Actor{
     * Non va mai chiamato direttamente!
     * I messaggi che questo attore è ingrado di ricevere sono raggruppati in [[RoomViewMessages]]
     */
-  override def receive: Receive = {
+  override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
-    case RoomViewMessages.ShowGUI => Platform runLater(() => roomFXController.showGUI())
+    case RoomViewMessages.ShowGUI => Platform runLater(() => fxController.showGUI())
   }
 }

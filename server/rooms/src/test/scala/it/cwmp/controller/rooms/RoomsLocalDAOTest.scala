@@ -1,6 +1,8 @@
 package it.cwmp.controller.rooms
 
-import it.cwmp.model.{Address, Participant, User}
+import io.vertx.core.json.JsonObject
+import io.vertx.scala.ext.jdbc.JDBCClient
+import it.cwmp.model.Participant
 import it.cwmp.testing.server.rooms.RoomsTesting
 import org.scalatest.BeforeAndAfterEach
 
@@ -19,8 +21,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
   private implicit val user: Participant = Participant("Enrico", userAddress)
 
   override protected def beforeEach(): Unit = {
-    val localDAO = RoomsLocalDAO(vertx)
-    daoFuture = localDAO.initialize().map(_ => localDAO)
+    daoFuture = createRoomLocalDAO flatMap (dao => dao.initialize() map (_ => dao))
   }
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
@@ -271,35 +272,49 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
       val fakePlayersNumber = 2
 
       it("createRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).createRoom(fakeRoomName, fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.createRoom(fakeRoomName, fakePlayersNumber)))
       }
       it("enterRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.enterRoom(fakeRoomID)))
       }
       it("roomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).roomInfo(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.roomInfo(fakeRoomID)))
       }
       it("exitRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.exitRoom(fakeRoomID)))
       }
       it("listPublicRooms") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).listPublicRooms())
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.listPublicRooms()))
       }
       it("enterPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).enterPublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.enterPublicRoom(fakePlayersNumber)))
       }
       it("publicRoomInfo") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).publicRoomInfo(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.publicRoomInfo(fakePlayersNumber)))
       }
       it("exitPublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).exitPublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.exitPublicRoom(fakePlayersNumber)))
       }
       it("deleteRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteRoom(fakeRoomID))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.deleteRoom(fakeRoomID)))
       }
       it("deleteAndRecreatePublicRoom") {
-        recoverToSucceededIf[IllegalStateException](RoomsLocalDAO(vertx).deleteAndRecreatePublicRoom(fakePlayersNumber))
+        recoverToSucceededIf[IllegalStateException](createRoomLocalDAO.flatMap(_.deleteAndRecreatePublicRoom(fakePlayersNumber)))
       }
     }
   }
+
+  /**
+    * @return the created RoomsLocalDAO to test
+    */
+  private def createRoomLocalDAO: Future[RoomsLocalDAO] =
+    loadLocalDBConfig.map(JDBCClient.createShared(vertx, _))
+      .flatMap(client => client.querySingleFuture("DROP SCHEMA PUBLIC CASCADE")
+        .map(_ => RoomsLocalDAO(client)))
+
+  /**
+    * @return the Future containing local database configuration JSON
+    */
+  private def loadLocalDBConfig: Future[JsonObject] =
+    vertx fileSystem() readFileFuture "database/jdbc_config.json" map (_.toJsonObject)
 }
