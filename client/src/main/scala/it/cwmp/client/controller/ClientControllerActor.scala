@@ -56,7 +56,6 @@ object ClientControllerActor {
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
   // TODO debug token
-  val username = "pippo"
   val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
 
   /**
