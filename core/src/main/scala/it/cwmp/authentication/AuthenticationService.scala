@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-trait AuthenticationService extends Validation[String, User] {
+trait AuthenticationService extends HttpValidation[User] {
 
   def signUp(username: String, password: String): Future[String]
 
@@ -70,17 +70,20 @@ object AuthenticationService {
     override def validate(token: String): Future[User] =
       HttpUtils.buildJwtAuthentication(token) match {
         case None => Future.failed(new IllegalArgumentException())
-        case Some(authHeader) => client.get("/api/validate")
+        case Some(authHeader) => verifyAuthorization(authHeader)
+      }
+
+    override def verifyAuthorization(authHeader: String): Future[User] =
+      client.get("/api/validate")
           .putHeader(
             HttpHeaderNames.AUTHORIZATION.toString,
             authHeader)
           .sendFuture()
-          .transform({
+          .transform {
             case Success(res) if res.statusCode() == 200 => Success(User(res.bodyAsString().get))
-            case Success(res) => Failure(HTTPException(res.statusCode()))// TODO: add an error message as second argument of HTTP exception
+            case Success(res) => Failure(HTTPException(res.statusCode(), Some("Unauthorized user")))
             case Failure(f) => Failure(f)
-          })
-      }
+          }
   }
 
 }
