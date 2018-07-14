@@ -1,6 +1,6 @@
 package it.cwmp.client.view
 
-import javafx.scene.control.{CheckBox, Spinner, TextField}
+import javafx.scene.control.{CheckBox, PasswordField, Spinner, TextField}
 
 trait FXChecks extends FXController with FXAlerts {
 

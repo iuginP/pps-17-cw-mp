@@ -10,7 +10,7 @@ object AlertMessages {
     * @param title contiene il titolo del messaggio
     * @param message contiene il corpo del messaggio da visualizzare
     */
-  case class Info(title: String, message: String)
+  case class Info(title: String, message: String, onClose: Option[() => Unit] = None)
 
   /**
     * Questo messagio serve per mostrare un messaggio di errore all'utente.
@@ -18,7 +18,7 @@ object AlertMessages {
     * @param title contiene il titolo del messaggio
     * @param message contiene il corpo del messaggio da visualizzare
     */
-  case class Error(title: String,message: String)
+  case class Error(title: String, message: String, onClose: Option[() => Unit] = None)
 }
 
 /**
@@ -37,7 +37,7 @@ trait AlertActor {
     */
   import AlertMessages._
   protected def alertBehaviour: Receive = {
-    case Info(title, message) => fxController showInfo(title, message)
-    case Error(title, message) => fxController showError(title, message)
+    case Info(title, message, onClose) => fxController showInfo(title, message, onClose)
+    case Error(title, message, onClose) => fxController showError(title, message, onClose)
   }
 }
