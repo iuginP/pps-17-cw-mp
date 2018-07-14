@@ -42,19 +42,13 @@ object RoomReceiverApiWrapper {
   private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper with ApiClient {
 
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
-
-      val addressesJSONArray = toSend.foldLeft(Json emptyArr()) { (jsonArray, participant) =>
-        jsonArray add participant.toJson
-      }
-
       import scala.concurrent.ExecutionContext.Implicits.global
-
       createWebClient()
         .post(clientAddress)
-        .sendJsonFuture(addressesJSONArray)
+        .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
         .map(_ => Unit)
 
-      // should implement a retry strategy?
+      // TODO should implement a retry strategy?
     }
   }
 
