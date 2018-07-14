@@ -133,6 +133,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
     */
   def becomeAuthenticationManager(): Unit = {
+    logger.info(s"Setting the behaviour 'authentication-manager'")
     context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
   }
 
@@ -155,8 +156,10 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     */
   def authenticationManagerBehaviour: Receive = {
     case AuthenticationPerformSignIn(username, password) =>
+      logger.info(s"Signing in as $username")
       authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
     case AuthenticationPerformSignUp(username, password) =>
+      logger.info(s"Signing up as $username")
       authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
   }
 

@@ -1,5 +1,6 @@
 package it.cwmp.controller.client
 
+import io.vertx.core.http.HttpMethod
 import io.vertx.lang.scala.json.Json
 import it.cwmp.controller.ApiClient
 import it.cwmp.model.Participant
@@ -44,7 +45,7 @@ object RoomReceiverApiWrapper {
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
       import scala.concurrent.ExecutionContext.Implicits.global
       createWebClient()
-        .post(clientAddress)
+        .requestAbs(HttpMethod.POST, clientAddress)
         .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
         .map(_ => Unit)
 
