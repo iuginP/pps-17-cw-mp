@@ -4,6 +4,7 @@ import akka.actor.Actor
 import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.model.Participant
+import it.cwmp.model.Address
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
@@ -35,9 +36,9 @@ object ApiClientIncomingMessages {
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
     * Quando lo ricevo, inoltro la richiesta al servizio online.
     *
-    * @param name è il nome della stanza da creare
+    * @param name    è il nome della stanza da creare
     * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
-    * @param token è il token d'autenticazione per poter fare le richieste
+    * @param token   è il token d'autenticazione per poter fare le richieste
     */
   case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
 
@@ -45,12 +46,12 @@ object ApiClientIncomingMessages {
     * Questo messaggio gestisce la volontà di entrare in  una stanza privata.
     * Quando lo ricevo, inoltro la richiesta al servizio online.
     *
-    * @param idRoom è l'id della stanza nella quale voglio entrare
-    * @param participant è il partecipante che si vuole far entrare nella stanza
-    * @param webAddress è l'indirizzo del web server in ascolto per la lista dei partecipanti
-    * @param token è il token d'autenticazione per poter fare le richieste
+    * @param idRoom        è l'id della stanza nella quale voglio entrare
+    * @param playerAddress è il partecipante che si vuole far entrare nella stanza
+    * @param webAddress    è l'indirizzo del web server in ascolto per la lista dei partecipanti
+    * @param token         è il token d'autenticazione per poter fare le richieste
     */
-  case class RoomEnterPrivate(idRoom: String, participant: Participant, webAddress: String, token: String)
+  case class RoomEnterPrivate(idRoom: String, playerAddress: Address, webAddress: Address, token: String)
 
   /**
     * Questo messaggio gestisce la volontà di entrare in una stanza pubblica
@@ -58,57 +59,67 @@ object ApiClientIncomingMessages {
     *
     * @param nPlayer è il numero dei partecipanti a quella stanza
     */
-  case class RoomEnterPublic(nPlayer: Integer, participant: Participant, webAddress: String, token: String)
+  case class RoomEnterPublic(nPlayer: Int, playerAddress: Address, webAddress: Address, token: String)
+
 }
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può inviare.
   */
 object ApiClientOutgoingMessages {
+
   /**
     * Message that represents the successfully access to the system.
     *
     * @param token user identification token within the system
     */
   case class AuthenticationSignInSuccessful(token: String)
+
   /**
     * Message representing the failure of access to the system.
     *
     * @param reason reason that generated the failure
     */
   case class AuthenticationSignInFailure(reason: String)
+
   /**
     * Message that represents the successfully registration in the system.
     *
     * @param token user identification token within the system
     */
   case class AuthenticationSignUpSuccessful(token: String)
+
   /**
     * Message representing the failure of registration in the system.
     *
     * @param reason reason that generated the failure
     */
   case class AuthenticationSignUpFailure(reason: String)
+
   /**
     * Questo messaggio rappresenta il successo della crazione di una stanza privata.
     *
     * @param token è il token identificativo che restitusice il model dopo che la stanza viene creata correttamente
     */
   case class RoomCreatePrivateSuccessful(token: String)
+
   /**
     * Questo messaggio rappresenta il fallimento nella crazione di una stanza privata.
     *
     * @param reason è il motivo che ha generato il fallimento
     */
   case class RoomCreatePrivateFailure(reason: String)
+
   /**
     * Questo messaggio rappresenta che si è entrati in una stanza privata
     */
   case object RoomEnterPrivateSuccessful
+
   /**
     * Questo messaggio rappresenta che si è entrati in una stanza pubblica
     */
-  case object  RoomEnterPublicSuccessful
+  case object RoomEnterPublicSuccessful
+
   /**
     * Questo messaggio rappresenta che non si è entrati in una stanza pubblica
     */
@@ -125,19 +136,21 @@ object ApiClientOutgoingMessages {
     * @param reason è il motivo del fallimento
     */
   case class RoomEnterPrivateFailure(reason: String)
+
 }
 
-import ApiClientIncomingMessages._
-import ApiClientOutgoingMessages._
+import it.cwmp.client.model.ApiClientIncomingMessages._
+import it.cwmp.client.model.ApiClientOutgoingMessages._
 
 object ApiClientActor {
   def apply(): ApiClientActor = new ApiClientActor()
 }
 
-class ApiClientActor() extends Actor{
+class ApiClientActor() extends Actor {
 
   /**
     * Possono essere ricevuti messaggi di tipo [[ApiClientIncomingMessages]] ed inviati quelli di tipo [[ApiClientOutgoingMessages]]
+    *
     * @return [[Receive]] che gestisce tutti i messaggi corrispondenti alle richieste che è possibile inviare ai servizi online
     */
   // Tutti i behaviour sono attivi in contemporanea, la separazione è solo logica per una migliore leggibilità
@@ -148,6 +161,7 @@ class ApiClientActor() extends Actor{
    */
   private val roomApiWrapper = RoomsApiWrapper()
   import roomApiWrapper._
+
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer, token) =>
       val senderTmp = sender
@@ -157,13 +171,13 @@ class ApiClientActor() extends Actor{
       })
     case RoomEnterPrivate(idRoom, participant, webAddress, token) =>
       val senderTmp = sender
-      enterRoom(idRoom)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterRoom(idRoom, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
         case Success(_) => senderTmp ! RoomEnterPrivateSuccessful
         case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
       })
     case RoomEnterPublic(nPlayer, participant, webAddress, token) => //TODO serve webAddress
       val senderTmp = sender
-      enterPublicRoom(nPlayer)(participant, token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterPublicRoom(nPlayer, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
         case Success(_) => senderTmp ! RoomEnterPublicSuccessful
         case Failure(error) => senderTmp ! RoomEnterPublicFailure(error.getMessage)
       })

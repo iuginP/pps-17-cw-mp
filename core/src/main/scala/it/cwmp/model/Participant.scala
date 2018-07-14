@@ -1,14 +1,19 @@
 package it.cwmp.model
 
 import io.vertx.lang.scala.json.JsonObject
-import it.cwmp.model.User.Converters.{JsonUserConverter, RichUser}
 import it.cwmp.utils.Utils._
 
+/**
+  * A trait that describes a participant of a game Room
+  *
+  * @author Eugenio Pierfederici
+  */
 trait Participant extends User with Address
 
+/**
+  * Companion object
+  */
 object Participant {
-
-  val FIELD_ADDRESS = "user_address"
 
   def apply(username: String, address: String): Participant = {
     require(!emptyString(username), "Username empty")
@@ -22,7 +27,7 @@ object Participant {
   private case class ParticipantImpl(username: String, address: String) extends Participant
 
   /**
-    * Converters for User
+    * Converters for Participant
     *
     * @author Enrico Siboni
     * @author Eugenio Pierfederici
@@ -32,17 +37,32 @@ object Participant {
     /**
       * Participant to Json Converter
       */
-    implicit class RichParticipant(participant: Participant) extends RichUser(participant) {
-      override def toJson: JsonObject = super.toJson put(FIELD_ADDRESS, participant.address)
+    implicit class RichParticipant(participant: Participant) {
+      def toJson: JsonObject = {
+        import Address.Converters._
+        val json = participant.asInstanceOf[Address].toJson
+
+        import User.Converters._
+        participant.asInstanceOf[User].toJson.mergeIn(json)
+      }
     }
 
     /**
       * Json to Participant Converter
       */
-    implicit class JsonParticipantConverter(json: JsonObject) extends JsonUserConverter(json) {
+    implicit class JsonParticipantConverter(json: JsonObject) {
       def toParticipant: Participant =
-        if (json containsKey FIELD_ADDRESS) Participant(super.toUser.username, json getString FIELD_ADDRESS)
-        else throw parseException("Participant JsonParsing", s"The input doesn't contain $FIELD_ADDRESS --> ${json encodePrettily()}")
+        if ((json containsKey Address.FIELD_ADDRESS) && (json containsKey User.FIELD_USERNAME)) {
+          val address = {
+            import Address.Converters._
+            json.toAddress
+          }
+          val user = {
+            import User.Converters._
+            json.toUser
+          }
+          Participant(user.username, address.address)
+        } else throw parseException("Participant JsonParsing", s"The input doesn't contain ${Address.FIELD_ADDRESS} or ${User.FIELD_USERNAME} --> ${json encodePrettily()}")
     }
 
   }

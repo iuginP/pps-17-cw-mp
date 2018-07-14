@@ -4,13 +4,12 @@ import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
-import io.vertx.lang.scala.json.{Json, JsonObject}
+import io.vertx.lang.scala.json.{Json, JsonArray, JsonObject}
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.model.Participant.Converters._
-import it.cwmp.model.{Participant, Room}
+import it.cwmp.model.{Address, Room}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,14 +36,15 @@ trait RoomsApiWrapper {
   /**
     * Enters a room
     *
-    * @param roomID    the identifier of the room
-    * @param user      the user that wants to enter
-    * @param userToken the token to be authenticated against api
+    * @param roomID              the identifier of the room
+    * @param userAddress         the address of the paler that wants to enter
+    * @param notificationAddress the address where player wants to receive notification of room filling
+    * @param userToken           the token to be authenticated against api
     * @return the future that completes when the user has entered,
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: Participant, userToken: String): Future[Unit]
+  def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
 
   /**
     * Retrieves room information
@@ -78,14 +78,15 @@ trait RoomsApiWrapper {
   /**
     * Enters a public room
     *
-    * @param playersNumber the number of players that the public room has to have
-    * @param user          the user that wants to enter
-    * @param userToken     the token to be authenticated against api
+    * @param playersNumber       the number of players that the public room has to have
+    * @param userAddress         the address of the paler that wants to enter
+    * @param notificationAddress the address where player wants to receive notification of room filling
+    * @param userToken           the token to be authenticated against api
     * @return the future that completes when user ha entered,
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int)(implicit user: Participant, userToken: String): Future[Unit]
+  def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players
@@ -150,8 +151,8 @@ object RoomsApiWrapper {
       RoomsApiWrapper.createPrivateRoom(roomName, playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), 201))
 
-    override def enterRoom(roomID: String)(implicit user: Participant, userToken: String): Future[Unit] =
-      RoomsApiWrapper.enterPrivateRoom(roomID)
+    override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
+      RoomsApiWrapper.enterPrivateRoom(roomID, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     override def roomInfo(roomID: String)(implicit userToken: String): Future[Room] =
@@ -176,8 +177,8 @@ object RoomsApiWrapper {
           }
         }, 200))
 
-    override def enterPublicRoom(playersNumber: Int)(implicit user: Participant, userToken: String): Future[Unit] =
-      RoomsApiWrapper.enterPublicRoom(playersNumber)
+    override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
+      RoomsApiWrapper.enterPublicRoom(playersNumber, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     override def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room] =
@@ -212,9 +213,13 @@ object RoomsApiWrapper {
   /**
     * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
     */
-  private[rooms] def enterPrivateRoom(roomID: String)(implicit webClient: WebClient, participant: Participant, userToken: String) = {
+  private[rooms] def enterPrivateRoom(roomID: String,
+                                      userAddress: Address,
+                                      notificationAddress: Address)
+                                     (implicit webClient: WebClient,
+                                      userToken: String) = {
     createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonObjectFuture(participant.toJson))
+      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress)))
   }
 
   /**
@@ -244,9 +249,13 @@ object RoomsApiWrapper {
   /**
     * Wrapper method to do REST HTTP call to RoomsService enterPublicRoom API
     */
-  private[rooms] def enterPublicRoom(playersNumber: Int)(implicit webClient: WebClient, participant: Participant, userToken: String) = {
+  private[rooms] def enterPublicRoom(playersNumber: Int,
+                                     userAddress: Address,
+                                     notificationAddress: Address)
+                                    (implicit webClient: WebClient,
+                                     userToken: String) = {
     createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonObjectFuture(participant.toJson))
+      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress)))
   }
 
   /**
@@ -292,4 +301,11 @@ object RoomsApiWrapper {
   private[rooms] def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
     Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))
 
+  /**
+    * Handle method to create the JSON to use in entering API
+    */
+  private[rooms] def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray = {
+    import Address.Converters._
+    Json.arr(playerAddress.toJson, notificationAddress.toJson)
+  }
 }
