@@ -5,7 +5,7 @@ import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
-import it.cwmp.model.{Address, Participant}
+import it.cwmp.model.{Address}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -75,8 +75,6 @@ object ClientControllerActor {
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
-  // TODO debug token
-  //val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
   var jwtToken = ""
 
   /**
@@ -95,7 +93,6 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Actor for the management of authentication processes to which the relative messages will be sent.
     */
   var authenticationViewActor: ActorRef = _
-  // TODO: averli separati?
   var authenticationApiClientActor: ActorRef = _
 
   /**
@@ -123,7 +120,6 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
-  // TODO: vanno tutti in orElse?
   override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour
 
   /**
@@ -199,7 +195,6 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   import ApiClientOutgoingMessages._
 
   // TODO: qui lasciamo il behaviuor misto?
-  // TODO: dall'altra parte non gestiamo la cosa?
   private def apiClientReceiverBehaviour: Receive = {
     case AuthenticationSignInSuccessful(token) =>
       authenticationViewActor ! AlertMessages.Info(s"Result", "Sign in successfully completed!", Some(() => {
