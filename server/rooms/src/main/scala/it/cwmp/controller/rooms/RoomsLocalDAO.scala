@@ -447,7 +447,7 @@ object RoomsLocalDAO {
       roomUsers <- roomsUsers;
       roomAddresses <- roomsAddresses if roomUsers._1 == roomAddresses._1;
       roomInfo <- roomsInfo if roomUsers._1 == roomInfo._1;
-      output = (Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2), roomAddresses._2);
+      output = (Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2), roomAddresses._2)
     ) yield output).toSeq
   }
 

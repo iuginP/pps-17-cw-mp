@@ -1,5 +1,6 @@
 package it.cwmp.controller.rooms
 
+import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -50,12 +51,17 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
       .createHttpServer()
       .requestHandler(router.accept _)
       .listenFuture(DEFAULT_PORT)
+      .andThen {
+        case Success(_) => logger.info(s"RoomsService listening on port:$DEFAULT_HOST")
+        case Failure(ex) => logger.error("Cannot start RoomService", ex)
+      }
   }
 
   /**
     * Handles the creation of a private room
     */
   private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Create Private Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(_ =>
         extractIncomingRoomFromBody(body) match {
@@ -66,6 +72,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
                 case Failure(ex) => sendResponse(400, Some(ex.getMessage))
               })
           case None =>
+            logger.warn("Request body for room creation is required!")
             sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR no Room JSON in body"))
         }))
 
@@ -85,6 +92,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles entering in a private room
     */
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Enter Private Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         (extractRequestParam(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
@@ -94,14 +102,16 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
                 .transform({
                   case Success(_) => Failure(new Exception())
                   case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => println(ex); Success(Unit)
+                  case Failure(ex) => logger.error("Error handling Private Room Filling", ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}"))
+          case _ =>
+            logger.warn("Player and notification address are required for entering a room!")
+            sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -110,6 +120,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles retrieving info of a private room
     */
   private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Private Room Info Request received...")
     validateUserOrSendError.map(_ => {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
@@ -129,6 +140,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles exititng a private room
     */
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Exit Private Room Request received...")
     validateUserOrSendError.map(implicit user => {
       extractRequestParam(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
@@ -146,6 +158,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles listing of public rooms
     */
   private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("List Public Rooms Request received...")
     validateUserOrSendError.map(_ => {
       daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
@@ -161,6 +174,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles entering in a public room
     */
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Enter Public Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         val playersNumberOption = try extractRequestParam(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
@@ -174,14 +188,16 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
                 .transform({
                   case Success(_) => Failure(new Exception())
                   case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => println(ex); Success(Unit)
+                  case Failure(ex) => logger.error("Error handling Public Room Filling", ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200, None))
               case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
               case Failure(ex) => sendResponse(400, Some(ex.getMessage))
             })
 
-          case _ => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}"))
+          case _ =>
+            logger.warn("The number of players in url and player/notification address in body are required for public room entering")
+            sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}"))
         }
       }))
   }
@@ -190,6 +206,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles retrieving info of a public room
     */
   private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Public Room Info Request received...")
     validateUserOrSendError.map(_ => {
       (try extractRequestParam(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
@@ -203,7 +220,9 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
             case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
             case Failure(ex) => sendResponse(400, Some(ex.getMessage))
           })
-        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}"))
+        case None =>
+          logger.warn("The number of players in url is required for public room info retrieval")
+          sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}"))
       }
     })
   }
@@ -212,6 +231,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * Handles exiting a public room
     */
   private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Exit Public Room Request received...")
     validateUserOrSendError.map(implicit user => {
       (try extractRequestParam(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
@@ -223,7 +243,9 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
             case Failure(ex: NoSuchElementException) => sendResponse(404, Some(ex.getMessage))
             case Failure(ex) => sendResponse(400, Some(ex.getMessage))
           })
-        case None => sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}"))
+        case None =>
+          logger.warn("The number of players in url is required for public room exiting")
+          sendResponse(400, Some(s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}"))
       }
     })
   }
@@ -240,6 +262,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
   private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
     HttpUtils.getRequestAuthorizationHeader(routingContext.request()) match {
       case None =>
+        logger.warn("No authorization header in request")
         sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
         Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
 
@@ -249,7 +272,10 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
             case HTTPException(statusCode, errorMessage) =>
               sendResponse(statusCode, errorMessage)
               Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
-          }
+          } andThen {
+          case Success(user) => logger.info(s"Validation succeeded: $user")
+          case Failure(ex) => logger.error("Error validating user", ex)
+        }
     }
   }
 }
@@ -260,6 +286,8 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
   * @author Enrico Siboni
   */
 object RoomsServiceVerticle {
+
+  private val logger: Logger = Logger[RoomsServiceVerticle]
 
   private val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
   private val INVALID_PARAMETER_ERROR = "Invalid parameters: "
@@ -353,8 +381,11 @@ object RoomsServiceVerticle {
   private def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
                                       (implicit communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
+    logger.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
     val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
     val players = for (player <- roomInformation._1.participants) yield player
+    logger.info(s"Participant notification addresses to contact: $notificationAddresses")
+    logger.info(s"Information to send -> $players")
     Future.sequence {
       notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
     } map (_ => Unit)
@@ -371,7 +402,7 @@ object RoomsServiceVerticle {
                            message: Option[String])
                           (implicit routingContext: RoutingContext): Unit = {
     val response = routingContext.response().setStatusCode(httpCode)
-
+    logger.info(s"Sending $httpCode response to client with message: $message")
     message match {
       case Some(messageString) => response.end(messageString)
       case None => response.end()
