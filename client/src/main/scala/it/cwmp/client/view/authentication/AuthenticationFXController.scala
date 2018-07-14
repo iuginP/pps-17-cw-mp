@@ -12,7 +12,7 @@ import javafx.stage.Stage
   */
 trait AuthenticationFXStrategy {
   /**
-    * Function invoked for a system access request
+    * Function invoked for a system access request.
     *
     * @param username identification chosen by the player to access the system
     * @param password password chosen during sign up
@@ -20,7 +20,17 @@ trait AuthenticationFXStrategy {
   def onSignIn(username: String, password: String): Unit
 
   /**
-    * Function invoked for a system registration request
+    * Function invoked for checking the correctness of the passwords.
+    *
+    * @param password password chosen
+    * @param confirmPassword confirmation password
+    * @return true, if the passwords respect the correctness policies
+    *         false, otherwise
+    */
+  def onCheckPassword(password: String, confirmPassword: String): Boolean
+
+  /**
+    * Function invoked for a system registration request.
     *
     * @param username identification chosen by the player to register in the system
     * @param password password chosen to authenticate in the system
@@ -63,7 +73,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
   @FXML
   private var pfSignUpPassword: PasswordField = _
   @FXML
-  private var pfSignUpPasswordConfirm: PasswordField = _
+  private var pfSignUpConfirmPassword: PasswordField = _
 
 
   @FXML
@@ -82,9 +92,15 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
       for(
         username <- getTextFieldValue(tfSignUpUsername, "È necessario inserire lo username");
         password <- getTextFieldValue(pfSignUpPassword, "È necessario inserire la password");
-        passwordConfirm <- getTextFieldValue(pfSignUpPasswordConfirm, "È necessario inserire nuovamente la password")
-        // TODO: controllare uguaglianza delle password
-      ) yield strategy.onSignUp(username, password)
+        confirmPassword <- getTextFieldValue(pfSignUpConfirmPassword, "È necessario inserire nuovamente la password")
+      ) yield {
+        // TODO: rivedere questa logica per farne una più specifica
+        if (strategy.onCheckPassword(password, confirmPassword)) {
+          strategy.onSignUp(username, password)
+        } else {
+          showError("Warning", "non-compliant passwords!")
+        }
+      }
     })
   }
 
@@ -109,7 +125,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
     } else {
       tfSignUpUsername setText ""
       pfSignUpPassword setText ""
-      pfSignUpPasswordConfirm setText ""
+      pfSignUpConfirmPassword setText ""
     }
   }
 

@@ -66,6 +66,9 @@ class AuthenticationViewActor extends Actor with AlertActor {
         override def onSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
+        override def onCheckPassword(password: String, confirmPassword: String): Boolean =
+          password == confirmPassword
+
         override def onSignUp(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password)
       })
