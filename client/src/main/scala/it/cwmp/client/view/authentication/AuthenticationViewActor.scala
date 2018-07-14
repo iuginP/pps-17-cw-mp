@@ -23,10 +23,9 @@ object AuthenticationViewActor {
 class AuthenticationViewActor extends Actor with AlertActor {
 
   var signInFXController: SignInFXController = _
-  var signUpFXController: SignUpFXController = _
   var controllerActor: ActorRef = _
 
-  override def fxController: FXAlerts = signUpFXController
+  var fxController: SignUpFXController = _
 
   override def preStart(): Unit = {
     super.preStart()
@@ -41,9 +40,9 @@ class AuthenticationViewActor extends Actor with AlertActor {
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
         override def onRequestSignUp(): Unit = {
-          signUpFXController = SignUpFXController((username: String, password: String) =>
+          fxController = SignUpFXController((username: String, password: String) =>
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password))
-          signUpFXController showGUI()
+          fxController showGUI()
         }
       })
     })
