@@ -10,6 +10,7 @@ import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Room}
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -278,8 +279,11 @@ object RoomsApiWrapper {
     * Utility method to build a client request with a token
     */
   private[rooms] def createClientRequestWithToken(httpMethod: HttpMethod, url: String)(implicit webClient: WebClient, userToken: String) =
-    createClientRequest(webClient, httpMethod, url)
-      .map(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, userToken))
+    HttpUtils.buildJwtAuthentication(userToken) match {
+      case None => Future.failed(HTTPException(400, Some("Missing authorization token")))
+      case Some(token) => createClientRequest(webClient, httpMethod, url)
+          .map(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, token))
+    }
 
   /**
     * Utility method to create a client request with certain parameters
