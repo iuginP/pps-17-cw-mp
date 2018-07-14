@@ -10,8 +10,6 @@ object StringRes {
   val appName: String = "Cell Wars MultiPlayer"
 
   // Authentication
-  val signInTitle: String = "Login"
-  val signUpTitle: String = "Registrazione"
 
   //RoomManagerView
   val roomManagerTitle = "Gestione stanze"

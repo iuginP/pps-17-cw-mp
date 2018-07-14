@@ -7,12 +7,32 @@ import javafx.fxml.FXML
 import javafx.scene.control._
 import javafx.stage.Stage
 
+/**
+  * Trait that models the strategy to be applied to resolve authentication requests.
+  */
 trait AuthenticationFXStrategy {
+  /**
+    * Function invoked for a system access request
+    *
+    * @param username identification chosen by the player to access the system
+    * @param password password chosen during sign up
+    */
   def onSignIn(username: String, password: String): Unit
 
+  /**
+    * Function invoked for a system registration request
+    *
+    * @param username identification chosen by the player to register in the system
+    * @param password password chosen to authenticate in the system
+    */
   def onSignUp(username: String, password: String): Unit
 }
 
+/**
+  * [[AuthenticationFXController]] companion object
+  *
+  * @author Elia Di Pasquale
+  */
 object AuthenticationFXController {
   def apply(strategy: AuthenticationFXStrategy): AuthenticationFXController = {
     require(strategy != null)
@@ -20,6 +40,11 @@ object AuthenticationFXController {
   }
 }
 
+/**
+  * Class that models the controller that manages the various authentication processes.
+  *
+  * @param strategy strategy to be applied to resolve authentication requests.
+  */
 class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
 
   protected val layout: String = LayoutRes.authenticationLayout
