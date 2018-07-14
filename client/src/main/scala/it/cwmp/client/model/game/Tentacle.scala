@@ -1,6 +1,6 @@
 package it.cwmp.client.model.game
 
-import javafx.scene.paint.Color
+import java.awt.Color
 
 /**
   * A trait that describes a Tentacle

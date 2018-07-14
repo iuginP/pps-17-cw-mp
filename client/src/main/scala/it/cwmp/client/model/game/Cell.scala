@@ -1,9 +1,10 @@
 package it.cwmp.client.model.game
 
+import java.awt.Color
+
 import it.cwmp.client.view.game.Constants
 import it.cwmp.client.view.game.model.ViewCell
 import it.cwmp.model.User
-import javafx.scene.paint.Color
 
 /**
   * A trait describing a game Cell
@@ -45,7 +46,7 @@ object Cell {
   def toViewCell(cell: Cell,
                  sizingStrategy: SizingStrategy[Cell, Int] = defaultSizingStrategy,
                  coloringStrategy: ColoringStrategy[Cell, Color] = defaultColoringStrategy): ViewCell = {
-    ViewCell(cell.position, sizingStrategy.sizeOf(cell), coloringStrategy.colorOf(cell))
+    ViewCell(cell.position, coloringStrategy.colorOf(cell), sizingStrategy.sizeOf(cell))
   }
 
   /**
@@ -55,7 +56,7 @@ object Cell {
     (cell: Cell) => cell.owner.username.charAt(0) match {
       case 'd' => Color.GREEN
       case 'e' => Color.RED
-      case _ => Color.BROWN
+      case _ => Color.BLUE
     }
 
   /**
