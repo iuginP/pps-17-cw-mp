@@ -4,6 +4,8 @@ import akka.actor.{Actor, ActorRef, AddressFromURIString}
 import akka.cluster.Cluster
 import akka.cluster.ddata.{DistributedData, Flag, FlagKey}
 import akka.cluster.ddata.Replicator.{Changed, Subscribe, Update, WriteAll}
+import com.typesafe.scalalogging.Logger
+import it.cwmp.client.controller.ClientControllerActor
 import it.cwmp.model.{Address, Participant}
 
 import scala.concurrent.duration._
@@ -24,6 +26,8 @@ object PlayerIncomingMessages {
 import it.cwmp.client.model.PlayerIncomingMessages._
 class PlayerActor extends Actor {
 
+  val logger: Logger = Logger[ClientControllerActor]
+
   val replicator: ActorRef = DistributedData(context.system).replicator
   implicit val cluster: Cluster = Cluster(context.system)
 
@@ -32,7 +36,7 @@ class PlayerActor extends Actor {
 
   override def receive: Receive = lobbyBehaviour orElse {
     case c @ Changed(TestKey) if c.get(TestKey).enabled =>
-      println("Receiving... Hello distributed! By " + self.path.address.toString)
+      logger.info("Receiving... Hello distributed! By " + self.path.address.toString)
   }
 
   private def backToLobby: Unit = context.become(lobbyBehaviour)
@@ -57,6 +61,6 @@ class PlayerActor extends Actor {
 
   private def sayHello(): Unit = {
     replicator ! Update(TestKey, Flag(), WriteAll(5.seconds))(_.switchOn)
-    println("Sending... Hello distributed! By " + self.path.address.toString)
+    logger.info("Sending... Hello distributed! By " + self.path.address.toString)
   }
 }
