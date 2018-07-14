@@ -1,14 +1,10 @@
 package it.cwmp.client
 
-import it.cwmp.client.view.OpeningView
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
+import akka.actor.{ActorSystem, Props}
+import it.cwmp.client.controller.ClientControllerActor
 
 object ClientMain extends App {
-  new JFXPanel
-  Platform setImplicitExit false
-  Platform runLater(() => {
-    val openingView = new OpeningView
-    openingView.start()
-  })
+  val system = ActorSystem("test")
+
+  val clientControllerActor = system.actorOf(Props(classOf[ClientControllerActor], system), "clientController")
 }

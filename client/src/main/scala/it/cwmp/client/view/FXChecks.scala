@@ -7,7 +7,7 @@ trait FXChecks extends FXController with FXAlerts {
   private val alertTitle = "Wrong input!" // TODO parametrize
 
   def getTextFieldValue(field: TextField): Option[String] =
-    if (field != null && field.getText() != "") Some(field getText)
+    if (field != null && field.getText() != "") Some(field.getText)
     else None
 
   def getTextFieldValue(field: TextField, message: String): Option[String] =
@@ -17,7 +17,7 @@ trait FXChecks extends FXController with FXAlerts {
     }
 
   def getSpinnerFieldValue[A](spinner: Spinner[A]): Option[A] =
-    if (spinner != null) Some(spinner getValue)
+    if (spinner != null) Some(spinner.getValue)
     else None
 
   def getSpinnerFieldValue[A](spinner: Spinner[A], message: String): Option[A] =
@@ -27,7 +27,7 @@ trait FXChecks extends FXController with FXAlerts {
     }
 
   def getCheckedBoxValue(checkBox: CheckBox): Option[Boolean] =
-    if (checkBox != null) Some(checkBox isSelected)
+    if (checkBox != null) Some(checkBox.isSelected)
     else None
 
   def getCheckedBoxValue(checkBox: CheckBox, message: String): Option[Boolean] =
