@@ -10,10 +10,10 @@ trait FXAlerts {
   this: FXController =>
 
   def showInfo(title: String, message: String, onClose: Option[() => Unit] = None): Unit =
-    genericAlert(AlertType.INFORMATION, title, s"$title:", message, onClose)
+    genericAlert(AlertType.INFORMATION, title, s"$title", message, onClose)
 
   def showError(title: String, message: String, onClose: Option[() => Unit] = None): Unit =
-    genericAlert(AlertType.ERROR, title, s"$title!", message, onClose)
+    genericAlert(AlertType.ERROR, title, s"$title", message, onClose)
 
   private def genericAlert(alertType: AlertType, title: String, headerTitle: String, message: String, onClose: Option[() => Unit]): Unit = {
     Platform runLater(() => {

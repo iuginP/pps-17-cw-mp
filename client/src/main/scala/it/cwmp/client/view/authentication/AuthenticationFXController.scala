@@ -98,7 +98,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
         if (strategy.onCheckPassword(password, confirmPassword)) {
           strategy.onSignUp(username, password)
         } else {
-          showError("Warning", "non-compliant passwords!")
+          showError("Warning", "Non-compliant passwords!")
         }
       }
     })

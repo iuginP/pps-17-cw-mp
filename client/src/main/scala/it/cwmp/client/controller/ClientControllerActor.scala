@@ -202,7 +202,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   // TODO: dall'altra parte non gestiamo la cosa?
   private def apiClientReceiverBehaviour: Receive = {
     case AuthenticationSignInSuccessful(token) =>
-      authenticationViewActor ! AlertMessages.Info(s"Result", "sign in successfully completed!", Some(() => {
+      authenticationViewActor ! AlertMessages.Info(s"Result", "Sign in successfully completed!", Some(() => {
         this.jwtToken = token
         becomeRoomsManager()
         authenticationViewActor ! AuthenticationViewMessages.HideGUI
@@ -210,7 +210,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     case AuthenticationSignInFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason)
     case AuthenticationSignUpSuccessful(token) =>
-      authenticationViewActor ! AlertMessages.Info(s"Result", "sign up successfully completed!", Some(() => {
+      authenticationViewActor ! AlertMessages.Info(s"Result", "Sign up successfully completed!", Some(() => {
         this.jwtToken = token
         becomeRoomsManager()
         authenticationViewActor ! AuthenticationViewMessages.HideGUI
