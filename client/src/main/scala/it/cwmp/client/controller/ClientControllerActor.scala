@@ -205,6 +205,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
       authenticationViewActor ! AlertMessages.Info(s"Result", "login successfully completed!", Some(() => {
         this.jwtToken = token
         becomeRoomsManager()
+        authenticationViewActor ! AuthenticationViewMessages.HideGUI
       }))
     case AuthenticationSignInFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason)

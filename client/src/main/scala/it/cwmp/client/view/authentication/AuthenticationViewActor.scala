@@ -22,6 +22,12 @@ object AuthenticationViewMessages {
     * When received, the GUI is shown to the user.
     */
   case object ShowGUI
+
+  /**
+    * Message represents the hiding of the graphical interface.
+    * When received, the GUI is hidden.
+    */
+  case object HideGUI
 }
 
 object AuthenticationViewActor {
@@ -73,5 +79,6 @@ class AuthenticationViewActor extends Actor with AlertActor {
   override def receive: Receive = alertBehaviour orElse {
     case AuthenticationViewMessages.InitController => controllerActor = sender()
     case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
+    case AuthenticationViewMessages.HideGUI => Platform runLater(() => fxController hideGUI())
   }
 }

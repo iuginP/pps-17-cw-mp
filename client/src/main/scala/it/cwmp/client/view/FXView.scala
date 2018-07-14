@@ -6,6 +6,11 @@ import javafx.scene.Scene
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
 
+/**
+  * Trait that models a generic view.
+  * Implements the main measures for a basic management of the view, delegating to the class
+  * that extends it the choice of which components to use in the creation of the interface.
+  */
 trait FXView {
 
   protected def layout(): String
@@ -13,6 +18,9 @@ trait FXView {
   protected def stage(): Stage
   protected def controller(): FXController
 
+  /**
+    * Initialization of the view
+    */
   private def initGUI(): Unit = {
     //creo un'istanza del file di layout
     val loader = new FXMLLoader(getClass.getResource(layout))
@@ -25,7 +33,6 @@ trait FXView {
 
     //stabilisco cosa fare alla chiusura della finestra
     stage.setOnCloseRequest( _ => {
-      // TODO: cambiare logica, non sempre è necessario chiudere
       Platform.exit()
       System.exit(0)
     })
@@ -33,9 +40,19 @@ trait FXView {
     stage setScene new Scene(pane)
   }
 
-  //mostro la finestra
+  /**
+    * Method called to show the view
+    */
   def showGUI(): Unit = {
     initGUI()
-    stage.show()
+    stage show()
+  }
+
+  /**
+    * Method called to hide the view
+    */
+  def hideGUI(): Unit = {
+    // TODO: vedere se è un comportamento adatto a tutti o va astratto
+    stage close()
   }
 }
