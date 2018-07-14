@@ -87,16 +87,19 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   var playerActor: ActorRef = _
 
   /**
+    * Questo attore si occupa di effettuare tutte le richieste ai servizi web e attendere le risposte.
+    */
+  var apiClientActor: ActorRef = _
+
+  /**
     * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
     */
   var roomViewActor: ActorRef = _
-  var roomApiClientActor: ActorRef = _
 
   /**
     * Actor for the management of authentication processes to which the relative messages will be sent.
     */
   var authenticationViewActor: ActorRef = _
-  var authenticationApiClientActor: ActorRef = _
 
   /**
     * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
@@ -109,10 +112,9 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     // Initialize all actors
     logger.info(s"Initializing the player actor...")
     playerActor = system.actorOf(Props[PlayerActor], "player")
-    logger.info(s"Initializing the room API actor...")
-    roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
+    logger.info(s"Initializing the API client actor...")
+    apiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     logger.info(s"Initializing the authentication view actor...")
-    authenticationApiClientActor = system.actorOf(Props[ApiClientActor], "authenticationAPIClient")
     authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
     authenticationViewActor ! AuthenticationViewMessages.InitController
     logger.info(s"Initializing the room view actor...")
@@ -157,10 +159,10 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   def authenticationManagerBehaviour: Receive = {
     case AuthenticationPerformSignIn(username, password) =>
       logger.info(s"Signing in as $username")
-      authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
+      apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
     case AuthenticationPerformSignUp(username, password) =>
       logger.info(s"Signing up as $username")
-      authenticationApiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
+      apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
   }
 
   /**
@@ -174,17 +176,17 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
       logger.info(s"Creating the room $name")
-      roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
+      apiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
       logger.info(s"Entering the private room $idRoom")
       enterRoom().map(url =>
-        roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
+        apiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
           idRoom, Address(playerActor.path.address.toString), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       logger.info(s"Entering the public room with $nPlayer players")
       enterRoom().map(url =>
-        roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
+        apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
           nPlayer, Address(playerActor.path.address.toString), url, jwtToken)
       )
   }
