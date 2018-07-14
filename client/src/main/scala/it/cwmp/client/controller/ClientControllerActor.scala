@@ -1,14 +1,15 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import com.typesafe.scalalogging.Logger
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
-import it.cwmp.model.{Address, Participant}
+import it.cwmp.model.Address
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 /**
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
@@ -55,6 +56,8 @@ object ClientControllerActor {
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
+  val logger: Logger = Logger[ClientControllerActor]
+
   // TODO debug token
   val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
 
@@ -78,8 +81,11 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   override def preStart(): Unit = {
     super.preStart()
     // Initialize all actors
+    logger.info(s"Initializing the player actor...")
     playerActor = system.actorOf(Props[PlayerActor], "player")
+    logger.info(s"Initializing the room API actor...")
     roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
+    logger.info(s"Initializing the room view actor...")
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
     // TODO debug, remove before release
@@ -96,6 +102,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   private def becomeRoomsManager(): Unit = {
+    logger.info(s"Setting the behaviour 'room-manager'")
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
   }
 
@@ -109,13 +116,16 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
 
   private def roomManagerBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
+      logger.info(s"Creating the room $name")
       roomApiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
+      logger.info(s"Entering the private room $idRoom")
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
           idRoom, Address(playerActor.path.address.toString), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
+      logger.info(s"Entering the public room with $nPlayer players")
       enterRoom().map(url =>
         roomApiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
           nPlayer, Address(playerActor.path.address.toString), url, jwtToken)
@@ -123,12 +133,19 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   }
 
   private def enterRoom(): Future[Address] = {
+    logger.debug(s"Starting the local one-time reception server...")
     // Apre il server in ricezione per la lista dei partecipanti
     listenForParticipantListFuture(
       // Quando ha ricevuto la lista dei partecipanti dal server
-      participants => playerActor ! PlayerIncomingMessages.StartGame(participants)
+      participants => {
+        logger.info(s"Participants list received!")
+        playerActor ! PlayerIncomingMessages.StartGame(participants)
+      }
     ).andThen({ // Una volta creato
+      case Success(address) =>
+        logger.debug(s"Server completely started listening at the address: $address")
       case Failure(error) => // Invia un messaggio di errore alla GUI
+        logger.error(s"Problem starting the server: ${error.getMessage}")
         roomViewActor ! AlertMessages.Error("Error", error.getMessage)
     })
   }

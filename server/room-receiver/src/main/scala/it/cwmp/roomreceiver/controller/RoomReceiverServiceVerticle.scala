@@ -1,5 +1,6 @@
 package it.cwmp.roomreceiver.controller
 
+import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
@@ -12,6 +13,7 @@ import scala.concurrent.Future
 
 case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends ScalaVerticle {
 
+  val logger: Logger = Logger[RoomReceiverServiceVerticle]
   var server: HttpServer = _
 
   override def startFuture(): Future[_] = {
@@ -20,14 +22,17 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
     import it.cwmp.controller.client.RoomReceiverApiWrapper._
     router post API_RECEIVE_PARTICIPANTS_URL(token) handler updateRoomParticipantsHandler
 
+    logger.info(s"Starting the RoomReceiver service with the token: $token.")
     server = vertx.createHttpServer()
     server.requestHandler(router.accept _).listenFuture(DEFAULT_PORT)
   }
 
   private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
+    logger.info("Receiving participant list.")
     routingContext.request().bodyHandler(body =>
       extractIncomingParticipantListFromBody(body) match {
         case Some(participants) =>
+          logger.info("List is valid, applying reception strategy.")
           receptionStrategy(participants)
           routingContext.response()
             .endHandler(_ => server.close())
