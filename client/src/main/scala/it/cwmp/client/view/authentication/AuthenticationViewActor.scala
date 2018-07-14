@@ -22,10 +22,9 @@ object AuthenticationViewActor {
 
 class AuthenticationViewActor extends Actor with AlertActor {
 
-  var signInFXController: SignInFXController = _
+  var fxController: AuthenticationFXController = _
   var controllerActor: ActorRef = _
 
-  var fxController: SignUpFXController = _
 
   override def preStart(): Unit = {
     super.preStart()
@@ -34,22 +33,18 @@ class AuthenticationViewActor extends Actor with AlertActor {
     new JFXPanel
     Platform setImplicitExit false
     Platform runLater(() => {
-      // TODO: ha senso definire tutto qui dentro?
-      signInFXController = SignInFXController(new SignInFXStrategy {
+      fxController = AuthenticationFXController(new AuthenticationFXStrategy {
         override def onSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
-        override def onRequestSignUp(): Unit = {
-          fxController = SignUpFXController((username: String, password: String) =>
-          controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password))
-          fxController showGUI()
-        }
+        override def onSignUp(username: String, password: String): Unit =
+          controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password)
       })
     })
   }
 
-  override def receive: Receive = {
+  override def receive: Receive = alertBehaviour orElse {
     case AuthenticationViewMessages.InitController => controllerActor = sender()
-    case AuthenticationViewMessages.ShowGUI => Platform runLater(() => signInFXController showGUI())
+    case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
   }
 }

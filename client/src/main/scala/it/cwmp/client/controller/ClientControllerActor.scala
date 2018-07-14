@@ -139,7 +139,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   private def becomeRoomsManager(): Unit = {
-    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
+    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse roomManagerBehaviour)
   }
 
 
