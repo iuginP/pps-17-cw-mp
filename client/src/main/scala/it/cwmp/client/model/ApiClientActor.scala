@@ -3,7 +3,7 @@ package it.cwmp.client.model
 import akka.actor.Actor
 import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.rooms.RoomsApiWrapper
-import it.cwmp.model.Participant
+import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Address
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -167,19 +167,19 @@ class ApiClientActor() extends Actor {
       val senderTmp = sender
       createRoom(name, nPlayer)(token).onComplete({
         case Success(t) => senderTmp ! RoomCreatePrivateSuccessful(t)
-        case Failure(reason) => senderTmp ! RoomCreatePrivateFailure(reason.getMessage)
+        case Failure(error: HTTPException) => senderTmp ! RoomCreatePrivateFailure(error.message.getOrElse(error.getMessage))
       })
-    case RoomEnterPrivate(idRoom, participant, webAddress, token) =>
+    case RoomEnterPrivate(idRoom, address, webAddress, token) =>
       val senderTmp = sender
-      enterRoom(idRoom, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterRoom(idRoom, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPrivateSuccessful
-        case Failure(error) => senderTmp ! RoomEnterPrivateFailure(error.getMessage)
+        case Failure(error: HTTPException) => senderTmp ! RoomEnterPrivateFailure(error.message.getOrElse(error.getMessage))
       })
-    case RoomEnterPublic(nPlayer, participant, webAddress, token) => //TODO serve webAddress
+    case RoomEnterPublic(nPlayer, address, webAddress, token) =>
       val senderTmp = sender
-      enterPublicRoom(nPlayer, participant, webAddress)(token).onComplete({ //todo utilizzare il vero PARTICIPANT
+      enterPublicRoom(nPlayer, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPublicSuccessful
-        case Failure(error) => senderTmp ! RoomEnterPublicFailure(error.getMessage)
+        case Failure(error: HTTPException) => senderTmp ! RoomEnterPublicFailure(error.message.getOrElse(error.getMessage))
       })
   }
 
