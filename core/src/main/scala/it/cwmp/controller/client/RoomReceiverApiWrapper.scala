@@ -32,8 +32,6 @@ object RoomReceiverApiWrapper {
 
   def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
 
-  val DEFAULT_PORT = 8668
-
   def apply(): RoomReceiverApiWrapper = RoomReceiverApiWrapperDefault()
 
 
