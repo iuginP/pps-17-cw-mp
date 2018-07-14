@@ -73,6 +73,7 @@ object ClientControllerActor {
   *
   * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
   * @author Davide Borficchia
+  * @author Eugenio Pierfederici
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
@@ -85,6 +86,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Sono questi attori, per ciascun client, a connettersi nel cluster e gestire lo svolgimento del gioco.
     */
   var playerActor: ActorRef = _
+  var playerAddress: String = _
 
   /**
     * Questo attore si occupa di effettuare tutte le richieste ai servizi web e attendere le risposte.
@@ -112,6 +114,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     // Initialize all actors
     logger.info(s"Initializing the player actor...")
     playerActor = system.actorOf(Props[PlayerActor], "player")
+    playerActor ! PlayerIncomingMessages.RetrieveAddress
     logger.info(s"Initializing the API client actor...")
     apiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     logger.info(s"Initializing the authentication view actor...")
@@ -129,7 +132,10 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
-  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour
+  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse {
+    case PlayerOutgoingMessages.RetrieveAddressResponse(address) =>
+      playerAddress = address
+  }
 
   /**
     * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
@@ -181,13 +187,13 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
       logger.info(s"Entering the private room $idRoom")
       enterRoom().map(url =>
         apiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-          idRoom, Address(playerActor.path.address.toString), url, jwtToken)
+          idRoom, Address(playerAddress), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       logger.info(s"Entering the public room with $nPlayer players")
       enterRoom().map(url =>
         apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-          nPlayer, Address(playerActor.path.address.toString), url, jwtToken)
+          nPlayer, Address(playerAddress), url, jwtToken)
       )
   }
 
