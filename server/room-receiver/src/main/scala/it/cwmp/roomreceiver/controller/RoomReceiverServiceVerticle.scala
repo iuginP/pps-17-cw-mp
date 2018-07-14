@@ -28,17 +28,19 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   }
 
   private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Receiving participant list.")
+    logger.info("Receiving participant list...")
     routingContext.request().bodyHandler(body =>
       extractIncomingParticipantListFromBody(body) match {
         case Some(participants) =>
-          logger.info("List is valid, applying reception strategy.")
+          logger.info("List is valid.")
+          logger.debug("Applying reception strategy...")
           receptionStrategy(participants)
           routingContext.response()
             .endHandler(_ => server.close())
             .setStatusCode(201)
             .end
         case None =>
+          logger.info("Error: List is invalid.")
           routingContext.response() setStatusCode 400 end s"Invalid parameter: no participant list JSON in body"
       })
 
