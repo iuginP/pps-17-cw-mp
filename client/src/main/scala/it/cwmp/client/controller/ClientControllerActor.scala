@@ -7,7 +7,6 @@ import it.cwmp.client.view.authentication.{AuthenticationViewActor, Authenticati
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 import it.cwmp.model.{Address, Participant}
 
-import scala.util.Failure
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Failure
@@ -34,6 +33,7 @@ object ClientControllerMessages {
     * @param password password chosen to authenticate in the system
     */
   case class AuthenticationPerformSignUp(username: String, password: String)
+
 
   /**
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
@@ -76,7 +76,8 @@ object ClientControllerActor {
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
   // TODO debug token
-  val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
+  //val jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InBpcHBvIn0.jPVT_3dOaioA7480e0q0lwdUjExe7Di5tixdZCsQQD4"
+  var jwtToken = ""
 
   /**
     * Questo attore è quello che si occupa di gestire la partita di gioco.
@@ -106,19 +107,16 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   override def preStart(): Unit = {
     super.preStart()
 
+    //Initialize all the actors
     authenticationApiClientActor = system.actorOf(Props[ApiClientActor], "authenticationAPIClient")
     authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
     authenticationViewActor ! AuthenticationViewMessages.InitController
-    // TODO debug, remove before release
     authenticationViewActor ! AuthenticationViewMessages.ShowGUI
 
-    // Initialize all actors
-    /*playerActor = system.actorOf(Props[PlayerActor], "player")
+    playerActor = system.actorOf(Props[PlayerActor], "player")
     roomApiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
     roomViewActor ! RoomViewMessages.InitController
-    // TODO debug, remove before release
-    roomViewActor ! RoomViewMessages.ShowGUI*/
   }
 
   /**
@@ -126,20 +124,21 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
   // TODO: vanno tutti in orElse?
-  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse roomManagerBehaviour
+  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour
 
   /**
     * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
     */
   def becomeAuthenticationManager(): Unit = {
-    context.become(authenticationManagerBehaviour)
+    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
   }
 
   /**
     * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
     */
   private def becomeRoomsManager(): Unit = {
-    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse roomManagerBehaviour)
+    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
+    roomViewActor ! RoomViewMessages.ShowGUI
   }
 
 
@@ -203,7 +202,10 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
   // TODO: dall'altra parte non gestiamo la cosa?
   private def apiClientReceiverBehaviour: Receive = {
     case AuthenticationSignInSuccessful(token) =>
-      authenticationViewActor ! AlertMessages.Info(s"Sign in", s"You're in! Token: $token")
+      authenticationViewActor ! AlertMessages.Info(s"Result", "login successfully completed!", Some(() => {
+        this.jwtToken = token
+        becomeRoomsManager()
+      }))
     case AuthenticationSignInFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason)
     case AuthenticationSignUpSuccessful(token) =>
