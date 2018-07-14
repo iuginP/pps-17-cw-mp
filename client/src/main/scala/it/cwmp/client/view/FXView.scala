@@ -13,10 +13,10 @@ import javafx.stage.Stage
   */
 trait FXView {
 
-  protected def layout(): String
-  protected def title(): String
-  protected def stage(): Stage
-  protected def controller(): FXController
+  protected def layout: String
+  protected def title: String
+  protected def stage: Stage
+  protected def controller: FXController
 
   /**
     * Initialization of the view
