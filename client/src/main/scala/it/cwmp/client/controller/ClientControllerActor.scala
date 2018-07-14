@@ -76,7 +76,7 @@ object ClientControllerActor {
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
-  val logger: Logger = Logger[ClientControllerActor]
+  private val logger: Logger = Logger[ClientControllerActor]
 
   var jwtToken: String = _
 

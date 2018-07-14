@@ -1,5 +1,6 @@
 package it.cwmp.controller.client
 
+import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.json.Json
 import it.cwmp.controller.ApiClient
 import it.cwmp.model.Participant
@@ -11,6 +12,7 @@ import scala.concurrent.Future
   * A trait that describes the communication that the server has to have with clients
   *
   * @author Enrico Siboni
+  * @author Eugenio Pierfederici
   */
 trait RoomReceiverApiWrapper {
 
@@ -28,6 +30,7 @@ trait RoomReceiverApiWrapper {
   * Companion object
   */
 object RoomReceiverApiWrapper {
+  private val logger: Logger = Logger[RoomReceiverApiWrapper]
 
   def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
 
@@ -46,7 +49,7 @@ object RoomReceiverApiWrapper {
       createWebClient()
         .post(clientAddress)
         .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
-        .map(_ => Unit)
+        .map(_ => logger.info(s"Sending participant to $clientAddress succeeded"))
 
       // TODO should implement a retry strategy?
     }

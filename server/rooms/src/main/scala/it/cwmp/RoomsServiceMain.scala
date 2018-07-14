@@ -1,9 +1,13 @@
 package it.cwmp
 
+import com.typesafe.scalalogging.Logger
+import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
 import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
+
+import scala.util.{Failure, Success}
 
 /**
   * Object that implements the Rooms micro-service entry-point
@@ -11,9 +15,14 @@ import it.cwmp.controller.rooms.RoomsServiceVerticle
   * @author Enrico Siboni
   */
 object RoomsServiceMain extends App {
-
+  private val logger = Logger[RoomsServiceMain.type]
   private val vertx: Vertx = Vertx.vertx()
-  vertx.deployVerticle(RoomsServiceVerticle(AuthenticationService(), RoomReceiverApiWrapper()))
 
-  println("Deploying RoomServiceVerticle... ") // TODO replace with logger logging
+  logger.info("Deploying RoomService...")
+  vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationService(), RoomReceiverApiWrapper()))
+    .onComplete {
+      case Success(_) => logger.info("RoomsService up and running!")
+      case Failure(ex) => logger.error("Error deploying RoomsService", ex)
+    }(VertxExecutionContext(vertx.getOrCreateContext()))
+
 }
