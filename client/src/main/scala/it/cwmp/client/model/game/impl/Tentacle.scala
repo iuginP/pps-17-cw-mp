@@ -1,7 +1,7 @@
 package it.cwmp.client.model.game.impl
 
-import java.time.temporal.ChronoUnit
 import java.time.{Duration, Instant}
+import java.util.Objects._
 
 import it.cwmp.client.model.game.{Attack, SizingStrategy}
 
@@ -16,7 +16,12 @@ import it.cwmp.client.model.game.{Attack, SizingStrategy}
 case class Tentacle(from: Cell,
                     to: Cell,
                     launchInstant: Instant)
-  extends Attack[Cell, Cell, Instant]
+  extends Attack[Cell, Cell, Instant] {
+
+  requireNonNull(from, "From cell must be not null")
+  requireNonNull(to, "To cell must be not null")
+  requireNonNull(launchInstant, "Launch instant must be not null")
+}
 
 /**
   * Companion object
@@ -35,15 +40,15 @@ object Tentacle {
     /**
       * Returns the length of the tentacle based on launch time, actualTime provided and speed of the tentacle
       *
-      * @param actualInstant         actual world time
-      * @param tentacleSpeedStrategy the strategy that decides how fast is the tentacle on reaching destination
+      * @param actualInstant        actual world time
+      * @param timeToLengthStrategy the strategy that decides how fast is the tentacle on reaching destination
       * @return the tentacle length
       */
     def length(actualInstant: Instant)
-              (tentacleSpeedStrategy: SizingStrategy[Duration, Long] = lengthStrategy): Long = {
+              (timeToLengthStrategy: SizingStrategy[Duration, Long] = timeToLengthStrategy): Long = {
 
       val distanceBetweenCells = Cell.distance(tentacle.from, tentacle.to)
-      val tentacleShouldHaveLength = tentacleSpeedStrategy(Duration.between(tentacle.launchInstant, actualInstant))
+      val tentacleShouldHaveLength = timeToLengthStrategy(Duration.between(tentacle.launchInstant, actualInstant))
 
       if (tentacleShouldHaveLength > distanceBetweenCells) distanceBetweenCells else tentacleShouldHaveLength
     }
@@ -54,7 +59,7 @@ object Tentacle {
     *
     * Every [[TENTACLE_MOVES_EVERY_MILLIS]] tentacle gains 1 space towards enemy
     */
-  val lengthStrategy: SizingStrategy[Duration, Long] =
-    (elapsedTime: Duration) => elapsedTime.get(ChronoUnit.MILLIS) / TENTACLE_MOVES_EVERY_MILLIS
+  val timeToLengthStrategy: SizingStrategy[Duration, Long] =
+    (elapsedTime: Duration) => elapsedTime.toMillis / TENTACLE_MOVES_EVERY_MILLIS
 
 }

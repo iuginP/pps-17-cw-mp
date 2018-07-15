@@ -14,11 +14,13 @@ class CellTest extends FunSpec {
   private val position = Point(30, 40)
   private val energy = 50
 
+  private def createCell: Cell = Cell(user, position, energy)
+
   describe("A cell") {
-    describe("on creation") {
+    describe("On creation") {
 
       it("should succeed if inputs correct") {
-        val cell = Cell(user, position, energy)
+        val cell = createCell
         assert(cell.owner == user)
         assert(cell.energy == energy)
         assert(cell.position == position)
@@ -31,16 +33,16 @@ class CellTest extends FunSpec {
       }
     }
 
-    it("distance calculation should be correct") {
+    it("Distance calculation should be correct") {
       val myCell = Cell(user, Point(0, 0), energy)
       val myOtherCell = Cell(user, Point(3, 4), energy)
 
       assert(Cell.distance(myCell, myOtherCell) == 5)
     }
 
-    it("evolution should increment energy") {
-      val myStaticCell = Cell(user, position, energy)
-      val myEvolvedCell = Cell(user, position, energy)
+    it("Evolution should increment energy") {
+      val myStaticCell = createCell
+      val myEvolvedCell = createCell
       Cell.evolutionStrategy(Duration.ofSeconds(1), myEvolvedCell)
 
       assert(myEvolvedCell.energy > myStaticCell.energy)
