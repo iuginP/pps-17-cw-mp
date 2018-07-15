@@ -43,23 +43,22 @@ class CellTest extends FunSpec {
     describe("Evolution") {
       it("should increment energy") {
         val myStaticCell = createCell
-        val myEvolvedCell = createCell
-        Cell.evolutionStrategy(Duration.ofSeconds(20), myEvolvedCell)
+        var myEvolvedCell = createCell
+        myEvolvedCell = Cell.evolutionStrategy(Duration.ofSeconds(20), myEvolvedCell)
 
         assert(myEvolvedCell.energy > myStaticCell.energy)
         assert(myEvolvedCell.position == myStaticCell.position)
         assert(myEvolvedCell.owner == myStaticCell.owner)
       }
-      it("should increment energy remembering if there was time not converted to energy") {
+      it("should increment energy in multiple times") {
         val myStaticCell = createCell
-        val myEvolvedCell = createCell
 
         // the evolution strategy increases energy every second
-        Cell.evolutionStrategy(Duration.ofMillis(500), myEvolvedCell)
-        assert(myEvolvedCell.energy == myStaticCell.energy)
-
-        Cell.evolutionStrategy(Duration.ofMillis(500), myEvolvedCell)
+        val myEvolvedCell = Cell.evolutionStrategy(Duration.ofMillis(5), myStaticCell)
         assert(myEvolvedCell.energy > myStaticCell.energy)
+
+        val mySecondEvolvedCell = Cell.evolutionStrategy(Duration.ofMillis(5), myEvolvedCell)
+        assert(mySecondEvolvedCell.energy > myEvolvedCell.energy)
       }
     }
   }

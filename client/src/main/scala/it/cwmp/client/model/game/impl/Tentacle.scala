@@ -28,7 +28,10 @@ case class Tentacle(from: Cell,
   */
 object Tentacle {
 
-  private val TENTACLE_MOVES_EVERY_MILLIS = 100
+  /**
+    * Moves of one step every amount of this time
+    */
+  val TENTACLE_MOVES_EVERY_MILLIS = 100
 
   /**
     * Tentacle length calculator

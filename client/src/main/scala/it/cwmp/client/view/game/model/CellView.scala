@@ -44,5 +44,5 @@ object CellView {
     *
     * Maps size to energy
     */
-  val sizingStrategy: SizingStrategy[Cell, Int] = _.energy
+  val sizingStrategy: SizingStrategy[Cell, Int] = _.energy.toInt
 }

@@ -14,9 +14,9 @@ import it.cwmp.model.User
   * @param position the position of the cell
   * @author Enrico Siboni
   */
-case class Cell(var owner: User,
+case class Cell(owner: User,
                 position: Point,
-                var energy: Int) extends Character[User, Point, Int] {
+                energy: Double) extends Character[User, Point, Double] {
 
   requireNonNull(owner, "User owner must not be null")
   requireNonNull(position, "Position must not be null")
@@ -30,18 +30,17 @@ case class Cell(var owner: User,
 object Cell {
 
   /**
+    * Coverts this amount of time to an energy unit
+    */
+  val TIME_TO_ENERGY_CONVERSION_RATE = 1000d
+
+  /**
     * The default evolution strategy for cells
     *
     * adds 1 to energy each second
     */
-  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = new EvolutionStrategy[Cell, Duration] {
-    private var residualTime: Long = 0
-
-    override def apply(elapsedTime: Duration, cell: Cell): Cell = {
-      cell.energy = cell.energy + ((residualTime + elapsedTime.toMillis) / 1000).toInt
-      residualTime = (residualTime + elapsedTime.toMillis) % 1000
-      cell
-    }
+  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = (elapsedTime: Duration, cell: Cell) => {
+    Cell(cell.owner, cell.position, cell.energy + (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE))
   }
 
   /**
