@@ -32,7 +32,7 @@ object HttpUtils {
         None
       }
     } catch {
-      case (_) => None
+      case _: Throwable => None
     }
   }
 
@@ -50,7 +50,7 @@ object HttpUtils {
           case _ => None
         }
       } catch {
-        case (_) => None
+        case _: Throwable => None
       }
     }
     case _ => None
