@@ -3,24 +3,35 @@ package it.cwmp.client.view.game
 import akka.actor.Actor
 import it.cwmp.client.model.game.World
 
-object GameActor {
-  def apply(): GameActor = new GameActor
+object GameViewActor {
+  def apply(): GameViewActor = new GameViewActor
 
   case object ShowGUI
+
   case object HideGUI
+
   case class UpdateWorld(status: World)
+
 }
 
-import it.cwmp.client.view.game.GameActor._
-class GameActor extends Actor {
+import it.cwmp.client.view.game.GameViewActor._
+
+class GameViewActor extends Actor {
 
   val gameFX: GameFX = GameFX()
+  var isHidden = true
 
   override def receive: Receive = {
     case ShowGUI =>
-      gameFX.start("GIOCO", 512)
+      if (isHidden) {
+        isHidden = false
+        gameFX.start("GIOCO", 512)
+      }
     case HideGUI =>
-      gameFX.close()
+      if (!isHidden) {
+        isHidden = true
+        gameFX.close()
+      }
     case UpdateWorld(world) =>
       gameFX.updateWorld(world)
   }
