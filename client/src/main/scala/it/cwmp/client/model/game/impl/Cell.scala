@@ -1,5 +1,6 @@
 package it.cwmp.client.model.game.impl
 
+import java.time.Duration
 import java.util.Objects._
 
 import it.cwmp.client.model.game._
@@ -33,12 +34,12 @@ object Cell {
     *
     * adds 1 to energy each second
     */
-  val cellEvolutionStrategy: EvolutionStrategy[Cell, Long] = new EvolutionStrategy[Cell, Long] {
+  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = new EvolutionStrategy[Cell, Duration] {
     private var residualTime: Long = 0
 
-    override def apply(elapsedTime: Long, cell: Cell): Cell = {
-      cell.energy = cell.energy + ((residualTime + elapsedTime) / 1000).toInt
-      residualTime = (residualTime + elapsedTime) % 1000
+    override def apply(elapsedTime: Duration, cell: Cell): Cell = {
+      cell.energy = cell.energy + ((residualTime + elapsedTime.toMillis) / 1000).toInt
+      residualTime = (residualTime + elapsedTime.toMillis) % 1000
       cell
     }
   }

@@ -25,7 +25,7 @@ object Point {
     */
   def distance(point1: Point, point2: Point): Long = {
     Math.sqrt(
-      square(point1.x * point2.x) +
+      square(point1.x + point2.x) +
         square(point1.y + point2.y)
     ).toLong
   }

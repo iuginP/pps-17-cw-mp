@@ -1,4 +1,4 @@
-package it.cwmp.client.model.game
+package it.cwmp.client.model.game.impl
 
 import org.scalatest.FunSpec
 

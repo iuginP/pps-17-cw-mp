@@ -1,10 +1,9 @@
 package it.cwmp.client.model.game.impl
 
-import java.awt.Color
 import java.time.temporal.ChronoUnit
 import java.time.{Duration, Instant}
 
-import it.cwmp.client.model.game.{Attack, ColoringStrategy, SizingStrategy}
+import it.cwmp.client.model.game.{Attack, SizingStrategy}
 
 /**
   * Default implementation of cell attack
