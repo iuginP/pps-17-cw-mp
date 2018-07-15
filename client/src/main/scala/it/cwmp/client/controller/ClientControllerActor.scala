@@ -2,11 +2,12 @@ package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import com.typesafe.scalalogging.Logger
+import it.cwmp.client.model.PlayerActor._
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
-import it.cwmp.model.Address
+import it.cwmp.model.{Address, Participant}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -113,8 +114,8 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     super.preStart()
     // Initialize all actors
     logger.info(s"Initializing the player actor...")
-    playerActor = system.actorOf(Props[PlayerActor], "player")
-    playerActor ! PlayerIncomingMessages.RetrieveAddress
+    playerActor = system.actorOf(Props(classOf[PlayerActor], system), "player")
+    playerActor ! RetrieveAddress
     logger.info(s"Initializing the API client actor...")
     apiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
     logger.info(s"Initializing the authentication view actor...")
@@ -133,7 +134,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
     */
   override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse {
-    case PlayerOutgoingMessages.RetrieveAddressResponse(address) =>
+    case RetrieveAddressResponse(address) =>
       playerAddress = address
   }
 
@@ -152,6 +153,13 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
     logger.info(s"Setting the behaviour 'room-manager'")
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
     roomViewActor ! RoomViewMessages.ShowGUI
+  }
+
+  private def becomeInGame(participants: List[Participant]): Unit = {
+    logger.info(s"Setting the behaviour 'in-game'")
+    context.become(inGameBehaviour)
+    roomViewActor ! RoomViewMessages.HideGUI
+    playerActor ! StartGame(participants)
   }
 
 
@@ -197,6 +205,10 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
       )
   }
 
+  private def inGameBehaviour: Receive = {
+    case _ => // TODO
+  }
+
   private def enterRoom(): Future[Address] = {
     logger.debug(s"Starting the local one-time reception server...")
     // Apre il server in ricezione per la lista dei partecipanti
@@ -204,7 +216,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
       // Quando ha ricevuto la lista dei partecipanti dal server
       participants => {
         logger.info(s"Participants list received!")
-        playerActor ! PlayerIncomingMessages.StartGame(participants)
+        becomeInGame(participants)
       }
     ).andThen({ // Una volta creato
       case Success(address) =>
