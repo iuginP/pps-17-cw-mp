@@ -1,26 +1,18 @@
 package it.cwmp.client.view.game
 
-import java.awt.Color
-
-import it.cwmp.client.model.game.{Point, World}
-import it.cwmp.client.view.game.model._
-import javafx.application.{Application, Platform}
+import it.cwmp.client.model.game.World
+import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.stage.Stage
-
-
-object GameFX {
-  def apply(): GameFX = new GameFX()
-}
 
 /**
   * Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco
   *
   * @author Davide Borficchia
   */
-class GameFX extends ObjectDrawer {
+case class GameFX() extends ObjectDrawer {
 
   var stage: Stage = _
   var root: Group = _
