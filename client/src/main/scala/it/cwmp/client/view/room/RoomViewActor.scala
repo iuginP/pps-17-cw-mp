@@ -20,6 +20,11 @@ object RoomViewMessages {
     * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
     */
   case object ShowGUI
+  /**
+    * Questo messaggio rappresenta la chiusura dell'interfaccia grafica.
+    * Quando ricevuto, viene nascosta all'utente l'interfaccia grafica di selezione delle stanze.
+    */
+  case object HideGUI
 }
 
 object RoomViewActor {
@@ -71,5 +76,6 @@ class RoomViewActor extends Actor with AlertActor {
   override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
     case RoomViewMessages.ShowGUI => Platform runLater(() => fxController.showGUI())
+    case RoomViewMessages.HideGUI => Platform runLater(() => fxController.hideGUI())
   }
 }

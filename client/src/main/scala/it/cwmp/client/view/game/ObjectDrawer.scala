@@ -41,13 +41,13 @@ trait ObjectDrawer {
     *
     * @param firstCell      è la cella dalla quale parte l'arco
     * @param secondCell     è la cella nella quale arriva l'arco
-    * @param graphicsContex è l'oggetto che disenga l'arco
+    * @param graphicsContext è l'oggetto che disenga l'arco
     */
-  def drawArch(firstCell: ViewCell, secondCell: ViewCell)(implicit graphicsContex: GraphicsContext): Unit = {
+  def drawArch(firstCell: ViewCell, secondCell: ViewCell)(implicit graphicsContext: GraphicsContext): Unit = {
     // TODO: use tentacle
-    graphicsContex.setStroke(firstCell.color)
-    graphicsContex.setLineWidth(3.0)
-    graphicsContex.strokeLine(firstCell.center.x, firstCell.center.y,
+    graphicsContext.setStroke(firstCell.color)
+    graphicsContext.setLineWidth(3.0)
+    graphicsContext.strokeLine(firstCell.center.x, firstCell.center.y,
       secondCell.center.x, secondCell.center.y)
   }
 
