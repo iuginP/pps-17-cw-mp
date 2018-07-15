@@ -1,11 +1,8 @@
 package it.cwmp.client.model.game.impl
 
-import java.awt.Color
 import java.util.Objects._
 
 import it.cwmp.client.model.game._
-import it.cwmp.client.view.game.Constants
-import it.cwmp.client.view.game.model.ViewCell
 import it.cwmp.model.User
 
 /**
@@ -32,24 +29,6 @@ case class Cell(var owner: User,
 object Cell {
 
   /**
-    * Default cell coloring strategy
-    */
-  val defaultColoringStrategy: ColoringStrategy[Cell, Color] =
-    (cell: Cell) => cell.owner.username.charAt(0) match {
-      case 'd' => Color.GREEN
-      case 'e' => Color.RED
-      case _ => Color.BLUE
-    }
-
-  /**
-    * The default sizing strategy
-    *
-    * doubles size when cell has more than 100 energy
-    */
-  val defaultSizingStrategy: SizingStrategy[Cell, Int] =
-    (cell: Cell) => if (cell.energy > 100) Constants.cellSize * 2 else Constants.cellSize
-
-  /**
     * The default evolution strategy for cells
     *
     * adds 1 to energy each second
@@ -62,15 +41,6 @@ object Cell {
       residualTime = (residualTime + elapsedTime) % 1000
       cell
     }
-  }
-
-  /**
-    * @return the ViewCell corresponding to the given Cell
-    */
-  def toViewObject(cell: Cell)
-                  (sizingStrategy: SizingStrategy[Cell, Int] = defaultSizingStrategy,
-                   coloringStrategy: ColoringStrategy[Cell, Color] = defaultColoringStrategy): ViewCell = {
-    ViewCell(cell.position, coloringStrategy(cell), sizingStrategy(cell))
   }
 
   /**

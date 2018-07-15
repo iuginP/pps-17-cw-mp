@@ -9,8 +9,8 @@ trait World[Instant, Character, Attack] {
 
   def instant: Instant
 
-  def characters: Stream[Character]
+  def characters: Seq[Character]
 
-  def attacks: Stream[Attack]
+  def attacks: Seq[Attack]
 
 }

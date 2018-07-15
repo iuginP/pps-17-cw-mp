@@ -3,15 +3,14 @@ package it.cwmp.client.model
 import akka.actor.{Actor, ActorRef, ActorSystem, AddressFromURIString, Props}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
-import akka.cluster.ddata.{DistributedData, Flag, FlagKey}
 import akka.cluster.ddata.Replicator.{Changed, Subscribe, Update, WriteAll}
+import akka.cluster.ddata.{DistributedData, Flag, FlagKey}
 import com.typesafe.scalalogging.Logger
 import it.cwmp.client.GameMain
 import it.cwmp.client.controller.ClientControllerActor
-import it.cwmp.client.model.game.{Cell, Point, Tentacle, World}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
-import it.cwmp.model.{Address, User}
+import it.cwmp.model.Address
 
 import scala.concurrent.duration._
 

@@ -58,12 +58,4 @@ object Tentacle {
   val lengthStrategy: SizingStrategy[Duration, Long] =
     (elapsedTime: Duration) => elapsedTime.get(ChronoUnit.MILLIS) / TENTACLE_MOVES_EVERY_MILLIS
 
-  /**
-    * Default coloring strategy for tentacles
-    *
-    * Copies the color of starting cell
-    */
-  val coloringStrategy: ColoringStrategy[Tentacle, Color] =
-    (tentacle: Tentacle) => Cell.defaultColoringStrategy(tentacle.from)
-
 }

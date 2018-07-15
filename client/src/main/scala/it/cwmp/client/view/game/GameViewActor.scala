@@ -1,7 +1,7 @@
 package it.cwmp.client.view.game
 
 import akka.actor.Actor
-import it.cwmp.client.model.game.World
+import it.cwmp.client.model.game.impl.CellWorld
 
 object GameViewActor {
   def apply(): GameViewActor = new GameViewActor
@@ -10,7 +10,7 @@ object GameViewActor {
 
   case object HideGUI
 
-  case class UpdateWorld(status: World)
+  case class UpdateWorld(status: CellWorld)
 
 }
 

@@ -13,7 +13,10 @@ import it.cwmp.client.model.game.World
   * @param attacks    the tentacles in the world
   * @author Enrico Siboni
   */
-case class CellWorld(instant: Instant, characters: Stream[Cell], attacks: Stream[Tentacle]) extends World[Instant, Cell, Tentacle] {
+case class CellWorld(instant: Instant,
+                     characters: Seq[Cell],
+                     attacks: Seq[Tentacle]) extends World[Instant, Cell, Tentacle] {
+
   requireNonNull(instant, "World instant must not be null")
   requireNonNull(characters, "Cells must not be null")
   requireNonNull(attacks, "Tentacles must not be null")
