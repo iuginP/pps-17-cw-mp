@@ -15,10 +15,9 @@ trait ParticipantListReceiver {
 
   def listenForParticipantListFuture(onListReceived: List[Participant] => Unit): Future[Address] = {
     val token = Utils.randomString(20)
-    Vertx.vertx().deployVerticleFuture(RoomReceiverServiceVerticle(
-      token,
-      participants => onListReceived(participants)))
-      .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${RoomReceiverApiWrapper.DEFAULT_PORT}"
+    val verticle = RoomReceiverServiceVerticle(token, participants => onListReceived(participants))
+    Vertx.vertx().deployVerticleFuture(verticle)
+      .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}"
         + RoomReceiverApiWrapper.API_RECEIVE_PARTICIPANTS_URL(token)))
   }
 }

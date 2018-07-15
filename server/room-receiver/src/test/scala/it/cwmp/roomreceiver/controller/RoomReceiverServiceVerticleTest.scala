@@ -20,13 +20,16 @@ class RoomReceiverServiceVerticleTest extends VertxTest with BeforeAndAfterEach 
   private val list = Participant("Nome", "Indirizzo") :: Participant("Nome1", "Indirizzo1") :: List[Participant]()
   private var promiseList: Promise[Seq[Participant]] = _
 
-  private def client = createWebClient("localhost", RoomReceiverApiWrapper.DEFAULT_PORT, vertx)
-
   private var deploymentID: String = _
+  private var port: Int = _
+
+  private def client = createWebClient("localhost", port, vertx)
 
   override protected def beforeEach(): Unit = {
     promiseList = Promise()
-    deploymentID = Await.result(vertx.deployVerticleFuture(RoomReceiverServiceVerticle(token, s => promiseList.success(s))), 10000.millis)
+    val verticle = RoomReceiverServiceVerticle(token, s => promiseList.success(s))
+    deploymentID = Await.result(vertx.deployVerticleFuture(verticle), 10000.millis)
+    port = verticle.port
   }
 
   override protected def afterEach(): Unit =

@@ -16,6 +16,8 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   private val logger: Logger = Logger[RoomReceiverServiceVerticle]
   private var server: HttpServer = _
 
+  def port: Int = server.actualPort()
+
   override def startFuture(): Future[_] = {
     val router = Router.router(vertx)
 
@@ -24,7 +26,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
 
     logger.info(s"Starting the RoomReceiver service with the token: $token.")
     server = vertx.createHttpServer()
-    server.requestHandler(router.accept _).listenFuture(DEFAULT_PORT)
+    server.requestHandler(router.accept _).listenFuture(0)
   }
 
   private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
