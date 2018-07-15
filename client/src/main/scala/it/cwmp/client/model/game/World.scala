@@ -1,34 +1,16 @@
 package it.cwmp.client.model.game
 
 /**
-  * A trait describing the game world
+  * A trait describing a game world snapshot
+  *
+  * @author Enrico Siboni
   */
-trait World {
+trait World[Instant, Character, Attack] {
 
-  def cells: Seq[Cell]
+  def instant: Instant
 
-  def tentacles: Seq[Tentacle]
+  def characters: Stream[Character]
 
-  def time: Long
-
-}
-
-/**
-  * Companion object
-  */
-object World {
-
-  def apply(time: Long, cells: Seq[Cell], tentacle: Seq[Tentacle]): World = WorldDefault(time, cells, tentacle)
-
-  /**
-    * Default implementation of the snapshot of Game World
-    *
-    * @param time      the rime this world represents
-    * @param cells     the cells in the world
-    * @param tentacles the tentacles in the world
-    */
-  private case class WorldDefault(time: Long, cells: Seq[Cell], tentacles: Seq[Tentacle]) extends World
-
-  // TODO: Add converter to DDATA
+  def attacks: Stream[Attack]
 
 }

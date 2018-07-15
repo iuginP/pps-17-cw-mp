@@ -1,7 +1,8 @@
 package it.cwmp.client.view.game
 
 import java.awt.Color
-import it.cwmp.client.model.game.Point
+
+import it.cwmp.client.model.game.impl.Point
 import it.cwmp.client.view.game.model._
 import javafx.application.Application
 import javafx.scene.canvas.Canvas
@@ -25,7 +26,7 @@ class GameFX extends Application with ObjectDrawer {
     root.getChildren.add(canvas)
     implicit val graphicsContex = canvas.getGraphicsContext2D
 
-    val cells = ViewCell(Point(20,20), Color.GREEN) :: ViewCell(Point(90,400), Color.RED, 40) :: ViewCell(Point(200,150), Color.cyan, 200) :: Nil
+    val cells = ViewCell(Point(20, 20), Color.GREEN) :: ViewCell(Point(90, 400), Color.RED, 40) :: ViewCell(Point(200, 150), Color.cyan, 200) :: Nil
     //Disegno prima gli archi in modo da non vederli sopra le celle
     drawArch(cells(0), cells(1))
     drawArch(cells(1), cells(2))
