@@ -17,9 +17,9 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach {
 
   private var daoFuture: Future[RoomDAO] = _
 
-  private val userAddress = "fakeAddress"
+  private val userAddress = "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"
   private implicit val user: Participant = Participant("Enrico", userAddress)
-  private val notificationAddress: Address = Address("notificationAddress")
+  private val notificationAddress: Address = Address("http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
 
   override protected def beforeEach(): Unit = {
     daoFuture = createRoomLocalDAO flatMap (dao => dao.initialize() map (_ => dao))
