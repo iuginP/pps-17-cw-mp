@@ -1,43 +1,64 @@
 package it.cwmp.client.view.game
 
 import java.awt.Color
-import it.cwmp.client.model.game.Point
+
+import it.cwmp.client.model.game.{Point, World}
 import it.cwmp.client.view.game.model._
-import javafx.application.Application
+import javafx.application.{Application, Platform}
+import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.Canvas
 import javafx.scene.{Group, Scene}
 import javafx.stage.Stage
+
+
+object GameFX {
+  def apply(): GameFX = new GameFX()
+}
 
 /**
   * Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco
   *
   * @author Davide Borficchia
   */
-class GameFX extends Application with ObjectDrawer {
+class GameFX extends ObjectDrawer {
 
-  override def start(primaryStage: Stage): Unit = {
-    primaryStage.setTitle("Prima schermata del gioco!")
-    val root = new Group
-    val theScene: Scene = new Scene(root)
+  var stage: Stage = _
+  var root: Group = _
+  var canvas: Canvas = _
 
-    //setto la dimensione della finestra
-    val canvas = new Canvas(512, 512)
-    root.getChildren.add(canvas)
-    implicit val graphicsContex = canvas.getGraphicsContext2D
+  def start(title: String, size: Int): Unit = {
+    new JFXPanel()
+    Platform.runLater(() => {
+      stage = new Stage
+      root = new Group
+      canvas = new Canvas(size, size)
 
-    val cells = ViewCell(Point(20,20), Color.GREEN) :: ViewCell(Point(90,400), Color.RED, 40) :: ViewCell(Point(200,150), Color.cyan, 200) :: Nil
-    //Disegno prima gli archi in modo da non vederli sopra le celle
-    drawArch(cells(0), cells(1))
-    drawArch(cells(1), cells(2))
-    drawArch(cells(2), cells(0))
+      stage.setTitle(title)
+      root.getChildren.add(canvas)
+      stage.setScene(new Scene(root))
 
-    //cells.foreach(drawCell)
+      //stabilisco cosa fare alla chiusura della finestra
+      stage.setOnCloseRequest( _ => {
+        Platform.exit()
+        System.exit(0)
+      })
+      stage.show()
+    })
+  }
 
-    root.getChildren.add(drawCell(cells(0)))
-    root.getChildren.add(drawCell(cells(1)))
-    root.getChildren.add(drawCell(cells(2)))
+  def close(): Unit = {
+    Platform.runLater(() => {
+      stage.close()
+    })
+  }
 
-    primaryStage setScene theScene
-    primaryStage.show()
+  def updateWorld(world: World): Unit = {
+    Platform.runLater(() => {
+      implicit val graphicsContext = canvas.getGraphicsContext2D
+      import it.cwmp.client.view.game.model.CellImplicits._
+
+      world.tentacles.foreach(tentacle => drawArch(tentacle.startCell, tentacle.arriveCell))
+      world.cells.foreach(cell => root.getChildren.add(drawCell(cell)))
+    })
   }
 }
