@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
 
 class AuthenticationServiceVerticle extends ScalaVerticle {
 
-  val logger: Logger = Logger[AuthenticationServiceVerticle]
+  private val logger: Logger = Logger[AuthenticationServiceVerticle]
   private var storageFuture: Future[StorageAsync] = _
 
   override def startFuture(): Future[_] = {

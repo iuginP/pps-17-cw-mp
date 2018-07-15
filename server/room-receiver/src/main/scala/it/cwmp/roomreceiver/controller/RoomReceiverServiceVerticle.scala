@@ -13,8 +13,8 @@ import scala.concurrent.Future
 
 case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends ScalaVerticle {
 
-  val logger: Logger = Logger[RoomReceiverServiceVerticle]
-  var server: HttpServer = _
+  private val logger: Logger = Logger[RoomReceiverServiceVerticle]
+  private var server: HttpServer = _
 
   override def startFuture(): Future[_] = {
     val router = Router.router(vertx)
