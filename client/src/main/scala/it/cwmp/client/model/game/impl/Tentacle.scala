@@ -29,9 +29,9 @@ case class Tentacle(from: Cell,
 object Tentacle {
 
   /**
-    * Moves of one step every amount of this time
+    * Conversion of this time expressed in milliseconds to movement of the tentacle
     */
-  val TENTACLE_MOVES_EVERY_MILLIS = 100
+  val TIME_TO_MOVEMENT_CONVERSION_RATE = 100
 
   /**
     * Tentacle length calculator
@@ -60,9 +60,9 @@ object Tentacle {
   /**
     * Default strategy for sizing the tentacle basing decision on time
     *
-    * Every [[TENTACLE_MOVES_EVERY_MILLIS]] tentacle gains 1 space towards enemy
+    * Every [[TIME_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
     */
   val timeToLengthStrategy: SizingStrategy[Duration, Long] =
-    (elapsedTime: Duration) => elapsedTime.toMillis / TENTACLE_MOVES_EVERY_MILLIS
+    (elapsedTime: Duration) => elapsedTime.toMillis / TIME_TO_MOVEMENT_CONVERSION_RATE
 
 }
