@@ -1,6 +1,6 @@
 package it.cwmp.client.view.game
 
-import it.cwmp.client.model.game.World
+import it.cwmp.client.model.game.impl.CellWorld
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.Canvas
@@ -30,7 +30,7 @@ case class GameFX() extends ObjectDrawer {
       stage.setScene(new Scene(root))
 
       //stabilisco cosa fare alla chiusura della finestra
-      stage.setOnCloseRequest( _ => {
+      stage.setOnCloseRequest(_ => {
         Platform.exit()
         System.exit(0)
       })
@@ -44,13 +44,13 @@ case class GameFX() extends ObjectDrawer {
     })
   }
 
-  def updateWorld(world: World): Unit = {
+  def updateWorld(world: CellWorld): Unit = {
     Platform.runLater(() => {
       implicit val graphicsContext = canvas.getGraphicsContext2D
-      import it.cwmp.client.view.game.model.CellImplicits._
+      import it.cwmp.client.view.game.model.CellView._
 
-      world.tentacles.foreach(tentacle => drawArch(tentacle.startCell, tentacle.arriveCell))
-      world.cells.foreach(cell => root.getChildren.add(drawCell(cell)))
+      world.attacks.foreach(tentacle => drawArch(tentacle.from, tentacle.to))
+      world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
     })
   }
 }

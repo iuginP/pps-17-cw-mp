@@ -2,7 +2,7 @@ package it.cwmp.client.model.game
 
 /**
   * A trait that describes how to color things
+  *
+  * @author Enrico Siboni
   */
-trait ColoringStrategy[T, Color] {
-  def colorOf(thing: T): Color
-}
+trait ColoringStrategy[-Thing, +Color] extends ((Thing) => Color)
