@@ -2,13 +2,13 @@ package it.cwmp.authentication
 
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.client.WebClientOptions
-import it.cwmp.testing.FutureTesting._
-import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
+import it.cwmp.testing.{FutureMatchers, HttpMatchers, VerticleBeforeAndAfterEach, VertxTest}
 import it.cwmp.utils.VertxClient._
 import it.cwmp.utils.{Utils, VertxClient}
 import org.scalatest.Matchers
 
-class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAndAfterEach with VertxClient with Matchers {
+class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAndAfterEach with VertxClient
+  with Matchers with HttpMatchers with FutureMatchers {
 
   override protected val verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
   override protected val clientOptions: WebClientOptions = WebClientOptions()
@@ -24,13 +24,13 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.post("/api/signup")
         .addAuthentication(username, password)
         .sendFuture()
-        .shouldRespondWith(201, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(201, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
       client.post("/api/signup")
         .sendFuture()
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
 
     it("when invalid header should fail") {
@@ -38,7 +38,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.post("/api/signup")
         .addAuthentication(token)
         .sendFuture()
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
 
     it("when username already exist should fail") {
@@ -52,7 +52,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.post("/api/signup")
             .addAuthentication(username, password)
             .sendFuture())
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
   }
 
@@ -68,13 +68,13 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/login")
             .addAuthentication(username, password)
             .sendFuture())
-        .shouldRespondWith(200, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
       client.get("/api/login")
         .sendFuture()
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
 
     it("when invalid header should fail") {
@@ -82,7 +82,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/login")
         .addAuthentication(token)
         .sendFuture()
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
 
     it("when user does not exists should fail") {
@@ -92,7 +92,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/login")
         .addAuthentication(username, password)
         .sendFuture()
-        .shouldRespondWith(401)
+        .shouldAnswerWith(401)
     }
 
     it("when password is wrong should fail") {
@@ -107,7 +107,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/login")
             .addAuthentication(username, passwordWrong)
             .sendFuture())
-        .shouldRespondWith(401)
+        .shouldAnswerWith(401)
     }
   }
 
@@ -123,7 +123,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/validate")
             .addAuthentication(response.bodyAsString().get)
             .sendFuture())
-        .shouldRespondWith(200, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when missing token should fail") {
@@ -138,7 +138,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/validate")
         .addAuthentication(myToken)
         .sendFuture()
-        .shouldRespondWith(400)
+        .shouldAnswerWith(400)
     }
 
     it("when unauthorized token should fail") {
@@ -147,7 +147,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/validate")
         .addAuthentication(myToken)
         .sendFuture()
-        .shouldRespondWith(401)
+        .shouldAnswerWith(401)
     }
   }
 }
