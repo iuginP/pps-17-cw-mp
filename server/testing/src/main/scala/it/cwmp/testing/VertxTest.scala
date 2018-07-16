@@ -1,7 +1,6 @@
 package it.cwmp.testing
 
-import io.vertx.lang.scala.VertxExecutionContext
-import io.vertx.scala.core.Vertx
+import it.cwmp.utils.VertxInstance
 import org.scalatest.AsyncFunSpec
 
 /**
@@ -9,7 +8,5 @@ import org.scalatest.AsyncFunSpec
   *
   * @author Enrico Siboni
   */
-abstract class VertxTest extends AsyncFunSpec {
-  val vertx: Vertx = Vertx.vertx
-  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
+abstract class VertxTest extends AsyncFunSpec with VertxInstance {
 }
