@@ -29,7 +29,7 @@ case class Tentacle(from: Cell,
 object Tentacle {
 
   /**
-    * Conversion of this time expressed in milliseconds to movement of the tentacle
+    * Amount of time expressed in milliseconds that will be converted to a movement step of the tentacle
     */
   val TIME_TO_MOVEMENT_CONVERSION_RATE = 100
 

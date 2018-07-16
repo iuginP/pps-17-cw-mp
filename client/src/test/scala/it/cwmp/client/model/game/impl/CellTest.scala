@@ -44,7 +44,7 @@ class CellTest extends FunSpec {
       it("should increment energy") {
         val myStaticCell = createCell
         var myEvolvedCell = createCell
-        myEvolvedCell = Cell.evolutionStrategy(Duration.ofSeconds(20), myEvolvedCell)
+        myEvolvedCell = Cell.evolutionStrategy(myEvolvedCell, Duration.ofSeconds(20))
 
         assert(myEvolvedCell.energy > myStaticCell.energy)
         assert(myEvolvedCell.position == myStaticCell.position)
@@ -54,12 +54,19 @@ class CellTest extends FunSpec {
         val myStaticCell = createCell
 
         // the evolution strategy increases energy every second
-        val myEvolvedCell = Cell.evolutionStrategy(Duration.ofMillis(5), myStaticCell)
+        val myEvolvedCell = Cell.evolutionStrategy(myStaticCell, Duration.ofMillis(5))
         assert(myEvolvedCell.energy > myStaticCell.energy)
 
-        val mySecondEvolvedCell = Cell.evolutionStrategy(Duration.ofMillis(5), myEvolvedCell)
+        val mySecondEvolvedCell = Cell.evolutionStrategy(myEvolvedCell, Duration.ofMillis(5))
         assert(mySecondEvolvedCell.energy > myEvolvedCell.energy)
       }
+    }
+
+    it("can match by owner and position regardless energy") {
+      val myCell = createCell
+      val myEvolvedCell = Cell.evolutionStrategy(myCell, Duration.ofMillis(500))
+
+      assert(Cell.matchOwnerAndPosition(myCell, myEvolvedCell))
     }
   }
 }

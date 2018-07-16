@@ -39,7 +39,7 @@ object Cell {
     *
     * adds 1 to energy each second
     */
-  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = (elapsedTime: Duration, cell: Cell) => {
+  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
     Cell(cell.owner, cell.position, cell.energy + (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE))
   }
 
@@ -53,4 +53,10 @@ object Cell {
   def distance(cell1: Cell, cell2: Cell): Long = {
     Point.distance(cell1.position, cell2.position)
   }
+
+  /**
+    * @return true if provided cells have matching owner and position
+    */
+  def matchOwnerAndPosition(cell1: Cell, cell2: Cell): Boolean =
+    cell1.owner == cell2.owner && cell1.position == cell2.position
 }

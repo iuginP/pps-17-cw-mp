@@ -14,8 +14,8 @@ class GameEngineTest extends FunSpec {
 
   describe("GameEngine") {
     describe("should complain if") {
-      it("bad timeToEvolveTo")(intercept[NullPointerException](GameEngine(null, CellWorld(Instant.now(), Seq(), Seq()))))
-      it("bad actualWorld")(intercept[NullPointerException](GameEngine(Duration.ZERO, null)))
+      it("bad actualWorld")(intercept[NullPointerException](GameEngine(null, Duration.ZERO)))
+      it("bad timeToEvolveTo")(intercept[NullPointerException](GameEngine(CellWorld(Instant.now(), Seq(), Seq()), null)))
     }
 
     // TODO:  add tests
