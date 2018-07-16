@@ -237,7 +237,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="A wrapper to access a local Vertx storage for Rooms" href="RoomsLocalDAO.html"><span class="name">RoomsLocalDAO</span></a><span class="params">(<span name="vertx">vertx: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="A wrapper to access a local Vertx storage for Rooms" href="RoomsLocalDAO.html"><span class="name">RoomsLocalDAO</span></a><span class="params">(<span name="client">client: <span class="extype" name="io.vertx.scala.ext.jdbc.JDBCClient">JDBCClient</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">A wrapper to access a local Vertx storage for Rooms
@@ -254,7 +254,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Class that implements the Rooms micro-service" href="RoomsServiceVerticle.html"><span class="name">RoomsServiceVerticle</span></a><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.Validation">Validation</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="it.cwmp.model.User">User</span>]</span>)</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Class that implements the Rooms micro-service" href="RoomsServiceVerticle.html"><span class="name">RoomsServiceVerticle</span></a><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</span>[<span class="extype" name="it.cwmp.model.User">User</span>]</span>, <span name="clientCommunicationStrategy">clientCommunicationStrategy: <span class="extype" name="it.cwmp.controller.client.RoomReceiverApiWrapper">RoomReceiverApiWrapper</span></span>)</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Class that implements the Rooms micro-service

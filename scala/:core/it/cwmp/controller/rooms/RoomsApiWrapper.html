@@ -137,10 +137,6 @@
                         <a class="object" href="RoomsApiWrapper$.html" title="Companion Object"></a>
                         <a class="trait" href="" title="A trait that describes the Api wrapper for Rooms"></a>
                         <a href="" title="A trait that describes the Api wrapper for Rooms">RoomsApiWrapper</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="RoomsServiceException$.html" title="Companion object"></a>
-                        <a class="trait" href="RoomsServiceException.html" title="Trait that describes errors of RoomsService"></a>
-                        <a href="RoomsServiceException.html" title="Trait that describes errors of RoomsService">RoomsServiceException</a>
                       </li>
               </ul>
             </div>
@@ -246,9 +242,9 @@
 </p></div><dl class="paramcmts block"><dt class="param">roomName</dt><dd class="cmt"><p>the room name</p></dd><dt class="param">playersNumber</dt><dd class="cmt"><p>the players number</p></dd><dt class="param">userToken</dt><dd class="cmt"><p>the token to be authenticated against api</p></dd><dt>returns</dt><dd class="cmt"><p>the future containing the identifier of the created room,
         or fails if roomName is empty or playersNumber not correct</p></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsApiWrapper#enterPublicRoom" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address,implicituserToken:String):scala.concurrent.Future[Unit]"></a><a id="enterPublicRoom(Int)(UserwithAddress,String):Future[Unit]"></a>
+      <a id="enterPublicRoom(playersNumber:Int,userAddress:it.cwmp.model.Address,notificationAddress:it.cwmp.model.Address)(implicituserToken:String):scala.concurrent.Future[Unit]"></a><a id="enterPublicRoom(Int,Address,Address)(String):Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsApiWrapper.html#enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address,implicituserToken:String):scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsApiWrapper.html#enterPublicRoom(playersNumber:Int,userAddress:it.cwmp.model.Address,notificationAddress:it.cwmp.model.Address)(implicituserToken:String):scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -257,18 +253,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">enterPublicRoom</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <a href="../../model/User.html" class="extype" name="it.cwmp.model.User">User</a> with <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>, <span name="userToken">userToken: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">enterPublicRoom</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>, <span name="userAddress">userAddress: <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>, <span name="notificationAddress">notificationAddress: <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="userToken">userToken: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Enters a public room
 </p><div class="fullcomment"><div class="comment cmt"><p>Enters a public room
-</p></div><dl class="paramcmts block"><dt class="param">playersNumber</dt><dd class="cmt"><p>the number of players that the public room has to have</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to enter</p></dd><dt class="param">userToken</dt><dd class="cmt"><p>the token to be authenticated against api</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when user ha entered,
+</p></div><dl class="paramcmts block"><dt class="param">playersNumber</dt><dd class="cmt"><p>the number of players that the public room has to have</p></dd><dt class="param">userAddress</dt><dd class="cmt"><p>the address of the paler that wants to enter</p></dd><dt class="param">notificationAddress</dt><dd class="cmt"><p>the address where player wants to receive notification of room filling</p></dd><dt class="param">userToken</dt><dd class="cmt"><p>the token to be authenticated against api</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when user ha entered,
         or fails if players number is not correct,
         or user already inside a room</p></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsApiWrapper#enterRoom" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="enterRoom(roomID:String)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address,implicituserToken:String):scala.concurrent.Future[Unit]"></a><a id="enterRoom(String)(UserwithAddress,String):Future[Unit]"></a>
+      <a id="enterRoom(roomID:String,userAddress:it.cwmp.model.Address,notificationAddress:it.cwmp.model.Address)(implicituserToken:String):scala.concurrent.Future[Unit]"></a><a id="enterRoom(String,Address,Address)(String):Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsApiWrapper.html#enterRoom(roomID:String)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address,implicituserToken:String):scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsApiWrapper.html#enterRoom(roomID:String,userAddress:it.cwmp.model.Address,notificationAddress:it.cwmp.model.Address)(implicituserToken:String):scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -277,12 +273,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">enterRoom</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <a href="../../model/User.html" class="extype" name="it.cwmp.model.User">User</a> with <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>, <span name="userToken">userToken: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">enterRoom</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="userAddress">userAddress: <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>, <span name="notificationAddress">notificationAddress: <a href="../../model/Address.html" class="extype" name="it.cwmp.model.Address">Address</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="userToken">userToken: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Enters a room
 </p><div class="fullcomment"><div class="comment cmt"><p>Enters a room
-</p></div><dl class="paramcmts block"><dt class="param">roomID</dt><dd class="cmt"><p>the identifier of the room</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to enter</p></dd><dt class="param">userToken</dt><dd class="cmt"><p>the token to be authenticated against api</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the user has entered,
+</p></div><dl class="paramcmts block"><dt class="param">roomID</dt><dd class="cmt"><p>the identifier of the room</p></dd><dt class="param">userAddress</dt><dd class="cmt"><p>the address of the paler that wants to enter</p></dd><dt class="param">notificationAddress</dt><dd class="cmt"><p>the address where player wants to receive notification of room filling</p></dd><dt class="param">userToken</dt><dd class="cmt"><p>the token to be authenticated against api</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the user has entered,
         or fails if roomID not provided, not present
         or user already inside a room, or room full</p></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsApiWrapper#exitPublicRoom" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">

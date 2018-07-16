@@ -170,7 +170,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsServiceVerticle</span><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.Validation">Validation</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="it.cwmp.model.User">User</span>]</span>)</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">RoomsServiceVerticle</span><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</span>[<span class="extype" name="it.cwmp.model.User">User</span>]</span>, <span name="clientCommunicationStrategy">clientCommunicationStrategy: <span class="extype" name="it.cwmp.controller.client.RoomReceiverApiWrapper">RoomReceiverApiWrapper</span></span>)</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -227,9 +227,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="it.cwmp.controller.rooms.RoomsServiceVerticle#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(validationStrategy:it.cwmp.authentication.Validation[String,it.cwmp.model.User]):it.cwmp.controller.rooms.RoomsServiceVerticle"></a><a id="&lt;init&gt;:RoomsServiceVerticle"></a>
+      <a id="&lt;init&gt;(validationStrategy:it.cwmp.authentication.HttpValidation[it.cwmp.model.User],implicitclientCommunicationStrategy:it.cwmp.controller.client.RoomReceiverApiWrapper):it.cwmp.controller.rooms.RoomsServiceVerticle"></a><a id="&lt;init&gt;:RoomsServiceVerticle"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsServiceVerticle.html#&lt;init&gt;(validationStrategy:it.cwmp.authentication.Validation[String,it.cwmp.model.User]):it.cwmp.controller.rooms.RoomsServiceVerticle" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsServiceVerticle.html#&lt;init&gt;(validationStrategy:it.cwmp.authentication.HttpValidation[it.cwmp.model.User],implicitclientCommunicationStrategy:it.cwmp.controller.client.RoomReceiverApiWrapper):it.cwmp.controller.rooms.RoomsServiceVerticle" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -238,7 +238,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsServiceVerticle</span><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.Validation">Validation</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="it.cwmp.model.User">User</span>]</span>)</span>
+        <span class="name">RoomsServiceVerticle</span><span class="params">(<span name="validationStrategy">validationStrategy: <span class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</span>[<span class="extype" name="it.cwmp.model.User">User</span>]</span>, <span name="clientCommunicationStrategy">clientCommunicationStrategy: <span class="extype" name="it.cwmp.controller.client.RoomReceiverApiWrapper">RoomReceiverApiWrapper</span></span>)</span>
       </span>
       
       
@@ -332,6 +332,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ScalaVerticle</dd></dl></div>
+    </li><li name="it.cwmp.controller.rooms.RoomsServiceVerticle#clientCommunicationStrategy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="clientCommunicationStrategy:it.cwmp.controller.client.RoomReceiverApiWrapper"></a><a id="clientCommunicationStrategy:RoomReceiverApiWrapper"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsServiceVerticle.html#clientCommunicationStrategy:it.cwmp.controller.client.RoomReceiverApiWrapper" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clientCommunicationStrategy</span><span class="result">: <span class="extype" name="it.cwmp.controller.client.RoomReceiverApiWrapper">RoomReceiverApiWrapper</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -660,9 +676,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsServiceVerticle#validationStrategy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="validationStrategy:it.cwmp.authentication.Validation[String,it.cwmp.model.User]"></a><a id="validationStrategy:Validation[String,User]"></a>
+      <a id="validationStrategy:it.cwmp.authentication.HttpValidation[it.cwmp.model.User]"></a><a id="validationStrategy:HttpValidation[User]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsServiceVerticle.html#validationStrategy:it.cwmp.authentication.Validation[String,it.cwmp.model.User]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsServiceVerticle.html#validationStrategy:it.cwmp.authentication.HttpValidation[it.cwmp.model.User]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -671,7 +687,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">validationStrategy</span><span class="result">: <span class="extype" name="it.cwmp.authentication.Validation">Validation</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="it.cwmp.model.User">User</span>]</span>
+        <span class="name">validationStrategy</span><span class="result">: <span class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</span>[<span class="extype" name="it.cwmp.model.User">User</span>]</span>
       </span>
       
       

@@ -170,7 +170,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="vertx">vertx: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="client">client: <span class="extype" name="io.vertx.scala.ext.jdbc.JDBCClient">JDBCClient</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -227,9 +227,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="it.cwmp.controller.rooms.RoomsLocalDAO#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(vertx:io.vertx.scala.core.Vertx):it.cwmp.controller.rooms.RoomsLocalDAO"></a><a id="&lt;init&gt;:RoomsLocalDAO"></a>
+      <a id="&lt;init&gt;(client:io.vertx.scala.ext.jdbc.JDBCClient)(implicitexecutionContext:scala.concurrent.ExecutionContext):it.cwmp.controller.rooms.RoomsLocalDAO"></a><a id="&lt;init&gt;:RoomsLocalDAO"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#&lt;init&gt;(vertx:io.vertx.scala.core.Vertx):it.cwmp.controller.rooms.RoomsLocalDAO" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#&lt;init&gt;(client:io.vertx.scala.ext.jdbc.JDBCClient)(implicitexecutionContext:scala.concurrent.ExecutionContext):it.cwmp.controller.rooms.RoomsLocalDAO" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -238,7 +238,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="vertx">vertx: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>)</span>
+        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="client">client: <span class="extype" name="io.vertx.scala.ext.jdbc.JDBCClient">JDBCClient</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span>
       </span>
       
       
@@ -316,6 +316,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="client:io.vertx.scala.ext.jdbc.JDBCClient"></a><a id="client:JDBCClient"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#client:io.vertx.scala.ext.jdbc.JDBCClient" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">client</span><span class="result">: <span class="extype" name="io.vertx.scala.ext.jdbc.JDBCClient">JDBCClient</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -400,9 +416,9 @@
         or fails if roomId is not provided or not present,
         of room is not full</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.controller.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#enterPublicRoom" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address):scala.concurrent.Future[Unit]"></a><a id="enterPublicRoom(Int)(UserwithAddress):Future[Unit]"></a>
+      <a id="enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Participant,implicitaddress:it.cwmp.model.Address):scala.concurrent.Future[Unit]"></a><a id="enterPublicRoom(Int)(Participant,Address):Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address):scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#enterPublicRoom(playersNumber:Int)(implicituser:it.cwmp.model.Participant,implicitaddress:it.cwmp.model.Address):scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -411,7 +427,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">enterPublicRoom</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <span class="extype" name="it.cwmp.model.User">User</span> with <span class="extype" name="it.cwmp.model.Address">Address</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">enterPublicRoom</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <span class="extype" name="it.cwmp.model.Participant">Participant</span></span>, <span name="address">address: <span class="extype" name="it.cwmp.model.Address">Address</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Enters a public room
@@ -420,9 +436,9 @@
         or fails if players number is not correct,
         or user already inside a room</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.controller.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#enterRoom" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="enterRoom(roomID:String)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address):scala.concurrent.Future[Unit]"></a><a id="enterRoom(String)(UserwithAddress):Future[Unit]"></a>
+      <a id="enterRoom(roomID:String)(implicituser:it.cwmp.model.Participant,implicitnotificationAddress:it.cwmp.model.Address):scala.concurrent.Future[Unit]"></a><a id="enterRoom(String)(Participant,Address):Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#enterRoom(roomID:String)(implicituser:it.cwmp.model.Userwithit.cwmp.model.Address):scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#enterRoom(roomID:String)(implicituser:it.cwmp.model.Participant,implicitnotificationAddress:it.cwmp.model.Address):scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -431,12 +447,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">enterRoom</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <span class="extype" name="it.cwmp.model.User">User</span> with <span class="extype" name="it.cwmp.model.Address">Address</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">enterRoom</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="user">user: <span class="extype" name="it.cwmp.model.Participant">Participant</span></span>, <span name="notificationAddress">notificationAddress: <span class="extype" name="it.cwmp.model.Address">Address</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Enters a room
 </p><div class="fullcomment"><div class="comment cmt"><p>Enters a room
-</p></div><dl class="paramcmts block"><dt class="param">roomID</dt><dd class="cmt"><p>the identifier of the room</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to enter</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the user has entered,
+</p></div><dl class="paramcmts block"><dt class="param">roomID</dt><dd class="cmt"><p>the identifier of the room</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to enter</p></dd><dt class="param">notificationAddress</dt><dd class="cmt"><p>the address where the user wants to receive other players info</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the user has entered,
         or fails if roomID not provided, not present
         or user already inside a room, or room full</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.controller.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -641,9 +657,9 @@
               
         </dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#publicRoomInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="publicRoomInfo(playersNumber:Int):scala.concurrent.Future[it.cwmp.model.Room]"></a><a id="publicRoomInfo(Int):Future[Room]"></a>
+      <a id="publicRoomInfo(playersNumber:Int):scala.concurrent.Future[(it.cwmp.model.Room,Seq[it.cwmp.model.Address])]"></a><a id="publicRoomInfo(Int):Future[(Room,Seq[Address])]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#publicRoomInfo(playersNumber:Int):scala.concurrent.Future[it.cwmp.model.Room]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#publicRoomInfo(playersNumber:Int):scala.concurrent.Future[(it.cwmp.model.Room,Seq[it.cwmp.model.Address])]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -652,17 +668,17 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">publicRoomInfo</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="it.cwmp.model.Room">Room</span>]</span>
+        <span class="name">publicRoomInfo</span><span class="params">(<span name="playersNumber">playersNumber: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[(<span class="extype" name="it.cwmp.model.Room">Room</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.model.Address">Address</span>])]</span>
       </span>
       
-      <p class="shortcomment cmt">Retrieves information about a public room with specific number of players
-</p><div class="fullcomment"><div class="comment cmt"><p>Retrieves information about a public room with specific number of players
+      <p class="shortcomment cmt">Retrieves information about a public room with specific number of players, and relative user notification addresses
+</p><div class="fullcomment"><div class="comment cmt"><p>Retrieves information about a public room with specific number of players, and relative user notification addresses
 </p></div><dl class="paramcmts block"><dt class="param">playersNumber</dt><dd class="cmt"><p>the number of players that the public room has to have</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the information is available,
         or fails if players number not correct</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.controller.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#roomInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="roomInfo(roomID:String):scala.concurrent.Future[it.cwmp.model.Room]"></a><a id="roomInfo(String):Future[Room]"></a>
+      <a id="roomInfo(roomID:String):scala.concurrent.Future[(it.cwmp.model.Room,Seq[it.cwmp.model.Address])]"></a><a id="roomInfo(String):Future[(Room,Seq[Address])]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#roomInfo(roomID:String):scala.concurrent.Future[it.cwmp.model.Room]" title="Permalink">
+      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#roomInfo(roomID:String):scala.concurrent.Future[(it.cwmp.model.Room,Seq[it.cwmp.model.Address])]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -671,11 +687,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">roomInfo</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="it.cwmp.model.Room">Room</span>]</span>
+        <span class="name">roomInfo</span><span class="params">(<span name="roomID">roomID: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[(<span class="extype" name="it.cwmp.model.Room">Room</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.model.Address">Address</span>])]</span>
       </span>
       
-      <p class="shortcomment cmt">Retrieves room information
-</p><div class="fullcomment"><div class="comment cmt"><p>Retrieves room information
+      <p class="shortcomment cmt">Retrieves room information, and related user notification addresses
+</p><div class="fullcomment"><div class="comment cmt"><p>Retrieves room information, and related user notification addresses
 </p></div><dl class="paramcmts block"><dt class="param">roomID</dt><dd class="cmt"><p>the identifier of the room</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the room information is available,
         or fails if room id not provided or not present</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.controller.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.controller.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -694,22 +710,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="it.cwmp.controller.rooms.RoomsLocalDAO#vertx" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="vertx:io.vertx.scala.core.Vertx"></a><a id="vertx:Vertx"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/controller/rooms/RoomsLocalDAO.html#vertx:io.vertx.scala.core.Vertx" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">vertx</span><span class="result">: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">

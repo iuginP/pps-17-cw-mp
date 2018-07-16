@@ -169,7 +169,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="AuthenticationService.html" class="extype" name="it.cwmp.authentication.AuthenticationService">AuthenticationService</a>, <a href="Validation.html" class="extype" name="it.cwmp.authentication.Validation">Validation</a>[<span class="extype" name="scala.Predef.String">String</span>, <a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="AuthenticationService.html" class="extype" name="it.cwmp.authentication.AuthenticationService">AuthenticationService</a>, <a href="HttpValidation.html" class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</a>[<a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>], <a href="Validation.html" class="extype" name="it.cwmp.authentication.Validation">Validation</a>[<span class="extype" name="scala.Predef.String">String</span>, <a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -195,7 +195,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.authentication.AuthenticationService.AuthenticationServiceImpl"><span>AuthenticationServiceImpl</span></li><li class="in" name="it.cwmp.authentication.AuthenticationService"><span>AuthenticationService</span></li><li class="in" name="it.cwmp.authentication.Validation"><span>Validation</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.authentication.AuthenticationService.AuthenticationServiceImpl"><span>AuthenticationServiceImpl</span></li><li class="in" name="it.cwmp.authentication.AuthenticationService"><span>AuthenticationService</span></li><li class="in" name="it.cwmp.authentication.HttpValidation"><span>HttpValidation</span></li><li class="in" name="it.cwmp.authentication.Validation"><span>Validation</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -573,6 +573,22 @@
       <p class="shortcomment cmt">Validates the input and returns the future containing the output
 </p><div class="fullcomment"><div class="comment cmt"><p>Validates the input and returns the future containing the output
 </p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the future that will contain the future output</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.authentication.AuthenticationService.AuthenticationServiceImpl">AuthenticationServiceImpl</a> → <a href="Validation.html" class="extype" name="it.cwmp.authentication.Validation">Validation</a></dd></dl></div>
+    </li><li name="it.cwmp.authentication.AuthenticationService.AuthenticationServiceImpl#verifyAuthorization" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="verifyAuthorization(authHeader:String):scala.concurrent.Future[it.cwmp.model.User]"></a><a id="verifyAuthorization(String):Future[User]"></a>
+      <span class="permalink">
+      <a href="../../../it/cwmp/authentication/AuthenticationService$$AuthenticationServiceImpl.html#verifyAuthorization(authHeader:String):scala.concurrent.Future[it.cwmp.model.User]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">verifyAuthorization</span><span class="params">(<span name="authHeader">authHeader: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the future that will contain the future output</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.authentication.AuthenticationService.AuthenticationServiceImpl">AuthenticationServiceImpl</a> → <a href="HttpValidation.html" class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -653,6 +669,8 @@
         <div id="inheritedMembers">
         <div class="parent" name="it.cwmp.authentication.AuthenticationService">
               <h3>Inherited from <a href="AuthenticationService.html" class="extype" name="it.cwmp.authentication.AuthenticationService">AuthenticationService</a></h3>
+            </div><div class="parent" name="it.cwmp.authentication.HttpValidation">
+              <h3>Inherited from <a href="HttpValidation.html" class="extype" name="it.cwmp.authentication.HttpValidation">HttpValidation</a>[<a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>]</h3>
             </div><div class="parent" name="it.cwmp.authentication.Validation">
               <h3>Inherited from <a href="Validation.html" class="extype" name="it.cwmp.authentication.Validation">Validation</a>[<span class="extype" name="scala.Predef.String">String</span>, <a href="../model/User.html" class="extype" name="it.cwmp.model.User">User</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
