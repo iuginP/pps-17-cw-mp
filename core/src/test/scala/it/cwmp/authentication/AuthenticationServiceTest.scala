@@ -1,14 +1,17 @@
 package it.cwmp.authentication
 
+import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.testing.VerticleTesting
+import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
 import it.cwmp.utils.Utils
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 import scala.util.Failure
 
-class AuthenticationServiceTest extends VerticleTesting[AuthenticationServiceVerticle] with Matchers {
+class AuthenticationServiceTest extends VertxTest with VerticleBeforeAndAfterEach with Matchers {
+
+  override protected def verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
 
   private val auth = AuthenticationService()
 
