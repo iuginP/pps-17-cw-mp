@@ -2,6 +2,7 @@ package it.cwmp.authentication
 
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.client.WebClientOptions
+import it.cwmp.testing.FutureTesting._
 import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
 import it.cwmp.utils.VertxClient._
 import it.cwmp.utils.{Utils, VertxClient}
@@ -23,13 +24,13 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.post("/api/signup")
         .addAuthentication(username, password)
         .sendFuture()
-        .map(res => res statusCode() should equal(201))
+        .shouldRespondWith(201, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
       client.post("/api/signup")
         .sendFuture()
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
 
     it("when invalid header should fail") {
@@ -37,7 +38,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.post("/api/signup")
         .addAuthentication(token)
         .sendFuture()
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
 
     it("when username already exist should fail") {
@@ -51,7 +52,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.post("/api/signup")
             .addAuthentication(username, password)
             .sendFuture())
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
   }
 
@@ -67,13 +68,13 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/login")
             .addAuthentication(username, password)
             .sendFuture())
-        .map(res => res statusCode() should equal(200)) // TODO controllare anche il body per la presenza del token
+        .shouldRespondWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
       client.get("/api/login")
         .sendFuture()
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
 
     it("when invalid header should fail") {
@@ -81,7 +82,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/login")
         .addAuthentication(token)
         .sendFuture()
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
 
     it("when user does not exists should fail") {
@@ -91,7 +92,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/login")
         .addAuthentication(username, password)
         .sendFuture()
-        .map(res => res statusCode() should equal(401))
+        .shouldRespondWith(401)
     }
 
     it("when password is wrong should fail") {
@@ -106,7 +107,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/login")
             .addAuthentication(username, passwordWrong)
             .sendFuture())
-        .map(res => res statusCode() should equal(401))
+        .shouldRespondWith(401)
     }
   }
 
@@ -122,7 +123,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
           client.get("/api/validate")
             .addAuthentication(response.bodyAsString().get)
             .sendFuture())
-        .map(res => res statusCode() should equal(200))
+        .shouldRespondWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when missing token should fail") {
@@ -137,7 +138,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/validate")
         .addAuthentication(myToken)
         .sendFuture()
-        .map(res => res statusCode() should equal(400))
+        .shouldRespondWith(400)
     }
 
     it("when unauthorized token should fail") {
@@ -146,7 +147,7 @@ class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAnd
       client.get("/api/validate")
         .addAuthentication(myToken)
         .sendFuture()
-        .map(res => res statusCode() should equal(401))
+        .shouldRespondWith(401)
     }
   }
 }
