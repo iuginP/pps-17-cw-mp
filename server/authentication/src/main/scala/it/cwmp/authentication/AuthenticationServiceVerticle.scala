@@ -12,7 +12,7 @@ import it.cwmp.utils.HttpUtils
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class AuthenticationServiceVerticle extends ScalaVerticle {
+case class AuthenticationServiceVerticle() extends ScalaVerticle {
 
   private val logger: Logger = Logger[AuthenticationServiceVerticle]
   private var storageFuture: Future[StorageAsync] = _
