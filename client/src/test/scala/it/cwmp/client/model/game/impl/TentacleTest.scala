@@ -15,16 +15,14 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
   private val toCell = Cell(User("Eugenio"), Point(3, 4), 500)
   private val launchInstant = Instant.now()
 
-  private def createTentacle: Tentacle = Tentacle(fromCell, toCell, launchInstant)
+  private val myTentacle: Tentacle = Tentacle(fromCell, toCell, launchInstant)
 
   describe("A tentacle") {
     describe("On creation") {
       it("should succeed if inputs are correct") {
-        val tentacle = createTentacle
-
-        assert(tentacle.from == fromCell)
-        assert(tentacle.to == toCell)
-        assert(tentacle.launchInstant == launchInstant)
+        assert(myTentacle.from == fromCell)
+        assert(myTentacle.to == toCell)
+        assert(myTentacle.launchInstant == launchInstant)
       }
 
       describe("should complain") {
@@ -40,24 +38,20 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
       val lengthStrategy: SizingStrategy[Duration, Long] = (elapsedTime: Duration) => elapsedTime.toMillis
 
       it("should have had length 0 when it was launched") {
-        val tentacle = createTentacle
-
-        assert(tentacle.length(tentacle.launchInstant)(lengthStrategy) == 0)
+        assert(myTentacle.length(myTentacle.launchInstant, lengthStrategy) == 0)
       }
       it("should correctly calculate length with provided strategy") {
-        val tentacle = createTentacle
         val millisAfterLaunch = 4
-        val afterLaunch = tentacle.launchInstant.plusMillis(millisAfterLaunch)
+        val afterLaunch = myTentacle.launchInstant.plusMillis(millisAfterLaunch)
 
-        assert(tentacle.length(afterLaunch)(lengthStrategy) == millisAfterLaunch)
+        assert(myTentacle.length(afterLaunch, lengthStrategy) == millisAfterLaunch)
       }
       it("should not exceed the distance between cells") {
-        val tentacle = createTentacle
         val millisAfterLaunch = 10000
-        val afterLaunchInstant = tentacle.launchInstant.plusMillis(millisAfterLaunch)
+        val afterLaunchInstant = myTentacle.launchInstant.plusMillis(millisAfterLaunch)
 
-        val distanceBetweenCells = Cell.distance(tentacle.from, tentacle.to)
-        assert(tentacle.length(afterLaunchInstant)(lengthStrategy) == distanceBetweenCells)
+        val distanceBetweenCells = Cell.distance(myTentacle.from, myTentacle.to)
+        assert(myTentacle.length(afterLaunchInstant, lengthStrategy) == distanceBetweenCells)
       }
 
     }

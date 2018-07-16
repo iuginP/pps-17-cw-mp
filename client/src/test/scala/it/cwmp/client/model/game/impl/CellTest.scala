@@ -11,19 +11,19 @@ import org.scalatest.FunSpec
 class CellTest extends FunSpec {
 
   private val user = User("Enrico")
-  private val position = Point(30, 40)
+  private val position = Point(3, 4)
   private val energy = 50
 
-  private def createCell: Cell = Cell(user, position, energy)
+  private val myCell = Cell(user, position, energy)
+  private val anotherCell = Cell(user, Point(0, 0), energy * 2)
 
   describe("A cell") {
     describe("On creation") {
 
       it("should succeed if inputs correct") {
-        val cell = createCell
-        assert(cell.owner == user)
-        assert(cell.energy == energy)
-        assert(cell.position == position)
+        assert(myCell.owner == user)
+        assert(myCell.energy == energy)
+        assert(myCell.position == position)
       }
 
       describe("should complain") {
@@ -34,39 +34,51 @@ class CellTest extends FunSpec {
     }
 
     it("Distance calculation should be correct") {
-      val myCell = Cell(user, Point(0, 0), energy)
-      val myOtherCell = Cell(user, Point(3, 4), energy)
-
-      assert(Cell.distance(myCell, myOtherCell) == 5)
+      assert(Cell.distance(myCell, anotherCell) == 5)
     }
 
     describe("Evolution") {
       it("should increment energy") {
-        val myStaticCell = createCell
-        var myEvolvedCell = createCell
-        myEvolvedCell = Cell.evolutionStrategy(myEvolvedCell, Duration.ofSeconds(20))
+        val myEvolvedCell = Cell.defaultEvolutionStrategy(myCell, Duration.ofSeconds(20))
 
-        assert(myEvolvedCell.energy > myStaticCell.energy)
-        assert(myEvolvedCell.position == myStaticCell.position)
-        assert(myEvolvedCell.owner == myStaticCell.owner)
+        assert(myEvolvedCell.energy > myCell.energy)
+        assert(myEvolvedCell.position == myCell.position)
+        assert(myEvolvedCell.owner == myCell.owner)
       }
       it("should increment energy in multiple times") {
-        val myStaticCell = createCell
-
         // the evolution strategy increases energy every second
-        val myEvolvedCell = Cell.evolutionStrategy(myStaticCell, Duration.ofMillis(5))
-        assert(myEvolvedCell.energy > myStaticCell.energy)
+        val myEvolvedCell = Cell.defaultEvolutionStrategy(myCell, Duration.ofMillis(5))
+        assert(myEvolvedCell.energy > myCell.energy)
 
-        val mySecondEvolvedCell = Cell.evolutionStrategy(myEvolvedCell, Duration.ofMillis(5))
+        val mySecondEvolvedCell = Cell.defaultEvolutionStrategy(myEvolvedCell, Duration.ofMillis(5))
         assert(mySecondEvolvedCell.energy > myEvolvedCell.energy)
+      }
+      it("should use default strategy with implicit") {
+        val evolvedCell = myCell.evolve(Duration.ofMillis(1000))
+
+        assert(myCell.energy < evolvedCell.energy)
       }
     }
 
     it("can match by owner and position regardless energy") {
-      val myCell = createCell
-      val myEvolvedCell = Cell.evolutionStrategy(myCell, Duration.ofMillis(500))
+      val myEvolvedCell = Cell.defaultEvolutionStrategy(myCell, Duration.ofMillis(500))
 
-      assert(Cell.matchOwnerAndPosition(myCell, myEvolvedCell))
+      assert(Cell.ownerAndPositionMatch(myCell, myEvolvedCell))
+    }
+
+    describe("Manipulation") {
+      it("can increment energy if provided amount is correct") {
+        val incrementedCell = myCell ++ 20
+        assert(incrementedCell.energy - 20 == myCell.energy)
+      }
+      it("can decrement energy if provided amount is correct") {
+        val incrementedCell = myCell -- 20
+        assert(incrementedCell.energy + 20 == myCell.energy)
+      }
+      describe("should complain if") {
+        it("increment amount not positive")(intercept[IllegalArgumentException](myCell ++ -2))
+        it("decrement amount not positive")(intercept[IllegalArgumentException](myCell -- -2))
+      }
     }
   }
 }

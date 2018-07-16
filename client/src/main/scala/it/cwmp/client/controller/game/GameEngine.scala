@@ -18,40 +18,31 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
   /**
     * Evolves the world using default evolution strategies
     *
-    * @param toEvolve    the world to evolve
+    * @param oldToEvolve the world to evolve
     * @param elapsedTime the amount of time that should be reflected in changes in "toEvolve" world
     * @return the evolved world
     */
-  override def apply(toEvolve: CellWorld, elapsedTime: Duration): CellWorld = {
-    evolveWithStrategies(toEvolve, elapsedTime)(Cell.evolutionStrategy)
+  override def apply(oldToEvolve: CellWorld, elapsedTime: Duration): CellWorld = {
+    evolveWithStrategies(oldToEvolve, elapsedTime)(Cell.defaultEvolutionStrategy)
   }
 
 
-  private def evolveWithStrategies(toEvolve: CellWorld,
+  private def evolveWithStrategies(oldToEvolve: CellWorld,
                                    elapsedTime: Duration)
                                   (cellEvolutionStrategy: EvolutionStrategy[Cell, Duration]): CellWorld = {
 
-    requireNonNull(toEvolve, "World to evolve must not be null")
+    requireNonNull(oldToEvolve, "World to evolve must not be null")
     requireNonNull(elapsedTime, "Elapsed time must not be null")
 
-    val evolvedCharacters = evolveCharacters(toEvolve.characters, elapsedTime)(cellEvolutionStrategy)
-    for (character <- evolvedCharacters;
-         attack <- toEvolve.attacks if attack.from == character || attack.to == character) {
-      // TODO:
-    }
-    toEvolve
-  }
+    val evolvedCells = oldToEvolve.characters.map(_.evolve(elapsedTime))
 
-  /**
-    * Evolves the characters according to elapsed time with given evolutionStrategy
-    *
-    * @param characters            the characters to evolve
-    * @param elapsedTime           the elapsedTime to consider
-    * @param cellEvolutionStrategy the strategy to use evolving characters
-    * @return
-    */
-  private def evolveCharacters(characters: Seq[Cell], elapsedTime: Duration)
-                              (cellEvolutionStrategy: EvolutionStrategy[Cell, Duration]): Stream[Cell] = {
-    characters.toStream.map(cellEvolutionStrategy(_, elapsedTime))
+    for (cell <- evolvedCells;
+         tentacle <- oldToEvolve.attacks if Cell.ownerAndPositionMatch(tentacle.from, cell)) {
+
+      val addedTentacleLength = tentacle.length(oldToEvolve.instant.plus(elapsedTime)) - tentacle.length(oldToEvolve.instant)
+      val attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)
+
+    }
+    oldToEvolve
   }
 }

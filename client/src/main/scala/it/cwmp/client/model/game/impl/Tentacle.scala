@@ -34,6 +34,14 @@ object Tentacle {
   val TIME_TO_MOVEMENT_CONVERSION_RATE = 100
 
   /**
+    * Default strategy for sizing the tentacle basing decision on time
+    *
+    * Every [[TIME_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
+    */
+  val defaultTimeToLengthStrategy: SizingStrategy[Duration, Long] =
+    (elapsedTime: Duration) => elapsedTime.toMillis / TIME_TO_MOVEMENT_CONVERSION_RATE
+
+  /**
     * Tentacle length calculator
     *
     * @param tentacle the tentacle of which to calculate the distance traveled
@@ -47,8 +55,8 @@ object Tentacle {
       * @param timeToLengthStrategy the strategy that decides how fast is the tentacle on reaching destination
       * @return the tentacle length
       */
-    def length(actualInstant: Instant)
-              (timeToLengthStrategy: SizingStrategy[Duration, Long] = timeToLengthStrategy): Long = {
+    def length(actualInstant: Instant,
+               timeToLengthStrategy: SizingStrategy[Duration, Long] = defaultTimeToLengthStrategy): Long = {
 
       val distanceBetweenCells = Cell.distance(tentacle.from, tentacle.to)
       val tentacleShouldHaveLength = timeToLengthStrategy(Duration.between(tentacle.launchInstant, actualInstant))
@@ -56,13 +64,5 @@ object Tentacle {
       if (tentacleShouldHaveLength > distanceBetweenCells) distanceBetweenCells else tentacleShouldHaveLength
     }
   }
-
-  /**
-    * Default strategy for sizing the tentacle basing decision on time
-    *
-    * Every [[TIME_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
-    */
-  val timeToLengthStrategy: SizingStrategy[Duration, Long] =
-    (elapsedTime: Duration) => elapsedTime.toMillis / TIME_TO_MOVEMENT_CONVERSION_RATE
 
 }

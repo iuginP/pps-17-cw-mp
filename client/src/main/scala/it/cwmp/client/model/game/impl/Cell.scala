@@ -39,7 +39,7 @@ object Cell {
     *
     * adds 1 to energy each second
     */
-  val evolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
+  val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
     Cell(cell.owner, cell.position, cell.energy + (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE))
   }
 
@@ -57,6 +57,48 @@ object Cell {
   /**
     * @return true if provided cells have matching owner and position
     */
-  def matchOwnerAndPosition(cell1: Cell, cell2: Cell): Boolean =
+  def ownerAndPositionMatch(cell1: Cell, cell2: Cell): Boolean =
     cell1.owner == cell2.owner && cell1.position == cell2.position
+
+  /**
+    * A class to manipulate cells
+    *
+    * @param cell the cell to manipulate
+    */
+  implicit class CellManipulator(cell: Cell) {
+
+    /**
+      * Evolves the cell according to elapsedTime and evolutionStrategy
+      *
+      * @param elapsedTime           elapsedTime to consider
+      * @param cellEvolutionStrategy the evolution strategy to consider
+      * @return
+      */
+    def evolve(elapsedTime: Duration, cellEvolutionStrategy: EvolutionStrategy[Cell, Duration] = defaultEvolutionStrategy): Cell =
+      cellEvolutionStrategy(cell, elapsedTime)
+
+    /**
+      * Creates a new cell with energy reduced
+      *
+      * @param energyReduction the amount of energy to remove
+      * @return the cell with reduced energy
+      */
+    def --(energyReduction: Double): Cell = {
+      require(energyReduction >= 0, "Energy increment should be positive")
+      Cell(cell.owner, cell.position, cell.energy - energyReduction)
+    }
+
+    /**
+      * Creates a new cell with energy increased
+      *
+      * @param energyIncrement the increment to add to energy
+      * @return the cell with incremented energy
+      */
+    def ++(energyIncrement: Double): Cell = {
+      require(energyIncrement >= 0, "Energy increment should be positive")
+      Cell(cell.owner, cell.position, cell.energy + energyIncrement)
+    }
+
+  }
+
 }

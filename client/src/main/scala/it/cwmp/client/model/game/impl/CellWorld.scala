@@ -49,7 +49,7 @@ object CellWorld {
       * @return the modified world
       */
     def --(tentacle: Tentacle): CellWorld = {
-      val tentacleActualLength = tentacle.length(cellWorld.instant)(Tentacle.timeToLengthStrategy)
+      val tentacleActualLength = tentacle.length(cellWorld.instant)
       val energyRefund = lengthToEnergyReductionStrategy(tentacleActualLength)
       val attackerAndOthersPair = cellWorld.characters.partition(_ == tentacle.from)
       val attackerCell = attackerAndOthersPair._1.head
@@ -66,7 +66,7 @@ object CellWorld {
   /**
     * Amount of time expressed in milliseconds that will be converted in 1 energy reduction on under attack character
     */
-  val ATTACK_TIME_TO_ENERGY_REDUCTION_RATE = 1000
+  val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000
 
 
   /**
@@ -80,10 +80,10 @@ object CellWorld {
   /**
     * Default strategy to calculate reduction of attacked character
     *
-    * Every [[ATTACK_TIME_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
+    * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
     */
-  val timeToEnergyReductionStrategy: SizingStrategy[Duration, Double] =
-    (attackDuration: Duration) => attackDuration.toMillis / ATTACK_TIME_TO_ENERGY_REDUCTION_RATE
+  val durationToEnergyReductionStrategy: SizingStrategy[Duration, Double] =
+    (attackDuration: Duration) => attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE
 
   // TODO: Add converter to DDATA
 }

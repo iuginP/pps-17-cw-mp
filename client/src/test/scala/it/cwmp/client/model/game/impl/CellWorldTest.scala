@@ -22,14 +22,14 @@ class CellWorldTest extends FunSpec {
     Tentacle(cells(2), cells.head, worldInstant) ::
     Nil
 
+  private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
+
   describe("A CellWorld") {
     describe("On creation") {
       it("should succeed if inputs correct") {
-        val cellWorld = CellWorld(worldInstant, cells, tentacles)
-
-        assert(cellWorld.instant == worldInstant)
-        assert(cellWorld.characters == cells)
-        assert(cellWorld.attacks == tentacles)
+        assert(myCellWorld.instant == worldInstant)
+        assert(myCellWorld.characters == cells)
+        assert(myCellWorld.attacks == tentacles)
       }
 
       describe("should complain") {
@@ -40,16 +40,15 @@ class CellWorldTest extends FunSpec {
     }
 
     describe("Manipulation") {
-      val cellWorld = CellWorld(worldInstant, cells, tentacles)
       it("can add a tentacle to world") {
         val tentacle = Tentacle(cells(3), cells(2), worldInstant.plusMillis(1000))
-        val newWorld = cellWorld ++ tentacle
+        val newWorld = myCellWorld ++ tentacle
 
         assert(newWorld.attacks contains tentacle)
       }
 
       it("can remove tntacle from world") {
-        val newWorld = cellWorld -- tentacles.head
+        val newWorld = myCellWorld -- tentacles.head
 
         assert(!(newWorld.attacks contains tentacles.head))
       }
@@ -59,7 +58,7 @@ class CellWorldTest extends FunSpec {
         val beforeCell = advancedWorld.characters.find(_ == tentacles.head.from).get
 
         val changedWorld = advancedWorld -- tentacles.head
-        val afterCell = changedWorld.characters.find(Cell.matchOwnerAndPosition(_, beforeCell)).get
+        val afterCell = changedWorld.characters.find(Cell.ownerAndPositionMatch(_, beforeCell)).get
 
         assert(beforeCell.energy < afterCell.energy)
       }
