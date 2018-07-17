@@ -1,33 +1,28 @@
 package it.cwmp.services.wrapper
 
-import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.services.authentication.AuthenticationServiceVerticle
-import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
+import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
 import it.cwmp.utils.Utils
-import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 import scala.util.Failure
 
-class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfterEach with Matchers {
-
-  override protected def verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
+class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
 
   private val auth = AuthenticationApiWrapper()
 
-  describe("Signup") {
+  override protected def singupTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       auth.signUp(username, password)
-        .map(res => res shouldNot be("")) // TODO controllare il body per la presenza del token
+        .map(res => res shouldNot be(""))
     }
 
     it("when username already exist should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
@@ -40,19 +35,23 @@ class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfter
     }
   }
 
-  describe("Login") {
+  override protected def signoutTests(): Unit = {
+    // TODO implementation
+  }
+
+  override protected def loginTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       auth.signUp(username, password)
         .flatMap(_ => auth.login(username, password))
-        .map(res => res shouldNot be("")) // TODO controllare il body per la presenza del token
+        .map(res => res shouldNot be(""))
     }
 
     it("when user does not exists should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       val promiseResult: Promise[Unit] = Promise()
       auth.login(username, password)
@@ -64,8 +63,8 @@ class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfter
     }
 
     it("when password is wrong should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
       val passwordWrong = Utils.randomString(10)
 
       val promiseResult: Promise[Unit] = Promise()
@@ -79,10 +78,10 @@ class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfter
     }
   }
 
-  describe("Validation") {
+  override protected def validationTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       auth.signUp(username, password)
         .flatMap(token => auth.validate(token))
@@ -90,7 +89,7 @@ class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfter
     }
 
     it("when invalid token should fail") {
-      val myToken = "TOKEN"
+      val myToken = invalidToken
 
       val promiseResult: Promise[Unit] = Promise()
       auth.validate(myToken)
@@ -102,7 +101,7 @@ class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfter
     }
 
     it("when unauthorized token should fail") {
-      val myToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
+      val myToken = nextToken
 
       val promiseResult: Promise[Unit] = Promise()
       auth.validate(myToken)

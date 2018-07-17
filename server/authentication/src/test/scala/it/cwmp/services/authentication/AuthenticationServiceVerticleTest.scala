@@ -3,9 +3,10 @@ package it.cwmp.services.authentication
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
+import it.cwmp.utils.VertxClient
 
 class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
-  with HttpMatchers with FutureMatchers {
+  with HttpMatchers with FutureMatchers with VertxClient {
 
   override protected val clientOptions: WebClientOptions = WebClientOptions()
     .setDefaultHost("localhost")
