@@ -55,13 +55,4 @@ object HttpUtils {
     }
     case _ => None
   }
-
-  /**
-    * Utility method to extract authorization header from a routing context
-    *
-    * @param request the request on which to extract
-    * @return the optional containing optionally the authorization content
-    */
-  def getRequestAuthorizationHeader(request: HttpServerRequest): Option[String] =
-    request.headers().get(HttpHeaderNames.AUTHORIZATION.toString)
 }
