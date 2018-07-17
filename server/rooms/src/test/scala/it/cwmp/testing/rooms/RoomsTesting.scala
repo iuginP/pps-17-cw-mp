@@ -1,4 +1,4 @@
-package it.cwmp.rooms
+package it.cwmp.testing.rooms
 
 import it.cwmp.testing.VertxTest
 import org.scalatest.Matchers

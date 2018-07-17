@@ -1,4 +1,4 @@
-package it.cwmp.rooms
+package it.cwmp.testing.rooms
 
 import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.authentication.HttpValidation

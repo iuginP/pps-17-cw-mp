@@ -5,8 +5,8 @@ import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.model.Room
-import it.cwmp.rooms.RoomsWebServiceTesting
 import it.cwmp.testing.HttpMatchers
+import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
 
 import scala.concurrent.Future

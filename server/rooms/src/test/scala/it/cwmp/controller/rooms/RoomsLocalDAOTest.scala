@@ -3,7 +3,7 @@ package it.cwmp.controller.rooms
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.model.{Address, Participant}
-import it.cwmp.rooms.RoomsTesting
+import it.cwmp.testing.rooms.RoomsTesting
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.Future

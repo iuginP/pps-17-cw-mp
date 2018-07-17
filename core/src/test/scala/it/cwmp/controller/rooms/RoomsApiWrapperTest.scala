@@ -1,7 +1,7 @@
 package it.cwmp.controller.rooms
 
 import it.cwmp.exceptions.HTTPException
-import it.cwmp.rooms.RoomsWebServiceTesting
+import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
 
 import scala.concurrent.Future
