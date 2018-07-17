@@ -8,12 +8,11 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.authentication.HttpValidation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
-import it.cwmp.utils.VertxServer
+import it.cwmp.utils.{Validation, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -23,7 +22,7 @@ import scala.util.{Failure, Success}
   *
   * @author Enrico Siboni
   */
-case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
+case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
                                 implicit val clientCommunicationStrategy: RoomReceiverApiWrapper) extends VertxServer {
 
   private var daoFuture: Future[RoomDAO] = _
@@ -261,7 +260,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
         Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
 
       case Some(authorizationToken) =>
-        validationStrategy.verifyAuthorization(authorizationToken)
+        validationStrategy.validate(authorizationToken)
           .recoverWith {
             case HTTPException(statusCode, errorMessage) =>
               sendResponse(statusCode, errorMessage)

@@ -1,13 +1,12 @@
 package it.cwmp.testing.rooms
 
 import io.vertx.lang.scala.ScalaVerticle
-import it.cwmp.authentication.HttpValidation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
 import it.cwmp.testing.VerticleBeforeAndAfterEach
-import it.cwmp.utils.HttpUtils
+import it.cwmp.utils.{HttpUtils, Validation}
 
 import scala.concurrent.Future
 
@@ -40,18 +39,14 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAn
     *
     * @author Enrico Siboni
     */
-  private case class TestValidationStrategy() extends HttpValidation[User] {
-    override def validate(input: String): Future[User] = Option(input).map(participants.get(_) match {
-        case None => Future.failed(HTTPException(401))
-        case Some(participant) => Future.successful(participant)
-      }).getOrElse(Future.failed(HTTPException(400)))
+  private case class TestValidationStrategy() extends Validation[String, User] {
 
     /**
       *
       * @param authorizationHeader the header to verify
       * @return the future that will contain the future output
       */
-    override def verifyAuthorization(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
+    override def validate(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
       case Some(token) => participants.get(token) match {
         case Some(participant) => Future.successful(participant)
         case _ => Future.failed(HTTPException(401))
