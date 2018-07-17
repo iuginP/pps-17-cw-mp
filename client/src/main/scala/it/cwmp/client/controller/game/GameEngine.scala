@@ -80,7 +80,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     *
     * @param cell         the cell that has been conquered
     * @param allTentacles the active tentacles
-    * @return
+    * @return the new cell after conquer
     */
   private def cellAfterConquer(cell: Cell,
                                allTentacles: Seq[Tentacle],
