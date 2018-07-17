@@ -3,7 +3,6 @@ package it.cwmp.authentication
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.testing.{FutureMatchers, HttpMatchers, VerticleBeforeAndAfterEach, VertxTest}
-import it.cwmp.utils.VertxClient._
 import it.cwmp.utils.{Utils, VertxClient}
 import org.scalatest.Matchers
 

@@ -41,9 +41,6 @@ trait VertxClient {
     case options: WebClientOptions => WebClient.create(vertx, options)
     case _ => client
   }
-}
-
-object VertxClient {
 
   /**
     * An implicit class to provide the [[HttpRequest]] with some more useful utilities.
