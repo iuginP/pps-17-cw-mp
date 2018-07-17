@@ -22,6 +22,9 @@ class GameEngineTest extends FunSpec {
     Tentacle(cells(2), cells.head, worldInstant) ::
     Nil
 
+  // this is a world where Elia and Davide are attacking Enrico...
+  // Elia attacked Enrico 500 milliseconds before Davide
+  // after some time Enrico will be conquered by Elia, because he is the first attacker
   private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
 
   private val notEnoughTimeToReachCell = Duration.ofSeconds(1)
@@ -44,11 +47,11 @@ class GameEngineTest extends FunSpec {
       val afterReachingVictimCellWorld = GameEngine(myCellWorld, enoughTimeToAttackCell)
       val afterConquerOfCellWorld = GameEngine(myCellWorld, enoughTimeToConquerCell)
 
-      //      println(s"Start: \t\t\t${myCellWorld.characters}")
-      //      println(s"BeforeEliaReaching: ${beforeAttackWorld.characters}")
-      //      println(s"EliaJustReached: \t${justReachedAttackedCellWorld.characters}")
-      //      println(s"AfterEliaReaching: \t${afterReachingVictimCellWorld.characters}")
-      //      println(s"AfterEliaConquer: \t${afterConquerOfCellWorld.characters}")
+      //      println(s"Start: \t\t\t\t${myCellWorld.characters} - ${myCellWorld.attacks}")
+      //      println(s"BeforeEliaReaching: ${beforeAttackWorld.characters} - ${beforeAttackWorld.attacks}")
+      //      println(s"EliaJustReached: \t${justReachedAttackedCellWorld.characters} - ${justReachedAttackedCellWorld.attacks}")
+      //      println(s"AfterEliaReaching: \t${afterReachingVictimCellWorld.characters} - ${afterReachingVictimCellWorld.attacks}")
+      //      println(s"AfterEliaConquer: \t${afterConquerOfCellWorld.characters} - ${afterConquerOfCellWorld.attacks}")
 
       def attackedEnergy(cellWorld: CellWorld): Double = cellWorld.characters.head.energy
 
@@ -57,6 +60,10 @@ class GameEngineTest extends FunSpec {
 
       it("leaving it as is, if elapsed time is zero") {
         assert(GameEngine(myCellWorld, Duration.ZERO) == myCellWorld)
+      }
+
+      it("increasing time by provided duration") {
+        assert(GameEngine(myCellWorld, notEnoughTimeToReachCell).instant == myCellWorld.instant.plus(notEnoughTimeToReachCell))
       }
 
       describe("Modifying cell energy") {
@@ -72,11 +79,41 @@ class GameEngineTest extends FunSpec {
         it("of attacking cell increasing it after attack has reached destination") {
           assert(attackingEnergy(afterReachingVictimCellWorld) > attackingEnergy(justReachedAttackedCellWorld))
         }
+        it("healing it if attacker is the same user as the owner of attacked cell") {
+          assert(afterConquerOfCellWorld.characters.head.owner.username == "Elia")
+          assert(attackedEnergy(GameEngine(afterConquerOfCellWorld, Duration.ofMillis(1000))) >
+            attackedEnergy(afterConquerOfCellWorld))
+        }
       }
 
       describe("Modifying cell owner") {
         it("on conquer of cell") {
           assert(!afterConquerOfCellWorld.characters.exists(_.owner.username == "Enrico"))
+        }
+      }
+
+      describe("Removing tentacles") {
+        it("when cannot reach destination") {
+          val myWeakCell = Cell(User("Test"), Point(200, 500), 5)
+          val worldWithWeakCell = CellWorld(worldInstant, cells :+ myWeakCell, tentacles :+ Tentacle(myWeakCell, cells.head, worldInstant))
+
+          val worldWithWeakCellEvolved = GameEngine(worldWithWeakCell, enoughTimeToConquerCell)
+
+          assert(worldWithWeakCell.attacks.size - 1 == worldWithWeakCellEvolved.attacks.size)
+        }
+        it("when a cell is conquered") {
+          val worldWithTentacleOfConqueredCell = justReachedAttackedCellWorld ++ Tentacle(cells.head, cells(1), justReachedAttackedCellWorld.instant)
+          val conqueredCellWorld = GameEngine(worldWithTentacleOfConqueredCell, enoughTimeToConquerCell)
+
+          assert(conqueredCellWorld.attacks.size < worldWithTentacleOfConqueredCell.attacks.size
+            && !conqueredCellWorld.attacks.exists(_.from.owner.username == "Enrico"))
+        }
+      }
+
+      describe("Modifying destination of tentacles") {
+        it("when a destination cell is conquered by someone") {
+          assert(afterReachingVictimCellWorld.attacks.exists(_.to.owner.username == "Enrico"))
+          assert(!afterConquerOfCellWorld.attacks.exists(_.to.owner.username == "Enrico"))
         }
       }
     }

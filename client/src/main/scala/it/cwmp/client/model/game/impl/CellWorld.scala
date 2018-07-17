@@ -51,7 +51,7 @@ object CellWorld {
     def --(tentacle: Tentacle): CellWorld = {
       val tentacleActualLength = tentacle.length(cellWorld.instant)
       val energyRefund = lengthToEnergyReductionStrategy(tentacleActualLength)
-      val attackerAndOthersPair = cellWorld.characters.partition(_ == tentacle.from)
+      val attackerAndOthersPair = cellWorld.characters.partition(Cell.ownerAndPositionMatch(_, tentacle.from))
       val attackerCell = attackerAndOthersPair._1.head
       val attackerRefunded = Cell(attackerCell.owner, attackerCell.position, attackerCell.energy + energyRefund)
       CellWorld(cellWorld.instant, attackerAndOthersPair._2 :+ attackerRefunded, cellWorld.attacks filterNot (_ == tentacle))
