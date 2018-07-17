@@ -29,31 +29,17 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     implicit val elapsedTimeImplicit: Duration = elapsedTime
     implicit val oldWorldInstant: Instant = oldToEvolve.instant
 
-    val evolvedCellsAndCanAttack = oldToEvolve.characters.map(_.evolve(elapsedTime)) // natural energy evolution
-      .map(attackConsequencesOnAttackers(_, oldToEvolve.attacks)) // attackers reduction of energy, and not enough energy calculation
+    val evolvedCellsAndCanAttack =
+      oldToEvolve.characters.map(_.evolve(elapsedTime)) // natural energy evolution
+        .map(attackConsequencesOnAttackers(_, oldToEvolve.attacks)) // attackers reduction of energy, and not enough energy calculation
 
-    var tempWorld = CellWorld(oldWorldInstant, evolvedCellsAndCanAttack.map(_._1), oldToEvolve.attacks)
-    for (cellAndCanAttack <- evolvedCellsAndCanAttack;
-         tentacle <- oldToEvolve.attacks if !cellAndCanAttack._2 && Cell.ownerAndPositionMatch(tentacle.from, cellAndCanAttack._1)) {
-      tempWorld = tempWorld -- tentacle // if cell cannot attack, refund it its energy and remove attack from world
-    }
+    var tempWorld = checkCellCanAttackAndRemoveNotPossibleAttacks(oldToEvolve, evolvedCellsAndCanAttack)
 
     // under attack reduction/increment of energy, and conquer management
     val evolvedCells = evolvedCellsAndCanAttack.map(_._1).map(attackConsequencesOnAttacked(_, tempWorld.attacks))
 
-    tempWorld = CellWorld(oldWorldInstant, evolvedCells, tempWorld.attacks)
-
-    // if a cell was conquered, its pending attacks should be cancelled
-    for (tentacle <- tempWorld.attacks if !evolvedCells.exists(Cell.ownerAndPositionMatch(_, tentacle.from))) {
-      tempWorld = CellWorld(oldWorldInstant, evolvedCells, tempWorld.attacks.filterNot(_ == tentacle))
-    }
-
-    // if a cell was conquered attacks directed to it, should be updated
-    for (tentacle <- tempWorld.attacks if !evolvedCells.exists(Cell.ownerAndPositionMatch(_, tentacle.to))) {
-      val destinationUpdate = evolvedCells.filter(_.position == tentacle.to.position).head
-      val updatedTentacle = Tentacle(tentacle.from, destinationUpdate, tentacle.launchInstant)
-      tempWorld = CellWorld(oldWorldInstant, evolvedCells, tempWorld.attacks.filterNot(_ == tentacle) :+ updatedTentacle)
-    }
+    tempWorld = cancelPendingAttacksOfConqueredCells(tempWorld, evolvedCells)
+    tempWorld = updateAttacksToConqueredCells(tempWorld, evolvedCells)
 
     CellWorld(tempWorld.instant.plus(elapsedTime), tempWorld.characters, tempWorld.attacks)
   }
@@ -82,7 +68,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
       // attacking others cell -> damages the cell
       else {
         if (toReturnCell.energy - energyDelta <= 0) { // if cell reaches 0 energy is conquered
-          toReturnCell = cellAfterConquer(cell, allTentacles, energyDelta - toReturnCell.energy) // TODO: pensare a come le celle conquistate dovrebbero cancellare i propri tentacoli... in realtà i tentacoli rimangono col vecchio proprietario, quindi potrei capire quali tentacoli rimuovere senza far ritornare nulla
+          toReturnCell = cellAfterConquer(cell, allTentacles, energyDelta - toReturnCell.energy)
         } else toReturnCell = toReturnCell -- energyDelta
       }
     }
@@ -96,7 +82,9 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     * @param allTentacles the active tentacles
     * @return
     */
-  private def cellAfterConquer(cell: Cell, allTentacles: Seq[Tentacle], maturedEnergy: Double): Cell = {
+  private def cellAfterConquer(cell: Cell,
+                               allTentacles: Seq[Tentacle],
+                               maturedEnergy: Double): Cell = {
     val firstAttackerOfCell = allTentacles.min((x: Tentacle, y: Tentacle) => x.launchInstant.compareTo(y.launchInstant)).from.owner
     Cell(firstAttackerOfCell, cell.position, Cell.whenBornEnergy + maturedEnergy)
   }
@@ -124,5 +112,63 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
         cellAndCanAttack = (cellAndCanAttack._1 -- attackerEnergyReduction, cellAndCanAttack._2)
     }
     cellAndCanAttack
+  }
+
+
+  /**
+    * A method that takes a world in input and a specification of which cells can attack an which not,
+    * evolving accordingly the world
+    *
+    * @param world             the world to evolve
+    * @param cellsAndCanAttack a sequence of pairs where every cell is said to be able to attack or not
+    * @return the evolved world where cells that can attack are still attacking,
+    *         cell that cannot attack (because of not enough energy), are refunded of the spent one
+    *         and its attacks deleted from world
+    */
+  private def checkCellCanAttackAndRemoveNotPossibleAttacks(world: CellWorld,
+                                                            cellsAndCanAttack: Seq[(Cell, Boolean)]): CellWorld = {
+    var tempWorld = CellWorld(world.instant, cellsAndCanAttack.map(_._1), world.attacks)
+    for (cellAndCanAttack <- cellsAndCanAttack;
+         tentacle <- world.attacks if !cellAndCanAttack._2 && Cell.ownerAndPositionMatch(tentacle.from, cellAndCanAttack._1)) {
+      tempWorld = tempWorld -- tentacle // if cell cannot attack, refund it its energy and remove attack from world
+    }
+    tempWorld
+  }
+
+  /**
+    * A method that takes a world where to find if some cells that have been conquered had attacks ongoing
+    * In that case those are cancelled
+    *
+    * @param world the world to evolve
+    * @param cells the cells to use
+    * @return a world where all attacks come from actual cells
+    */
+  private def cancelPendingAttacksOfConqueredCells(world: CellWorld,
+                                                   cells: Seq[Cell]): CellWorld = {
+    var tempWorld = CellWorld(world.instant, cells, world.attacks)
+    for (tentacle <- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.from))) {
+      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle))
+    }
+    tempWorld
+  }
+
+  /**
+    * A method that updates all attacks that were directed to a cell that has been conquered
+    *
+    * @param world the world
+    * @param cells the evolved cells
+    * @return a world where all attacks directed to no more "existing" cells (intended as pair owner-position)
+    *         will be redirected to cells in same position, updating tentacles
+    */
+  private def updateAttacksToConqueredCells(world: CellWorld,
+                                            cells: Seq[Cell]): CellWorld = {
+
+    var tempWorld = CellWorld(world.instant, cells, world.attacks)
+    for (tentacle <- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.to))) {
+      val destinationUpdate = cells.filter(_.position == tentacle.to.position).head
+      val updatedTentacle = Tentacle(tentacle.from, destinationUpdate, tentacle.launchInstant)
+      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle) :+ updatedTentacle)
+    }
+    tempWorld
   }
 }
