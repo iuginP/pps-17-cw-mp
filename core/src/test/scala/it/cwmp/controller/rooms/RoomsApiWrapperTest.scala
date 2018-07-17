@@ -35,19 +35,19 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
 
   override protected def privateRoomEnteringTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed when the input is valid and room non full") {
-      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, participantList.head, notificationAddress)
         .flatMap(_ => cleanUpRoom(roomID, succeed)))
     }
 
     describe("should fail") {
-      onWrongRoomID(enterRoom(_, myFirstAuthorizedUser, notificationAddress))
+      onWrongRoomID(enterRoom(_, participantList.head, notificationAddress))
 
       it("if user is already inside a room") {
         var createdRoom = ""
         recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-            .flatMap(roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
-              .flatMap(_ => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)))
+            .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
+              .flatMap(_ => enterRoom(roomID, participantList.head, notificationAddress)))
         }.flatMap(cleanUpRoom(createdRoom, _))
       }
       it("if the room is full") {
@@ -55,9 +55,9 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
         var createdRoom = ""
         recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-            .flatMap(roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
-              .flatMap(_ => enterRoom(roomID, mySecondAuthorizedUser, notificationAddress)(mySecondCorrectToken))
-              .flatMap(_ => enterRoom(roomID, myThirdAuthorizedUser, notificationAddress)(myThirdCorrectToken)))
+            .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
+              .flatMap(_ => enterRoom(roomID, participantList(1), notificationAddress)(tokenList(1)))
+              .flatMap(_ => enterRoom(roomID, participantList(2), notificationAddress)(tokenList(2))))
         }
       }
     }
@@ -68,9 +68,9 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       createRoom(roomName, playersNumber) flatMap roomInfo flatMap (_ => succeed)
     }
     it("should show user inside room") {
-      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, participantList.head, notificationAddress)
         .flatMap(_ => roomInfo(roomID))
-        .flatMap(_.participants should contain(myFirstAuthorizedUser))
+        .flatMap(_.participants should contain(participantList.head))
         .flatMap(cleanUpRoom(roomID, _)))
     }
 
@@ -82,14 +82,14 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
       createRoom(roomName, playersNumber)
-        .flatMap(roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+        .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
           .flatMap(_ => exitRoom(roomID))) flatMap (_ => succeed)
     }
     it("user should not be inside after it") {
       createRoom(roomName, playersNumber)
-        .flatMap(roomID => enterRoom(roomID, myFirstAuthorizedUser, notificationAddress)
+        .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
           .flatMap(_ => exitRoom(roomID))
-          .flatMap(_ => roomInfo(roomID))) flatMap (_.participants shouldNot contain(myFirstAuthorizedUser))
+          .flatMap(_ => roomInfo(roomID))) flatMap (_.participants shouldNot contain(participantList.head))
     }
 
     describe("should fail") {
@@ -103,7 +103,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
         recoverToSucceededIf[HTTPException] {
           createRoom(roomName, playersNumber)
             .flatMap(roomID => createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-              .flatMap(otherRoomID => enterRoom(otherRoomID, myFirstAuthorizedUser, notificationAddress)) flatMap (_ => exitRoom(roomID)))
+              .flatMap(otherRoomID => enterRoom(otherRoomID, participantList.head, notificationAddress)) flatMap (_ => exitRoom(roomID)))
         } flatMap (cleanUpRoom(createdRoom, _))
       }
     }
@@ -112,31 +112,31 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
   override protected def publicRoomEnteringTests(playersNumber: Int): Unit = {
     describe("should succeed") {
       it("if room with such players number exists") {
-        enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => cleanUpRoom(playersNumber, succeed))
+        enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => cleanUpRoom(playersNumber, succeed))
       }
       it("and the user should be inside it") {
-        enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress)
+        enterPublicRoom(playersNumber, participantList.head, notificationAddress)
           .flatMap(_ => publicRoomInfo(playersNumber))
-          .flatMap(_.participants should contain(myFirstAuthorizedUser))
+          .flatMap(_.participants should contain(participantList.head))
           .flatMap(cleanUpRoom(playersNumber, _))
       }
       it("even when the room was filled in past") {
-        enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress)
-          .flatMap(_ => enterPublicRoom(2, mySecondAuthorizedUser, notificationAddress)(mySecondCorrectToken))
-          .flatMap(_ => enterPublicRoom(2, myThirdAuthorizedUser, notificationAddress)(myThirdCorrectToken))
+        enterPublicRoom(2, participantList.head, notificationAddress)
+          .flatMap(_ => enterPublicRoom(2, participantList(1), notificationAddress)(tokenList(1)))
+          .flatMap(_ => enterPublicRoom(2, participantList(2), notificationAddress)(tokenList(2)))
           .flatMap(_ => publicRoomInfo(2))
-          .flatMap(_.participants should contain only myThirdAuthorizedUser)
-          .flatMap(cleanUpRoom(2, _)(myThirdCorrectToken))
+          .flatMap(_.participants should contain only participantList(2))
+          .flatMap(cleanUpRoom(2, _)(tokenList(2)))
       }
     }
 
     describe("should fail") {
-      onWrongPlayersNumber(enterPublicRoom(_, myFirstAuthorizedUser, notificationAddress))
+      onWrongPlayersNumber(enterPublicRoom(_, participantList.head, notificationAddress))
 
       it("if same user is already inside a room") {
         recoverToSucceededIf[HTTPException] {
-          enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress)
-            .flatMap(_ => enterPublicRoom(3, myFirstAuthorizedUser, notificationAddress))
+          enterPublicRoom(2, participantList.head, notificationAddress)
+            .flatMap(_ => enterPublicRoom(3, participantList.head, notificationAddress))
         } flatMap (cleanUpRoom(2, _))
       }
     }
@@ -153,8 +153,8 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       publicRoomInfo(playersNumber) flatMap (_ => succeed)
     }
     it("should show entered players") {
-      (enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
-        .flatMap(_.participants should contain(myFirstAuthorizedUser))
+      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
+        .flatMap(_.participants should contain(participantList.head))
         .flatMap(cleanUpRoom(playersNumber, _))
     }
 
@@ -165,13 +165,13 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      (enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) flatMap (_ => succeed)
+      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) flatMap (_ => succeed)
     }
     it("user should not be inside after it") {
-      enterPublicRoom(playersNumber, myFirstAuthorizedUser, notificationAddress)
+      enterPublicRoom(playersNumber, participantList.head, notificationAddress)
         .flatMap(_ => exitPublicRoom(playersNumber))
         .flatMap(_ => publicRoomInfo(playersNumber))
-        .flatMap(_.participants shouldNot contain(myFirstAuthorizedUser))
+        .flatMap(_.participants shouldNot contain(participantList.head))
     }
 
     describe("should fail") {
@@ -182,7 +182,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
       }
       it("if user is inside another room") {
         recoverToSucceededIf[HTTPException] {
-          enterPublicRoom(2, myFirstAuthorizedUser, notificationAddress) flatMap (_ => exitPublicRoom(3))
+          enterPublicRoom(2, participantList.head, notificationAddress) flatMap (_ => exitPublicRoom(3))
         } flatMap (cleanUpRoom(2, _))
       }
     }
@@ -197,7 +197,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
     }
   }
 
-  override protected def onWrongPlayersNumber(apiCall: (Int) => Future[_]): Unit = {
+  override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
     it("if players number provided less than 2") {
       recoverToSucceededIf[HTTPException](apiCall(0))
     }
@@ -213,42 +213,42 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting {
 
     describe("should fail calling") {
       describe("createRoom") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](createRoom(fakeRoomName, fakePlayersNumber)(token))
         }
       }
       describe("enterRoom") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[HTTPException](enterRoom(fakeRoomID, myFirstAuthorizedUser, notificationAddress)(token))
+        shouldThrowExceptionOnBadToken { token: String =>
+          recoverToSucceededIf[HTTPException](enterRoom(fakeRoomID, participantList.head, notificationAddress)(token))
         }
       }
       describe("roomInfo") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](roomInfo(fakeRoomID)(token))
         }
       }
       describe("exitRoom") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](exitRoom(fakeRoomID)(token))
         }
       }
       describe("listPublicRooms") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](listPublicRooms()(token))
         }
       }
       describe("enterPublicRoom") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
-          recoverToSucceededIf[HTTPException](enterPublicRoom(fakePlayersNumber, myFirstAuthorizedUser, notificationAddress)(token))
+        shouldThrowExceptionOnBadToken { token: String =>
+          recoverToSucceededIf[HTTPException](enterPublicRoom(fakePlayersNumber, participantList.head, notificationAddress)(token))
         }
       }
       describe("publicRoomInfo") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](publicRoomInfo(fakePlayersNumber)(token))
         }
       }
       describe("exitPublicRoom") {
-        shouldThrowExceptionOnBadToken { (token: String) =>
+        shouldThrowExceptionOnBadToken { token: String =>
           recoverToSucceededIf[HTTPException](exitPublicRoom(fakePlayersNumber)(token))
         }
       }

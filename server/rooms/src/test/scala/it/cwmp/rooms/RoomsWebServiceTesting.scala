@@ -1,15 +1,15 @@
 package it.cwmp.rooms
 
-import it.cwmp.authentication.{HttpValidation, Validation}
+import io.vertx.lang.scala.ScalaVerticle
+import it.cwmp.authentication.HttpValidation
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
+import it.cwmp.testing.VerticleBeforeAndAfterEach
 import it.cwmp.utils.HttpUtils
-import org.scalatest.BeforeAndAfterEach
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 /**
   * Abstract base class to test RoomsService
@@ -18,26 +18,22 @@ import scala.concurrent.{Await, Future}
   * and corresponding authorized tokens; those can be used to make acceptable API calls
   *
   * @author Enrico Siboni
+  * @author Eugenio Pierfederici
   */
-abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEach {
+abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAndAfterEach {
 
-  protected implicit val myFirstAuthorizedUser: Participant = Participant("Enrico1", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
-  protected val mySecondAuthorizedUser: Participant = Participant("Enrico2", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
-  protected val myThirdAuthorizedUser: Participant = Participant("Enrico3", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants")
-  private val correctTokens = "CORRECT_TOKEN_1" :: "CORRECT_TOKEN_2" :: "CORRECT_TOKEN_3" :: Nil
-  protected implicit val myFirstCorrectToken: String = correctTokens(0)
-  protected val mySecondCorrectToken = correctTokens(1)
-  protected val myThirdCorrectToken = correctTokens(2)
+  protected val participants: Map[String, Participant] = Map(
+      "CORRECT_TOKEN_1" -> Participant("Enrico1", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"),
+      "CORRECT_TOKEN_2" -> Participant("Enrico2", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"),
+      "CORRECT_TOKEN_3" -> Participant("Enrico3", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"))
+  protected implicit val defaultParticipant: Participant = participants.values.head
+  protected val participantList: List[Participant] = participants.values.toList
+  protected implicit val defaultToken: String = participants.keys.head
+  protected val tokenList: List[String] = participants.keys.toList
 
   protected val notificationAddress = Address("notificationAddress")
 
-  private var deploymentID: String = _
-
-  override protected def beforeEach(): Unit =
-    deploymentID = Await.result(vertx.deployVerticleFuture(RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper())), 10000.millis)
-
-  override protected def afterEach(): Unit =
-    Await.result(vertx.undeployFuture(deploymentID), 10000.millis)
+  override protected val verticlesBeforeEach: List[ScalaVerticle] = RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper()) :: Nil
 
   /**
     * A mocked validation strategy for user tokens during testing
@@ -45,13 +41,10 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
     * @author Enrico Siboni
     */
   private case class TestValidationStrategy() extends HttpValidation[User] {
-    override def validate(input: String): Future[User] = input match {
-      case token if token == correctTokens(0) => Future.successful(myFirstAuthorizedUser)
-      case token if token == correctTokens(1) => Future.successful(mySecondAuthorizedUser)
-      case token if token == correctTokens(2) => Future.successful(myThirdAuthorizedUser)
-      case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
-      case _ => Future.failed(HTTPException(401))
-    }
+    override def validate(input: String): Future[User] = Option(input).map(participants.get(_) match {
+        case None => Future.failed(HTTPException(401))
+        case Some(participant) => Future.successful(participant)
+      }).getOrElse(Future.failed(HTTPException(400)))
 
     /**
       *
@@ -59,10 +52,10 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with BeforeAndAfterEa
       * @return the future that will contain the future output
       */
     override def verifyAuthorization(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
-      case Some(token) if token == correctTokens(0) => Future.successful(myFirstAuthorizedUser)
-      case Some(token) if token == correctTokens(1) => Future.successful(mySecondAuthorizedUser)
-      case Some(token) if token == correctTokens(2) => Future.successful(myThirdAuthorizedUser)
-      case token if token == null || token.isEmpty => Future.failed(HTTPException(400))
+      case Some(token) => participants.get(token) match {
+        case Some(participant) => Future.successful(participant)
+        case _ => Future.failed(HTTPException(401))
+      }
       case _ => Future.failed(HTTPException(401))
     }
   }
