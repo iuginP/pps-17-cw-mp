@@ -1,6 +1,7 @@
-package it.cwmp.authentication
+package it.cwmp.services.wrapper
 
 import io.vertx.lang.scala.ScalaVerticle
+import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
 import it.cwmp.utils.Utils
@@ -9,11 +10,11 @@ import org.scalatest.Matchers
 import scala.concurrent.Promise
 import scala.util.Failure
 
-class AuthenticationServiceTest extends VertxTest with VerticleBeforeAndAfterEach with Matchers {
+class AuthenticationApiWrapperTest extends VertxTest with VerticleBeforeAndAfterEach with Matchers {
 
   override protected def verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
 
-  private val auth = AuthenticationService()
+  private val auth = AuthenticationApiWrapper()
 
   describe("Signup") {
     it("when right should succed") {

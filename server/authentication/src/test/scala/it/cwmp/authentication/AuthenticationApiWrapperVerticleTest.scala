@@ -6,7 +6,7 @@ import it.cwmp.testing.{FutureMatchers, HttpMatchers, VerticleBeforeAndAfterEach
 import it.cwmp.utils.{Utils, VertxClient}
 import org.scalatest.Matchers
 
-class AuthenticationServiceVerticleTest extends VertxTest with VerticleBeforeAndAfterEach with VertxClient
+class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBeforeAndAfterEach with VertxClient
   with Matchers with HttpMatchers with FutureMatchers {
 
   override protected val verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil

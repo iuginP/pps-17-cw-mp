@@ -3,9 +3,9 @@ package it.cwmp
 import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
-import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle
+import it.cwmp.services.wrapper.AuthenticationApiWrapper
 
 import scala.util.{Failure, Success}
 
@@ -19,7 +19,7 @@ object RoomsServiceMain extends App {
   private val vertx: Vertx = Vertx.vertx()
 
   logger.info("Deploying RoomService...")
-  vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationService(), RoomReceiverApiWrapper()))
+  vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationApiWrapper(), RoomReceiverApiWrapper()))
     .onComplete {
       case Success(_) => logger.info("RoomsService up and running!")
       case Failure(ex) => logger.error("Error deploying RoomsService", ex)

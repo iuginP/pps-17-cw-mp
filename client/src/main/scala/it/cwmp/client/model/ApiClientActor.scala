@@ -1,10 +1,10 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
-import it.cwmp.authentication.AuthenticationService
 import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Address
+import it.cwmp.services.wrapper.AuthenticationApiWrapper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
@@ -186,7 +186,7 @@ class ApiClientActor() extends Actor {
   /*
     * Behavior that handles the calls to the authentication management service.
     */
-  private val authenticationApiWrapper = AuthenticationService()
+  private val authenticationApiWrapper = AuthenticationApiWrapper()
   import authenticationApiWrapper._
   private def authenticationBehaviour: Receive = {
     case AuthenticationPerformSignIn(username, password) =>

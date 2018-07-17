@@ -1,8 +1,9 @@
-package it.cwmp.authentication
+package it.cwmp.services.wrapper
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.client.{WebClient, WebClientOptions}
+import it.cwmp.authentication.HttpValidation
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
 import it.cwmp.utils.HttpUtils
@@ -11,31 +12,31 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-trait AuthenticationService extends HttpValidation[User] {
+trait AuthenticationApiWrapper extends HttpValidation[User] {
 
   def signUp(username: String, password: String): Future[String]
 
   def login(username: String, password: String): Future[String]
 }
 
-object AuthenticationService {
+object AuthenticationApiWrapper {
 
   val DEFAULT_HOST = "localhost"
   val DEFAULT_PORT = 8666
 
-  def apply(): AuthenticationService =
-    AuthenticationService(DEFAULT_HOST, DEFAULT_PORT)
+  def apply(): AuthenticationApiWrapper =
+    AuthenticationApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
 
-  def apply(host: String): AuthenticationService =
-    AuthenticationService(host, DEFAULT_PORT)
+  def apply(host: String): AuthenticationApiWrapper =
+    AuthenticationApiWrapper(host, DEFAULT_PORT)
 
-  def apply(host: String, port: Int): AuthenticationService =
-    new AuthenticationServiceImpl(WebClient.create(Vertx.vertx,
+  def apply(host: String, port: Int): AuthenticationApiWrapper =
+    new AuthenticationApiWrapperImpl(WebClient.create(Vertx.vertx,
       WebClientOptions()
         .setDefaultHost(host)
         .setDefaultPort(port)))
 
-  class AuthenticationServiceImpl(client: WebClient) extends AuthenticationService {
+  class AuthenticationApiWrapperImpl(client: WebClient) extends AuthenticationApiWrapper {
 
     def signUp(username: String, password: String): Future[String] =
       HttpUtils.buildBasicAuthentication(username, password) match {
