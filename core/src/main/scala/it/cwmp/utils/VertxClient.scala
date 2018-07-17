@@ -1,6 +1,10 @@
 package it.cwmp.utils
 
-import io.vertx.scala.ext.web.client.{HttpRequest, WebClient, WebClientOptions}
+import io.vertx.scala.ext.web.client.{HttpRequest, HttpResponse, WebClient, WebClientOptions}
+import it.cwmp.exceptions.HTTPException
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * This trait provides all the utilities to get an instance of a client in the Vertx environment.
@@ -68,5 +72,34 @@ trait VertxClient {
       HttpUtils.buildJwtAuthentication(token)
         .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
         .getOrElse(request)
+  }
+
+  /**
+    * An implicit class to provide the <code>Future[HttpResponse]</code> with some more useful utilities.
+    */
+  implicit class richHttpResponse[T](response: Future[HttpResponse[T]]) {
+
+    /**
+      * Causes the future to fail if the status code if different from one of those passed
+      * @param statusCode a varargs containing all the allowed status codes
+      * @return the same future, but makes it fail if the status code is different from one of those passed
+      */
+    def expectStatus(statusCode: Int*) = {
+      response.transform {
+        case s @ Success(res) if statusCode.contains(res.statusCode()) => s
+        case Success(res) => Failure(HTTPException(res.statusCode(), Some("Invalid response code")))
+        case f @ Failure(_) => f
+      }
+    }
+
+    /**
+      *Maps the body of the request
+      * @param strategy the strategy used to map the body
+      * @tparam P the type of data returned from the mapping
+      * @return a future containing the mapped body
+      */
+    def mapBody[P](strategy: Option[String] => Future[P]) = {
+      response.flatMap(res => strategy(res.bodyAsString()))
+    }
   }
 }

@@ -6,7 +6,6 @@ import it.cwmp.model.User
 import it.cwmp.utils.{Validation, VertxClient, VertxInstance}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 trait AuthenticationApiWrapper extends Validation[String, User] {
 
@@ -38,30 +37,24 @@ object AuthenticationApiWrapper {
       client.post("/api/signup")
         .addAuthentication(username, password)
         .sendFuture()
-        .transform({
-          case Success(res) if res.statusCode() == 201 => Success(res.bodyAsString().get)
-          case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
-          case Failure(f) => Failure(f)
-        })
+      .expectStatus(201)
+      .map(_.bodyAsString().getOrElse(""))
 
     override def login(username: String, password: String): Future[String] =
       client.get("/api/login")
         .addAuthentication(username, password)
         .sendFuture()
-        .transform({
-          case Success(res) if res.statusCode() == 200 => Success(res.bodyAsString().get)
-          case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
-          case Failure(f) => Failure(f)
-        })
+        .expectStatus(200)
+        .map(_.bodyAsString().getOrElse(""))
 
     override def validate(token: String): Future[User] =
       client.get("/api/validate")
         .addAuthentication(token)
         .sendFuture()
-        .transform {
-          case Success(res) if res.statusCode() == 200 => Success(User(res.bodyAsString().get))
-          case Success(res) => Failure(HTTPException(res.statusCode(), Some("Unauthorized user")))
-          case Failure(f) => Failure(f)
+        .expectStatus(200)
+        .mapBody {
+          case Some(body) => Future.successful(User(body))
+          case _ => Future.failed(HTTPException(400, Some("Empty body")))
         }
   }
 }
