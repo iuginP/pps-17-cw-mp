@@ -40,7 +40,7 @@ object Cell {
     * adds 1 to energy each second
     */
   val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
-    Cell(cell.owner, cell.position, cell.energy + (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE))
+    cell ++ (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE)
   }
 
   /**
@@ -84,7 +84,7 @@ object Cell {
       * @return the cell with reduced energy
       */
     def --(energyReduction: Double): Cell = {
-      require(energyReduction >= 0, "Energy increment should be positive")
+      require(energyReduction >= 0, "Energy decrement should be positive")
       Cell(cell.owner, cell.position, cell.energy - energyReduction)
     }
 

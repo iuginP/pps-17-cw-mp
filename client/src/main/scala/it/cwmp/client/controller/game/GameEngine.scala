@@ -1,10 +1,10 @@
 package it.cwmp.client.controller.game
 
-import java.time.Duration
+import java.time.{Duration, Instant}
 import java.util.Objects.requireNonNull
 
 import it.cwmp.client.model.game.EvolutionStrategy
-import it.cwmp.client.model.game.impl.{Cell, CellWorld}
+import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
 
 /**
   * Singleton of Static Game Engine
@@ -23,26 +23,38 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     * @return the evolved world
     */
   override def apply(oldToEvolve: CellWorld, elapsedTime: Duration): CellWorld = {
-    evolveWithStrategies(oldToEvolve, elapsedTime)(Cell.defaultEvolutionStrategy)
-  }
-
-
-  private def evolveWithStrategies(oldToEvolve: CellWorld,
-                                   elapsedTime: Duration)
-                                  (cellEvolutionStrategy: EvolutionStrategy[Cell, Duration]): CellWorld = {
-
     requireNonNull(oldToEvolve, "World to evolve must not be null")
     requireNonNull(elapsedTime, "Elapsed time must not be null")
 
-    val evolvedCells = oldToEvolve.characters.map(_.evolve(elapsedTime))
+    val naturallyEvolvedCells = oldToEvolve.characters.map(_.evolve(elapsedTime))
 
-    for (cell <- evolvedCells;
-         tentacle <- oldToEvolve.attacks if Cell.ownerAndPositionMatch(tentacle.from, cell)) {
+    attackConsequencesOnAttackers(oldToEvolve.instant, elapsedTime, naturallyEvolvedCells, oldToEvolve.attacks)
 
-      val addedTentacleLength = tentacle.length(oldToEvolve.instant.plus(elapsedTime)) - tentacle.length(oldToEvolve.instant)
-      val attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)
-
-    }
     oldToEvolve
+  }
+
+
+  private def attackConsequencesOnAttacked(oldWorldInstant: Instant,
+                                           elapsedTime: Duration,
+                                           cells: Seq[Cell],
+                                           tentacles: Seq[Tentacle]): Seq[Cell] = {
+//    for (cell <- cells;
+//         tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.to, cell); // all tentacles arriving to cell
+//      tentacleLength = tentacle.length(old)
+//    )
+//      yield cell
+    Seq()
+  }
+
+
+  private def attackConsequencesOnAttackers(oldWorldInstant: Instant,
+                                            elapsedTime: Duration,
+                                            cells: Seq[Cell],
+                                            tentacles: Seq[Tentacle]): Seq[Cell] = {
+    for (cell <- cells;
+         tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell); // all tentacles leaving from cell
+         addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant);
+         attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength))
+      yield cell -- attackerEnergyReduction
   }
 }

@@ -38,15 +38,17 @@ object Tentacle {
     *
     * Every [[TIME_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
     */
-  val defaultTimeToLengthStrategy: SizingStrategy[Duration, Long] =
+  val defaultMillisToLengthStrategy: SizingStrategy[Duration, Long] =
     (elapsedTime: Duration) => elapsedTime.toMillis / TIME_TO_MOVEMENT_CONVERSION_RATE
 
   /**
-    * Tentacle length calculator
+    * A class to manipulate tentacle properties
     *
-    * @param tentacle the tentacle of which to calculate the distance traveled
+    * @param tentacle the tentacle to work on
     */
-  implicit class TentacleLengthCalculator(tentacle: Tentacle) {
+  implicit class TentacleManipulation(tentacle: Tentacle) {
+
+    private val distanceBetweenCells = Cell.distance(tentacle.from, tentacle.to)
 
     /**
       * Returns the length of the tentacle based on launch time, actualTime provided and speed of the tentacle
@@ -56,12 +58,46 @@ object Tentacle {
       * @return the tentacle length
       */
     def length(actualInstant: Instant,
-               timeToLengthStrategy: SizingStrategy[Duration, Long] = defaultTimeToLengthStrategy): Long = {
+               timeToLengthStrategy: SizingStrategy[Duration, Long] = defaultMillisToLengthStrategy): Long = {
+      checkTentacleManipulationParameters(actualInstant, timeToLengthStrategy)
 
-      val distanceBetweenCells = Cell.distance(tentacle.from, tentacle.to)
       val tentacleShouldHaveLength = timeToLengthStrategy(Duration.between(tentacle.launchInstant, actualInstant))
-
       if (tentacleShouldHaveLength > distanceBetweenCells) distanceBetweenCells else tentacleShouldHaveLength
+    }
+
+    /**
+      * Return the amount of time the tentacle has been attacking the destination cell
+      *
+      * @param actualInstant        the actual instant
+      * @param timeToLengthStrategy the strategy that decides how fast is the tentacle on reaching destination
+      * @return the time spent really attacking the destination cell
+      */
+    def hasReachedDestinationFor(actualInstant: Instant,
+                                 timeToLengthStrategy: SizingStrategy[Duration, Long] = defaultMillisToLengthStrategy): Duration = {
+      /**
+        * @return the speed factor extracted from duration and space traveled
+        */
+      def extractSpeedFactor(duration: Duration, space: Long): Long = duration.toMillis / space
+
+      checkTentacleManipulationParameters(actualInstant, timeToLengthStrategy)
+
+      if (Cell.distance(tentacle.from, tentacle.to) == length(actualInstant, timeToLengthStrategy)) {
+        val fromLaunchDuration = Duration.between(tentacle.launchInstant, actualInstant)
+        val tentacleShouldHaveLength = timeToLengthStrategy(fromLaunchDuration)
+        val timeToLengthFactor = extractSpeedFactor(fromLaunchDuration, tentacleShouldHaveLength)
+
+        val exceedingLength = tentacleShouldHaveLength - distanceBetweenCells
+        Duration.ofMillis(exceedingLength * timeToLengthFactor)
+      } else Duration.ZERO
+    }
+
+    /**
+      * Checks actualInstant not before tentacle launch instant and parameters not null
+      */
+    private def checkTentacleManipulationParameters(actualInstant: Instant, strategy: SizingStrategy[_, _]): Unit = {
+      requireNonNull(actualInstant, "Actual instant should not be null")
+      requireNonNull(strategy, "Passed strategy cannot be null")
+      require(!actualInstant.isBefore(tentacle.launchInstant), "Actual instant cannot be before tentacle launch")
     }
   }
 
