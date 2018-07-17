@@ -26,10 +26,16 @@ subprojects {
     scaladoc.destinationDir = file("$docsFolderScala/${it.path}")
     
     dependencies {
+        if (project.name != 'core') {
+            implementation project(':core')
+        }
         implementation 'org.scala-lang:scala-library:2.12.2'
         implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.9.0'
         implementation 'ch.qos.logback:logback-classic:1.2.3'
 
+        if (project.name != 'core-testing') {
+            testImplementation project(':core-testing')
+        }
         testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
         testImplementation 'org.scalamock:scalamock-scalatest-support_2.12:3.5.0'
 
@@ -40,9 +46,10 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name == 'core' || it.name == 'authentication' || it.name == 'rooms' || it.name == 'room-receiver' }) {
+configure(subprojects.findAll { it.name == 'core' || it.parent.name == 'server' }) {
 
     dependencies {
+        implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
         implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
         implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
 
