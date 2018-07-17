@@ -1,12 +1,16 @@
 package it.cwmp.utils
 
+import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServerRequest
 import io.vertx.scala.ext.web.Router
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait VertxServer extends ScalaVerticle {
+
+  private val logger: Logger = Logger[VertxServer]
 
   protected def serverPort: Int
 
@@ -21,6 +25,10 @@ trait VertxServer extends ScalaVerticle {
       vertx.createHttpServer()
         .requestHandler(router.accept _)
         .listenFuture(serverPort))
+    .andThen {
+      case Success(_) => logger.info(s"RoomsService listening on port: $serverPort")
+      case Failure(ex) => logger.error(s"Cannot start service on port: $serverPort", ex)
+    }
   }
 
   /**

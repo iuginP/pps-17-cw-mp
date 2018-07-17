@@ -4,7 +4,6 @@ import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
-import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.jdbc.JDBCClient
@@ -14,7 +13,7 @@ import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.controller.rooms.RoomsServiceVerticle._
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
-import it.cwmp.utils.HttpUtils
+import it.cwmp.utils.VertxServer
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -25,18 +24,14 @@ import scala.util.{Failure, Success}
   * @author Enrico Siboni
   */
 case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
-                                implicit val clientCommunicationStrategy: RoomReceiverApiWrapper) extends ScalaVerticle {
+                                implicit val clientCommunicationStrategy: RoomReceiverApiWrapper) extends VertxServer {
 
   private var daoFuture: Future[RoomDAO] = _
 
-  override def startFuture(): Future[_] = {
-    daoFuture = loadLocalDBConfig(vertx)
-      .map(JDBCClient.createShared(vertx, _))
-      .map(RoomsLocalDAO(_))
-      .flatMap(dao => dao.initialize() map (_ => dao))
+  override protected val serverPort: Int = RoomsApiWrapper.DEFAULT_PORT
 
-    import it.cwmp.controller.rooms.RoomsApiWrapper._
-    val router = Router.router(vertx)
+  override protected def initRouter(router: Router): Unit = {
+    import RoomsApiWrapper._
     router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler
     router put API_ENTER_PRIVATE_ROOM_URL handler enterPrivateRoomHandler
     router get API_PRIVATE_ROOM_INFO_URL handler privateRoomInfoHandler
@@ -46,15 +41,14 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     router put API_ENTER_PUBLIC_ROOM_URL handler enterPublicRoomHandler
     router get API_PUBLIC_ROOM_INFO_URL handler publicRoomInfoHandler
     router delete API_EXIT_PUBLIC_ROOM_URL handler exitPublicRoomHandler
+  }
 
-    vertx
-      .createHttpServer()
-      .requestHandler(router.accept _)
-      .listenFuture(DEFAULT_PORT)
-      .andThen {
-        case Success(_) => logger.info(s"RoomsService listening on port:$DEFAULT_HOST")
-        case Failure(ex) => logger.error("Cannot start RoomService", ex)
-      }
+  override protected def initServer: Future[_] = {
+    daoFuture = loadLocalDBConfig(vertx)
+      .map(JDBCClient.createShared(vertx, _))
+      .map(RoomsLocalDAO(_))
+      .flatMap(dao => dao.initialize() map (_ => dao))
+    daoFuture
   }
 
   /**
@@ -260,7 +254,7 @@ case class RoomsServiceVerticle(validationStrategy: HttpValidation[User],
     * @return the future that will contain the user if successfully validated
     */
   private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
-    HttpUtils.getRequestAuthorizationHeader(routingContext.request()) match {
+    routingContext.request().getAuthentication match {
       case None =>
         logger.warn("No authorization header in request")
         sendResponse(400, Some(TOKEN_NOT_PROVIDED_OR_INVALID))
