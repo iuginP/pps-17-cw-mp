@@ -1,24 +1,21 @@
 package it.cwmp.services.authentication
 
-import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.client.WebClientOptions
-import it.cwmp.testing.{FutureMatchers, HttpMatchers, VerticleBeforeAndAfterEach, VertxTest}
-import it.cwmp.utils.{Utils, VertxClient}
-import org.scalatest.Matchers
+import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
+import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 
-class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBeforeAndAfterEach with VertxClient
-  with Matchers with HttpMatchers with FutureMatchers {
+class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
+  with HttpMatchers with FutureMatchers {
 
-  override protected val verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
   override protected val clientOptions: WebClientOptions = WebClientOptions()
     .setDefaultHost("localhost")
     .setDefaultPort(8666)
     .setKeepAlive(false)
 
-  describe("Signup") {
+  override protected def singupTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       client.post("/api/signup")
         .addAuthentication(username, password)
@@ -33,7 +30,7 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when invalid header should fail") {
-      val token = "INVALID"
+      val token = invalidToken
       client.post("/api/signup")
         .addAuthentication(token)
         .sendFuture()
@@ -41,8 +38,8 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when username already exist should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       client.post("/api/signup")
         .addAuthentication(username, password)
@@ -55,10 +52,14 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
   }
 
-  describe("Login") {
+  override protected def signoutTests(): Unit = {
+    // TODO implement
+  }
+
+  override protected def loginTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       client.post("/api/signup")
         .addAuthentication(username, password)
@@ -77,7 +78,7 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when invalid header should fail") {
-      val token = "INVALID"
+      val token = invalidToken
       client.get("/api/login")
         .addAuthentication(token)
         .sendFuture()
@@ -85,8 +86,8 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when user does not exists should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       client.get("/api/login")
         .addAuthentication(username, password)
@@ -95,9 +96,9 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when password is wrong should fail") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
-      val passwordWrong = "passwordWRONG"
+      val username = nextUsername
+      val password = nextPassword
+      val passwordWrong = nextPassword
 
       client.post("/api/signup")
         .addAuthentication(username, password)
@@ -110,10 +111,10 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
   }
 
-  describe("Validation") {
+  override protected def validationTests(): Unit = {
     it("when right should succed") {
-      val username = Utils.randomString(10)
-      val password = Utils.randomString(10)
+      val username = nextUsername
+      val password = nextPassword
 
       client.post("/api/signup")
         .addAuthentication(username, password)
@@ -132,7 +133,7 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when invalid token should fail") {
-      val myToken = "TOKEN"
+      val myToken = invalidToken
 
       client.get("/api/validate")
         .addAuthentication(myToken)
@@ -141,7 +142,7 @@ class AuthenticationApiWrapperVerticleTest extends VertxTest with VerticleBefore
     }
 
     it("when unauthorized token should fail") {
-      val myToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
+      val myToken = nextToken
 
       client.get("/api/validate")
         .addAuthentication(myToken)
