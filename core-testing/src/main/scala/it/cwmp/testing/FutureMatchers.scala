@@ -31,6 +31,18 @@ trait FutureMatchers {
       }
 
     /**
+      * Asserts that the future has the failure requested
+      * @param executionContext the implicit execution context
+      * @tparam T the type of failure that should be obtained
+      * @return the future containing the result of the verification
+      */
+    def shouldFailWith[T <: Exception](implicit executionContext: ExecutionContext): Future[Assertion] = future
+      .transform {
+        case Failure(_: T) => Success(succeed)
+        case _ => Failure(FutureTestingException)
+      }
+
+    /**
       * Asserts that the future succeed.
       * @param executionContext the implicit execution context
       * @return the future containing the result of the verification
