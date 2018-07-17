@@ -30,6 +30,11 @@ case class Cell(owner: User,
 object Cell {
 
   /**
+    * The energy that a cell has when is born
+    */
+  val whenBornEnergy = 20
+
+  /**
     * Coverts this amount of time to an energy unit
     */
   val TIME_TO_ENERGY_CONVERSION_RATE = 1000d
