@@ -1,4 +1,4 @@
-package it.cwmp.authentication
+package it.cwmp.services.authentication
 
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.ext.web.client.WebClientOptions

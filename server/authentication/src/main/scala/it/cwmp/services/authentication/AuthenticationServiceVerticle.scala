@@ -1,4 +1,4 @@
-package it.cwmp.authentication
+package it.cwmp.services.authentication
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.scala.core.http.HttpServerResponse

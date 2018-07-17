@@ -1,8 +1,8 @@
 package it.cwmp.services.wrapper
 
 import io.vertx.lang.scala.ScalaVerticle
-import it.cwmp.authentication.AuthenticationServiceVerticle
 import it.cwmp.exceptions.HTTPException
+import it.cwmp.services.authentication.AuthenticationServiceVerticle
 import it.cwmp.testing.{VerticleBeforeAndAfterEach, VertxTest}
 import it.cwmp.utils.Utils
 import org.scalatest.Matchers

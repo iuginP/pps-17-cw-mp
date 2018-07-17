@@ -1,7 +1,8 @@
-package it.cwmp.authentication
+package it.cwmp.services.authentication
 
 import io.vertx.core.json.JsonObject
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
+
 import scala.util.{Failure, Success}
 
 object JwtUtils {
