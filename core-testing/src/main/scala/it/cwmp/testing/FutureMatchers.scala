@@ -4,6 +4,7 @@ import io.vertx.scala.ext.web.client.HttpResponse
 import org.scalatest.{Assertion, Matchers}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.{ClassTag, classTag}
 import scala.util.{Failure, Success}
 
 /**
@@ -33,12 +34,12 @@ trait FutureMatchers {
     /**
       * Asserts that the future has the failure requested
       * @param executionContext the implicit execution context
-      * @tparam T the type of failure that should be obtained
+      * @tparam A the type of failure that should be obtained
       * @return the future containing the result of the verification
       */
-    def shouldFailWith[T <: Exception](implicit executionContext: ExecutionContext): Future[Assertion] = future
+    def shouldFailWith[A <: Exception: ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = future
       .transform {
-        case Failure(_: T) => Success(succeed)
+        case Failure(e) if classTag[A].runtimeClass.isInstance(e) => Success(succeed)
         case _ => Failure(FutureTestingException)
       }
 
