@@ -82,7 +82,7 @@ object CellWorld {
     *
     * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
     */
-  val durationToEnergyReductionStrategy: SizingStrategy[Duration, Double] =
+  val durationToEnergyConversionStrategy: SizingStrategy[Duration, Double] =
     (attackDuration: Duration) => attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE
 
   // TODO: Add converter to DDATA

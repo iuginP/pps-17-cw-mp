@@ -85,7 +85,8 @@ object Cell {
       */
     def --(energyReduction: Double): Cell = {
       require(energyReduction >= 0, "Energy decrement should be positive")
-      Cell(cell.owner, cell.position, cell.energy - energyReduction)
+      if (energyReduction == 0) cell
+      else Cell(cell.owner, cell.position, cell.energy - energyReduction)
     }
 
     /**
@@ -96,7 +97,8 @@ object Cell {
       */
     def ++(energyIncrement: Double): Cell = {
       require(energyIncrement >= 0, "Energy increment should be positive")
-      Cell(cell.owner, cell.position, cell.energy + energyIncrement)
+      if (energyIncrement == 0) cell
+      else Cell(cell.owner, cell.position, cell.energy + energyIncrement)
     }
 
   }

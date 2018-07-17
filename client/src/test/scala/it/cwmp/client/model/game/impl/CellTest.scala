@@ -72,8 +72,16 @@ class CellTest extends FunSpec {
         assert(incrementedCell.energy - 20 == myCell.energy)
       }
       it("can decrement energy if provided amount is correct") {
-        val incrementedCell = myCell -- 20
-        assert(incrementedCell.energy + 20 == myCell.energy)
+        val decrementedCell = myCell -- 20
+        assert(decrementedCell.energy + 20 == myCell.energy)
+      }
+      it("if energy increment is zero should not create a new cell") {
+        val incrementedCell = myCell ++ 0
+        assert(incrementedCell eq myCell)
+      }
+      it("if energy decrement is zero should not create a new cell") {
+        val decrementedCell = myCell -- 0
+        assert(decrementedCell eq myCell)
       }
       describe("should complain if") {
         it("increment amount not positive")(intercept[IllegalArgumentException](myCell ++ -2))
