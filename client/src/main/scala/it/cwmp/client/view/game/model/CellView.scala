@@ -4,7 +4,8 @@ import java.awt.Color
 
 import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.model.game.impl.{Cell, Point}
-import it.cwmp.client.model.game.{ColoringStrategy, SizingStrategy}
+import it.cwmp.client.model.game.SizingStrategy
+import it.cwmp.client.view.game.ColoringStrategy
 import it.cwmp.client.view.game.GameConstants._
 
 import scala.language.implicitConversions

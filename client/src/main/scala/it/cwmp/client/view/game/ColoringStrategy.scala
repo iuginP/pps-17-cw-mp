@@ -1,4 +1,4 @@
-package it.cwmp.client.model.game
+package it.cwmp.client.view.game
 
 /**
   * A trait that describes how to color things

@@ -2,8 +2,8 @@ package it.cwmp.client.view.game.model
 
 import java.awt.Color
 
-import it.cwmp.client.model.game.ColoringStrategy
 import it.cwmp.client.model.game.impl.Tentacle
+import it.cwmp.client.view.game.ColoringStrategy
 
 
 /**
