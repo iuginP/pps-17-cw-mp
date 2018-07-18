@@ -85,7 +85,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
   private def cellAfterConquer(cell: Cell,
                                allTentacles: Seq[Tentacle],
                                maturedEnergy: Double): Cell = {
-    val firstAttackerOfCell = allTentacles.min((x: Tentacle, y: Tentacle) => x.launchInstant.compareTo(y.launchInstant)).from.owner
+    val firstAttackerOfCell = allTentacles.min(Tentacle.orderByLaunchInstant).from.owner
     Cell(firstAttackerOfCell, cell.position, Cell.whenBornEnergy + maturedEnergy)
   }
 
@@ -128,9 +128,11 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
   private def checkCellCanAttackAndRemoveNotPossibleAttacks(world: CellWorld,
                                                             cellsAndCanAttack: Seq[(Cell, Boolean)]): CellWorld = {
     var tempWorld = CellWorld(world.instant, cellsAndCanAttack.map(_._1), world.attacks)
-    for (cellAndCanAttack <- cellsAndCanAttack;
-         tentacle <- world.attacks if !cellAndCanAttack._2 && Cell.ownerAndPositionMatch(tentacle.from, cellAndCanAttack._1)) {
-      tempWorld = tempWorld -- tentacle // if cell cannot attack, refund it its energy and remove attack from world
+    val cellsThatCannotAffordAttacking = cellsAndCanAttack.filterNot(_._2).map(_._1)
+    for (poorCell <- cellsThatCannotAffordAttacking
+         if world.attacks.map(_.from).exists(Cell.ownerAndPositionMatch(_, poorCell))) {
+      // if cell cannot attack, refund it its energy and remove its last attack from world
+      tempWorld = tempWorld -- world.attacks.max(Tentacle.orderByLaunchInstant)
     }
     tempWorld
   }

@@ -101,4 +101,9 @@ object Tentacle {
     }
   }
 
+  /**
+    * An ordering for tentacles based on launchInstant
+    */
+  val orderByLaunchInstant: Ordering[Tentacle] = (x: Tentacle, y: Tentacle) => x.launchInstant.compareTo(y.launchInstant)
+
 }

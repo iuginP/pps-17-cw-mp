@@ -93,13 +93,16 @@ class GameEngineTest extends FunSpec {
       }
 
       describe("Removing tentacles") {
-        it("when cannot reach destination") {
+        it("when cannot reach destination, but only last launched") {
           val myWeakCell = Cell(User("Test"), Point(200, 500), 5)
-          val worldWithWeakCell = CellWorld(worldInstant, cells :+ myWeakCell, tentacles :+ Tentacle(myWeakCell, cells.head, worldInstant))
+          val worldWithWeakCell = CellWorld(worldInstant, cells :+ myWeakCell,
+            tentacles ++ (Tentacle(myWeakCell, cells.head, worldInstant)
+              :: Tentacle(myWeakCell, cells.head, worldInstant.minusMillis(5)) :: Nil))
 
           val worldWithWeakCellEvolved = GameEngine(worldWithWeakCell, enoughTimeToConquerCell)
 
           assert(worldWithWeakCell.attacks.size - 1 == worldWithWeakCellEvolved.attacks.size)
+          assert(worldWithWeakCellEvolved.attacks.map(_.from).exists(Cell.ownerAndPositionMatch(_, myWeakCell)))
         }
         it("when a cell is conquered") {
           val worldWithTentacleOfConqueredCell = justReachedAttackedCellWorld ++ Tentacle(cells.head, cells(1), justReachedAttackedCellWorld.instant)
