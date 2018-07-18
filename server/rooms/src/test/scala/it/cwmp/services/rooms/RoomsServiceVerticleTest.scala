@@ -5,7 +5,7 @@ import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.model.Room
-import it.cwmp.controller.rooms.RoomsApiWrapper._
+import it.cwmp.services.wrapper.RoomsApiWrapper._
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
