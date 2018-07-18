@@ -5,12 +5,10 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
 import io.vertx.lang.scala.json.{Json, JsonArray, JsonObject}
-import io.vertx.scala.core.Vertx
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
-import it.cwmp.controller.ApiClient
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Room}
-import it.cwmp.utils.HttpUtils
+import it.cwmp.utils.{HttpUtils, VertxClient, VertxInstance}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -118,35 +116,26 @@ trait RoomsApiWrapper {
   */
 object RoomsApiWrapper {
 
-  val API_CREATE_PRIVATE_ROOM_URL = "/api/rooms"
-  val API_ENTER_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
-  val API_PRIVATE_ROOM_INFO_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}"
-  val API_EXIT_PRIVATE_ROOM_URL = s"/api/rooms/:${Room.FIELD_IDENTIFIER}/self"
-
-  val API_LIST_PUBLIC_ROOMS_URL = "/api/rooms"
-  val API_ENTER_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
-  val API_PUBLIC_ROOM_INFO_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}"
-  val API_EXIT_PUBLIC_ROOM_URL = s"/api/rooms/public/:${Room.FIELD_NEEDED_PLAYERS}/self"
-
   val DEFAULT_HOST = "localhost"
-  val DEFAULT_PORT = 8667
+
+  import it.cwmp.services.rooms.ServerParameters._
 
   def apply(): RoomsApiWrapper = RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
 
   def apply(host: String): RoomsApiWrapper = RoomsApiWrapper(host, DEFAULT_PORT)
 
-  def apply(host: String, port: Int): RoomsApiWrapper = new RoomsApiWrapperDefault(host, port)
+  def apply(host: String, port: Int): RoomsApiWrapper = new RoomsApiWrapperDefault(WebClientOptions()
+    .setDefaultHost(host)
+    .setDefaultPort(port))
 
   /**
     * Implementation of the Api Wrapper for rooms service
     *
-    * @param host the host with which this wrapper will communicate
-    * @param port the port on which this wrapper will communicate
+    * @param clientOptions the implicit configuration for the client connection to the host
     *
     */
-  private class RoomsApiWrapperDefault(host: String, port: Int) extends RoomsApiWrapper with ApiClient {
-
-    private implicit val client: WebClient = createWebClient(host, port, Vertx.vertx)
+  private class RoomsApiWrapperDefault(override protected val clientOptions: WebClientOptions)
+    extends RoomsApiWrapper with VertxInstance with VertxClient {
 
     override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] =
       RoomsApiWrapper.createPrivateRoom(roomName, playersNumber)

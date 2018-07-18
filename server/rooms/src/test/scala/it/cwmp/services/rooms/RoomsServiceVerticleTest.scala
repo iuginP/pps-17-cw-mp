@@ -1,10 +1,12 @@
-package it.cwmp.controller.rooms
+package it.cwmp.services.rooms
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.controller.ApiClient
 import it.cwmp.model.Room
+import it.cwmp.controller.rooms.RoomsApiWrapper._
+import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
@@ -17,8 +19,6 @@ import scala.concurrent.Future
   * @author Enrico Siboni
   */
 class RoomsServiceVerticleTest extends RoomsWebServiceTesting with HttpMatchers with ApiClient {
-
-  import RoomsApiWrapper._
 
   private implicit var webClient: WebClient = _
 

@@ -27,7 +27,7 @@ trait VertxClient {
     * The client is cached, so it will be instantiated only the first time it is called.
     * @return the client
     */
-  protected def client: WebClient = cachedClient match {
+  implicit protected def client: WebClient = cachedClient match {
     case client: WebClient => client
     case _ =>
       cachedClient = WebClient.create(vertx, clientOptions)
@@ -40,7 +40,7 @@ trait VertxClient {
     * @param options the configuration to use
     * @return the client
     */
-  protected def client(options: WebClientOptions): WebClient = options match {
+  implicit protected def client(options: WebClientOptions): WebClient = options match {
     case options: WebClientOptions if options == clientOptions => client
     case options: WebClientOptions => WebClient.create(vertx, options)
     case _ => client

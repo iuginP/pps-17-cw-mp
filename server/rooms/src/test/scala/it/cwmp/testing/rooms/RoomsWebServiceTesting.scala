@@ -2,9 +2,9 @@ package it.cwmp.testing.rooms
 
 import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.controller.client.RoomReceiverApiWrapper
-import it.cwmp.controller.rooms.RoomsServiceVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
+import it.cwmp.services.rooms.RoomsServiceVerticle
 import it.cwmp.testing.VerticleBeforeAndAfterEach
 import it.cwmp.utils.{HttpUtils, Validation}
 

@@ -1,16 +1,20 @@
 package it.cwmp.utils
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.http.HttpServerRequest
-import io.vertx.scala.ext.web.Router
+import io.vertx.scala.core.http.{HttpServerRequest, HttpServerResponse}
+import io.vertx.scala.ext.web.{Router, RoutingContext}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+/**
+  *
+  * This is a Utility trait that simplifies the creation and management of a vertx server.
+  *
+  * @author Eugenio Pierfederici
+  */
 trait VertxServer extends ScalaVerticle {
-
-  private val logger: Logger = Logger[VertxServer]
+  this: Loggable =>
 
   protected def serverPort: Int
 
@@ -29,6 +33,46 @@ trait VertxServer extends ScalaVerticle {
       case Success(_) => logger.info(s"RoomsService listening on port: $serverPort")
       case Failure(ex) => logger.error(s"Cannot start service on port: $serverPort", ex)
     }
+  }
+
+  /**
+    * Utility method to send back responses
+    *
+    * @param routingContext the routing context in wich to send the error
+    * @param httpCode       the http code
+    * @param message        the message to send back
+    */
+  protected def sendResponse(httpCode: Int,
+                           message: String = null)
+                          (implicit routingContext: RoutingContext): Unit = Option(message) match {
+    case Some(messageString) =>
+      logger.info(s"Sending $httpCode response to client with message: $messageString")
+      response.setStatusCode(httpCode).end(messageString)
+    case None => response.end()
+  }
+
+  /**
+    * Utility method to obtain the response object
+    *
+    * @param routingContext the implicit routing context
+    * @return the response
+    */
+  protected def response(implicit routingContext: RoutingContext): HttpServerResponse = routingContext.response
+
+  /**
+    * Utility method to obtain the request object
+    *
+    * @param routingContext the implicit routing context
+    * @return the request
+    */
+  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = routingContext.request
+
+  /**
+    * @param routingContext the routing context on which to extract
+    * @return the extracted room name
+    */
+  protected def getRequestParameter(paramName: String)(implicit routingContext: RoutingContext): Option[String] = {
+    request.getParam(paramName)
   }
 
   /**

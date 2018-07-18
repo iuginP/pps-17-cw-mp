@@ -1,4 +1,4 @@
-package it.cwmp.controller.rooms
+package it.cwmp.services.rooms
 
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.jdbc.JDBCClient

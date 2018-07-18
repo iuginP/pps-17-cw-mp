@@ -1,17 +1,17 @@
-package it.cwmp.controller.rooms
+package it.cwmp.services.rooms
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
-import it.cwmp.controller.rooms.RoomsLocalDAO._
 import it.cwmp.model.{Address, Participant, Room, User}
+import it.cwmp.services.rooms.RoomsLocalDAO._
 import it.cwmp.utils.Utils
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
-import scala.util.{Failure, Random, Success}
+import scala.util.Random
 
 /**
   * A trait that describes the Rooms Data Access Object
