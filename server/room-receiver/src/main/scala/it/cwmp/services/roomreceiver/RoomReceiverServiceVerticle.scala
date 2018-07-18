@@ -21,7 +21,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   override def startFuture(): Future[_] = {
     val router = Router.router(vertx)
 
-    import it.cwmp.controller.client.RoomReceiverApiWrapper._
+    import it.cwmp.services.roomreceiver.ServerParameters._
     router post API_RECEIVE_PARTICIPANTS_URL(token) handler updateRoomParticipantsHandler
 
     logger.info(s"Starting the RoomReceiver service with the token: $token.")

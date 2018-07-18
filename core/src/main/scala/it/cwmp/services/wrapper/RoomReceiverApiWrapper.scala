@@ -1,11 +1,11 @@
 package it.cwmp.services.wrapper
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.core.http.HttpMethod
 import io.vertx.lang.scala.json.Json
-import it.cwmp.controller.ApiClient
+import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
+import it.cwmp.utils.{AdvancedLogging, VertxClient, VertxInstance}
 
 import scala.concurrent.Future
 
@@ -31,24 +31,23 @@ trait RoomReceiverApiWrapper {
   * Companion object
   */
 object RoomReceiverApiWrapper {
-  private val logger: Logger = Logger[RoomReceiverApiWrapper]
-
-  def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
 
   def apply(): RoomReceiverApiWrapper = RoomReceiverApiWrapperDefault()
-
 
   /**
     * Default implementation for client communication
     */
-  private case class RoomReceiverApiWrapperDefault() extends RoomReceiverApiWrapper with ApiClient {
+  private case class RoomReceiverApiWrapperDefault()
+    extends RoomReceiverApiWrapper with VertxInstance with VertxClient with AdvancedLogging {
+
+    override protected def clientOptions: WebClientOptions = WebClientOptions()
 
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      createWebClient()
+      client
         .requestAbs(HttpMethod.POST, clientAddress)
         .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
-        .map(_ => logger.info(s"Sending participant to $clientAddress succeeded"))
+        .logSuccessInfo(s"Sending participant to $clientAddress succeeded")
+        .map(_ => Future.successful(()))
 
       // TODO should implement a retry strategy?
     }
