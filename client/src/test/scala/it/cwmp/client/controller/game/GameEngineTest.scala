@@ -31,7 +31,8 @@ class GameEngineTest extends FunSpec {
   private val enoughTimeToAttackCell = Duration.ofSeconds(10)
   private val enoughTimeToConquerCell = Duration.ofSeconds(100)
 
-  private def durationOfAttackOnAttackedCell(elapsedTime: Duration) = tentacles.head.hasReachedDestinationFor(myCellWorld.instant.plus(elapsedTime))
+  private def durationOfAttackOnAttackedCell(elapsedTime: Duration) =
+    tentacles.head.hasReachedDestinationFor(myCellWorld.instant.plus(elapsedTime))
 
   describe("GameEngine") {
     describe("should complain if") {
@@ -60,6 +61,13 @@ class GameEngineTest extends FunSpec {
 
       it("leaving it as is, if elapsed time is zero") {
         assert(GameEngine(myCellWorld, Duration.ZERO) == myCellWorld)
+      }
+
+      it("evolving only cell energy if no attacks are ongoing") {
+        val noAttacksWorld = CellWorld(worldInstant, cells, Seq())
+        val noAttacksWorldEvolved = GameEngine(noAttacksWorld, notEnoughTimeToReachCell)
+        val baseAndEvolvedPair = noAttacksWorld.characters.zipAll(noAttacksWorldEvolved.characters, cells.head, cells.head)
+        assert(baseAndEvolvedPair.forall(pair => pair._1.energy < pair._2.energy))
       }
 
       it("increasing time by provided duration") {
