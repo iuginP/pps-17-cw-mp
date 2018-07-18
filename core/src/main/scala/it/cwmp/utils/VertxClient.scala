@@ -68,7 +68,7 @@ trait VertxClient {
       * @param token the token
       * @return the same [[HttpRequest]] enriched, with the authorization header
       */
-    def addAuthentication(token: String) =
+    def addAuthentication(implicit token: String) =
       HttpUtils.buildJwtAuthentication(token)
         .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
         .getOrElse(request)

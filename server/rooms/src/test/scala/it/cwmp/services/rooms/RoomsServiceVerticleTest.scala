@@ -2,12 +2,12 @@ package it.cwmp.services.rooms
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod._
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
-import it.cwmp.controller.ApiClient
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.model.Room
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
+import it.cwmp.utils.VertxClient
 import org.scalatest.Assertion
 
 import scala.concurrent.Future
@@ -17,14 +17,11 @@ import scala.concurrent.Future
   *
   * @author Enrico Siboni
   */
-class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrapperUtils with HttpMatchers with ApiClient {
+class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrapperUtils with HttpMatchers with VertxClient {
 
-  private implicit var webClient: WebClient = _
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-    webClient = createWebClient("localhost", DEFAULT_PORT, vertx)
-  }
+  override protected def clientOptions: WebClientOptions = WebClientOptions()
+    .setDefaultHost("localhost")
+    .setDefaultPort(DEFAULT_PORT)
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     val creationApi = API_CREATE_PRIVATE_ROOM_URL
@@ -35,10 +32,10 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
     describe("should fail") {
       it("if no room is sent with request") {
-        createClientRequestWithToken(POST, creationApi) flatMap (_.sendFuture()) shouldAnswerWith 400
+        client.post(creationApi).addAuthentication.sendFuture() shouldAnswerWith 400
       }
       it("if body is malformed") {
-        createClientRequestWithToken(POST, creationApi) flatMap (_.sendJsonFuture("Ciao")) shouldAnswerWith 400
+        client.post(creationApi).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith 400
       }
       it("if the roomName sent is empty") {
         createPrivateRoomRequest("", playersNumber) shouldAnswerWith 400
@@ -60,10 +57,10 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       onWrongRoomID(enterPrivateRoomRequest(_, participantList.head, notificationAddress))
 
       it("if address not provided") {
-        createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL) flatMap (_.sendFuture()) shouldAnswerWith 400
+        client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendFuture() shouldAnswerWith 400
       }
       it("if address message malformed") {
-        createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL) flatMap (_.sendJsonFuture("Ciao")) shouldAnswerWith 400
+        client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith 400
       }
       it("if user is already inside a room") {
         createAPrivateRoomAndGetID(roomName, playersNumber)
@@ -75,8 +72,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         val playersNumber = 2
         createAPrivateRoomAndGetID(roomName, playersNumber)
           .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(webClient, tokenList(1)))
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(webClient, tokenList(2)))) shouldAnswerWith 404
+            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(client, tokenList(1)))
+            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(client, tokenList(2)))) shouldAnswerWith 404
       }
     }
   }
@@ -141,8 +138,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       }
       it("even when the room was filled in past") {
         enterPublicRoomRequest(2, participantList.head, notificationAddress)
-          .flatMap(_ => enterPublicRoomRequest(2, participantList(1), notificationAddress)(webClient, tokenList(1)))
-          .flatMap(_ => enterPublicRoomRequest(2, participantList(2), notificationAddress)(webClient, tokenList(2)))
+          .flatMap(_ => enterPublicRoomRequest(2, participantList(1), notificationAddress)(client, tokenList(1)))
+          .flatMap(_ => enterPublicRoomRequest(2, participantList(2), notificationAddress)(client, tokenList(2)))
           .flatMap(_ => publicRoomInfoRequest(2))
           .flatMap(res => assert(res.statusCode() == 200 &&
             !res.bodyAsString().get.contains(participantList.head.username) &&
@@ -156,10 +153,10 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       onWrongPlayersNumber(enterPublicRoomRequest(_, participantList.head, notificationAddress))
 
       it("if address not provided") {
-        createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL) flatMap (_.sendFuture()) shouldAnswerWith 400
+        client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendFuture() shouldAnswerWith 400
       }
       it("if address message malformed") {
-        createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL) flatMap (_.sendJsonFuture("Ciao")) shouldAnswerWith 400
+        client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith 400
       }
       it("if same user is already inside a room") {
         enterPublicRoomRequest(2, participantList.head, notificationAddress)
@@ -230,15 +227,14 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     describe("should fail") {
       for (apiCall <- roomApiInteractions) {
         it(s"if token not provided, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          (createClientRequest(webClient, apiCall._1, apiCall._2) flatMap (_.sendFuture())) shouldAnswerWith 400
+          client.request(apiCall._1, apiCall._2).sendFuture() shouldAnswerWith 400
         }
         it(s"if token wrong, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          createClientRequestWithToken(apiCall._1, apiCall._2)(webClient, "token")
-            .flatMap(_.sendFuture()) shouldAnswerWith 401
+          client.request(apiCall._1, apiCall._2).addAuthentication("token").sendFuture() shouldAnswerWith 401
         }
         it(s"if token isn't valid, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          createClientRequestWithToken(apiCall._1, apiCall._2)(webClient, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
-            .flatMap(_.sendFuture()) shouldAnswerWith 401
+          client.request(apiCall._1, apiCall._2).addAuthentication("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
+            .sendFuture() shouldAnswerWith 401
         }
       }
     }
@@ -279,11 +275,11 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     * Cleans up the provided room, exiting the user with passed token
     */
   private def cleanUpRoomRequest(roomID: String, assertion: Assertion)(implicit userToken: String) =
-    exitPrivateRoomRequest(roomID)(webClient, userToken) map (_ => assertion)
+    exitPrivateRoomRequest(roomID)(client, userToken) map (_ => assertion)
 
   /**
     * Cleans up the provided public room, exiting player with passed token
     */
   private def cleanUpRoomRequest(playersNumber: Int, assertion: Assertion)(implicit userToken: String) =
-    exitPublicRoomRequest(playersNumber)(webClient, userToken) map (_ => assertion)
+    exitPublicRoomRequest(playersNumber)(client, userToken) map (_ => assertion)
 }
