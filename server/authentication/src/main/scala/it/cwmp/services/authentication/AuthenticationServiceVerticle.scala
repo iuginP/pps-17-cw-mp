@@ -1,19 +1,17 @@
 package it.cwmp.services.authentication
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.storage.StorageAsync
-import it.cwmp.utils.{HttpUtils, VertxServer}
+import it.cwmp.utils.{HttpUtils, Loggable, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-case class AuthenticationServiceVerticle() extends VertxServer {
+case class AuthenticationServiceVerticle() extends VertxServer with Loggable {
 
-  private val logger: Logger = Logger[AuthenticationServiceVerticle]
   private var storageFuture: Future[StorageAsync] = _
 
   import it.cwmp.services.authentication.ServerParameters._

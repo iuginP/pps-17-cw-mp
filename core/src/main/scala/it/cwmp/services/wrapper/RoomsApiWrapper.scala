@@ -1,16 +1,13 @@
 package it.cwmp.services.wrapper
 
-import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.http.HttpMethod
-import io.vertx.core.http.HttpMethod.{DELETE, GET, POST, PUT}
-import io.vertx.lang.scala.json.{Json, JsonArray, JsonObject}
-import io.vertx.scala.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
+import io.vertx.lang.scala.json.Json
+import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Room}
-import it.cwmp.utils.{HttpUtils, VertxClient, VertxInstance}
+import it.cwmp.services.rooms.RoomApiWrapperUtils
+import it.cwmp.utils.{VertxClient, VertxInstance}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
@@ -135,29 +132,29 @@ object RoomsApiWrapper {
     *
     */
   private class RoomsApiWrapperDefault(override protected val clientOptions: WebClientOptions)
-    extends RoomsApiWrapper with VertxInstance with VertxClient {
+    extends RoomsApiWrapper with RoomApiWrapperUtils with VertxInstance with VertxClient {
 
     override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] =
-      RoomsApiWrapper.createPrivateRoom(roomName, playersNumber)
+      createPrivateRoomRequest(roomName, playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), 201))
 
     override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
-      RoomsApiWrapper.enterPrivateRoom(roomID, userAddress, notificationAddress)
+      enterPrivateRoomRequest(roomID, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     override def roomInfo(roomID: String)(implicit userToken: String): Future[Room] =
-      RoomsApiWrapper.privateRoomInfo(roomID)
+      privateRoomInfoRequest(roomID)
         .flatMap(implicit response => handleResponse({
           import Room.Converters._
           Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
         }, 200))
 
     override def exitRoom(roomID: String)(implicit userToken: String): Future[Unit] =
-      RoomsApiWrapper.exitPrivateRoom(roomID)
+      exitPrivateRoomRequest(roomID)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
-      RoomsApiWrapper.listPublicRooms()
+      listPublicRoomsRequest()
         .flatMap(implicit response => handleResponse({
           Future.successful {
             import Room.Converters._
@@ -168,18 +165,18 @@ object RoomsApiWrapper {
         }, 200))
 
     override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
-      RoomsApiWrapper.enterPublicRoom(playersNumber, userAddress, notificationAddress)
+      enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     override def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room] =
-      RoomsApiWrapper.publicRoomInfo(playersNumber)
+      publicRoomInfoRequest(playersNumber)
         .flatMap(implicit response => handleResponse({
           import Room.Converters._
           Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
         }, 200))
 
     override def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
-      RoomsApiWrapper.exitPublicRoom(playersNumber)
+      exitPublicRoomRequest(playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
     /**
@@ -190,115 +187,5 @@ object RoomsApiWrapper {
         case Some(_) => onSuccessFuture
         case None => Future.failed(HTTPException(response.statusCode, response.bodyAsString))
       }
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService createPrivateRoom API
-    */
-  private[rooms] def createPrivateRoom(roomName: String, neededPlayers: Int)(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(POST, API_CREATE_PRIVATE_ROOM_URL)(webClient, userToken)
-      .flatMap(_.sendJsonObjectFuture(roomForCreationJson(roomName, neededPlayers)))
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
-    */
-  private[rooms] def enterPrivateRoom(roomID: String,
-                                      userAddress: Address,
-                                      notificationAddress: Address)
-                                     (implicit webClient: WebClient,
-                                      userToken: String) = {
-    createClientRequestWithToken(PUT, API_ENTER_PRIVATE_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress)))
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService privateRoomInfo API
-    */
-  private[rooms] def privateRoomInfo(roomID: String)(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(GET, API_PRIVATE_ROOM_INFO_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture())
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService exitPrivateRoom API
-    */
-  private[rooms] def exitPrivateRoom(roomID: String)(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(DELETE, API_EXIT_PRIVATE_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture())
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService listPublicRooms API
-    */
-  private[rooms] def listPublicRooms()(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(GET, API_LIST_PUBLIC_ROOMS_URL)(webClient, userToken)
-      .flatMap(_.sendFuture())
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService enterPublicRoom API
-    */
-  private[rooms] def enterPublicRoom(playersNumber: Int,
-                                     userAddress: Address,
-                                     notificationAddress: Address)
-                                    (implicit webClient: WebClient,
-                                     userToken: String) = {
-    createClientRequestWithToken(PUT, API_ENTER_PUBLIC_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress)))
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService publicRoomInfo API
-    */
-  private[rooms] def publicRoomInfo(playersNumber: Int)(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(GET, API_PUBLIC_ROOM_INFO_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture())
-  }
-
-  /**
-    * Wrapper method to do REST HTTP call to RoomsService exitPublicRoom API
-    */
-  private[rooms] def exitPublicRoom(playersNumber: Int)(implicit webClient: WebClient, userToken: String) = {
-    createClientRequestWithToken(DELETE, API_EXIT_PUBLIC_ROOM_URL)(webClient, userToken)
-      .flatMap(_.setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture())
-  }
-
-  /**
-    * Utility method to build a client request with a token
-    */
-  private[rooms] def createClientRequestWithToken(httpMethod: HttpMethod, url: String)(implicit webClient: WebClient, userToken: String) =
-    HttpUtils.buildJwtAuthentication(userToken) match {
-      case None => Future.failed(HTTPException(400, Some("Missing authorization token")))
-      case Some(token) => createClientRequest(webClient, httpMethod, url)
-          .map(_.putHeader(HttpHeaderNames.AUTHORIZATION.toString, token))
-    }
-
-  /**
-    * Utility method to create a client request with certain parameters
-    */
-  private[rooms] def createClientRequest(webClient: WebClient, httpMethod: HttpMethod, url: String) =
-    Future {
-      httpMethod match {
-        case GET => webClient.get(url)
-        case POST => webClient.post(url)
-        case PUT => webClient.put(url)
-        case DELETE => webClient.delete(url)
-        case _ => throw new IllegalStateException("Unrecognized HTTP method")
-      }
-    }
-
-  /**
-    * Handle method to create the JSON to use in creation API
-    */
-  private[rooms] def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
-    Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))
-
-  /**
-    * Handle method to create the JSON to use in entering API
-    */
-  private[rooms] def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray = {
-    import Address.Converters._
-    Json.arr(playerAddress.toJson, notificationAddress.toJson)
   }
 }
