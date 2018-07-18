@@ -48,7 +48,7 @@ trait VertxServer extends ScalaVerticle {
     case Some(messageString) =>
       logger.info(s"Sending $httpCode response to client with message: $messageString")
       response.setStatusCode(httpCode).end(messageString)
-    case None => response.end()
+    case None => response.setStatusCode(httpCode).end()
   }
 
   /**
