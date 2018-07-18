@@ -1,11 +1,11 @@
-package it.cwmp.roomreceiver.controller
+package it.cwmp.services.roomreceiver
 
 import io.vertx.lang.scala.json.Json
 import it.cwmp.controller.ApiClient
-import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
+import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.testing.VertxTest
 import org.scalatest.{BeforeAndAfterEach, Matchers}
 

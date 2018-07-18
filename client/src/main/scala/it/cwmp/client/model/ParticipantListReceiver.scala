@@ -2,9 +2,9 @@ package it.cwmp.client.model
 
 import java.net.InetAddress
 
-import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.roomreceiver.controller.RoomReceiverServiceVerticle
+import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Utils, VertxInstance}
 
 import scala.concurrent.Future

@@ -1,4 +1,4 @@
-package it.cwmp.controller.client
+package it.cwmp.services.wrapper
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.core.http.HttpMethod

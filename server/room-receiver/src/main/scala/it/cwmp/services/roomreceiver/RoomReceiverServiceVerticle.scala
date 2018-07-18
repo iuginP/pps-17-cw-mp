@@ -1,4 +1,4 @@
-package it.cwmp.roomreceiver.controller
+package it.cwmp.services.roomreceiver
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler

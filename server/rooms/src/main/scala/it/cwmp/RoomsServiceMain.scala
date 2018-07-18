@@ -3,9 +3,8 @@ package it.cwmp
 import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
-import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.services.rooms.RoomsServiceVerticle
-import it.cwmp.services.wrapper.AuthenticationApiWrapper
+import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomReceiverApiWrapper}
 
 import scala.util.{Failure, Success}
 

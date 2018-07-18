@@ -4,8 +4,8 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.RoutingContext
-import it.cwmp.controller.client.RoomReceiverApiWrapper
 import it.cwmp.model.{Address, Room}
+import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Loggable, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
