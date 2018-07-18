@@ -16,7 +16,7 @@ trait VertxServer extends ScalaVerticle {
 
   protected def initRouter(router: Router): Unit
 
-  protected def initServer: Future[_] = Future.successful()
+  protected def initServer: Future[_] = Future.successful(())
 
   override def startFuture(): Future[_] = {
     val router = Router.router(vertx)

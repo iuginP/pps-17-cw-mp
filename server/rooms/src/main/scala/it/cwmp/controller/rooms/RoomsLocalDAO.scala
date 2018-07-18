@@ -164,7 +164,7 @@ case class RoomsLocalDAO(client: JDBCClient)
         })
         .recover { case _: NoSuchElementException => logger.info("Room database already exists, skipping creation.") }
         .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful())
+      .flatMap(_ => Future.successful(()))
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
@@ -193,7 +193,7 @@ case class RoomsLocalDAO(client: JDBCClient)
         }
         .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, notificationAddress.address, roomID)))
         .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful())
+      .flatMap(_ => Future.successful(()))
   }
 
   override def roomInfo(roomID: String): Future[(Room, Seq[Address])] = {
@@ -219,7 +219,7 @@ case class RoomsLocalDAO(client: JDBCClient)
         }
         .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
         .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful())
+      .flatMap(_ => Future.successful(()))
   }
 
   override def listPublicRooms(): Future[Seq[Room]] = {
@@ -267,7 +267,7 @@ case class RoomsLocalDAO(client: JDBCClient)
           .flatMap(Future.sequence(_)) // waits for all to complete
           .flatMap(_ => conn.updateWithParamsFuture(deleteRoomSql, Seq(roomID)))
           .andThen { case _ => conn.close() }))
-      .flatMap(_ => Future.successful())
+      .flatMap(_ => Future.successful(()))
   }
 
   override def deleteAndRecreatePublicRoom(playersNumber: Int): Future[Unit] = {
