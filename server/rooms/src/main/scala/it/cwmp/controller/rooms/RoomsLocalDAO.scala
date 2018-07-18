@@ -164,7 +164,7 @@ case class RoomsLocalDAO(client: JDBCClient)
         })
         .recover { case _: NoSuchElementException => logger.info("Room database already exists, skipping creation.") }
         .andThen { case _ => conn.close() })
-      .map(_ => logger.info("Initialization successful"))
+      .flatMap(_ => Future.successful())
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
@@ -177,12 +177,7 @@ case class RoomsLocalDAO(client: JDBCClient)
         .flatMap(roomID => conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
           .map(_ => roomID))
         .andThen { case _ => conn.close() }
-      ) andThen {
-      case Success(roomID) =>
-        logger.info("Room created")
-        logger.debug(s"Room id: $roomID")
-      case Failure(ex) => logger.error("Error creating room", ex)
-    }
+      )
   }
 
   override def enterRoom(roomID: String)(implicit user: Participant, notificationAddress: Address): Future[Unit] = {
@@ -193,13 +188,12 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR)
         .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
         .flatMap {
-        case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
-        case None => Future.successful(Unit)
-      }
+          case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
+          case None => Future.successful(Unit)
+        }
         .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, notificationAddress.address, roomID)))
         .andThen { case _ => conn.close() })
-      .map(_ => logger.info(s"Room $roomID entering succeeded by ${user.username}"))
-      .andThen { case Failure(ex) => logger.error(s"Error entering room $roomID", ex) }
+      .flatMap(_ => Future.successful())
   }
 
   override def roomInfo(roomID: String): Future[(Room, Seq[Address])] = {
@@ -211,10 +205,6 @@ case class RoomsLocalDAO(client: JDBCClient)
         .flatMap(_ => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID)))
         .map(resultOfJoinToRooms(_).head)
         .andThen { case _ => conn.close() })
-      .andThen {
-        case Success(result) => logger.info(s"Retrieved room $roomID info: $result")
-        case Failure(ex) => logger.error(s"Error retrieving room $roomID Info", ex)
-      }
   }
 
   override def exitRoom(roomID: String)(implicit user: User): Future[Unit] = {
@@ -224,14 +214,12 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(_ => client.getConnectionFuture())
       .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
         .flatMap {
-        case Some(room) if room.identifier == roomID => Future.successful(Unit)
-        case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-      }
+          case Some(room) if room.identifier == roomID => Future.successful(Unit)
+          case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+        }
         .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
-        .andThen { case _ => conn.close() }
-      )
-      .map(_ => logger.info(s"Exiting room $roomID succeeded by $user"))
-      .andThen { case Failure(ex) => logger.error(s"Error exiting room $roomID", ex) }
+        .andThen { case _ => conn.close() })
+      .flatMap(_ => Future.successful())
   }
 
   override def listPublicRooms(): Future[Seq[Room]] = {
@@ -241,10 +229,6 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
         .andThen { case _ => conn.close() })
       .map(resultOfJoinToRooms).map(_.map(_._1))
-      .andThen {
-        case Success(result) => logger.info(s"Listing public rooms succeeded: $result")
-        case Failure(ex) => logger.error("Error listing Public rooms", ex)
-      }
   }
 
   override def enterPublicRoom(playersNumber: Int)(implicit user: Participant, address: Address): Future[Unit] = {
@@ -283,8 +267,7 @@ case class RoomsLocalDAO(client: JDBCClient)
           .flatMap(Future.sequence(_)) // waits for all to complete
           .flatMap(_ => conn.updateWithParamsFuture(deleteRoomSql, Seq(roomID)))
           .andThen { case _ => conn.close() }))
-      .map(_ => logger.info(s"Deleting room $roomID succeeded"))
-      .andThen { case Failure(ex) => logger.error(s"Error deleting room $roomID", ex) }
+      .flatMap(_ => Future.successful())
   }
 
   override def deleteAndRecreatePublicRoom(playersNumber: Int): Future[Unit] = {
@@ -295,10 +278,6 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(_ => client.getConnectionFuture())
       .flatMap(conn => createPublicRoom(conn, playersNumber)
         .andThen { case _ => conn.close() })
-      .andThen {
-        case Success(_) => logger.info(s"Recreating empty public room with $playersNumber players succeeded")
-        case Failure(ex) => logger.error(s"Error deleting or recreating public room with $playersNumber players", ex)
-      }
   }
 
   /**
@@ -312,10 +291,7 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap {
         case Some(room) => Future.successful(room.identifier)
         case _ => Future.failed(new NoSuchElementException(s"$INVALID_PLAYERS_NUMBER$playersNumber"))
-      } andThen {
-      case Success(result) => logger.info(s"Public room with $playersNumber has id $result")
-      case Failure(ex) => logger.error(s"Cannot find a public room with $playersNumber players", ex)
-    }
+      }
   }
 }
 

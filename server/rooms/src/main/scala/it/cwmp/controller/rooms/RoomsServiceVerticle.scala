@@ -265,10 +265,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
             case HTTPException(statusCode, errorMessage) =>
               sendResponse(statusCode, errorMessage)
               Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
-          } andThen {
-          case Success(user) => logger.info(s"Validation succeeded: $user")
-          case Failure(ex) => logger.error("Error validating user", ex)
-        }
+          }
     }
   }
 }
