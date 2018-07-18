@@ -1,4 +1,4 @@
-package it.cwmp.storage
+package it.cwmp.services.authentication.storage
 
 import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.testing.VertxTest

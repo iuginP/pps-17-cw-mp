@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.Logger
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.storage.StorageAsync
+import it.cwmp.services.authentication.storage.StorageAsync
 import it.cwmp.utils.{HttpUtils, VertxServer}
 
 import scala.concurrent.Future
