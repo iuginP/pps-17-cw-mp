@@ -32,7 +32,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAn
 
   protected val notificationAddress = Address("notificationAddress")
 
-  override protected val verticlesBeforeEach: List[ScalaVerticle] = RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper()) :: Nil
+  override protected val verticlesBeforeEach: List[ScalaVerticle] = List(RoomsServiceVerticle(TestValidationStrategy(), TestRoomReceiverApiWrapper()))
 
   /**
     * A mocked validation strategy for user tokens during testing

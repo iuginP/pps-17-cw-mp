@@ -6,6 +6,6 @@ import it.cwmp.testing.VerticleBeforeAndAfterEach
 
 abstract class AuthenticationWebServiceTesting extends AuthenticationTesting with VerticleBeforeAndAfterEach {
 
-  override protected val verticlesBeforeEach: List[ScalaVerticle] = AuthenticationServiceVerticle() :: Nil
+  override protected val verticlesBeforeEach: List[ScalaVerticle] = List(AuthenticationServiceVerticle())
 
 }
