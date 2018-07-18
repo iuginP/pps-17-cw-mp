@@ -78,7 +78,7 @@ object CellWorld {
     (length: Long) => length / LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE
 
   /**
-    * Default strategy to calculate reduction of attacked character
+    * Default strategy to calculate reduction/increment of energy of attacked character
     *
     * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
     */

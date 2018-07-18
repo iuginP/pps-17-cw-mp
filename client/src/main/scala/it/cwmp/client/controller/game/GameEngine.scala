@@ -7,7 +7,7 @@ import it.cwmp.client.model.game.EvolutionStrategy
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
 
 /**
-  * Singleton of Static Game Engine
+  * Singleton of Game Engine
   *
   * The static game engine calculates the evolution of Game World assuming no more actions will be issued
   *
