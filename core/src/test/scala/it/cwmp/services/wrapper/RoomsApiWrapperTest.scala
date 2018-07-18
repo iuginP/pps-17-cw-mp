@@ -1,4 +1,4 @@
-package it.cwmp.controller.rooms
+package it.cwmp.services.wrapper
 
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
