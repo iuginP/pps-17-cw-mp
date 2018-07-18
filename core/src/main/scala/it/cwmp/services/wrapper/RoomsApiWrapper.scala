@@ -1,4 +1,4 @@
-package it.cwmp.controller.rooms
+package it.cwmp.services.wrapper
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.core.buffer.Buffer

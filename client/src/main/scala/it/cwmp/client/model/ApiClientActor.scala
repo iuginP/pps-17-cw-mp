@@ -1,10 +1,9 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
-import it.cwmp.controller.rooms.RoomsApiWrapper
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Address
-import it.cwmp.services.wrapper.AuthenticationApiWrapper
+import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
