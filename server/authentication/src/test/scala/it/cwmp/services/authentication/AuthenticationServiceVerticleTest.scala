@@ -11,7 +11,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
 
   override protected val clientOptions: WebClientOptions = WebClientOptions()
     .setDefaultHost("localhost")
-    .setDefaultPort(8666)
+    .setDefaultPort(DEFAULT_PORT)
     .setKeepAlive(false)
 
   override protected def singupTests(): Unit = {
