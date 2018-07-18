@@ -1,6 +1,7 @@
 package it.cwmp.services.authentication
 
 import com.typesafe.scalalogging.Logger
+import io.vertx.core.Handler
 import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
@@ -15,13 +16,15 @@ case class AuthenticationServiceVerticle() extends VertxServer {
   private val logger: Logger = Logger[AuthenticationServiceVerticle]
   private var storageFuture: Future[StorageAsync] = _
 
-  override protected val serverPort: Int = 8666
+  import it.cwmp.services.authentication.ServerParameters._
+
+  override protected val serverPort: Int = DEFAULT_PORT
 
   override protected def initRouter(router: Router): Unit = {
-    router.post("/api/signup").handler(handlerSignup)
-    router.post("/api/signout").handler(handlerSignout)
-    router.get("/api/login").handler(handlerLogin)
-    router.get("/api/validate").handler(handlerValidation)
+    router post API_SIGNUP handler handlerSignup
+    router post API_SIGNOUT handler handlerSignout
+    router get API_LOGIN handler handlerLogin
+    router get API_VALIDATE handler handlerValidation
   }
 
   override protected def initServer: Future[_] = {
@@ -38,9 +41,9 @@ case class AuthenticationServiceVerticle() extends VertxServer {
     response.setStatusCode(statusCode).end()
   }
 
-  private def handlerSignup(routingContext: RoutingContext): Unit = {
+  private def handlerSignup: Handler[RoutingContext] = implicit routingContext => {
     logger.debug("Received sign up request.")
-    for (
+    (for (
       authorizationHeader <- routingContext.request.getAuthentication;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
@@ -52,15 +55,13 @@ case class AuthenticationServiceVerticle() extends VertxServer {
             .foreach(token => routingContext.response() setStatusCode 201 end token)
         case Failure(_) => sendError(400, routingContext.response())
       }
-      return
-    }
-    sendError(400, routingContext.response())
+    }) orElse Some(sendError(400, routingContext.response))
   }
 
-  private def handlerSignout(routingContext: RoutingContext): Unit = {
+  private def handlerSignout: Handler[RoutingContext] = implicit routingContext => {
     logger.debug("Received sign out request.")
     val response: HttpServerResponse = routingContext.response()
-    for (
+    (for (
       authorizationHeader <- routingContext.request.getAuthentication;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
@@ -72,14 +73,12 @@ case class AuthenticationServiceVerticle() extends VertxServer {
           response setStatusCode 202 end
         case Failure(_) => sendError(401, response)
       })
-      return
-    }
-    sendError(400, response)
+    }) orElse Some(sendError(400, response))
   }
 
-  private def handlerLogin(routingContext: RoutingContext): Unit = {
+  private def handlerLogin: Handler[RoutingContext] = implicit routingContext => {
     logger.debug("Received login request.")
-    for (
+    (for (
       authorizationHeader <- routingContext.request.getAuthentication;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
@@ -91,14 +90,12 @@ case class AuthenticationServiceVerticle() extends VertxServer {
             .foreach(token => routingContext.response() setStatusCode 200 end token)
         case Failure(_) => sendError(401, routingContext.response())
       }
-      return
-    }
-    sendError(400, routingContext.response())
+    }) orElse Some(sendError(400, routingContext.response))
   }
 
-  private def handlerValidation(routingContext: RoutingContext): Unit = {
+  private def handlerValidation: Handler[RoutingContext] = implicit routingContext => {
     logger.debug("Received token validation request.")
-    for (
+    (for (
       authorizationHeader <- routingContext.request.getAuthentication;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
@@ -110,8 +107,6 @@ case class AuthenticationServiceVerticle() extends VertxServer {
           routingContext.response() end username
         case Failure(_) => sendError(401, routingContext.response())
       })
-      return
-    }
-    sendError(400, routingContext.response())
+    }) orElse Some(sendError(400, routingContext.response))
   }
 }

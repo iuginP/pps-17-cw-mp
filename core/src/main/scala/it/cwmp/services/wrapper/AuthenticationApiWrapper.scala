@@ -17,7 +17,8 @@ trait AuthenticationApiWrapper extends Validation[String, User] {
 object AuthenticationApiWrapper {
 
   val DEFAULT_HOST = "localhost"
-  val DEFAULT_PORT = 8666
+
+  import it.cwmp.services.authentication.ServerParameters._
 
   def apply(): AuthenticationApiWrapper =
     AuthenticationApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
@@ -34,21 +35,21 @@ object AuthenticationApiWrapper {
     extends AuthenticationApiWrapper with VertxInstance with VertxClient {
 
     def signUp(username: String, password: String): Future[String] =
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
       .expectStatus(201)
       .map(_.bodyAsString().getOrElse(""))
 
     override def login(username: String, password: String): Future[String] =
-      client.get("/api/login")
+      client.get(API_LOGIN)
         .addAuthentication(username, password)
         .sendFuture()
         .expectStatus(200)
         .map(_.bodyAsString().getOrElse(""))
 
     override def validate(token: String): Future[User] =
-      client.get("/api/validate")
+      client.get(API_VALIDATE)
         .addAuthentication(token)
         .sendFuture()
         .expectStatus(200)

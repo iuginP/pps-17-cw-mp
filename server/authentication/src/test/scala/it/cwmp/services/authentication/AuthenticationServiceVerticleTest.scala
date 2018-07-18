@@ -1,6 +1,7 @@
 package it.cwmp.services.authentication
 
 import io.vertx.scala.ext.web.client.WebClientOptions
+import it.cwmp.services.authentication.ServerParameters._
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.VertxClient
@@ -18,21 +19,21 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
         .shouldAnswerWith(201, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .sendFuture()
         .shouldAnswerWith(400)
     }
 
     it("when invalid header should fail") {
       val token = invalidToken
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(token)
         .sendFuture()
         .shouldAnswerWith(400)
@@ -42,11 +43,11 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
         .flatMap(_ =>
-          client.post("/api/signup")
+          client.post(API_SIGNUP)
             .addAuthentication(username, password)
             .sendFuture())
         .shouldAnswerWith(400)
@@ -62,25 +63,25 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
         .flatMap(_ =>
-          client.get("/api/login")
+          client.get(API_LOGIN)
             .addAuthentication(username, password)
             .sendFuture())
         .shouldAnswerWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when empty header should fail") {
-      client.get("/api/login")
+      client.get(API_LOGIN)
         .sendFuture()
         .shouldAnswerWith(400)
     }
 
     it("when invalid header should fail") {
       val token = invalidToken
-      client.get("/api/login")
+      client.get(API_LOGIN)
         .addAuthentication(token)
         .sendFuture()
         .shouldAnswerWith(400)
@@ -90,7 +91,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.get("/api/login")
+      client.get(API_LOGIN)
         .addAuthentication(username, password)
         .sendFuture()
         .shouldAnswerWith(401)
@@ -101,11 +102,11 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val password = nextPassword
       val passwordWrong = nextPassword
 
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
         .flatMap(_ =>
-          client.get("/api/login")
+          client.get(API_LOGIN)
             .addAuthentication(username, passwordWrong)
             .sendFuture())
         .shouldAnswerWith(401)
@@ -117,18 +118,18 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post("/api/signup")
+      client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
         .flatMap(response =>
-          client.get("/api/validate")
+          client.get(API_VALIDATE)
             .addAuthentication(response.bodyAsString().get)
             .sendFuture())
         .shouldAnswerWith(200, _.exists(body => body.nonEmpty))
     }
 
     it("when missing token should fail") {
-      client.get("/api/validate")
+      client.get(API_VALIDATE)
         .sendFuture()
         .map(res => res statusCode() should equal(400))
     }
@@ -136,7 +137,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     it("when invalid token should fail") {
       val myToken = invalidToken
 
-      client.get("/api/validate")
+      client.get(API_VALIDATE)
         .addAuthentication(myToken)
         .sendFuture()
         .shouldAnswerWith(400)
@@ -145,7 +146,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     it("when unauthorized token should fail") {
       val myToken = nextToken
 
-      client.get("/api/validate")
+      client.get(API_VALIDATE)
         .addAuthentication(myToken)
         .sendFuture()
         .shouldAnswerWith(401)
