@@ -46,18 +46,17 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
       }
 
       it("When right, after response should close") {
-        recoverToSucceededIf[HTTPException] {
-          client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+          .sendFuture()
+          .transform({
+            case Success(res) if res.statusCode() == 201 => Success(Unit)
+            case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
+            case Failure(f) => Failure(f)
+          })
+          .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))
             .sendFuture()
-            .transform({
-              case Success(res) if res.statusCode() == 201 => Success(Unit)
-              case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
-              case Failure(f) => Failure(f)
-            })
-            .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))
-              .sendFuture()
-              .map(_ => fail))
-        }
+            .map(_ => fail))
+          .shouldFailWith[HTTPException]
       }
     }
   }
