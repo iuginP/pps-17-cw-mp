@@ -3,7 +3,6 @@ package it.cwmp.services.rooms
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
-import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
