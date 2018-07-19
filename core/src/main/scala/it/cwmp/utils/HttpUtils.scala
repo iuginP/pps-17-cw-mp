@@ -38,7 +38,7 @@ object HttpUtils {
         //divido la stringa "Basic " dalla parte in Base64
         credentialFromHeader = headerVal.split(s"$PREFIX_BASIC ")(1) if credentialFromHeader.nonEmpty;
         //decodifico il payload e ottengo, quando è possibile, username e password in chiaro
-        headerDecoded <- new String(Base64.getDecoder.decode(credentialFromHeader)).split(":")
+        headerDecoded = new String(Base64.getDecoder.decode(credentialFromHeader)).split(":")
       ) yield (headerDecoded(0), headerDecoded(1))
     } catch {
       case _: Throwable => None
