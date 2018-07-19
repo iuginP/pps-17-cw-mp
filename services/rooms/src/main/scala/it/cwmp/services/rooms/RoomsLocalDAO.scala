@@ -126,7 +126,7 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomsLocalDAO() extends RoomDAO with VertxInstance with VertxJDBC {
+case class RoomsLocalDAO(override val configurationPath: String = "rooms/database.json") extends RoomDAO with VertxInstance with VertxJDBC {
   private var notInitialized = true
 
   private val PUBLIC_ROOM_MAX_SIZE = 4

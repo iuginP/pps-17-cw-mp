@@ -15,9 +15,15 @@ import scala.util.Success
 trait VertxJDBC {
   this: VertxInstance =>
 
-  private val clientFuture: Future[JDBCClient] = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-    .map(_.toJsonObject)
-    .map(JDBCClient.createShared(vertx, _))
+  def configurationPath: String = null
+
+  private val DEFAULT_CONFIG_PATH: String = "database/jdbc_config.json"
+
+  private val clientFuture: Future[JDBCClient] =
+    vertx.fileSystem.readFileFuture(configurationPath)
+      .recoverWith { case _ => vertx.fileSystem.readFileFuture("database/jdbc_config.json") }
+      .map(_.toJsonObject)
+      .map(JDBCClient.createShared(vertx, _))
 
   private var connectionList: ListBuffer[SQLConnection] = ListBuffer()
 

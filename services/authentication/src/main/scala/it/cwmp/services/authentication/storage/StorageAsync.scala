@@ -22,7 +22,9 @@ object StorageAsync {
 
   def apply(): StorageAsync = new StorageAsyncImpl()
 
-  class StorageAsyncImpl() extends StorageAsync with VertxInstance with VertxJDBC {
+  def apply(configurationPath: String): StorageAsync = new StorageAsyncImpl(configurationPath)
+
+  class StorageAsyncImpl(override val configurationPath: String = "authentication/database.json") extends StorageAsync with VertxInstance with VertxJDBC {
 
     override def init(): Future[Unit] =
       (for (
