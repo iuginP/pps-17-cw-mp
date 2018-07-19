@@ -25,6 +25,11 @@ sealed trait Room {
   */
 object Room {
 
+  val FIELD_IDENTIFIER = "room_identifier"
+  val FIELD_NAME = "room_name"
+  val FIELD_NEEDED_PLAYERS = "room_players"
+  val FIELD_PARTICIPANTS = "room_participants"
+
   def apply(roomID: String,
             roomName: String,
             neededPlayersNumber: Int,
@@ -50,12 +55,6 @@ object Room {
                                  name: String,
                                  neededPlayersNumber: Int,
                                  participants: Seq[Participant]) extends Room
-
-
-  val FIELD_IDENTIFIER = "room_identifier"
-  val FIELD_NAME = "room_name"
-  val FIELD_NEEDED_PLAYERS = "room_players"
-  val FIELD_PARTICIPANTS = "room_participants"
 
   /**
     * Converters for Room
