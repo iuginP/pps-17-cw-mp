@@ -29,6 +29,7 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
         it("on bad fromCell")(intercept[NullPointerException](Tentacle(null, toCell, launchInstant)))
         it("on bad toCell")(intercept[NullPointerException](Tentacle(fromCell, null, launchInstant)))
         it("on bad launchInstant")(intercept[NullPointerException](Tentacle(fromCell, toCell, null)))
+        it("on same start and destination")(intercept[IllegalArgumentException](Tentacle(fromCell, fromCell, launchInstant)))
       }
     }
 
