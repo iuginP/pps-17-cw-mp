@@ -7,17 +7,17 @@ class JwtUtilsTest extends FunSpec {
 
   describe("Generic") {
     describe("encode") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         val claim = JwtClaim() + ("username", "tizio")
         assert(JwtUtils.encodeToken(claim).nonEmpty)
       }
-      it ("should fail if argument null") {
+      it("should fail if argument null") {
         assert(JwtUtils.encodeToken(null).isEmpty)
       }
     }
 
     describe("decode") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         val claim = JwtClaim() + ("username", "tizio")
         var result: Option[JwtClaim] = None
         for (
@@ -28,13 +28,13 @@ class JwtUtilsTest extends FunSpec {
         }
         assert(result.isDefined && result.get.content.nonEmpty)
       }
-      it ("should fail if argument null") {
+      it("should fail if argument null") {
         assert(JwtUtils.decodeToken(null).isEmpty)
       }
     }
 
     describe("validate") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         val claim = JwtClaim() + ("username", "tizio")
         var result = false
         for (
@@ -45,7 +45,7 @@ class JwtUtilsTest extends FunSpec {
         }
         assert(result)
       }
-      it ("should fail if argument null") {
+      it("should fail if argument null") {
         assert(!JwtUtils.validateToken(null))
       }
     }
@@ -53,16 +53,16 @@ class JwtUtilsTest extends FunSpec {
 
   describe("User specific") {
     describe("encode") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         assert(JwtUtils.encodeUsernameToken("username").nonEmpty)
       }
-      it ("should fail if argument null") {
+      it("should fail if argument null") {
         assert(JwtUtils.encodeUsernameToken(null).isEmpty)
       }
     }
 
     describe("decode") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         var result: Option[String] = None
         for (
           token <- JwtUtils.encodeUsernameToken("username");
@@ -72,7 +72,7 @@ class JwtUtilsTest extends FunSpec {
         }
         assert(result.isDefined && result.get == "username")
       }
-      it ("should fail if argument null") {
+      it("should fail if argument null") {
         assert(JwtUtils.decodeUsernameToken(null).isEmpty)
       }
     }

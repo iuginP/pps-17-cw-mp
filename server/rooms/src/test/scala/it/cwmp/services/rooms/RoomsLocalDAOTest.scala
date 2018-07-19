@@ -208,11 +208,11 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
             .flatMap(_ => dao.deleteRoom(roomID)))) map (_ => succeed)
       }
       it("should succeed removing the room") {
-          daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-            .flatMap(roomID => dao.enterRoom(roomID)(Participant("User1", userAddress), notificationAddress)
-              .flatMap(_ => dao.enterRoom(roomID)(Participant("User2", userAddress), notificationAddress))
-              .flatMap(_ => dao.deleteRoom(roomID)) flatMap (_ => dao.roomInfo(roomID))))
-            .shouldFailWith[NoSuchElementException]
+        daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
+          .flatMap(roomID => dao.enterRoom(roomID)(Participant("User1", userAddress), notificationAddress)
+            .flatMap(_ => dao.enterRoom(roomID)(Participant("User2", userAddress), notificationAddress))
+            .flatMap(_ => dao.deleteRoom(roomID)) flatMap (_ => dao.roomInfo(roomID))))
+          .shouldFailWith[NoSuchElementException]
       }
 
       describe("should fail") {
@@ -220,7 +220,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
 
         it("if room is not full") {
           daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-            .flatMap(roomID => dao.enterRoom(roomID)(user,notificationAddress) flatMap (_ => dao.deleteRoom(roomID))))
+            .flatMap(roomID => dao.enterRoom(roomID)(user, notificationAddress) flatMap (_ => dao.deleteRoom(roomID))))
             .shouldFailWith[IllegalStateException]
         }
       }
@@ -240,7 +240,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
         onWrongPlayersNumber(playersNumber => daoFuture.flatMap(_.deleteAndRecreatePublicRoom(playersNumber)))
 
         it("if room is not full") {
-          daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user,notificationAddress) flatMap (_ => dao.deleteAndRecreatePublicRoom(playersNumber)))
+          daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user, notificationAddress) flatMap (_ => dao.deleteAndRecreatePublicRoom(playersNumber)))
             .shouldFailWith[IllegalStateException]
         }
       }

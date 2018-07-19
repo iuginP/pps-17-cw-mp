@@ -188,9 +188,9 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR)
         .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
         .flatMap {
-          case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
-          case None => Future.successful(Unit)
-        }
+        case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
+        case None => Future.successful(Unit)
+      }
         .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, notificationAddress.address, roomID)))
         .andThen { case _ => conn.close() })
       .flatMap(_ => Future.successful(()))
@@ -214,9 +214,9 @@ case class RoomsLocalDAO(client: JDBCClient)
       .flatMap(_ => client.getConnectionFuture())
       .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
         .flatMap {
-          case Some(room) if room.identifier == roomID => Future.successful(Unit)
-          case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-        }
+        case Some(room) if room.identifier == roomID => Future.successful(Unit)
+        case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
+      }
         .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
         .andThen { case _ => conn.close() })
       .flatMap(_ => Future.successful(()))

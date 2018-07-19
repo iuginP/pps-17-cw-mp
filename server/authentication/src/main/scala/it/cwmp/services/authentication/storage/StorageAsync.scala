@@ -34,7 +34,8 @@ object StorageAsync {
     override def init(): Future[Unit] = {
       getConnection().flatMap(conn =>
         // create a test table
-        conn.executeFuture("""
+        conn.executeFuture(
+          """
           CREATE TABLE IF NOT EXISTS authorization (
             auth_username VARCHAR(45) NOT NULL,
             auth_password VARCHAR(45) NOT NULL,

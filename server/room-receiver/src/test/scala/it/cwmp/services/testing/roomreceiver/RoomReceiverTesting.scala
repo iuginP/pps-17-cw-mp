@@ -22,7 +22,7 @@ abstract class RoomReceiverTesting extends VertxTest with Matchers with BeforeAn
 
   protected var participantsPromise: Promise[Seq[Participant]] = _
 
-  override protected def beforeEach(): Unit =  {
+  override protected def beforeEach(): Unit = {
     super.beforeEach()
     participantsPromise = Promise()
   }

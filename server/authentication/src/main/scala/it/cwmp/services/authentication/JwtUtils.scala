@@ -17,7 +17,7 @@ object JwtUtils {
 
   def decodeToken(token: String): Option[JwtClaim] = {
     Jwt.decodeRawAll(token, secretKey, Seq(algorithm)) match {
-      case Success((_,b,_)) =>
+      case Success((_, b, _)) =>
         Some(JwtClaim(b))
       case Failure(_) => None
     }

@@ -47,10 +47,10 @@ trait RoomsServiceUtils {
     * Method that manages the filling of private rooms, fails if the room is not full
     */
   private[rooms] def handlePrivateRoomFilling(roomID: String)
-                                      (implicit roomDAO: RoomDAO,
-                                       routingContext: RoutingContext,
-                                       communicationStrategy: RoomReceiverApiWrapper,
-                                       executionContext: ExecutionContext): Future[Unit] = {
+                                             (implicit roomDAO: RoomDAO,
+                                              routingContext: RoutingContext,
+                                              communicationStrategy: RoomReceiverApiWrapper,
+                                              executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
       onRetrievedRoomAction = roomDAO deleteRoom roomID map (_ => sendResponse(200)))
   }
@@ -59,10 +59,10 @@ trait RoomsServiceUtils {
     * Method that manages the filling of public rooms, fails if the room is not full
     */
   private[rooms] def handlePublicRoomFilling(playersNumber: Int)
-                                     (implicit roomDAO: RoomDAO,
-                                      routingContext: RoutingContext,
-                                      communicationStrategy: RoomReceiverApiWrapper,
-                                      executionContext: ExecutionContext): Future[Unit] = {
+                                            (implicit roomDAO: RoomDAO,
+                                             routingContext: RoutingContext,
+                                             communicationStrategy: RoomReceiverApiWrapper,
+                                             executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
       onRetrievedRoomAction = roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200)))
   }
@@ -96,8 +96,8 @@ trait RoomsServiceUtils {
     * @param roomInformation the room where players are waiting in
     */
   private[rooms] def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
-                                      (implicit communicationStrategy: RoomReceiverApiWrapper,
-                                       executionContext: ExecutionContext): Future[Unit] = {
+                                             (implicit communicationStrategy: RoomReceiverApiWrapper,
+                                              executionContext: ExecutionContext): Future[Unit] = {
     log.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
     val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
     val players = for (player <- roomInformation._1.participants) yield player
