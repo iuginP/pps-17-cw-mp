@@ -1,6 +1,5 @@
 package it.cwmp.services.authentication.storage
 
-import io.vertx.scala.ext.jdbc.JDBCClient
 import it.cwmp.testing.{FutureMatchers, VertxTest}
 import it.cwmp.utils.Utils
 import org.scalatest.{BeforeAndAfterEach, Matchers}
@@ -13,14 +12,8 @@ class StorageAsyncTest extends VertxTest with Matchers with FutureMatchers with 
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    storageFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-      .map(_.toJsonObject)
-      .map(JDBCClient.createShared(vertx, _))
-      .flatMap(client => {
-        client.querySingleFuture("DROP SCHEMA PUBLIC CASCADE")
-          .map(_ => StorageAsync(client))
-      })
-      .flatMap(storage => storage.init().map(_ => storage))
+    val storage = StorageAsync()
+    storageFuture = storage.init().map(_ => storage)
   }
 
   describe("Storage manager") {

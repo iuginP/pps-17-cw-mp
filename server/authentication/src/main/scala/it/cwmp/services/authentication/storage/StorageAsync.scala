@@ -1,12 +1,9 @@
 package it.cwmp.services.authentication.storage
 
 import io.vertx.core.json.JsonArray
-import io.vertx.scala.ext.jdbc.JDBCClient
-import io.vertx.scala.ext.sql.SQLConnection
+import it.cwmp.utils.{VertxInstance, VertxJDBC}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
-import scala.util.{Failure, Success}
 
 trait StorageAsync {
 
@@ -23,18 +20,14 @@ trait StorageAsync {
 
 object StorageAsync {
 
-  def apply(client: JDBCClient): StorageAsync = new StorageAsyncImpl(client)
+  def apply(): StorageAsync = new StorageAsyncImpl()
 
-  class StorageAsyncImpl(client: JDBCClient) extends StorageAsync {
+  class StorageAsyncImpl() extends StorageAsync with VertxInstance with VertxJDBC {
 
-    private def getConnection(): Future[SQLConnection] = {
-      client.getConnectionFuture()
-    }
-
-    override def init(): Future[Unit] = {
-      getConnection().flatMap(conn =>
-        // create a test table
-        conn.executeFuture(
+    override def init(): Future[Unit] =
+      (for (
+        connection <- openConnection();
+        result <- connection.executeFuture(
           """
           CREATE TABLE IF NOT EXISTS authorization (
             auth_username VARCHAR(45) NOT NULL,
@@ -42,80 +35,76 @@ object StorageAsync {
             auth_salt CHAR(32) NOT NULL,
             PRIMARY KEY (auth_username))
           """)
-          .andThen({ case _ => conn.close() }))
-    }
+      ) yield result).closeConnections
 
-    override def signupFuture(username: String, password: String): Future[Unit] = {
-      if (username == null || username.isEmpty
-        || password == null || password.isEmpty) {
-        Future.failed(new Exception())
-      } else {
-        getConnection().flatMap(conn =>
-          // insert the user in the authorization table
-          conn.updateWithParamsFuture(
+    override def signupFuture(usernameP: String, passwordP: String): Future[Unit] =
+      (for (
+        // Controllo l'input
+        username <- Option(usernameP) if username.nonEmpty;
+        password <- Option(passwordP) if password.nonEmpty
+      ) yield {
+        (for (
+          // Eseguo operazioni sul db in maniera sequenziale
+          connection <- openConnection();
+          _ <- connection.updateWithParamsFuture(
             """
-            INSERT INTO authorization values (?, ?, ?)
-            """, new JsonArray().add(username).add(password).add("SALT"))
-            .andThen({ case _ => conn.close() }))
-          .map(_ => Unit)
-      }
-    }
+              INSERT INTO authorization values (?, ?, ?)
+              """, new JsonArray().add(username).add(password).add("SALT"))
+        ) yield ()).closeConnections
+      }).getOrElse(Future.failed(new IllegalArgumentException()))
 
-    override def signoutFuture(username: String): Future[Unit] = {
-      if (username == null || username.isEmpty) {
-        Future.failed(new Exception())
-      } else {
-        getConnection().flatMap(conn =>
-          // insert the user in the authorization table
-          conn.updateWithParamsFuture(
+    override def signoutFuture(usernameP: String): Future[Unit] =
+      (for (
+        // Controllo l'input
+        username <- Option(usernameP) if username.nonEmpty
+      ) yield {
+        (for (
+          // Eseguo operazioni sul db in maniera sequenziale
+          connection <- openConnection();
+          result <- connection.updateWithParamsFuture(
             """
             DELETE FROM authorization WHERE auth_username = ?
-            """, new JsonArray().add(username))
-            .andThen({ case _ => conn.close() }))
-          .transform {
-            case Success(res) if res.getUpdated > 0 => Success(Unit)
-            case Success(_) => Failure(new Exception())
-          }
+            """, new JsonArray().add(username)) if result.getUpdated > 0
+        ) yield ()).closeConnections
+      }).getOrElse(Future.failed(new IllegalArgumentException()))
 
-      }
-    }
-
-    override def loginFuture(username: String, password: String): Future[Unit] = {
-      if (username == null || username.isEmpty
-        || password == null || password.isEmpty) {
-        Future.failed(new Exception())
-      } else {
-        getConnection().flatMap(conn =>
-          // check the user against the authorization table
-          conn.queryWithParamsFuture(
+    override def loginFuture(usernameP: String, passwordP: String): Future[Unit] =
+      (for (
+        // Controllo l'input
+        username <- Option(usernameP) if username.nonEmpty;
+        password <- Option(passwordP) if password.nonEmpty
+      ) yield {
+        (for (
+          // Eseguo operazioni sul db in maniera sequenziale
+          connection <- openConnection();
+          result <- connection.queryWithParamsFuture(
             """
             SELECT *
             FROM authorization
             WHERE auth_username = ?
             AND auth_password = ?
-            """, new JsonArray().add(username).add(password))
-            .map(res => if (res.getResults.isEmpty) throw new Exception)
-            .andThen({ case _ => conn.close() })
-        )
-      }
-    }
+            """, new JsonArray().add(username).add(password)) if result.getResults.nonEmpty
+        ) yield ()).closeConnections
+      }).getOrElse(Future.failed(new IllegalArgumentException()))
 
-    override def existsFuture(username: String): Future[Unit] = {
-      if (username == null || username.isEmpty) {
-        Future.failed(new Exception())
-      } else {
-        getConnection().flatMap(conn =>
-          // check the user against the authorization table
-          conn.queryWithParamsFuture(
+
+    override def existsFuture(usernameP: String): Future[Unit] =
+      (for (
+        // Controllo l'input
+        username <- Option(usernameP) if username.nonEmpty
+      ) yield {
+        (for (
+          // Eseguo operazioni sul db in maniera sequenziale
+          connection <- openConnection();
+          result <- connection.queryWithParamsFuture(
             """
             SELECT *
             FROM authorization
             WHERE auth_username = ?
-            """, new JsonArray().add(username))
-            .map(res => if (res.getResults.isEmpty) throw new Exception)
-            .andThen({ case _ => conn.close() }))
-      }
-    }
+            """, new JsonArray().add(username)) if result.getResults.nonEmpty
+        ) yield ()).closeConnections
+      }).getOrElse(Future.failed(new IllegalArgumentException()))
+
   }
 
 }

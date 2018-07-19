@@ -26,11 +26,8 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   }
 
   override protected def initServer: Future[_] = {
-    storageFuture = vertx.fileSystem.readFileFuture("database/jdbc_config.json")
-      .map(_.toJsonObject)
-      .map(JDBCClient.createShared(vertx, _))
-      .map(client => StorageAsync(client))
-      .flatMap(storage => storage.init().map(_ => storage))
+    val storage = StorageAsync()
+    storageFuture = storage.init().map(_ => storage)
     storageFuture
   }
 
