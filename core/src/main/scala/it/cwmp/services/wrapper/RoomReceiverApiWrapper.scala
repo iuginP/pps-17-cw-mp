@@ -40,8 +40,6 @@ object RoomReceiverApiWrapper {
   private case class RoomReceiverApiWrapperDefault()
     extends RoomReceiverApiWrapper with VertxInstance with VertxClient with AdvancedLogging {
 
-    override protected def clientOptions: WebClientOptions = WebClientOptions()
-
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
       client
         .requestAbs(HttpMethod.POST, clientAddress)
@@ -51,6 +49,8 @@ object RoomReceiverApiWrapper {
 
       // TODO should implement a retry strategy?
     }
+
+    override protected def clientOptions: WebClientOptions = WebClientOptions()
   }
 
 }

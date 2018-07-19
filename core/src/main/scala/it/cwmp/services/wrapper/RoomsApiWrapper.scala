@@ -164,6 +164,15 @@ object RoomsApiWrapper {
           }
         }, 200))
 
+    /**
+      * Utility method to handle the Service response
+      */
+    private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
+      successHttpCodes find (_ == response.statusCode) match {
+        case Some(_) => onSuccessFuture
+        case None => Future.failed(HTTPException(response.statusCode, response.bodyAsString))
+      }
+
     override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
       enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
@@ -178,14 +187,6 @@ object RoomsApiWrapper {
     override def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
       exitPublicRoomRequest(playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
-
-    /**
-      * Utility method to handle the Service response
-      */
-    private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
-      successHttpCodes find (_ == response.statusCode) match {
-        case Some(_) => onSuccessFuture
-        case None => Future.failed(HTTPException(response.statusCode, response.bodyAsString))
-      }
   }
+
 }

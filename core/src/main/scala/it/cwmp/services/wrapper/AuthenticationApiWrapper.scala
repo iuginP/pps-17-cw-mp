@@ -23,13 +23,13 @@ object AuthenticationApiWrapper {
   def apply(): AuthenticationApiWrapper =
     AuthenticationApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
 
-  def apply(host: String): AuthenticationApiWrapper =
-    AuthenticationApiWrapper(host, DEFAULT_PORT)
-
   def apply(host: String, port: Int): AuthenticationApiWrapper =
     new AuthenticationApiWrapperImpl(WebClientOptions()
       .setDefaultHost(host)
       .setDefaultPort(port))
+
+  def apply(host: String): AuthenticationApiWrapper =
+    AuthenticationApiWrapper(host, DEFAULT_PORT)
 
   class AuthenticationApiWrapperImpl(override protected val clientOptions: WebClientOptions)
     extends AuthenticationApiWrapper with VertxInstance with VertxClient {
@@ -38,8 +38,8 @@ object AuthenticationApiWrapper {
       client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
-      .expectStatus(201)
-      .map(_.bodyAsString().getOrElse(""))
+        .expectStatus(201)
+        .map(_.bodyAsString().getOrElse(""))
 
     override def login(username: String, password: String): Future[String] =
       client.get(API_LOGIN)
@@ -58,4 +58,5 @@ object AuthenticationApiWrapper {
           case _ => Future.failed(HTTPException(400, Some("Empty body")))
         }
   }
+
 }

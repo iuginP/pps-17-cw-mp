@@ -16,6 +16,7 @@ object HttpUtils {
   /**
     * Build the basic authentication header for the http request.
     * It si composed from the [[PREFIX_BASIC]] prefix followed by the Base64 of 'username:password'
+    *
     * @param username the username
     * @param password the password
     * @return the header for the request, or None
@@ -28,6 +29,7 @@ object HttpUtils {
 
   /**
     * Reads the couple (username,password) from the authentication header in the request.
+    *
     * @param header the authentication header
     * @return the couple containing username and password, or None
     */
@@ -47,6 +49,7 @@ object HttpUtils {
   /**
     * Build the jwt authentication header for the http request.
     * It si composed from the [[PREFIX_JWT]] prefix followed by the real JWT token.
+    *
     * @param token the token
     * @return the header for the request, or None
     */
@@ -57,6 +60,7 @@ object HttpUtils {
 
   /**
     * Reads the JWT token from the authentication header in the request.
+    *
     * @param header the authentication header
     * @return the token itself, or None
     */

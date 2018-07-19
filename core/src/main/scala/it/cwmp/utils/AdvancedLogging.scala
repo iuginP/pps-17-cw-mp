@@ -13,6 +13,7 @@ trait AdvancedLogging extends Logging {
 
   /**
     * Enrich a future with logging capabilities.
+    *
     * @param future the future to enrich.
     * @tparam T the type of value provided from the future.
     */
@@ -20,7 +21,8 @@ trait AdvancedLogging extends Logging {
 
     /**
       * Log an info message containing the text message if the future succeeds.
-      * @param message the message to display.
+      *
+      * @param message          the message to display.
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
@@ -31,8 +33,9 @@ trait AdvancedLogging extends Logging {
 
     /**
       * Log an info message containing the text message if the future succeeds and the condition is respected.
-      * @param message the message to display.
-      * @param condition the strategy that specifies if the argument of the successful future is right.
+      *
+      * @param message          the message to display.
+      * @param condition        the strategy that specifies if the argument of the successful future is right.
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
@@ -43,7 +46,8 @@ trait AdvancedLogging extends Logging {
 
     /**
       * Log an info message containing the text message if the future fails.
-      * @param message the message to display.
+      *
+      * @param message          the message to display.
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
@@ -54,14 +58,16 @@ trait AdvancedLogging extends Logging {
 
     /**
       * Log an info message containing the text message if the future fails with the specified exception type.
+      *
       * @param message the message to display.
       * @tparam A the type of exception that should be returned as failure.
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
-    def logFailureInfo[A <: Exception: ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
+    def logFailureInfo[A <: Exception : ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
         case Failure(e) if classTag[A].runtimeClass.isInstance(e) => log.info(message, e)
       }
   }
+
 }

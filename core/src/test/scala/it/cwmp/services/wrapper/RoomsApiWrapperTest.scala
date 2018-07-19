@@ -79,6 +79,21 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
     }
   }
 
+  override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
+    it("if roomID is empty") {
+      apiCall("").shouldFailWith[HTTPException]
+    }
+    it("if provided roomID is not present") {
+      apiCall("1233124").shouldFailWith[HTTPException]
+    }
+  }
+
+  /**
+    * Cleans up the provided room, exiting the user with passed token
+    */
+  private def cleanUpRoom(roomID: String, assertion: Assertion)(implicit userToken: String) =
+    exitRoom(roomID)(userToken) map (_ => assertion)
+
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
       createRoom(roomName, playersNumber)
@@ -142,68 +157,24 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
     }
   }
 
-  override protected def publicRoomListingTests(playersNumber: Int): Unit = {
-    it("should be non empty") {
-      listPublicRooms() flatMap (_ should not be empty)
-    }
-  }
-
-  override protected def publicRoomInfoRetrievalTests(playersNumber: Int): Unit = {
-    it("should succeed if provided playersNumber is correct") {
-      publicRoomInfo(playersNumber) flatMap (_ => succeed)
-    }
-    it("should show entered players") {
-      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
-        .flatMap(_.participants should contain(participantList.head))
-        .flatMap(cleanUpRoom(playersNumber, _))
-    }
-
-    describe("should fail") {
-      onWrongPlayersNumber(publicRoomInfo)
-    }
-  }
-
-  override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
-    it("should succeed if players number is correct and user is inside") {
-      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) flatMap (_ => succeed)
-    }
-    it("user should not be inside after it") {
-      enterPublicRoom(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoom(playersNumber))
-        .flatMap(_ => publicRoomInfo(playersNumber))
-        .flatMap(_.participants shouldNot contain(participantList.head))
-    }
-
-    describe("should fail") {
-      onWrongPlayersNumber(exitPublicRoom)
-
-      it("if user is not inside the room") {
-        exitPublicRoom(playersNumber).shouldFailWith[HTTPException]
-      }
-      it("if user is inside another room") {
-        enterPublicRoom(2, participantList.head, notificationAddress)
-          .flatMap(_ => exitPublicRoom(3))
-          .shouldFailWith[HTTPException]
-          .flatMap(cleanUpRoom(2, _))
-      }
-    }
-  }
-
-  override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
-    it("if roomID is empty") {
-      apiCall("").shouldFailWith[HTTPException]
-    }
-    it("if provided roomID is not present") {
-      apiCall("1233124").shouldFailWith[HTTPException]
-    }
-  }
-
   override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
     it("if players number provided less than 2") {
       apiCall(0).shouldFailWith[HTTPException]
     }
     it("if room with such players number doesn't exist") {
       apiCall(20).shouldFailWith[HTTPException]
+    }
+  }
+
+  /**
+    * Cleans up the provided public room, exiting player with passed token
+    */
+  private def cleanUpRoom(playersNumber: Int, assertion: Assertion)(implicit userToken: String) =
+    exitPublicRoom(playersNumber)(userToken) map (_ => assertion)
+
+  override protected def publicRoomListingTests(playersNumber: Int): Unit = {
+    it("should be non empty") {
+      listPublicRooms() flatMap (_ should not be empty)
     }
   }
 
@@ -268,15 +239,44 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
     }
   }
 
-  /**
-    * Cleans up the provided room, exiting the user with passed token
-    */
-  private def cleanUpRoom(roomID: String, assertion: Assertion)(implicit userToken: String) =
-    exitRoom(roomID)(userToken) map (_ => assertion)
+  override protected def publicRoomInfoRetrievalTests(playersNumber: Int): Unit = {
+    it("should succeed if provided playersNumber is correct") {
+      publicRoomInfo(playersNumber) flatMap (_ => succeed)
+    }
+    it("should show entered players") {
+      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
+        .flatMap(_.participants should contain(participantList.head))
+        .flatMap(cleanUpRoom(playersNumber, _))
+    }
 
-  /**
-    * Cleans up the provided public room, exiting player with passed token
-    */
-  private def cleanUpRoom(playersNumber: Int, assertion: Assertion)(implicit userToken: String) =
-    exitPublicRoom(playersNumber)(userToken) map (_ => assertion)
+    describe("should fail") {
+      onWrongPlayersNumber(publicRoomInfo)
+    }
+  }
+
+  override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
+    it("should succeed if players number is correct and user is inside") {
+      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) flatMap (_ => succeed)
+    }
+    it("user should not be inside after it") {
+      enterPublicRoom(playersNumber, participantList.head, notificationAddress)
+        .flatMap(_ => exitPublicRoom(playersNumber))
+        .flatMap(_ => publicRoomInfo(playersNumber))
+        .flatMap(_.participants shouldNot contain(participantList.head))
+    }
+
+    describe("should fail") {
+      onWrongPlayersNumber(exitPublicRoom)
+
+      it("if user is not inside the room") {
+        exitPublicRoom(playersNumber).shouldFailWith[HTTPException]
+      }
+      it("if user is inside another room") {
+        enterPublicRoom(2, participantList.head, notificationAddress)
+          .flatMap(_ => exitPublicRoom(3))
+          .shouldFailWith[HTTPException]
+          .flatMap(cleanUpRoom(2, _))
+      }
+    }
+  }
 }

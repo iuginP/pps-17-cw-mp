@@ -10,7 +10,7 @@ import it.cwmp.utils.VertxClient
 import scala.concurrent.Future
 
 trait RoomApiWrapperUtils {
-  this: VertxClient=>
+  this: VertxClient =>
 
   /**
     * Wrapper method to do REST HTTP call to RoomsService createPrivateRoom API
@@ -20,13 +20,19 @@ trait RoomApiWrapperUtils {
   }
 
   /**
+    * Handle method to create the JSON to use in creation API
+    */
+  protected def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
+    Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))
+
+  /**
     * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
     */
   protected def enterPrivateRoomRequest(roomID: String,
-                                      userAddress: Address,
-                                      notificationAddress: Address)
-                                     (implicit webClient: WebClient,
-                                      userToken: String): Future[HttpResponse[Buffer]] = {
+                                        userAddress: Address,
+                                        notificationAddress: Address)
+                                       (implicit webClient: WebClient,
+                                        userToken: String): Future[HttpResponse[Buffer]] = {
     client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication
       .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))
   }
@@ -59,12 +65,20 @@ trait RoomApiWrapperUtils {
     * Wrapper method to do REST HTTP call to RoomsService enterPublicRoom API
     */
   protected def enterPublicRoomRequest(playersNumber: Int,
-                                     userAddress: Address,
-                                     notificationAddress: Address)
-                                    (implicit webClient: WebClient,
-                                     userToken: String): Future[HttpResponse[Buffer]] = {
+                                       userAddress: Address,
+                                       notificationAddress: Address)
+                                      (implicit webClient: WebClient,
+                                       userToken: String): Future[HttpResponse[Buffer]] = {
     client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication
       .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))
+  }
+
+  /**
+    * Handle method to create the JSON to use in entering API
+    */
+  protected def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray = {
+    import Address.Converters._
+    Json.arr(playerAddress.toJson, notificationAddress.toJson)
   }
 
   /**
@@ -81,19 +95,5 @@ trait RoomApiWrapperUtils {
   protected def exitPublicRoomRequest(playersNumber: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
     client.delete(API_EXIT_PUBLIC_ROOM_URL).addAuthentication
       .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture()
-  }
-
-  /**
-    * Handle method to create the JSON to use in creation API
-    */
-  protected def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
-    Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))
-
-  /**
-    * Handle method to create the JSON to use in entering API
-    */
-  protected def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray = {
-    import Address.Converters._
-    Json.arr(playerAddress.toJson, notificationAddress.toJson)
   }
 }
