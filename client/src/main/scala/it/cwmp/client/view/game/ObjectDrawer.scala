@@ -1,7 +1,9 @@
 package it.cwmp.client.view.game
 
 import java.awt.Color
+import java.time.Instant
 
+import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout.Region
@@ -39,16 +41,16 @@ trait ObjectDrawer {
   /**
     * Metodo utilizato per disegnare l'arco che unisce due celle
     *
-    * @param firstCell      è la cella dalla quale parte l'arco
-    * @param secondCell     è la cella nella quale arriva l'arco
     * @param graphicsContext è l'oggetto che disenga l'arco
     */
-  def drawArch(firstCell: CellView, secondCell: CellView)(implicit graphicsContext: GraphicsContext): Unit = {
+  def drawArch(tentacle: Tentacle, actualInstant:Instant)(implicit graphicsContext: GraphicsContext): Unit = {
     // TODO: use tentacle
-    graphicsContext.setStroke(firstCell.color)
+    graphicsContext.setStroke(TentacleView.coloringStrategy(tentacle))
     graphicsContext.setLineWidth(3.0)
-    graphicsContext.strokeLine(firstCell.center.x, firstCell.center.y,
-      secondCell.center.x, secondCell.center.y)
+
+    // TODO: draw the line to the point indicated by tentacle length using TentacleView reachedPoint
+//    graphicsContext.strokeLine(firstCell.center.x, firstCell.center.y,
+//      secondCell.center.x, secondCell.center.y)
   }
 
   /**

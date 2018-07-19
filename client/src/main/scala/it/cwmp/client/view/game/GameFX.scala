@@ -49,7 +49,7 @@ case class GameFX() extends ObjectDrawer {
       implicit val graphicsContext = canvas.getGraphicsContext2D
       import it.cwmp.client.view.game.model.CellView._
 
-      world.attacks.foreach(tentacle => drawArch(tentacle.from, tentacle.to))
+      world.attacks.foreach(tentacle => drawArch(tentacle, world.instant))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
     })
   }

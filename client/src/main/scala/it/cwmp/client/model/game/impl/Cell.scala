@@ -56,7 +56,7 @@ object Cell {
     * @return the distance
     */
   def distance(cell1: Cell, cell2: Cell): Long = {
-    Point.distance(cell1.position, cell2.position)
+    GeometricUtils.distance(cell1.position, cell2.position).toLong
   }
 
   /**
