@@ -1,5 +1,6 @@
+package it.cwmp.services.authentication
+
 import io.vertx.scala.core.Vertx
-import it.cwmp.services.authentication.AuthenticationServiceVerticle
 
 /**
   * Hello class for server
