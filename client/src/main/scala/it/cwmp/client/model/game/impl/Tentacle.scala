@@ -21,6 +21,7 @@ case class Tentacle(from: Cell,
   requireNonNull(from, "From cell must be not null")
   requireNonNull(to, "To cell must be not null")
   requireNonNull(launchInstant, "Launch instant must be not null")
+  require(from != to, "A tentacle cannot be launched from and to same cell")
 }
 
 /**
