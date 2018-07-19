@@ -6,6 +6,7 @@ import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
+import scala.util.{Failure, Success}
 
 trait StorageAsync {
 
@@ -70,7 +71,10 @@ object StorageAsync {
             DELETE FROM authorization WHERE auth_username = ?
             """, new JsonArray().add(username))
             .andThen({ case _ => conn.close() }))
-          .map(_ => Unit)
+          .transform {
+            case Success(res) if res.getUpdated > 0 => Success(Unit)
+            case Success(_) => Failure(new Exception())
+          }
 
       }
     }
