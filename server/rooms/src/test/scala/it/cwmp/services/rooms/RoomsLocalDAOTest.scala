@@ -311,7 +311,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
   private def createRoomLocalDAO: Future[RoomsLocalDAO] =
     loadLocalDBConfig.map(JDBCClient.createShared(vertx, _))
       .flatMap(client => client.querySingleFuture("DROP SCHEMA PUBLIC CASCADE")
-        .map(_ => RoomsLocalDAO(client)))
+        .map(_ => RoomsLocalDAO()))
 
   /**
     * @return the Future containing local database configuration JSON

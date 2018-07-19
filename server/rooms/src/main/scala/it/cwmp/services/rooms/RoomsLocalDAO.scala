@@ -2,11 +2,10 @@ package it.cwmp.services.rooms
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.json.JsonArray
-import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsLocalDAO._
-import it.cwmp.utils.Utils
+import it.cwmp.utils.{Utils, VertxInstance, VertxJDBC}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -127,8 +126,7 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomsLocalDAO(client: JDBCClient)
-                        (implicit executionContext: ExecutionContext) extends RoomDAO {
+case class RoomsLocalDAO() extends RoomDAO with VertxInstance with VertxJDBC {
   private var notInitialized = true
 
   private val PUBLIC_ROOM_MAX_SIZE = 4
@@ -152,7 +150,7 @@ case class RoomsLocalDAO(client: JDBCClient)
              creationFuture = createPublicRoom(conn, playersNumber)) yield creationFuture
       }
 
-    client.getConnectionFuture
+    openConnection()
       .flatMap(conn => conn.executeFuture(createRoomTableSql)
         .flatMap(_ => conn.executeFuture(createUserTableSql))
         .map(_ => notInitialized = false)
@@ -172,7 +170,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     checkInitialization(notInitialized)
       .flatMap(_ => stringCheckFuture(roomName, EMPTY_ROOM_NAME_ERROR))
       .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => getNotAlreadyPresentRoomID(conn, generateRandomRoomID())
         .flatMap(roomID => conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
           .map(_ => roomID))
@@ -184,7 +182,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     logger.debug(s"enterRoom() roomID:$roomID, user:$user, notificationAddress:$notificationAddress")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR)
         .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
         .flatMap {
@@ -200,7 +198,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     logger.debug(s"roomInfo() roomID:$roomID")
     checkInitialization(notInitialized)
       .flatMap(_ => stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR))
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
         .flatMap(_ => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID)))
         .map(resultOfJoinToRooms(_).head)
@@ -211,7 +209,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     logger.debug(s"exitRoom() roomID:$roomID, user:$user")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
         .flatMap {
         case Some(room) if room.identifier == roomID => Future.successful(Unit)
@@ -225,7 +223,7 @@ case class RoomsLocalDAO(client: JDBCClient)
   override def listPublicRooms(): Future[Seq[Room]] = {
     logger.debug("listPublicRooms()")
     checkInitialization(notInitialized)
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
         .andThen { case _ => conn.close() })
       .map(resultOfJoinToRooms).map(_.map(_._1))
@@ -256,7 +254,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     logger.debug(s"deleteRoom() roomID:$roomID")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID)).map(_._1)
-      .flatMap(room => client.getConnectionFuture()
+      .flatMap(room => openConnection()
         .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, "")
           .flatMap(_ => Future.failed(new IllegalStateException(DELETING_NON_FULL_ROOM_ERROR))) // checking room full
           .recoverWith({ case ex: IllegalStateException if ex.getMessage.isEmpty => Future.successful(Unit) })
@@ -275,7 +273,7 @@ case class RoomsLocalDAO(client: JDBCClient)
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(deleteRoom)
-      .flatMap(_ => client.getConnectionFuture())
+      .flatMap(_ => openConnection())
       .flatMap(conn => createPublicRoom(conn, playersNumber)
         .andThen { case _ => conn.close() })
   }

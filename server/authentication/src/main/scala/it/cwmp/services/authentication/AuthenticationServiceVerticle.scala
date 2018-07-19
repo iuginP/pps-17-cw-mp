@@ -2,7 +2,6 @@ package it.cwmp.services.authentication
 
 import io.vertx.core.Handler
 import io.vertx.scala.core.http.HttpServerResponse
-import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.storage.StorageAsync
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}

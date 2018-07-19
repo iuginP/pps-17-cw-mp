@@ -40,10 +40,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   }
 
   override protected def initServer: Future[_] = {
-    daoFuture = loadLocalDBConfig(vertx)
-      .map(JDBCClient.createShared(vertx, _))
-      .map(RoomsLocalDAO(_))
-      .flatMap(dao => dao.initialize() map (_ => dao))
+    val roomDao = RoomsLocalDAO()
+    daoFuture = roomDao.initialize().map(_ => roomDao)
     daoFuture
   }
 
