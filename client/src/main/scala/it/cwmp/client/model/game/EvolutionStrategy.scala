@@ -5,4 +5,4 @@ package it.cwmp.client.model.game
   *
   * @author Enrico Siboni
   */
-trait EvolutionStrategy[Thing, TimeDuration] extends ((TimeDuration, Thing) => Thing)
+trait EvolutionStrategy[Thing, TimeDuration] extends ((Thing, TimeDuration) => Thing)
