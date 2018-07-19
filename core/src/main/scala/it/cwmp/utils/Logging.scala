@@ -13,5 +13,5 @@ trait Logging {
   /**
     * The instance of the logger. It is implicit so that can be used implicitly.
     */
-  protected implicit val logger: Logger = Logger(this.getClass.getName)
+  protected implicit val log: Logger = Logger(this.getClass.getName)
 }

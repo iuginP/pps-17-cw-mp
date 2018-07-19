@@ -26,7 +26,7 @@ trait AdvancedLogging extends Logging {
       */
     def logSuccessInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
-        case Success(_) => logger.info(message)
+        case Success(_) => log.info(message)
       }
 
     /**
@@ -38,7 +38,7 @@ trait AdvancedLogging extends Logging {
       */
     def logSuccessInfo(message: String, condition: T => Boolean)(implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
-        case Success(s) if condition(s) => logger.info(message)
+        case Success(s) if condition(s) => log.info(message)
       }
 
     /**
@@ -49,7 +49,7 @@ trait AdvancedLogging extends Logging {
       */
     def logFailureInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
-        case Failure(e) => logger.info(message, e)
+        case Failure(e) => log.info(message, e)
       }
 
     /**
@@ -61,7 +61,7 @@ trait AdvancedLogging extends Logging {
       */
     def logFailureInfo[A <: Exception: ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
-        case Failure(e) if classTag[A].runtimeClass.isInstance(e) => logger.info(message, e)
+        case Failure(e) if classTag[A].runtimeClass.isInstance(e) => log.info(message, e)
       }
   }
 }

@@ -51,7 +51,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles the creation of a private room
     */
   private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Create Private Room Request received...")
+    log.info("Create Private Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(_ =>
         extractIncomingRoomFromBody(body) match {
@@ -62,7 +62,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
                 case Failure(ex) => sendResponse(400, ex.getMessage)
               })
           case None =>
-            logger.warn("Request body for room creation is required!")
+            log.warn("Request body for room creation is required!")
             sendResponse(400, s"$INVALID_PARAMETER_ERROR no Room JSON in body")
         }))
 
@@ -82,7 +82,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles entering in a private room
     */
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Enter Private Room Request received...")
+    log.info("Enter Private Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
@@ -92,7 +92,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
                 .transform({
                   case Success(_) => Failure(new Exception())
                   case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => logger.error("Error handling Private Room Filling", ex); Success(Unit)
+                  case Failure(ex) => log.error("Error handling Private Room Filling", ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200))
               case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
@@ -100,7 +100,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
             })
 
           case _ =>
-            logger.warn("Player and notification address are required for entering a room!")
+            log.warn("Player and notification address are required for entering a room!")
             sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}")
         }
       }))
@@ -110,7 +110,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles retrieving info of a private room
     */
   private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Private Room Info Request received...")
+    log.info("Private Room Info Request received...")
     validateUserOrSendError.map(_ => {
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
@@ -130,7 +130,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles exititng a private room
     */
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Exit Private Room Request received...")
+    log.info("Exit Private Room Request received...")
     validateUserOrSendError.map(implicit user => {
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
@@ -148,7 +148,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles listing of public rooms
     */
   private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("List Public Rooms Request received...")
+    log.info("List Public Rooms Request received...")
     validateUserOrSendError.map(_ => {
       daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
@@ -164,7 +164,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles entering in a public room
     */
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Enter Public Room Request received...")
+    log.info("Enter Public Room Request received...")
     routingContext.request().bodyHandler(body =>
       validateUserOrSendError.map(user => {
         val playersNumberOption = try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
@@ -178,7 +178,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
                 .transform({
                   case Success(_) => Failure(new Exception())
                   case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => logger.error("Error handling Public Room Filling", ex); Success(Unit)
+                  case Failure(ex) => log.error("Error handling Public Room Filling", ex); Success(Unit)
                 })
                 .map(_ => sendResponse(200))
               case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
@@ -186,7 +186,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
             })
 
           case _ =>
-            logger.warn("The number of players in url and player/notification address in body are required for public room entering")
+            log.warn("The number of players in url and player/notification address in body are required for public room entering")
             sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}")
         }
       }))
@@ -196,7 +196,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles retrieving info of a public room
     */
   private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Public Room Info Request received...")
+    log.info("Public Room Info Request received...")
     validateUserOrSendError.map(_ => {
       (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
@@ -211,7 +211,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
             case Failure(ex) => sendResponse(400, ex.getMessage)
           })
         case None =>
-          logger.warn("The number of players in url is required for public room info retrieval")
+          log.warn("The number of players in url is required for public room info retrieval")
           sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
       }
     })
@@ -221,7 +221,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     * Handles exiting a public room
     */
   private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Exit Public Room Request received...")
+    log.info("Exit Public Room Request received...")
     validateUserOrSendError.map(implicit user => {
       (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
@@ -234,7 +234,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
             case Failure(ex) => sendResponse(400, ex.getMessage)
           })
         case None =>
-          logger.warn("The number of players in url is required for public room exiting")
+          log.warn("The number of players in url is required for public room exiting")
           sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
       }
     })
@@ -251,7 +251,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
   private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
     routingContext.request().getAuthentication match {
       case None =>
-        logger.warn("No authorization header in request")
+        log.warn("No authorization header in request")
         sendResponse(400, TOKEN_NOT_PROVIDED_OR_INVALID)
         Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
 

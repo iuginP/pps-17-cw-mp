@@ -98,11 +98,11 @@ trait RoomsServiceUtils {
   private[rooms] def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
                                       (implicit communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
-    logger.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
+    log.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
     val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
     val players = for (player <- roomInformation._1.participants) yield player
-    logger.info(s"Participant notification addresses to contact: $notificationAddresses")
-    logger.info(s"Information to send -> $players")
+    log.info(s"Participant notification addresses to contact: $notificationAddresses")
+    log.info(s"Information to send -> $players")
     Future.sequence {
       notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
     } map (_ => Unit)

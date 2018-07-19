@@ -30,8 +30,8 @@ trait VertxServer extends ScalaVerticle {
         .requestHandler(router.accept _)
         .listenFuture(serverPort))
     .andThen {
-      case Success(_) => logger.info(s"RoomsService listening on port: $serverPort")
-      case Failure(ex) => logger.error(s"Cannot start service on port: $serverPort", ex)
+      case Success(_) => log.info(s"RoomsService listening on port: $serverPort")
+      case Failure(ex) => log.error(s"Cannot start service on port: $serverPort", ex)
     }
   }
 
@@ -46,9 +46,11 @@ trait VertxServer extends ScalaVerticle {
                            message: String = null)
                           (implicit routingContext: RoutingContext): Unit = Option(message) match {
     case Some(messageString) =>
-      logger.info(s"Sending $httpCode response to client with message: $messageString")
+      log.info(s"Sending $httpCode response to client with message: $messageString")
       response.setStatusCode(httpCode).end(messageString)
-    case None => response.setStatusCode(httpCode).end()
+    case None =>
+      log.info(s"Sending $httpCode response to client")
+      response.setStatusCode(httpCode).setStatusCode(httpCode).end()
   }
 
   /**
