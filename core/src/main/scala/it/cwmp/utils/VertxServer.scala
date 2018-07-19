@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
   * @author Eugenio Pierfederici
   */
 trait VertxServer extends ScalaVerticle {
-  this: Loggable =>
+  this: Logging =>
 
   protected def serverPort: Int
 

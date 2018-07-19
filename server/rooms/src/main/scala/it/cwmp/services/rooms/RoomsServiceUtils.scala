@@ -6,12 +6,12 @@ import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.RoutingContext
 import it.cwmp.model.{Address, Room}
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
-import it.cwmp.utils.{Loggable, VertxServer}
+import it.cwmp.utils.{Logging, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait RoomsServiceUtils {
-  this: VertxServer with Loggable =>
+  this: VertxServer with Logging =>
 
   private[rooms] val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
   private[rooms] val INVALID_PARAMETER_ERROR = "Invalid parameters: "

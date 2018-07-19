@@ -9,7 +9,7 @@ import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
-import it.cwmp.utils.{Loggable, Validation, VertxServer}
+import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
   */
 case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
                                 implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
-  extends VertxServer with RoomsServiceUtils with Loggable {
+  extends VertxServer with RoomsServiceUtils with Logging {
 
   private var daoFuture: Future[RoomDAO] = _
 

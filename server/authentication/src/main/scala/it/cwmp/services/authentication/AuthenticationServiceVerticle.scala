@@ -5,12 +5,12 @@ import io.vertx.scala.core.http.HttpServerResponse
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.storage.StorageAsync
-import it.cwmp.utils.{HttpUtils, Loggable, VertxServer}
+import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-case class AuthenticationServiceVerticle() extends VertxServer with Loggable {
+case class AuthenticationServiceVerticle() extends VertxServer with Logging {
 
   private var storageFuture: Future[StorageAsync] = _
 

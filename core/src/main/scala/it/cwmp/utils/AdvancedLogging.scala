@@ -4,7 +4,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.{ClassTag, classTag}
 import scala.util.{Failure, Success}
 
-trait AdvancedLogging extends Loggable{
+trait AdvancedLogging extends Logging{
 
   implicit class RichFuture[T](future: Future[T]) {
 
