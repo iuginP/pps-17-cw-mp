@@ -65,3 +65,11 @@ buildscript {
 }
 
 defaultTasks 'clean', 'build', 'javadoc', 'scaladoc'
+
+// declare the aggregate task at the root level
+task aggregateScoverage(type: org.scoverage.ScoverageAggregate)
+
+// since the reportScoverage task has been configured across subprojects, we can require that aggregateScoverage depends on all of them
+getTasksByName('reportScoverage', true).each {
+    aggregateScoverage.dependsOn(it)
+}
