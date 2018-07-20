@@ -120,8 +120,8 @@ trait VertxServer extends ScalaVerticle {
     def checkAuthenticationOrReject(implicit strategy: Validation[String, User], routingContext: RoutingContext): Future[User] =
       checkAuthentication(strategy, routingContext).recoverWith {
         case HTTPException(statusCode, errorMessage) =>
-          sendResponse(statusCode, errorMessage.orNull)
-          Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
+          sendResponse(statusCode, errorMessage)
+          Future.failed(new IllegalAccessException(errorMessage))
       }
 
     /**
