@@ -36,10 +36,10 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     var tempWorld = checkCellCanAttackAndRemoveNotPossibleAttacks(oldToEvolve, evolvedCellsAndCanAttack)
 
     // under attack reduction/increment of energy, and conquer management
-    val evolvedCells = evolvedCellsAndCanAttack.map(_._1).map(attackConsequencesOnAttacked(_, tempWorld.attacks))
+    val evolvedCells = tempWorld.characters.map(attackConsequencesOnAttacked(_, tempWorld.attacks))
 
     tempWorld = cancelPendingAttacksOfConqueredCells(tempWorld, evolvedCells)
-    tempWorld = updateAttacksToConqueredCells(tempWorld, evolvedCells)
+    tempWorld = updateAttacksToConqueredCells(tempWorld, tempWorld.characters)
 
     CellWorld(tempWorld.instant.plus(elapsedTime), tempWorld.characters, tempWorld.attacks)
   }
@@ -133,7 +133,9 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
          if world.attacks.map(_.from).exists(Cell.ownerAndPositionMatch(_, poorCell))) {
       // if cell cannot attack, refund it its energy and remove its last attack from world
       tempWorld = tempWorld -- world.attacks.max(Tentacle.orderByLaunchInstant)
+      println(s"checkNot possible attacks: partialWorlds $tempWorld")
     }
+    println(s"Returning word: $tempWorld")
     tempWorld
   }
 
