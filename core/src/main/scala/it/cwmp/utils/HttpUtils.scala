@@ -2,66 +2,75 @@ package it.cwmp.utils
 
 import java.util.Base64
 
-import io.netty.handler.codec.http.HttpHeaderNames
-import io.vertx.scala.core.http.HttpServerRequest
-
+/**
+  * This object contains utility methods for managing the authentication.
+  *
+  * @author Eugenio Pierfederici
+  * @author Davide Borficchia
+  */
 object HttpUtils {
 
   private val PREFIX_BASIC = "Basic"
-  private val PREFIX_JWT = "Barer"
+  private val PREFIX_JWT = "Bearer"
 
-  def buildBasicAuthentication(username: String, password: String): Option[String] = {
-    if (username == null || username.isEmpty
-      || password == null || password.isEmpty) {
-      None
-    } else {
-      Some(s"$PREFIX_BASIC " + Base64.getEncoder.encodeToString(s"$username:$password".getBytes()))
-    }
-  }
+  /**
+    * Build the basic authentication header for the http request.
+    * It si composed from the [[PREFIX_BASIC]] prefix followed by the Base64 of 'username:password'
+    *
+    * @param username the username
+    * @param password the password
+    * @return the header for the request, or None
+    */
+  def buildBasicAuthentication(username: String, password: String): Option[String] =
+    for (
+      usernameVal <- Option(username) if usernameVal.nonEmpty;
+      passwordVal <- Option(password) if passwordVal.nonEmpty
+    ) yield s"$PREFIX_BASIC " + Base64.getEncoder.encodeToString(s"$usernameVal:$passwordVal".getBytes())
 
-  //preso un header in Base64 lo converte in stringa e restituisce username e password
-  def readBasicAuthentication(header: String): Option[(String, String)] = {
+  /**
+    * Reads the couple (username,password) from the authentication header in the request.
+    *
+    * @param header the authentication header
+    * @return the couple containing username and password, or None
+    */
+  def readBasicAuthentication(header: String): Option[(String, String)] =
     try {
-      //divido la stringa "Basic " dalla parte in Base64
-      val credentialFromHeader = header.split(s"$PREFIX_BASIC ")(1)
-      //decodifico il payload e ottengo, quando è possibile, username e password in chiaro
-      val headerDecoded = new String(Base64.getDecoder.decode(credentialFromHeader)).split(":")
-      if (headerDecoded(0).nonEmpty && headerDecoded.nonEmpty) {
-        Some(headerDecoded(0), headerDecoded(1))
-      } else {
-        None
-      }
+      for (
+        headerVal <- Option(header) if headerVal.nonEmpty;
+        //divido la stringa "Basic " dalla parte in Base64
+        credentialFromHeader = headerVal.split(s"$PREFIX_BASIC ")(1) if credentialFromHeader.nonEmpty;
+        //decodifico il payload e ottengo, quando è possibile, username e password in chiaro
+        headerDecoded = new String(Base64.getDecoder.decode(credentialFromHeader)).split(":")
+      ) yield (headerDecoded(0), headerDecoded(1))
     } catch {
       case _: Throwable => None
     }
-  }
-
-  def buildJwtAuthentication(token: String): Option[String] = Option(token) match {
-    case Some(s) if s.nonEmpty => Some(s"$PREFIX_JWT $s")
-    case _ => None
-  }
-
-  def readJwtAuthentication(header: String): Option[String] = Option(header) match {
-    case Some(s) if s.nonEmpty => {
-      try {
-        //divido la stringa "Barer " dalla parte in Base64
-        s.split(s"$PREFIX_JWT ")(1) match {
-          case s if s.nonEmpty => Some(s)
-          case _ => None
-        }
-      } catch {
-        case _: Throwable => None
-      }
-    }
-    case _ => None
-  }
 
   /**
-    * Utility method to extract authorization header from a routing context
+    * Build the jwt authentication header for the http request.
+    * It si composed from the [[PREFIX_JWT]] prefix followed by the real JWT token.
     *
-    * @param request the request on which to extract
-    * @return the optional containing optionally the authorization content
+    * @param token the token
+    * @return the header for the request, or None
     */
-  def getRequestAuthorizationHeader(request: HttpServerRequest): Option[String] =
-    request.headers().get(HttpHeaderNames.AUTHORIZATION.toString)
+  def buildJwtAuthentication(token: String): Option[String] =
+    for (
+      tokenVal <- Option(token) if tokenVal.nonEmpty
+    ) yield s"$PREFIX_JWT $tokenVal"
+
+  /**
+    * Reads the JWT token from the authentication header in the request.
+    *
+    * @param header the authentication header
+    * @return the token itself, or None
+    */
+  def readJwtAuthentication(header: String): Option[String] =
+    try {
+      for (
+        headerVal <- Option(header) if headerVal.nonEmpty;
+        token = headerVal.split(s"$PREFIX_JWT ")(1) if token.nonEmpty
+      ) yield token
+    } catch {
+      case _: Throwable => None
+    }
 }
