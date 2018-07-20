@@ -48,10 +48,11 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
   property("Method ordinateAtOrigin() should calculate the ordinate at the origin " +
     "of a straight line passing through two points") {
 
-    assert(GeometricUtils.ordinateAtOrigin(Point(3, 5), Point(9, 8)) == 3.5)
-    assert(GeometricUtils.ordinateAtOrigin(Point(3, 5), Point(-9, 8)) == 5.75)
-    assert(GeometricUtils.ordinateAtOrigin(Point(3, 5), Point(9, -8)) == 11.5)
-    assert(GeometricUtils.ordinateAtOrigin(Point(3, 5), Point(-9, -8)) == 1.75)
+    val firstPoint = Point(3, 5)
+    assert(GeometricUtils.ordinateAtOrigin(firstPoint, Point(9, 8)) == 3.5)
+    assert(GeometricUtils.ordinateAtOrigin(firstPoint, Point(-9, 8)) == 5.75)
+    assert(GeometricUtils.ordinateAtOrigin(firstPoint, Point(9, -8)) == 11.5)
+    assert(GeometricUtils.ordinateAtOrigin(firstPoint, Point(-9, -8)) == 1.75)
 
     forAnyTwoPoints { (point1, point2) =>
 
@@ -64,43 +65,41 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
     }
   }
 
-  property("Method pointDeltaHeight() should calculate the delta to add to first point height (y coordinate) " +
-    "to have the height of a point at given distance on a straight line between first and second point") {
+  property("Method deltaXYFromFirstPoint() should calculate the delta to add to first point (to x and y coordinate) " +
+    "to have the point at given distance on a straight line between first and second point") {
 
-    intercept[IllegalArgumentException](GeometricUtils.pointDeltaY(Point(0, 0), Point(3, 4), -2))
+    val firstPoint = Point(0, 0)
+    intercept[IllegalArgumentException](GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, 4), -2))
 
-    assert(GeometricUtils.pointDeltaY(Point(0, 0), Point(3, 4), 2.5) == 2)
-    assert(GeometricUtils.pointDeltaY(Point(0, 0), Point(3, -4), 2.5) == -2)
-    assert(GeometricUtils.pointDeltaY(Point(0, 0), Point(-3, 4), 2.5) == 2)
-    assert(GeometricUtils.pointDeltaY(Point(0, 0), Point(-3, -4), 2.5) == -2)
+    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, 4), 2.5) == (1.5, 2))
+    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, -4), 2.5) == (1.5, -2))
+    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(-3, 4), 2.5) == (-1.5, 2))
+    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(-3, -4), 2.5) == (-1.5, -2))
 
     forAnyTwoPoints { (point1, point2) =>
       forAll { (distance: Int) =>
         whenever(distance > 0) {
-          val deltaHeight = GeometricUtils.pointDeltaY(point1, point2, distance)
+          val deltaXY = GeometricUtils.deltaXYFromFirstPoint(point1, point2, distance)
 
-          if (point1.y == point2.y) assert(deltaHeight == 0)
-          else if (point1.x == point2.x) {
-
-            if (point1.y > point2.y)
-              assert(deltaHeight == -distance)
-            else
-              assert(deltaHeight == distance)
-
-          } else {
-            // if point1 above point2 -> delta should be negative
-            if (point1.y > point2.y)
-              assert(deltaHeight < 0)
-            else // positive otherwise
-              assert(deltaHeight > 0)
+          if (point1.x == point2.x) {
+            assert(deltaXY._1 == 0) // if points have same X, no delta for X
+            if (point1.y > point2.y) assert(deltaXY._2 == -distance) // if point1 above point2 -> delta Y should be negated distance
+            else assert(deltaXY._2 == distance) // the distance otherwise
+          }
+          else if (point1.y == point2.y) {
+            assert(deltaXY._2 == 0) // if points have the same Y, no delta for Y
+            if (point1.x > point2.x) assert(deltaXY._1 == -distance) // if point1 on the right of point2 -> delta X should be negated distance
+            else assert(deltaXY._1 == distance) // the distance otherwise
+          }
+          else {
+            if (point1.x > point2.x) assert(deltaXY._1 < 0) // if point1 on the right of point2 -> delta X should be negative
+            else assert(deltaXY._1 > 0) // positive otherwise
+            if (point1.y > point2.y) assert(deltaXY._2 < 0) // if point1 above point2 -> delta Y should be negative
+            else assert(deltaXY._2 > 0) // positive otherwise
           }
         }
       }
     }
-  }
-
-  property("Method pointDeltaX() "){ // TODO:  complete this test for method pointDeltaX()
-
   }
 
   /**

@@ -2,6 +2,8 @@ package it.cwmp.client.model.game.impl
 
 /**
   * A little collection of useful geometric utils
+  *
+  * @author Enrico Siboni
   */
 object GeometricUtils {
 
@@ -48,55 +50,30 @@ object GeometricUtils {
   }
 
   /**
-    * Calculates the delta Y of a point that will be on a straight line passing through two point at given distance from first point
+    * Calculates the delta X and Y starting from point1 of a point that will be on a straight line passing through two point at given distance from first point
     *
     * @param point1   the point from which to refer for the distance
     * @param point2   the other point from which the straight line should pass
     * @param distance the distance from point1 on the straight line towards point2
-    * @return a number that represents the delta Y from point1
-    *         where will be placed a point at given distance on the straight line with given angular coefficient
+    * @return a couple of numbers that represents the delta X and Y from point1
+    *         where will be placed a point at given distance on the straight line
     */
-  def pointDeltaY(point1: Point,
-                  point2: Point,
-                  distance: Double): Double = {
+  def deltaXYFromFirstPoint(point1: Point,
+                            point2: Point,
+                            distance: Double): (Double, Double) = {
     require(distance > 0, "Distance should be greater that 0")
 
-    // point on same horizontal line has no delta height
-    if (point1.y == point2.y) 0
-    // point on same vertical line has delta height that equals distance to travel
-    // positive if first point below second, negative otherwise
-    else if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y)
-    else {
-      val deltaHeight = distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1)
+    val deltaY =
+      if (point1.y == point2.y) 0 // point on same horizontal line has no delta Y
+      else if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y) // point on same vertical line has delta Y that equals distance to travel; signum function makes delta positive if first point below second, negative otherwise
+      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y) // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
 
-      deltaHeight * Math.signum(point2.y.toLong - point1.y)
-    }
-  }
+    val deltaX =
+      if (point1.x == point2.x) 0 // point on same vertical line has no delta X
+      else if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x) // point on same horizontal line has delta X that equals distance to travel; signum function makes delta positive if first point is on the left of the second, negative otherwise
+      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x) // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
 
-  /**
-    * Calculates the delta X of a point that will be on a straight line passing through two point at given distance from first point
-    *
-    * @param point1   the point from which to refer for the distance
-    * @param point2   the other point from which the straight line should pass
-    * @param distance the distance from point1 on the straight line towards point2
-    * @return a number that represents the delta X from point1
-    *         where will be placed a point at given distance on the straight line with given angular coefficient
-    */
-  def pointDeltaX(point1: Point,
-                  point2: Point,
-                  distance: Double): Double = {
-    require(distance > 0, "Distance should be greater that 0")
-
-    // point on same vertical line has no delta X
-    if (point1.x == point2.x) 0
-    // point on same horizontal line has delta X that equals distance to travel
-    // positive if first point is on the left of the second, negative otherwise
-    else if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x)
-    else {
-      val deltaHeight = distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1)
-
-      deltaHeight * Math.signum(point2.x.toLong - point1.x)
-    }
+    (deltaX, deltaY)
   }
 
   /**
