@@ -51,7 +51,7 @@ case class GameFX() extends ObjectDrawer {
       import it.cwmp.client.view.game.model.CellView._
 
       world.attacks.foreach(tentacle => drawArch(tentacle, world.instant))
-      println(world.characters.map(_.size))
+      // println(world.characters.map(_.size))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
     })
   }

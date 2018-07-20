@@ -133,9 +133,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
          if world.attacks.map(_.from).exists(Cell.ownerAndPositionMatch(_, poorCell))) {
       // if cell cannot attack, refund it its energy and remove its last attack from world
       tempWorld = tempWorld -- world.attacks.max(Tentacle.orderByLaunchInstant)
-      println(s"checkNot possible attacks: partialWorlds $tempWorld")
     }
-    println(s"Returning word: $tempWorld")
     tempWorld
   }
 
