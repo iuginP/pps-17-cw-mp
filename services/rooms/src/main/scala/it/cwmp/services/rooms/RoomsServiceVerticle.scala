@@ -4,7 +4,6 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
@@ -13,13 +12,18 @@ import it.cwmp.utils.{Logging, Validation, VertxServer}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+object RoomsServiceVerticle {
+  def apply(implicit validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+}
+
 /**
   * Class that implements the Rooms micro-service
   *
   * @author Enrico Siboni
   */
-case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
-                                implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
+class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
+                           implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
   extends VertxServer with RoomsServiceUtils with Logging {
 
   private var daoFuture: Future[RoomDAO] = _
@@ -49,8 +53,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Create Private Room Request received...")
-    routingContext.request().bodyHandler(body =>
-      validateUserOrSendError.map(_ =>
+    request.bodyHandler(body =>
+      request.checkAuthenticationOrReject.map(_ =>
         extractIncomingRoomFromBody(body) match {
           case Some((roomName, neededPlayers)) =>
             daoFuture.map(_.createRoom(roomName, neededPlayers)
@@ -80,8 +84,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Enter Private Room Request received...")
-    routingContext.request().bodyHandler(body =>
-      validateUserOrSendError.map(user => {
+    request.bodyHandler(body =>
+      request.checkAuthenticationOrReject.map(user => {
         (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
           case (Some(roomID), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
@@ -108,7 +112,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Private Room Info Request received...")
-    validateUserOrSendError.map(_ => {
+    request.checkAuthenticationOrReject.map(_ => {
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
@@ -128,7 +132,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Exit Private Room Request received...")
-    validateUserOrSendError.map(implicit user => {
+    request.checkAuthenticationOrReject.map(implicit user => {
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.exitRoom(roomId).onComplete {
@@ -146,7 +150,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("List Public Rooms Request received...")
-    validateUserOrSendError.map(_ => {
+    request.checkAuthenticationOrReject.map(_ => {
       daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
           import Room.Converters._
@@ -162,8 +166,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Enter Public Room Request received...")
-    routingContext.request().bodyHandler(body =>
-      validateUserOrSendError.map(user => {
+    request.bodyHandler(body =>
+      request.checkAuthenticationOrReject.map(user => {
         val playersNumberOption = try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
         catch {
           case _: Throwable => None
@@ -194,7 +198,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Public Room Info Request received...")
-    validateUserOrSendError.map(_ => {
+    request.checkAuthenticationOrReject.map(_ => {
       (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
         case _: Throwable => None
@@ -219,7 +223,7 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
     */
   private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Exit Public Room Request received...")
-    validateUserOrSendError.map(implicit user => {
+    request.checkAuthenticationOrReject.map(implicit user => {
       (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
       catch {
         case _: Throwable => None
@@ -235,30 +239,5 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
           sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
       }
     })
-  }
-
-  /**
-    * Checks whether the user is authenticated;
-    * if token not provided sends back 400
-    * if token invalid sends back 401
-    *
-    * @param routingContext the context in which to check
-    * @return the future that will contain the user if successfully validated
-    */
-  private def validateUserOrSendError(implicit routingContext: RoutingContext): Future[User] = {
-    routingContext.request().getAuthentication match {
-      case None =>
-        log.warn("No authorization header in request")
-        sendResponse(400, TOKEN_NOT_PROVIDED_OR_INVALID)
-        Future.failed(new IllegalAccessException(TOKEN_NOT_PROVIDED_OR_INVALID))
-
-      case Some(authorizationToken) =>
-        validationStrategy.validate(authorizationToken)
-          .recoverWith {
-            case HTTPException(statusCode, errorMessage) =>
-              sendResponse(statusCode, errorMessage)
-              Future.failed(new IllegalAccessException(errorMessage))
-          }
-    }
   }
 }
