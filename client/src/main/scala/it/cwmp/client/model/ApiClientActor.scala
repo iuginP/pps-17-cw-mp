@@ -1,10 +1,9 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
-import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Address
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
-
+import it.cwmp.exceptions.HTTPException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
@@ -153,12 +152,13 @@ class ApiClientActor() extends Actor {
     * @return [[Receive]] che gestisce tutti i messaggi corrispondenti alle richieste che è possibile inviare ai servizi online
     */
   // Tutti i behaviour sono attivi in contemporanea, la separazione è solo logica per una migliore leggibilità
-  override def receive: Receive = authenticationBehaviour orElse roomManagerBehaviour// orElse ...
+  override def receive: Receive = authenticationBehaviour orElse roomManagerBehaviour // orElse ...
 
   /*
    * Behaviour che gestisce tutte le chiamate al servizio di gestione delle stanze.
    */
   private val roomApiWrapper = RoomsApiWrapper()
+
   import roomApiWrapper._
 
   private def roomManagerBehaviour: Receive = {
@@ -186,7 +186,9 @@ class ApiClientActor() extends Actor {
     * Behavior that handles the calls to the authentication management service.
     */
   private val authenticationApiWrapper = AuthenticationApiWrapper()
+
   import authenticationApiWrapper._
+
   private def authenticationBehaviour: Receive = {
     case AuthenticationPerformSignIn(username, password) =>
       val senderTmp = sender

@@ -1,38 +1,16 @@
 package it.cwmp.exceptions
 
 /**
-  * This trait represents an http exception. It contains the status code and an optional error message.
+  * A class describing an Http Exception
+  *
+  * @param statusCode the HTTP code of error
+  * @param messageVal the error message value
   */
-trait HttpException extends RuntimeException {
-  def statusCode: Int
-
-  def message: Option[String]
-}
-
-object HTTPException {
+sealed case class HTTPException(statusCode: Int, private val messageVal: String = null) extends RuntimeException {
   /**
-    * This constructor returns a new [[HTTPException]] with the provided status code
+    * Returns an optional containing the message
     *
-    * @param statusCode The statuscode
-    * @return the HttpException
+    * @return the optional of the message
     */
-  def apply(statusCode: Int): HttpException = HTTPExceptionImpl(statusCode, None)
-
-  /**
-    * This constructor returns a new [[HTTPException]] with the provided status code and message
-    *
-    * @param statusCode The statuscode
-    * @param message    the error message
-    * @return the HttpException
-    */
-  def apply(statusCode: Int, message: String): HttpException = HTTPExceptionImpl(statusCode, Option(message))
-
-  /**
-    * A class describing an Http Exception
-    *
-    * @param statusCode the HTTP code of error
-    * @param message    the error message
-    */
-  sealed case class HTTPExceptionImpl(statusCode: Int, message: Option[String] = None) extends HttpException
-
+  val message: Option[String] = Option(getMessage)
 }
