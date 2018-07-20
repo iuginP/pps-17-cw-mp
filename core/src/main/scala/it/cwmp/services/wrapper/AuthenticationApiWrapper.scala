@@ -55,7 +55,7 @@ object AuthenticationApiWrapper {
         .expectStatus(200)
         .mapBody {
           case Some(body) => Future.successful(User(body))
-          case _ => Future.failed(HTTPException(400, Some("Empty body")))
+          case _ => Future.failed(HTTPException(400, "Empty body"))
         }
   }
 

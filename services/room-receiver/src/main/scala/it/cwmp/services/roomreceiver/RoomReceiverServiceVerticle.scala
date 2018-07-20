@@ -1,49 +1,37 @@
 package it.cwmp.services.roomreceiver
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
-import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject
-import io.vertx.scala.core.http.HttpServer
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Participant
+import it.cwmp.utils.{Logging, VertxServer}
 
-import scala.concurrent.Future
+case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends VertxServer with Logging {
 
-case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends ScalaVerticle {
-
-  private val logger: Logger = Logger[RoomReceiverServiceVerticle]
-  private var server: HttpServer = _
+  override protected val serverPort: Int = 0
 
   def port: Int = server.actualPort()
 
-  override def startFuture(): Future[_] = {
-    val router = Router.router(vertx)
-
+  override protected def initRouter(router: Router): Unit = {
     import it.cwmp.services.roomreceiver.ServerParameters._
     router post API_RECEIVE_PARTICIPANTS_URL(token) handler updateRoomParticipantsHandler
-
-    logger.info(s"Starting the RoomReceiver service with the token: $token.")
-    server = vertx.createHttpServer()
-    server.requestHandler(router.accept _).listenFuture(0)
+    log.info(s"Starting the RoomReceiver service with the token: $token ...")
   }
 
   private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
-    logger.info("Receiving participant list...")
-    routingContext.request().bodyHandler(body =>
+    log.info("Receiving participant list...")
+    request.bodyHandler(body =>
       extractIncomingParticipantListFromBody(body) match {
         case Some(participants) =>
-          logger.info("List is valid.")
-          logger.debug("Applying reception strategy...")
+          log.info("List is valid.")
+          log.debug("Applying reception strategy...")
           receptionStrategy(participants)
-          routingContext.response()
-            .endHandler(_ => server.close())
-            .setStatusCode(201)
-            .end
+          response.endHandler(_ => server.close())
+          sendResponse(201)
         case None =>
-          logger.info("Error: List is invalid.")
-          routingContext.response() setStatusCode 400 end s"Invalid parameter: no participant list JSON in body"
+          log.info("Error: List is invalid.")
+          sendResponse(400, "Invalid parameter: no participant list JSON in body")
       })
 
     def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
