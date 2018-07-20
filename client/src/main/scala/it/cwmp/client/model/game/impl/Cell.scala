@@ -32,7 +32,7 @@ object Cell {
   /**
     * The energy that a cell has when is born
     */
-  val whenBornEnergy = 20
+  val whenBornEnergy = 20d
 
   /**
     * Coverts this amount of time to an energy unit

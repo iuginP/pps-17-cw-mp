@@ -3,7 +3,7 @@ package it.cwmp.client.view.game.model
 import java.awt.Color
 import java.time.{Duration, Instant}
 
-import it.cwmp.client.model.game.impl.{Point, Tentacle}
+import it.cwmp.client.model.game.impl.{GeometricUtils, Point, Tentacle}
 import it.cwmp.client.view.game.ColoringStrategy
 
 
@@ -32,7 +32,10 @@ object TentacleView {
   def reachedPoint(tentacle: Tentacle, actualInstant: Instant): Point = {
     if (tentacle.hasReachedDestinationFor(actualInstant) == Duration.ZERO) {
       val tentacleActualLength = tentacle.length(actualInstant)
-      Point(1, 1) // TODO: finish implementig this method with GeometricUtils to provide the point that the tentacle has reached
+      val attackerPosition = tentacle.from.position
+      val deltaXYFromAttackerPosition = GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength)
+      Point(attackerPosition.x + deltaXYFromAttackerPosition._1.toInt,
+        attackerPosition.y + deltaXYFromAttackerPosition._2.toInt)
     } else tentacle.to.position
   }
 }

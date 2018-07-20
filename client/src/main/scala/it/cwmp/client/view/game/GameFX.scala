@@ -3,7 +3,7 @@ package it.cwmp.client.view.game
 import it.cwmp.client.model.game.impl.CellWorld
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
-import javafx.scene.canvas.Canvas
+import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.{Group, Scene}
 import javafx.stage.Stage
 
@@ -46,10 +46,12 @@ case class GameFX() extends ObjectDrawer {
 
   def updateWorld(world: CellWorld): Unit = {
     Platform.runLater(() => {
-      implicit val graphicsContext = canvas.getGraphicsContext2D
+      implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
+      graphicsContext.clearRect(0, 0, canvas.getWidth, canvas.getHeight)
       import it.cwmp.client.view.game.model.CellView._
 
       world.attacks.foreach(tentacle => drawArch(tentacle, world.instant))
+      println(world.characters.map(_.size))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
     })
   }
