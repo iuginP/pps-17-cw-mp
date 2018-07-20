@@ -50,7 +50,7 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
           .sendFuture()
           .transform({
             case Success(res) if res.statusCode() == 201 => Success(Unit)
-            case Success(res) => Failure(HTTPException(res.statusCode())) // TODO: add an error message as second argument of HTTP exception
+            case Success(res) => Failure(HTTPException(res.statusCode(), res.statusMessage()))
             case Failure(f) => Failure(f)
           })
           .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))

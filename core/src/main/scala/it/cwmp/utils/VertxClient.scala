@@ -95,7 +95,7 @@ trait VertxClient {
     def expectStatus(statusCode: Int*): Future[HttpResponse[T]] = {
       response.transform {
         case s@Success(res) if statusCode.contains(res.statusCode()) => s
-        case Success(res) => Failure(HTTPException(res.statusCode(), Some("Invalid response code")))
+        case Success(res) => Failure(HTTPException(res.statusCode(), "Invalid response code"))
         case f@Failure(_) => f
       }
     }

@@ -256,8 +256,8 @@ case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
         validationStrategy.validate(authorizationToken)
           .recoverWith {
             case HTTPException(statusCode, errorMessage) =>
-              sendResponse(statusCode, errorMessage.orNull)
-              Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
+              sendResponse(statusCode, errorMessage)
+              Future.failed(new IllegalAccessException(errorMessage))
           }
     }
   }
