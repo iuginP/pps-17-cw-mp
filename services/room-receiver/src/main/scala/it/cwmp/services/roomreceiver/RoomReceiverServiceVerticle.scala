@@ -21,7 +21,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
 
   private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Receiving participant list...")
-    routingContext.request().bodyHandler(body =>
+    request.bodyHandler(body =>
       extractIncomingParticipantListFromBody(body) match {
         case Some(participants) =>
           log.info("List is valid.")
