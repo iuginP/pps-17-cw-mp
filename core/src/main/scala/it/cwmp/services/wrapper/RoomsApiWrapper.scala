@@ -170,7 +170,12 @@ object RoomsApiWrapper {
     private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
       successHttpCodes find (_ == response.statusCode) match {
         case Some(_) => onSuccessFuture
-        case None => Future.failed(HTTPException(response.statusCode, response.bodyAsString))
+        case None => response.bodyAsString match {
+          case Some(body) =>
+            Future.failed(HTTPException(response.statusCode, body))
+          case None =>
+            Future.failed(HTTPException(response.statusCode))
+        }
       }
 
     override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
