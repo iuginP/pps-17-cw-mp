@@ -34,7 +34,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerSignup: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign up request.")
     (for (
-      authorizationHeader <- routingContext.request.getAuthentication;
+      authorizationHeader <- request.getAuthentication;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
       storageFuture flatMap (_.signupFuture(username, password)) onComplete {
@@ -51,7 +51,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerSignout: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign out request.")
     (for (
-      authorizationHeader <- routingContext.request.getAuthentication;
+      authorizationHeader <- request.getAuthentication;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
@@ -68,7 +68,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerLogin: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received login request.")
     (for (
-      authorizationHeader <- routingContext.request.getAuthentication;
+      authorizationHeader <- request.getAuthentication;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
       storageFuture flatMap (_.loginFuture(username, password)) onComplete {
@@ -85,7 +85,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerValidation: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received token validation request.")
     (for (
-      authorizationHeader <- routingContext.request.getAuthentication;
+      authorizationHeader <- request.getAuthentication;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
