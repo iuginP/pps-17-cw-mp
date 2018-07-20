@@ -1,7 +1,7 @@
 package it.cwmp.utils
 
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.http.{HttpServerRequest, HttpServerResponse}
+import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerResponse}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 
 import scala.concurrent.Future
@@ -16,6 +16,8 @@ import scala.util.{Failure, Success}
 trait VertxServer extends ScalaVerticle {
   this: Logging =>
 
+  protected var server: HttpServer = _
+
   override def startFuture(): Future[_] = {
     val router = Router.router(vertx)
     initRouter(router)
@@ -24,7 +26,9 @@ trait VertxServer extends ScalaVerticle {
         .requestHandler(router.accept _)
         .listenFuture(serverPort))
       .andThen {
-        case Success(_) => log.info(s"RoomsService listening on port: $serverPort")
+        case Success(s) =>
+          log.info(s"$getClass listening on port: $serverPort")
+          server = s
         case Failure(ex) => log.error(s"Cannot start service on port: $serverPort", ex)
       }
   }
