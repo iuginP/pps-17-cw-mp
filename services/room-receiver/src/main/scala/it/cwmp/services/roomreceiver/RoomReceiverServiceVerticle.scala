@@ -27,13 +27,11 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
           log.info("List is valid.")
           log.debug("Applying reception strategy...")
           receptionStrategy(participants)
-          routingContext.response()
-            .endHandler(_ => server.close())
-            .setStatusCode(201)
-            .end
+          response.endHandler(_ => server.close())
+          sendResponse(201)
         case None =>
           log.info("Error: List is invalid.")
-          routingContext.response() setStatusCode 400 end s"Invalid parameter: no participant list JSON in body"
+          sendResponse(400, "Invalid parameter: no participant list JSON in body")
       })
 
     def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
