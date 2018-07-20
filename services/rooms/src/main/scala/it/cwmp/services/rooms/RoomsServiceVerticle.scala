@@ -12,17 +12,28 @@ import it.cwmp.utils.{Logging, Validation, VertxServer}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+object RoomsServiceVerticle {
+  def apply(): RoomsServiceVerticle =
+    new RoomsServiceVerticle()
+
+  def apply(validationStrategy: Validation[String, User])(implicit clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+
+  def apply(clientCommunicationStrategy: RoomReceiverApiWrapper)(implicit validationStrategy: Validation[String, User]): RoomsServiceVerticle =
+    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+
+  def apply(validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+}
+
 /**
   * Class that implements the Rooms micro-service
   *
   * @author Enrico Siboni
   */
-case class RoomsServiceVerticle(validationStrategy: Validation[String, User],
-                                clientCommunicationStrategy: RoomReceiverApiWrapper)
+class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
+                           implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
   extends VertxServer with RoomsServiceUtils with Logging {
-
-  private implicit val implicitValidationStrategy: Validation[String, User] = validationStrategy
-  private implicit val implicitClientCommunicationStrategy: RoomReceiverApiWrapper = clientCommunicationStrategy
 
   private var daoFuture: Future[RoomDAO] = _
 
