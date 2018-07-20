@@ -3,6 +3,8 @@ package it.cwmp.utils
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerResponse}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import it.cwmp.exceptions.HTTPException
+import it.cwmp.model.User
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -82,7 +84,7 @@ trait VertxServer extends ScalaVerticle {
     * @param routingContext the implicit routing context
     * @return the request
     */
-  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = routingContext.request
+  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = routingContext.request()
 
   /**
     * An implicit class to provide the [[HttpServerRequest]] with some more useful utilities.
@@ -92,10 +94,19 @@ trait VertxServer extends ScalaVerticle {
 
   implicit class richHttpRequest(request: HttpServerRequest) {
 
-    def isAuthorizedFuture(implicit strategy: Validation[String, Boolean]): Future[Boolean] = getAuthentication match {
-      case None => Future.successful(false)
+    def checkAuthentication(implicit strategy: Validation[String, User], routingContext: RoutingContext): Future[User] = getAuthentication match {
+      case None =>
+        log.warn("No authorization header in request")
+        Future.failed(HTTPException(400))
       case Some(authentication) => strategy.validate(authentication)
     }
+
+    def checkAuthenticationOrReject(implicit strategy: Validation[String, User], routingContext: RoutingContext): Future[User] =
+      checkAuthentication(strategy, routingContext).recoverWith {
+        case HTTPException(statusCode, errorMessage) =>
+          sendResponse(statusCode, errorMessage.orNull)
+          Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
+      }
 
     def getAuthentication: Option[String] = request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)
   }
