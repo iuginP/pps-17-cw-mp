@@ -13,8 +13,6 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object RoomsServiceVerticle {
-  def apply(): RoomsServiceVerticle =
-    new RoomsServiceVerticle()
 
   def apply(validationStrategy: Validation[String, User])(implicit clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
     new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
@@ -22,7 +20,7 @@ object RoomsServiceVerticle {
   def apply(clientCommunicationStrategy: RoomReceiverApiWrapper)(implicit validationStrategy: Validation[String, User]): RoomsServiceVerticle =
     new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
 
-  def apply(validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+  def apply(implicit validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
     new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
 }
 
