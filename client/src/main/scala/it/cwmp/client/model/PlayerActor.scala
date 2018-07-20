@@ -94,7 +94,7 @@ class PlayerActor(system: ActorSystem) extends Actor {
   private def enterGame: Unit = {
     context.become(clusterBehaviour orElse inGameBehaviour)
     gameViewActor ! ShowGUI
-    gameViewActor ! UpdateWorld(GameMain.debugWorld)
+    gameViewActor ! NewWorld(GameMain.debugWorld)
   }
 
   private def inGameBehaviour: Receive = {

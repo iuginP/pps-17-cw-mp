@@ -61,12 +61,12 @@ object CellWorld {
   /**
     * Amount of length that will be converted in one energy reduction in launching cell
     */
-  val LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE = 2
+  val LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE = 2d
 
   /**
     * Amount of time expressed in milliseconds that will be converted in 1 energy reduction on under attack character
     */
-  val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000
+  val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000d
 
 
   /**
