@@ -2,6 +2,8 @@ group = projectGroup
 version = projectVersion
 description = projectDescription
 
+def myJarDestinationFolder = rootDir.path + '/production'
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -24,7 +26,7 @@ subprojects {
     sourceCompatibility = "$jdkVersion"
     javadoc.destinationDir = file("$docsFolderJava/${it.path}")
     scaladoc.destinationDir = file("$docsFolderScala/${it.path}")
-    
+
     dependencies {
         if (project.name != 'core') {
             implementation project(':core')
@@ -44,7 +46,29 @@ subprojects {
         scoverage 'org.scoverage:scalac-scoverage-plugin_2.12:1.3.1'
         scoverage 'org.scoverage:scalac-scoverage-runtime_2.12:1.3.1'
     }
+
+    if (project.name == 'client' || project.name == 'rooms' || project.name == 'authentication') {
+        apply plugin: 'com.github.johnrengelman.shadow'
+
+        shadowJar {
+            doFirst {
+                // delete old jars
+                if (fileTree(myJarDestinationFolder).files.size() == 3)
+                    delete(fileTree(myJarDestinationFolder))
+            }
+
+            baseName = 'cwmp'
+            version = projectVersion
+
+            destinationDir = file(myJarDestinationFolder)
+            mergeServiceFiles('reference.conf') // solves problems with AKKA
+        }
+    }
 }
+
+project(':client') { shadowJar { classifier = 'Client' } }
+project(':services:rooms') { shadowJar { classifier = 'RoomService' } }
+project(':services:authentication') { shadowJar { classifier = 'AuthenticationService' } }
 
 configure(subprojects.findAll { it.name == 'core' || it.parent.name == 'services' }) {
 
@@ -74,6 +98,9 @@ buildscript {
     dependencies {
         classpath "gradle.plugin.org.scoverage:gradle-scoverage:2.3.0"
         classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
+
+        // to build fatJars
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
