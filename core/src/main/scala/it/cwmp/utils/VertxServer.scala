@@ -94,6 +94,13 @@ trait VertxServer extends ScalaVerticle {
 
   implicit class richHttpRequest(request: HttpServerRequest) {
 
+    /**
+      * This is a utility method that checks if the request is authenticated.
+      * For the check it uses the validation strategy given.
+      * @param strategy the validation strategy to use.
+      * @param routingContext the routing context in which to execute the check.
+      * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
+      */
     def checkAuthentication(implicit strategy: Validation[String, User], routingContext: RoutingContext): Future[User] = getAuthentication match {
       case None =>
         log.warn("No authorization header in request")
@@ -101,6 +108,15 @@ trait VertxServer extends ScalaVerticle {
       case Some(authentication) => strategy.validate(authentication)
     }
 
+    /**
+      * This is a utility method that checks if the request is authenticated.
+      * For the check it uses the validation strategy given.
+      * If it fails with any [[HTTPException]], then it responds to the request
+      * with the status code and message specified in the exception.
+      * @param strategy the validation strategy to use.
+      * @param routingContext the routing context in which to execute the check.
+      * @return A future containing the authenticated user, if present
+      */
     def checkAuthenticationOrReject(implicit strategy: Validation[String, User], routingContext: RoutingContext): Future[User] =
       checkAuthentication(strategy, routingContext).recoverWith {
         case HTTPException(statusCode, errorMessage) =>
@@ -108,6 +124,10 @@ trait VertxServer extends ScalaVerticle {
           Future.failed(new IllegalAccessException(errorMessage.getOrElse("")))
       }
 
+    /**
+      * Reads the authorization token in the request.
+      * @return An optional containing the header, if present. Otherwise None
+      */
     def getAuthentication: Option[String] = request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)
   }
 
