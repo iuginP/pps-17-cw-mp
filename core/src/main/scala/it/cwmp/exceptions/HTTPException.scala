@@ -5,12 +5,14 @@ package it.cwmp.exceptions
   */
 trait HttpException extends RuntimeException {
   def statusCode: Int
+
   def message: Option[String]
 }
 
 object HTTPException {
   /**
     * This constructor returns a new [[HTTPException]] with the provided status code
+    *
     * @param statusCode The statuscode
     * @return the HttpException
     */
@@ -18,8 +20,9 @@ object HTTPException {
 
   /**
     * This constructor returns a new [[HTTPException]] with the provided status code and message
+    *
     * @param statusCode The statuscode
-    * @param message the error message
+    * @param message    the error message
     * @return the HttpException
     */
   def apply(statusCode: Int, message: String): HttpException = HTTPExceptionImpl(statusCode, Option(message))
@@ -31,4 +34,5 @@ object HTTPException {
     * @param message    the error message
     */
   sealed case class HTTPExceptionImpl(statusCode: Int, message: Option[String] = None) extends HttpException
+
 }
