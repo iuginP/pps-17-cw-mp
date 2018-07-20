@@ -132,7 +132,10 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     for (poorCell <- cellsThatCannotAffordAttacking
          if world.attacks.map(_.from).exists(Cell.ownerAndPositionMatch(_, poorCell))) {
       // if cell cannot attack, refund it its energy and remove its last attack from world
-      tempWorld = tempWorld -- world.attacks.max(Tentacle.orderByLaunchInstant)
+      tempWorld = tempWorld -- world.attacks
+        .filter(t => Cell.ownerAndPositionMatch(t.from, poorCell))
+        .max(Tentacle.orderByLaunchInstant)
+      // println(s"poorCell: $poorCell, removing ${world.attacks.filter(t => Cell.ownerAndPositionMatch(t.from, poorCell)).max(Tentacle.orderByLaunchInstant)}, after: $tempWorld")
     }
     tempWorld
   }

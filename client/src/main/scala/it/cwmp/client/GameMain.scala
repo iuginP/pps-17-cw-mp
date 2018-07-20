@@ -27,11 +27,13 @@ object GameMain extends App {
       Cell(User("Winner"), Point(20, 20), 20) ::
         Cell(User("Mantis"), Point(90, 400), 40) ::
         Cell(User("Candle"), Point(200, 150), 200) ::
+        Cell(User("Enrico"), Point(400, 500), 150) ::
         Nil
-    CellWorld(Instant.now().plus(Duration.ofSeconds(10)), cells,
-      Tentacle(cells(0), cells(1), Instant.now()) ::
+    CellWorld(Instant.now().plus(Duration.ofSeconds(1)), cells,
+      Tentacle(cells(2), cells(1), Instant.now()) ::
         Tentacle(cells(1), cells(2), Instant.now()) ::
         Tentacle(cells(2), cells(0), Instant.now()) ::
+        Tentacle(cells(3), cells(1), Instant.now()) ::
         Nil)
   }
 }
