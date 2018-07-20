@@ -32,7 +32,6 @@ object GameMain extends App {
     CellWorld(Instant.now().plus(Duration.ofSeconds(1)), cells,
       Tentacle(cells(2), cells(1), Instant.now()) ::
         Tentacle(cells(1), cells(2), Instant.now()) ::
-        Tentacle(cells(2), cells(0), Instant.now()) ::
         Tentacle(cells(3), cells(1), Instant.now()) ::
         Nil)
   }
