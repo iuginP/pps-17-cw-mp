@@ -3,7 +3,7 @@ package it.cwmp.client.model.game.impl
 import java.time.Duration
 import java.util.Objects._
 
-import it.cwmp.client.controller.game.GameConstants
+import it.cwmp.client.controller.game.GameConstants._
 import it.cwmp.client.model.game._
 import it.cwmp.model.User
 
@@ -36,7 +36,7 @@ object Cell {
     * adds 1 to energy each second
     */
   val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
-    cell ++ (elapsedTime.toMillis / GameConstants.MILLIS_TO_ENERGY_CONVERSION_RATE)
+    cell ++ (elapsedTime.toMillis / MILLIS_TO_ENERGY_CONVERSION_RATE)
   }
 
   /**
