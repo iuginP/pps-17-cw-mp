@@ -3,6 +3,7 @@ package it.cwmp.client.model.game.impl
 import java.time.{Duration, Instant}
 import java.util.Objects._
 
+import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.{Attack, SizingStrategy}
 
 /**
@@ -30,17 +31,12 @@ case class Tentacle(from: Cell,
 object Tentacle {
 
   /**
-    * Amount of time expressed in milliseconds that will be converted to a movement step of the tentacle
-    */
-  val TIME_TO_MOVEMENT_CONVERSION_RATE = 100
-
-  /**
     * Default strategy for sizing the tentacle basing decision on time
     *
-    * Every [[TIME_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
+    * Every [[it.cwmp.client.controller.game.GameConstants.MILLIS_TO_MOVEMENT_CONVERSION_RATE]] tentacle gains 1 space towards enemy
     */
   val defaultMillisToLengthStrategy: SizingStrategy[Duration, Long] =
-    (elapsedTime: Duration) => elapsedTime.toMillis / TIME_TO_MOVEMENT_CONVERSION_RATE
+    (elapsedTime: Duration) => elapsedTime.toMillis / GameConstants.MILLIS_TO_MOVEMENT_CONVERSION_RATE
 
   /**
     * A class to manipulate tentacle properties

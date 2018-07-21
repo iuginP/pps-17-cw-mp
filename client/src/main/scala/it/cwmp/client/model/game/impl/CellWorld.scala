@@ -3,6 +3,7 @@ package it.cwmp.client.model.game.impl
 import java.time.{Duration, Instant}
 import java.util.Objects._
 
+import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.{SizingStrategy, World}
 
 /**
@@ -59,31 +60,20 @@ object CellWorld {
   }
 
   /**
-    * Amount of length that will be converted in one energy reduction in launching cell
-    */
-  val LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE = 2d
-
-  /**
-    * Amount of time expressed in milliseconds that will be converted in 1 energy reduction on under attack character
-    */
-  val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000d
-
-
-  /**
     * Default strategy for sizing the energy reduction of attacking character
     *
-    * Every [[LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE]] the attacking character spends 1 energy
+    * Every [[GameConstants.LENGTH_TO_ENERGY_REDUCTION_RATE]] the attacking character spends 1 energy
     */
   val lengthToEnergyReductionStrategy: SizingStrategy[Long, Double] =
-    (length: Long) => length / LENGTH_TO_ENERGY_REDUCTION_CONVERSION_RATE
+    (length: Long) => length / GameConstants.LENGTH_TO_ENERGY_REDUCTION_RATE
 
   /**
     * Default strategy to calculate reduction/increment of energy of attacked character
     *
-    * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
+    * Every [[GameConstants.ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
     */
   val durationToEnergyConversionStrategy: SizingStrategy[Duration, Double] =
-    (attackDuration: Duration) => attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE
+    (attackDuration: Duration) => attackDuration.toMillis / GameConstants.ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE
 
   // TODO: Add converter to DDATA
 }
