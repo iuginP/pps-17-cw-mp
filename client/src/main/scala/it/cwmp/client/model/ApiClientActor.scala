@@ -3,7 +3,7 @@ package it.cwmp.client.model
 import akka.actor.Actor
 import it.cwmp.model.Address
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
-import it.cwmp.exceptions.HTTPException
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
@@ -78,7 +78,7 @@ object ApiClientOutgoingMessages {
     *
     * @param reason reason that generated the failure
     */
-  case class AuthenticationSignInFailure(reason: String)
+  case class AuthenticationSignInFailure(reason: Option[String])
 
   /**
     * Message that represents the successfully registration in the system.
@@ -92,7 +92,7 @@ object ApiClientOutgoingMessages {
     *
     * @param reason reason that generated the failure
     */
-  case class AuthenticationSignUpFailure(reason: String)
+  case class AuthenticationSignUpFailure(reason: Option[String])
 
   /**
     * Questo messaggio rappresenta il successo della crazione di una stanza privata.
@@ -106,7 +106,7 @@ object ApiClientOutgoingMessages {
     *
     * @param reason è il motivo che ha generato il fallimento
     */
-  case class RoomCreatePrivateFailure(reason: String)
+  case class RoomCreatePrivateFailure(reason: Option[String])
 
   /**
     * Questo messaggio rappresenta che si è entrati in una stanza privata
@@ -126,14 +126,14 @@ object ApiClientOutgoingMessages {
     *
     * @param reason è il motivo che ha generato il fallimento
     */
-  case class RoomEnterPublicFailure(reason: String)
+  case class RoomEnterPublicFailure(reason: Option[String])
 
   /**
     * Questo messaggio rappresenta il fallimento quando si prova ad entrare in una stanza privata
     *
     * @param reason è il motivo del fallimento
     */
-  case class RoomEnterPrivateFailure(reason: String)
+  case class RoomEnterPrivateFailure(reason: Option[String])
 
 }
 
@@ -166,19 +166,19 @@ class ApiClientActor() extends Actor {
       val senderTmp = sender
       createRoom(name, nPlayer)(token).onComplete({
         case Success(t) => senderTmp ! RoomCreatePrivateSuccessful(t)
-        case Failure(error: HTTPException) => senderTmp ! RoomCreatePrivateFailure(error.message.getOrElse(error.getMessage))
+        case Failure(error) => senderTmp ! RoomCreatePrivateFailure(Option(error.getMessage))
       })
     case RoomEnterPrivate(idRoom, address, webAddress, token) =>
       val senderTmp = sender
       enterRoom(idRoom, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPrivateSuccessful
-        case Failure(error: HTTPException) => senderTmp ! RoomEnterPrivateFailure(error.message.getOrElse(error.getMessage))
+        case Failure(error) => senderTmp ! RoomEnterPrivateFailure(Option(error.getMessage))
       })
     case RoomEnterPublic(nPlayer, address, webAddress, token) =>
       val senderTmp = sender
       enterPublicRoom(nPlayer, address, webAddress)(token).onComplete({
         case Success(_) => senderTmp ! RoomEnterPublicSuccessful
-        case Failure(error: HTTPException) => senderTmp ! RoomEnterPublicFailure(error.message.getOrElse(error.getMessage))
+        case Failure(error) => senderTmp ! RoomEnterPublicFailure(Option(error.getMessage))
       })
   }
 
@@ -194,13 +194,13 @@ class ApiClientActor() extends Actor {
       val senderTmp = sender
       login(username, password).onComplete({
         case Success(token) => senderTmp ! AuthenticationSignInSuccessful(token)
-        case Failure(reason) => senderTmp ! AuthenticationSignInFailure(reason getMessage)
+        case Failure(reason) => senderTmp ! AuthenticationSignInFailure(Option(reason.getMessage))
       })
     case AuthenticationPerformSignUp(username, password) =>
       val senderTmp = sender
       signUp(username, password).onComplete({
         case Success(token) => senderTmp ! AuthenticationSignUpSuccessful(token)
-        case Failure(reason) => senderTmp ! AuthenticationSignUpFailure(reason getMessage)
+        case Failure(reason) => senderTmp ! AuthenticationSignUpFailure(Option(reason.getMessage))
       })
 
   }
