@@ -5,7 +5,7 @@ import java.awt.Color
 /**
   * An object where to put constants about the game visual
   */
-object GameConstants {
+object GameViewConstants {
 
   /**
     * @return the cell Size

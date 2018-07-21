@@ -71,7 +71,7 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
     val firstPoint = Point(0, 0)
     intercept[IllegalArgumentException](GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, 4), -2))
 
-    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, 4), 2.5) == (1.5, 2))
+    assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, 4), 7.5) == (4.5, 6))
     assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(3, -4), 2.5) == (1.5, -2))
     assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(-3, 4), 2.5) == (-1.5, 2))
     assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(-3, -4), 2.5) == (-1.5, -2))
@@ -84,7 +84,8 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
           if (point1.x == point2.x) {
             assert(deltaXY._1 == 0) // if points have same X, no delta for X
             if (point1.y > point2.y) assert(deltaXY._2 == -distance) // if point1 above point2 -> delta Y should be negated distance
-            else assert(deltaXY._2 == distance) // the distance otherwise
+            else if (point1.y < point2.y) assert(deltaXY._2 == distance) // the distance otherwise
+            else assert(deltaXY._2 == 0) // if same point distance is 0
           }
           else if (point1.y == point2.y) {
             assert(deltaXY._2 == 0) // if points have the same Y, no delta for Y

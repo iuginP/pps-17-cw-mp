@@ -3,6 +3,7 @@ package it.cwmp.client.model.game.impl
 import java.time.Duration
 import java.util.Objects._
 
+import it.cwmp.client.controller.game.GameConstants._
 import it.cwmp.client.model.game._
 import it.cwmp.model.User
 
@@ -30,22 +31,12 @@ case class Cell(owner: User,
 object Cell {
 
   /**
-    * The energy that a cell has when is born
-    */
-  val whenBornEnergy = 20d
-
-  /**
-    * Coverts this amount of time to an energy unit
-    */
-  val TIME_TO_ENERGY_CONVERSION_RATE = 1000d
-
-  /**
     * The default evolution strategy for cells
     *
     * adds 1 to energy each second
     */
   val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell: Cell, elapsedTime: Duration) => {
-    cell ++ (elapsedTime.toMillis / TIME_TO_ENERGY_CONVERSION_RATE)
+    cell ++ (elapsedTime.toMillis / MILLIS_TO_ENERGY_CONVERSION_RATE)
   }
 
   /**
