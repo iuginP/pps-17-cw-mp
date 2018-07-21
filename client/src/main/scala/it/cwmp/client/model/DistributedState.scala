@@ -33,14 +33,12 @@ object DistributedStateMessages {
 case class DistributedState[Instant, WorldCharacter <: Character[_, _, _], WorldAttack <: Attack[_, _, _]]
 (actor: Actor, replicator: Replicator, onWorldUpdate: World[Instant, WorldCharacter, WorldAttack] => Unit) extends Logging {
 
-  private val InstantKey = LWWRegisterKey[Instant]("instant")
-  private val CharactersKey = ORSetKey[WorldCharacter]("characters")
-  private val AttacksKey = ORSetKey[WorldAttack]("attacks")
+  import it.cwmp.client.model.DistributedStateMessages._
+
+  private val WorldKey = LWWRegisterKey[World[Instant, WorldCharacter, WorldAttack]]("world")
 
   def initState(): Unit = {
-    replicator.self ! Subscribe(InstantKey, actor.self)
-    replicator.self ! Subscribe(CharactersKey, actor.self)
-    replicator.self ! Subscribe(AttacksKey, actor.self)
+    replicator.self ! Subscribe(WorldKey, actor.self)
   }
 
   /**
@@ -53,14 +51,11 @@ case class DistributedState[Instant, WorldCharacter <: Character[_, _, _], World
     *
     * @return
     */
-
-  import it.cwmp.client.model.DistributedStateMessages._
-
   private def userActionBehaviour: Receive = {
     // Called from the view/controller
     case UpdateWorld(world: World[Instant, WorldCharacter, WorldAttack]) =>
-      updateWorld(world)
-
+      log.debug("Requiring UpdateWorld DISTRIBUTED")
+      replicator.self ! Update(WorldKey, LWWRegister[World[Instant, WorldCharacter, WorldAttack]](world), WriteLocal)(_.withValue(world))
   }
 
   /**
@@ -70,30 +65,8 @@ case class DistributedState[Instant, WorldCharacter <: Character[_, _, _], World
     */
   private def distributedActionBehaviour: Receive = {
     // Called when notified of the distributed data change
-    case c@Changed(InstantKey) =>
-      log.debug("UpdateGUI from DISTRIBUTED because instantKey was changed")
-    case c@Changed(CharactersKey) =>
-      log.debug("UpdateGUI from DISTRIBUTED because charactersKey was changed")
-    case c@Changed(AttacksKey) =>
-      log.debug("UpdateGUI from DISTRIBUTED because attacksKey was changed")
-  }
-
-  /**
-    * Used to map the distributed world to the World instance.
-    *
-    * @return the world parsed from the distributed version of itself.
-    */
-  private def getWorld(): World[Instant, WorldCharacter, WorldAttack] = ???
-
-  /**
-    * Used to parse the world and update the distributed version of itself.
-    *
-    * @param world the new version of the world
-    */
-  private def updateWorld(world: World[Instant, WorldCharacter, WorldAttack]): Unit = {
-    log.debug("UpdateGUI from user")
-    replicator.self ! Update(InstantKey, LWWRegister[Instant](world.instant), WriteLocal)(_.withValue(world.instant)) //TODO inviare il nuovo stato aggiornato
-    replicator.self ! Update(CharactersKey, ORSet.empty[WorldCharacter], WriteLocal)(_) //TODO inviare il nuovo stato aggiornato
-    replicator.self ! Update(AttacksKey, ORSet.empty[WorldAttack], WriteLocal)(_) //TODO inviare il nuovo stato aggiornato
+    case c@Changed(WorldKey) =>
+      log.debug("UpdateGUI from DISTRIBUTED because WorldKey was changed")
+      onWorldUpdate(c.get(WorldKey))
   }
 }
