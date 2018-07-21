@@ -1,7 +1,10 @@
 package it.cwmp.client.model
 
+import akka.actor.Actor
 import akka.actor.Actor.Receive
-import akka.cluster.ddata.{GCounter, ORSet}
+import akka.cluster.ddata.Replicator
+import akka.cluster.ddata.Replicator._
+import akka.cluster.ddata._
 import it.cwmp.client.model.game.{Attack, Character, World}
 import it.cwmp.utils.Logging
 
@@ -14,11 +17,17 @@ import it.cwmp.utils.Logging
   * @author Eugenio Pierfederici
   */
 case class DistributedState[Instant, WorldCharacter <: Character[_, _, _], WorldAttack <: Attack[_, _, _]]
-(onWorldUpdate: World[Instant, WorldCharacter, WorldAttack] => Unit) extends Logging {
+(actor: Actor, replicator: Replicator, onWorldUpdate: World[Instant, WorldCharacter, WorldAttack] => Unit) extends Logging {
 
-  private val instant: GCounter = GCounter.empty
-  private val characters: ORSet[WorldCharacter] = ORSet.empty[WorldCharacter]
-  private val attacks: ORSet[WorldAttack] = ORSet.empty[WorldAttack]
+  private val instantKey = GCounterKey("instant")
+  private val charactersKey = ORSetKey[WorldCharacter]("characters")
+  private val attacksKey = ORSetKey[WorldAttack]("attacks")
+
+  def initState: Unit = {
+    replicator.self ! Subscribe(instantKey, actor.self)
+    replicator.self ! Subscribe(charactersKey, actor.self)
+    replicator.self ! Subscribe(attacksKey, actor.self)
+  }
 
   /**
     * This behaviour provides an easy way to integrate the distributed state in the player actor.
@@ -51,5 +60,7 @@ case class DistributedState[Instant, WorldCharacter <: Character[_, _, _], World
     *
     * @param world the new version of the world
     */
-  private def updateWorld(world: World[Instant, WorldCharacter, WorldAttack]): Unit = ???
+  private def updateWorld(world: World[Instant, WorldCharacter, WorldAttack]): Unit = {
+//    replicator.self ! Update(instantKey, GCounter.empty, WriteLocal)(_ + 1) TODO example
+  }
 }
