@@ -11,6 +11,7 @@ import it.cwmp.client.controller.ClientControllerActor
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.Address
+import it.cwmp.utils.Logging
 
 import scala.concurrent.duration._
 
@@ -35,10 +36,7 @@ object PlayerActor {
   * @author Eugenio Pierfederici
   */
 import it.cwmp.client.model.PlayerActor._
-class PlayerActor(system: ActorSystem) extends Actor {
-
-  // Logging system
-  val logger: Logger = Logger[ClientControllerActor]
+class PlayerActor(system: ActorSystem) extends Actor with Logging {
 
   // distributed replica system
   val replicator: ActorRef = DistributedData(context.system).replicator
@@ -54,9 +52,9 @@ class PlayerActor(system: ActorSystem) extends Actor {
   var roomSize: Int = _
 
   override def preStart(): Unit = {
-    logger.info(s"Initializing the game-view actor...")
+    log.info(s"Initializing the game-view actor...")
     gameViewActor = system.actorOf(Props[GameViewActor], "game-view")
-    logger.info(s"Subscribing to cluster changes...")
+    log.info(s"Subscribing to cluster changes...")
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])
   }
@@ -64,19 +62,19 @@ class PlayerActor(system: ActorSystem) extends Actor {
 
   override def receive: Receive = clusterBehaviour orElse lobbyBehaviour orElse {
     case c @ Changed(TestKey) if c.get(TestKey).enabled =>
-      logger.info("Receiving... Hello distributed! From " + sender().path.address)
+      log.info("Receiving... Hello distributed! From " + sender().path.address)
   }
 
   private def clusterBehaviour: Receive = {
     case MemberUp(member) =>
-      logger.info("Member is Up: {}", member.address)
-      logger.debug("Cluster size: " + cluster.state.members.size)
+      log.info("Member is Up: {}", member.address)
+      log.debug("Cluster size: " + cluster.state.members.size)
       sayHello
       if (cluster.state.members.size == roomSize) enterGame
     case UnreachableMember(member) =>
-      logger.info("Member detected as unreachable: {}", member)
+      log.info("Member detected as unreachable: {}", member)
     case MemberRemoved(member, previousStatus) =>
-      logger.info(
+      log.info(
         "Member is Removed: {} after {}",
         member.address, previousStatus)
     case _: MemberEvent => // ignore
@@ -109,6 +107,6 @@ class PlayerActor(system: ActorSystem) extends Actor {
 
   private def sayHello: Unit = {
     replicator ! Update(TestKey, Flag(), WriteAll(5.seconds))(_.switchOn)
-    logger.info("Sending... Hello distributed! By " + getAddress.toString)
+    log.info("Sending... Hello distributed! By " + getAddress.toString)
   }
 }
