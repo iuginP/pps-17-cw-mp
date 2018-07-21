@@ -2,6 +2,8 @@ group = projectGroup
 version = projectVersion
 description = projectDescription
 
+def jarDestinationFolder = "${rootDir.path}$productionJarFolder"
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -48,15 +50,7 @@ subprojects {
     if (project.name == 'client' || project.name == 'rooms' || project.name == 'authentication') {
         apply plugin: 'com.github.johnrengelman.shadow'
 
-        def jarDestinationFolder = "${rootDir.path}$productionJarFolder"
-
         shadowJar {
-            doFirst {
-                // delete old jars
-                if (fileTree(jarDestinationFolder).files.size() == 3)
-                    delete(fileTree(jarDestinationFolder))
-            }
-
             baseName = artifactId
             version = projectVersion
             classifier = project.name
@@ -64,6 +58,11 @@ subprojects {
             destinationDir = file(jarDestinationFolder)
             mergeServiceFiles('reference.conf') // solves problems with AKKA
         }
+    }
+
+    clean {
+        // delete production folder
+        delete(file(jarDestinationFolder))
     }
 }
 
