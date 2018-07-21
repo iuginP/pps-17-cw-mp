@@ -3,17 +3,13 @@ package it.cwmp.client.model
 import akka.actor.{Actor, ActorRef, ActorSystem, AddressFromURIString, Props}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
-import akka.cluster.ddata.Replicator.{Changed, Subscribe, Update, WriteAll}
-import akka.cluster.ddata.{DistributedData, Flag, FlagKey}
-import com.typesafe.scalalogging.Logger
+import akka.cluster.ddata.DistributedData
 import it.cwmp.client.GameMain
-import it.cwmp.client.controller.ClientControllerActor
+import it.cwmp.client.model.game.impl.CellWorld
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.Address
 import it.cwmp.utils.Logging
-
-import scala.concurrent.duration._
 
 object PlayerActor {
 
@@ -21,11 +17,14 @@ object PlayerActor {
 
   // Incoming messages
   case object RetrieveAddress
+
   case class StartGame(participantList: List[Address])
+
   case object EndGame
 
   // Outgoing messages
   case class RetrieveAddressResponse(address: String)
+
 }
 
 /**
@@ -35,21 +34,23 @@ object PlayerActor {
   *
   * @author Eugenio Pierfederici
   */
+
 import it.cwmp.client.model.PlayerActor._
+
 class PlayerActor(system: ActorSystem) extends Actor with Logging {
-
-  // distributed replica system
-  val replicator: ActorRef = DistributedData(context.system).replicator
-  implicit val cluster: Cluster = Cluster(context.system)
-
-  val TestKey = FlagKey("contestTest")
-  replicator ! Subscribe(TestKey, self)
 
   // View actor
   var gameViewActor: ActorRef = _
 
   // Cluster info
   var roomSize: Int = _
+
+  // distributed replica system
+  val replicator: ActorRef = DistributedData(context.system).replicator
+  implicit val cluster: Cluster = Cluster(context.system)
+
+  // Distributed world
+  val distributedState: DistributedState[CellWorld] = DistributedState(this, println)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
@@ -58,18 +59,15 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])
   }
+
   override def postStop(): Unit = cluster.unsubscribe(self)
 
-  override def receive: Receive = clusterBehaviour orElse lobbyBehaviour orElse {
-    case c @ Changed(TestKey) if c.get(TestKey).enabled =>
-      log.info("Receiving... Hello distributed! From " + sender().path.address)
-  }
+  override def receive: Receive = clusterBehaviour orElse lobbyBehaviour
 
   private def clusterBehaviour: Receive = {
     case MemberUp(member) =>
       log.info("Member is Up: {}", member.address)
       log.debug("Cluster size: " + cluster.state.members.size)
-      sayHello
       if (cluster.state.members.size == roomSize) enterGame
     case UnreachableMember(member) =>
       log.info("Member detected as unreachable: {}", member)
@@ -81,6 +79,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
   }
 
   private def backToLobby: Unit = context.become(clusterBehaviour orElse lobbyBehaviour)
+
   private def lobbyBehaviour: Receive = {
     case RetrieveAddress =>
       sender() ! RetrieveAddressResponse(getAddress)
@@ -95,7 +94,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
     gameViewActor ! NewWorld(GameMain.debugWorld)
   }
 
-  private def inGameBehaviour: Receive = {
+  private def inGameBehaviour: Receive = distributedState.stateBehaviour orElse {
     case EndGame => backToLobby
   }
 
@@ -104,9 +103,4 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
   }
 
   private def getAddress: String = cluster.selfAddress + self.path.toString.substring(self.path.address.toString.length)
-
-  private def sayHello: Unit = {
-    replicator ! Update(TestKey, Flag(), WriteAll(5.seconds))(_.switchOn)
-    log.info("Sending... Hello distributed! By " + getAddress.toString)
-  }
 }

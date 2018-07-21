@@ -1,10 +1,10 @@
 package it.cwmp.client.model
 
-import akka.actor.Actor
 import akka.actor.Actor.Receive
+import akka.actor.{Actor, ActorRef}
 import akka.cluster.Cluster
-import akka.cluster.ddata._
 import akka.cluster.ddata.Replicator._
+import akka.cluster.ddata._
 import it.cwmp.client.model.game.World
 import it.cwmp.utils.Logging
 
@@ -27,14 +27,14 @@ object DistributedStateMessages {
   * @author Eugenio Pierfederici
   */
 case class DistributedState[WD <: World[_, _, _]]
-(actor: Actor, replicator: Replicator, onWorldUpdate: WD => Unit)(implicit cluster: Cluster) extends Logging {
+(actor: Actor, onWorldUpdate: WD => Unit)(implicit replicator: ActorRef, cluster: Cluster) extends Logging {
 
   import it.cwmp.client.model.DistributedStateMessages._
 
   private val WorldKey = LWWRegisterKey[WD]("world")
 
   def initState(): Unit = {
-    replicator.self ! Subscribe(WorldKey, actor.self)
+    replicator ! Subscribe(WorldKey, actor.self)
   }
 
   /**
@@ -51,7 +51,7 @@ case class DistributedState[WD <: World[_, _, _]]
     // Called from the view/controller
     case UpdateWorld(world: WD) =>
       log.debug("Requiring UpdateWorld DISTRIBUTED")
-      replicator.self ! Update(WorldKey, LWWRegister[WD](world), WriteLocal)(_.withValue(world))
+      replicator ! Update(WorldKey, LWWRegister[WD](world), WriteLocal)(_.withValue(world))
   }
 
   /**
