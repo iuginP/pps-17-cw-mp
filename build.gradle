@@ -4,7 +4,8 @@ description = projectDescription
 
 def jarDestinationFolder = "${rootDir.path}$productionJarFolder"
 
-def scalaStyleFileOutput = "${buildDir.path}$scalaStyleOutput"
+def scalaStyleResPath = "${rootDir.path}$scalaStyleResFile"
+def scalaStyleOutputPath = "${buildDir.path}$scalaStyleOutput"
 
 allprojects {
     apply plugin: 'idea'
@@ -22,8 +23,6 @@ subprojects {
     apply plugin: 'scala'
     apply plugin: 'org.scoverage'
     apply plugin: 'com.github.maiflai.scalatest'
-    apply plugin: 'pmd'
-    apply plugin: 'checkstyle'
     apply plugin: 'scalaStyle'
 
     sourceCompatibility = "$jdkVersion"
@@ -63,18 +62,21 @@ subprojects {
         }
     }
 
+    scalaStyle {
+        configLocation = scalaStyleResPath
+        includeTestSourceDirectory = true
+        source = "$scalaStyleSource"
+        testSource = "$scalaStyleTestSource"
+        outputFile = scalaStyleOutputPath
+        failOnWarning = false
+    }
+
     clean {
         // delete production folder
         delete(file(jarDestinationFolder))
     }
 
-    scalaStyle {
-        configLocation = $scalaStyleResFile
-        includeTestSourceDirectory = true
-        source = scalaStyleSource
-        testSource = scalaStyleTestSource
-        outputFile = scalaStyleFileOutput
-    }
+    build.finalizedBy scalaStyle
 }
 
 configure(subprojects.findAll { it.name == 'core' || it.parent.name == 'services' }) {
