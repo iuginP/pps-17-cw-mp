@@ -5,11 +5,14 @@ env:
 script:
   - './gradlew'
 after_success:
-  - 'bash scripts/upload_docs.sh'
+  - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/scala -d scala'
+  - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/java -d java'
 deploy:
   provider: releases
   api-key: $GITHUB_API_KEY
   skip_cleanup: true
+  file_glob: true
+  file: production/*
   on:
     repo: iuginP/pps-17-cw-mp
     tags: true

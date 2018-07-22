@@ -1,4 +1,6 @@
 dependencies {
-    testImplementation project(':server:testing')
-    testImplementation project(':server:authentication')
+    testImplementation project(':services:authentication')
+    testImplementation project(':services:authentication').sourceSets.test.output
+    testImplementation project(':services:rooms')
+    testImplementation project(':services:rooms').sourceSets.test.output
 }

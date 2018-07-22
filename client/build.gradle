@@ -1,10 +1,9 @@
-apply plugin:'application'
+apply plugin: 'application'
 
 mainClassName = 'it.cwmp.client.ClientMain'
 
 dependencies {
-    implementation project(':core')
-    implementation project(':server:room-receiver')
+    implementation project(':services:room-receiver')
 
     implementation 'com.typesafe.akka:akka-distributed-data_2.12:2.5.13'
     implementation 'com.typesafe.akka:akka-multi-node-testkit_2.12:2.5.13'
@@ -12,4 +11,6 @@ dependencies {
     implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
 
     implementation 'com.github.tkqubo:color-hash:0.2.0'
+
+    testImplementation 'org.scalacheck:scalacheck_2.12:1.14.0'
 }
