@@ -5,12 +5,12 @@ package it.cwmp.client.model.game
   *
   * @author Enrico Siboni
   */
-trait World[Instant, Character, Attack] {
+trait World[Instant, WorldCharacter <: Character[_, _, _], WorldAttack <: Attack[_, _, _]] {
 
   def instant: Instant
 
-  def characters: Seq[Character]
+  def characters: Seq[WorldCharacter]
 
-  def attacks: Seq[Attack]
+  def attacks: Seq[WorldAttack]
 
 }

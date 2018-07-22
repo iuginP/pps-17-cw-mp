@@ -2,7 +2,7 @@ package it.cwmp.utils
 
 import org.scalatest.FunSpec
 
-class HttpUtilsTest extends  FunSpec{
+class HttpUtilsTest extends FunSpec {
 
   describe("Basic Authentication") {
     describe("build") {
@@ -18,7 +18,7 @@ class HttpUtilsTest extends  FunSpec{
     }
 
     describe("read") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         val username = "pippo"
         val password = "password"
         var result: Option[(String, String)] = None
@@ -29,14 +29,14 @@ class HttpUtilsTest extends  FunSpec{
           result = decoded
         }
         result match {
-          case Some((u, p)) => assert(u == username && p == password )
+          case Some((u, p)) => assert(u == username && p == password)
           case _ => fail
         }
       }
-      it ("should fail if argument is empty") {
+      it("should fail if argument is empty") {
         assert(HttpUtils.readBasicAuthentication("").isEmpty)
       }
-      it ("should fail if argument is null") {
+      it("should fail if argument is null") {
         assert(HttpUtils.readBasicAuthentication(null).isEmpty)
       }
     }
@@ -56,7 +56,7 @@ class HttpUtilsTest extends  FunSpec{
     }
 
     describe("read") {
-      it ("should succeed if right") {
+      it("should succeed if right") {
         var result: Option[String] = None
         val myToken = "token"
         for (
@@ -66,14 +66,14 @@ class HttpUtilsTest extends  FunSpec{
           result = decoded
         }
         result match {
-          case Some((t)) => assert(t == myToken )
+          case Some(t) => assert(t == myToken)
           case _ => fail
         }
       }
-      it ("should fail if argument is empty") {
+      it("should fail if argument is empty") {
         assert(HttpUtils.readJwtAuthentication("").isEmpty)
       }
-      it ("should fail if argument is null") {
+      it("should fail if argument is null") {
         assert(HttpUtils.readJwtAuthentication(null).isEmpty)
       }
     }

@@ -9,7 +9,6 @@ import it.cwmp.client.view.authentication.{AuthenticationViewActor, Authenticati
 import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
 import it.cwmp.model.{Address, Participant}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -78,7 +77,8 @@ object ClientControllerActor {
   */
 class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
 
-  private val logger: Logger = Logger[ClientControllerActor]
+  private val UNKNOWN_ERROR = "Unknown Error"
+  private val logger: Logger = Logger[ClientControllerActor] // TODO: replace with our logging
 
   var jwtToken: String = _
 
@@ -244,7 +244,7 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
         authenticationViewActor ! AuthenticationViewMessages.HideGUI
       }))
     case AuthenticationSignInFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason)
+      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
     case AuthenticationSignUpSuccessful(token) =>
       authenticationViewActor ! AlertMessages.Info(s"Result", "Sign up successfully completed!", Some(() => {
         this.jwtToken = token
@@ -252,19 +252,19 @@ class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantL
         authenticationViewActor ! AuthenticationViewMessages.HideGUI
       }))
     case AuthenticationSignUpFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason)
+      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
 
     case RoomCreatePrivateSuccessful(token) =>
       roomViewActor ! AlertMessages.Info("Token", token)
     case RoomCreatePrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case RoomEnterPrivateSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case RoomEnterPublicSuccessful =>
       roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason) // TODO parametrizzazione stringhe
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
   }
 }
