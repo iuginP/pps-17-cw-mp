@@ -175,10 +175,6 @@
                         <a href="Character.html" title="A trait describing a game Character">Character</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="trait" href="ColoringStrategy.html" title="A trait that describes how to color things"></a>
-                        <a href="ColoringStrategy.html" title="A trait that describes how to color things">ColoringStrategy</a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
                         <a class="trait" href="EvolutionStrategy.html" title="A trait that describes how things should evolve it's properties against time"></a>
                         <a href="EvolutionStrategy.html" title="A trait that describes how things should evolve it's properties against time">EvolutionStrategy</a>
                       </li><li class="current-entities indented5">
@@ -212,7 +208,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">World</span><span class="tparams">[<span name="Instant">Instant</span>, <span name="Character">Character</span>, <span name="Attack">Attack</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">World</span><span class="tparams">[<span name="Instant">Instant</span>, <span name="WorldCharacter">WorldCharacter &lt;: <a href="Character.html" class="extype" name="it.cwmp.client.model.game.Character">Character</a>[_, _, _]</span>, <span name="WorldAttack">WorldAttack &lt;: <a href="Attack.html" class="extype" name="it.cwmp.client.model.game.Attack">Attack</a>[_, _, _]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
 
@@ -278,9 +274,9 @@
         <div class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="it.cwmp.client.model.game.World#attacks" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="attacks:Seq[Attack]"></a>
+      <a id="attacks:Seq[WorldAttack]"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/model/game/World.html#attacks:Seq[Attack]" title="Permalink">
+      <a href="../../../../../it/cwmp/client/model/game/World.html#attacks:Seq[WorldAttack]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -289,14 +285,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attacks</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.client.model.game.World.Attack">Attack</span>]</span>
+        <span class="name">attacks</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.client.model.game.World.WorldAttack">WorldAttack</span>]</span>
       </span>
       
       
     </li><li name="it.cwmp.client.model.game.World#characters" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="characters:Seq[Character]"></a>
+      <a id="characters:Seq[WorldCharacter]"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/model/game/World.html#characters:Seq[Character]" title="Permalink">
+      <a href="../../../../../it/cwmp/client/model/game/World.html#characters:Seq[WorldCharacter]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -305,7 +301,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">characters</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.client.model.game.World.Character">Character</span>]</span>
+        <span class="name">characters</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="it.cwmp.client.model.game.World.WorldCharacter">WorldCharacter</span>]</span>
       </span>
       
       

@@ -175,10 +175,6 @@
                         <a href="Character.html" title="A trait describing a game Character">Character</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="trait" href="ColoringStrategy.html" title="A trait that describes how to color things"></a>
-                        <a href="ColoringStrategy.html" title="A trait that describes how to color things">ColoringStrategy</a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
                         <a class="trait" href="EvolutionStrategy.html" title="A trait that describes how things should evolve it's properties against time"></a>
                         <a href="EvolutionStrategy.html" title="A trait that describes how things should evolve it's properties against time">EvolutionStrategy</a>
                       </li><li class="current-entities indented5">
@@ -262,27 +258,10 @@
       
       <p class="shortcomment cmt">A trait describing a game Character
 </p>
-    </li><li name="it.cwmp.client.model.game.ColoringStrategy" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ColoringStrategy[-Thing,+Color]extendsThing=&gt;Color"></a><a id="ColoringStrategy[-Thing,+Color]:ColoringStrategy[Thing,Color]"></a>
-      <span class="permalink">
-      <a href="../../../../../it/cwmp/client/model/game/index.html#ColoringStrategy[-Thing,+Color]extendsThing=&gt;Color" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="A trait that describes how to color things" href="ColoringStrategy.html"><span class="name">ColoringStrategy</span></a><span class="tparams">[<span name="Thing">-Thing</span>, <span name="Color">+Color</span>]</span><span class="result"> extends (<span class="extype" name="it.cwmp.client.model.game.ColoringStrategy.Thing">Thing</span>) ⇒ <span class="extype" name="it.cwmp.client.model.game.ColoringStrategy.Color">Color</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">A trait that describes how to color things
-</p>
     </li><li name="it.cwmp.client.model.game.EvolutionStrategy" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="EvolutionStrategy[Thing,TimeDuration]extends(TimeDuration,Thing)=&gt;Thing"></a><a id="EvolutionStrategy[Thing,TimeDuration]:EvolutionStrategy[Thing,TimeDuration]"></a>
+      <a id="EvolutionStrategy[Thing,TimeDuration]extends(Thing,TimeDuration)=&gt;Thing"></a><a id="EvolutionStrategy[Thing,TimeDuration]:EvolutionStrategy[Thing,TimeDuration]"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/model/game/index.html#EvolutionStrategy[Thing,TimeDuration]extends(TimeDuration,Thing)=&gt;Thing" title="Permalink">
+      <a href="../../../../../it/cwmp/client/model/game/index.html#EvolutionStrategy[Thing,TimeDuration]extends(Thing,TimeDuration)=&gt;Thing" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -291,7 +270,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="A trait that describes how things should evolve it's properties against time" href="EvolutionStrategy.html"><span class="name">EvolutionStrategy</span></a><span class="tparams">[<span name="Thing">Thing</span>, <span name="TimeDuration">TimeDuration</span>]</span><span class="result"> extends (<span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.TimeDuration">TimeDuration</span>, <span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.Thing">Thing</span>) ⇒ <span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.Thing">Thing</span></span>
+        <a title="A trait that describes how things should evolve it's properties against time" href="EvolutionStrategy.html"><span class="name">EvolutionStrategy</span></a><span class="tparams">[<span name="Thing">Thing</span>, <span name="TimeDuration">TimeDuration</span>]</span><span class="result"> extends (<span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.Thing">Thing</span>, <span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.TimeDuration">TimeDuration</span>) ⇒ <span class="extype" name="it.cwmp.client.model.game.EvolutionStrategy.Thing">Thing</span></span>
       </span>
       
       <p class="shortcomment cmt">A trait that describes how things should evolve it's properties against time
@@ -314,9 +293,9 @@
       <p class="shortcomment cmt">A trait describing the sizing strategy for things
 </p>
     </li><li name="it.cwmp.client.model.game.World" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="World[Instant,Character,Attack]extendsAnyRef"></a><a id="World[Instant,Character,Attack]:World[Instant,Character,Attack]"></a>
+      <a id="World[Instant,WorldCharacter&lt;:it.cwmp.client.model.game.Character[_,_,_],WorldAttack&lt;:it.cwmp.client.model.game.Attack[_,_,_]]extendsAnyRef"></a><a id="World[Instant,WorldCharacter&lt;:Character[_,_,_],WorldAttack&lt;:Attack[_,_,_]]:World[Instant,WorldCharacter,WorldAttack]"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/model/game/index.html#World[Instant,Character,Attack]extendsAnyRef" title="Permalink">
+      <a href="../../../../../it/cwmp/client/model/game/index.html#World[Instant,WorldCharacter&lt;:it.cwmp.client.model.game.Character[_,_,_],WorldAttack&lt;:it.cwmp.client.model.game.Attack[_,_,_]]extendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -325,7 +304,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="A trait describing a game world snapshot" href="World.html"><span class="name">World</span></a><span class="tparams">[<span name="Instant">Instant</span>, <span name="Character">Character</span>, <span name="Attack">Attack</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="A trait describing a game world snapshot" href="World.html"><span class="name">World</span></a><span class="tparams">[<span name="Instant">Instant</span>, <span name="WorldCharacter">WorldCharacter &lt;: <a href="Character.html" class="extype" name="it.cwmp.client.model.game.Character">Character</a>[_, _, _]</span>, <span name="WorldAttack">WorldAttack &lt;: <a href="Attack.html" class="extype" name="it.cwmp.client.model.game.Attack">Attack</a>[_, _, _]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
       <p class="shortcomment cmt">A trait describing a game world snapshot

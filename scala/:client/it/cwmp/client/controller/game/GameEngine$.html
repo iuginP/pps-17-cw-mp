@@ -151,8 +151,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.client.controller">controller</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title="Game Engine singleton"></a>
-                        <a href="" title="Game Engine singleton">GameEngine</a>
+                        <a class="object" href="GameConstants$.html" title="An object where to put constants about the game behaviour"></a>
+                        <a href="GameConstants$.html" title="An object where to put constants about the game behaviour">GameConstants</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="object" href="" title="Singleton of Game Engine"></a>
+                        <a href="" title="Singleton of Game Engine">GameEngine</a>
                       </li>
               </ul>
             </div>
@@ -181,12 +185,12 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Game Engine singleton
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Singleton of Game Engine</p><p>The static game engine calculates the evolution of Game World assuming no more actions will be issued
 </p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../model/game/EvolutionStrategy.html" class="extype" name="it.cwmp.client.model.game.EvolutionStrategy">EvolutionStrategy</a>[<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>], (<span class="extype" name="java.time.Duration">Duration</span>, <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../../model/game/EvolutionStrategy.html" class="extype" name="it.cwmp.client.model.game.EvolutionStrategy">EvolutionStrategy</a>[<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>], (<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -288,9 +292,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="it.cwmp.client.controller.game.GameEngine#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(elapsedTime:java.time.Duration,toEvolve:it.cwmp.client.model.game.impl.CellWorld):it.cwmp.client.model.game.impl.CellWorld"></a><a id="apply(Duration,CellWorld):CellWorld"></a>
+      <a id="apply(oldToEvolve:it.cwmp.client.model.game.impl.CellWorld,elapsedTime:java.time.Duration):it.cwmp.client.model.game.impl.CellWorld"></a><a id="apply(CellWorld,Duration):CellWorld"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/controller/game/GameEngine$.html#apply(elapsedTime:java.time.Duration,toEvolve:it.cwmp.client.model.game.impl.CellWorld):it.cwmp.client.model.game.impl.CellWorld" title="Permalink">
+      <a href="../../../../../it/cwmp/client/controller/game/GameEngine$.html#apply(oldToEvolve:it.cwmp.client.model.game.impl.CellWorld,elapsedTime:java.time.Duration):it.cwmp.client.model.game.impl.CellWorld" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -299,10 +303,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="elapsedTime">elapsedTime: <span class="extype" name="java.time.Duration">Duration</span></span>, <span name="toEvolve">toEvolve: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>)</span><span class="result">: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
+        <span class="name">apply</span><span class="params">(<span name="oldToEvolve">oldToEvolve: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>, <span name="elapsedTime">elapsedTime: <span class="extype" name="java.time.Duration">Duration</span></span>)</span><span class="result">: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.client.controller.game.GameEngine">GameEngine</a> → Function2</dd></dl></div>
+      <p class="shortcomment cmt">Evolves the world using default evolution strategies
+</p><div class="fullcomment"><div class="comment cmt"><p>Evolves the world using default evolution strategies
+</p></div><dl class="paramcmts block"><dt class="param">oldToEvolve</dt><dd class="cmt"><p>the world to evolve</p></dd><dt class="param">elapsedTime</dt><dd class="cmt"><p>the amount of time that should be reflected in changes in &quot;toEvolve&quot; world</p></dd><dt>returns</dt><dd class="cmt"><p>the evolved world</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.client.controller.game.GameEngine">GameEngine</a> → Function2</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -344,7 +350,7 @@
               
         </dd></dl></div>
     </li><li name="scala.Function2#curried" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="curried:T1=&gt;(T2=&gt;R)"></a><a id="curried:(Duration)⇒(CellWorld)⇒CellWorld"></a>
+      <a id="curried:T1=&gt;(T2=&gt;R)"></a><a id="curried:(CellWorld)⇒(Duration)⇒CellWorld"></a>
       <span class="permalink">
       <a href="../../../../../it/cwmp/client/controller/game/GameEngine$.html#curried:T1=&gt;(T2=&gt;R)" title="Permalink">
         <i class="material-icons"></i>
@@ -355,7 +361,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">curried</span><span class="result">: (<span class="extype" name="java.time.Duration">Duration</span>) ⇒ (<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
+        <span class="name">curried</span><span class="result">: (<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>) ⇒ (<span class="extype" name="java.time.Duration">Duration</span>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function2</dd><dt>Annotations</dt><dd>
@@ -557,7 +563,7 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function2 → AnyRef → Any</dd></dl></div>
     </li><li name="scala.Function2#tupled" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="tupled:((T1,T2))=&gt;R"></a><a id="tupled:((Duration,CellWorld))⇒CellWorld"></a>
+      <a id="tupled:((T1,T2))=&gt;R"></a><a id="tupled:((CellWorld,Duration))⇒CellWorld"></a>
       <span class="permalink">
       <a href="../../../../../it/cwmp/client/controller/game/GameEngine$.html#tupled:((T1,T2))=&gt;R" title="Permalink">
         <i class="material-icons"></i>
@@ -568,7 +574,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">tupled</span><span class="result">: ((<span class="extype" name="java.time.Duration">Duration</span>, <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>)) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
+        <span class="name">tupled</span><span class="result">: ((<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>)) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function2</dd><dt>Annotations</dt><dd>
@@ -656,7 +662,7 @@
         <div class="parent" name="it.cwmp.client.model.game.EvolutionStrategy">
               <h3>Inherited from <a href="../../model/game/EvolutionStrategy.html" class="extype" name="it.cwmp.client.model.game.EvolutionStrategy">EvolutionStrategy</a>[<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>]</h3>
             </div><div class="parent" name="scala.Function2">
-              <h3>Inherited from (<span class="extype" name="java.time.Duration">Duration</span>, <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></h3>
+              <h3>Inherited from (<a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>, <span class="extype" name="java.time.Duration">Duration</span>) ⇒ <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

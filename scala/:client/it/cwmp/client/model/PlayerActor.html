@@ -163,6 +163,14 @@
                         <a href="ApiClientOutgoingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può inviare.">ApiClientOutgoingMessages</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="class" href="DistributedState.html" title="Distributed representation of the world and of his behaviours."></a>
+                        <a href="DistributedState.html" title="Distributed representation of the world and of his behaviours.">DistributedState</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="DistributedStateMessages$.html" title=""></a>
+                        <a href="DistributedStateMessages$.html" title="">DistributedStateMessages</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="trait" href="ParticipantListReceiver.html" title=""></a>
                         <a href="ParticipantListReceiver.html" title="">ParticipantListReceiver</a>
                       </li><li class="current-entities indented4">
@@ -198,7 +206,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">PlayerActor</span><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span></span>
+        <span class="name">PlayerActor</span><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       </h4>
 
@@ -207,7 +215,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="akka.actor.Actor">Actor</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="akka.actor.Actor">Actor</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -233,7 +241,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.client.model.PlayerActor"><span>PlayerActor</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.client.model.PlayerActor"><span>PlayerActor</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -346,22 +354,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="it.cwmp.client.model.PlayerActor#TestKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TestKey:akka.cluster.ddata.FlagKey"></a><a id="TestKey:FlagKey"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/PlayerActor.html#TestKey:akka.cluster.ddata.FlagKey" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">TestKey</span><span class="result">: <span class="extype" name="akka.cluster.ddata.FlagKey">FlagKey</span></span>
-      </span>
-      
-      
     </li><li name="akka.actor.Actor#aroundPostRestart" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="aroundPostRestart(reason:Throwable):Unit"></a><a id="aroundPostRestart(Throwable):Unit"></a>
       <span class="permalink">
@@ -529,6 +521,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Actor</dd></dl></div>
+    </li><li name="it.cwmp.client.model.PlayerActor#distributedState" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="distributedState:it.cwmp.client.model.DistributedState[it.cwmp.client.model.game.impl.CellWorld]"></a><a id="distributedState:DistributedState[CellWorld]"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/PlayerActor.html#distributedState:it.cwmp.client.model.DistributedState[it.cwmp.client.model.game.impl.CellWorld]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">distributedState</span><span class="result">: <a href="DistributedState.html" class="extype" name="it.cwmp.client.model.DistributedState">DistributedState</a>[<a href="game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -653,22 +661,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="it.cwmp.client.model.PlayerActor#logger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="logger:com.typesafe.scalalogging.Logger"></a><a id="logger:Logger"></a>
+    </li><li name="it.cwmp.utils.Logging#log" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="log:com.typesafe.scalalogging.Logger"></a><a id="log:Logger"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/PlayerActor.html#logger:com.typesafe.scalalogging.Logger" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/PlayerActor.html#log:com.typesafe.scalalogging.Logger" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">implicit </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">logger</span><span class="result">: <span class="extype" name="com.typesafe.scalalogging.Logger">Logger</span></span>
+        <span class="name">log</span><span class="result">: <span class="extype" name="com.typesafe.scalalogging.Logger">Logger</span></span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Logging</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -1021,7 +1029,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="akka.actor.Actor">
+        <div class="parent" name="it.cwmp.utils.Logging">
+              <h3>Inherited from <span class="extype" name="it.cwmp.utils.Logging">Logging</span></h3>
+            </div><div class="parent" name="akka.actor.Actor">
               <h3>Inherited from <span class="extype" name="akka.actor.Actor">Actor</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
