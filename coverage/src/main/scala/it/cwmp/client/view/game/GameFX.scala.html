@@ -1,0 +1,834 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/game/GameFX.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.client.model.game.impl.CellWorld
+</span>4 <span style=''>import javafx.application.Platform
+</span>5 <span style=''>import javafx.embed.swing.JFXPanel
+</span>6 <span style=''>import javafx.scene.canvas.{Canvas, GraphicsContext}
+</span>7 <span style=''>import javafx.scene.{Group, Scene}
+</span>8 <span style=''>import javafx.stage.Stage
+</span>9 <span style=''>
+</span>10 <span style=''>/**
+</span>11 <span style=''>  * Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco
+</span>12 <span style=''>  *
+</span>13 <span style=''>  * @author Davide Borficchia
+</span>14 <span style=''>  */
+</span>15 <span style=''>case class GameFX() extends ObjectDrawer {
+</span>16 <span style=''>
+</span>17 <span style=''>  var stage: Stage = _
+</span>18 <span style=''>  var root: Group = _
+</span>19 <span style=''>  var canvas: Canvas = _
+</span>20 <span style=''>
+</span>21 <span style=''>  def start(title: String, size: Int): Unit = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel()</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      stage = new Stage
+</span>25 <span style=''></span><span style='background: #F0ADAD'>      root = new Group
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      canvas = new Canvas(size, size)
+</span>27 <span style=''></span><span style='background: #F0ADAD'>
+</span>28 <span style=''></span><span style='background: #F0ADAD'>      stage.setTitle(title)
+</span>29 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.add(canvas)
+</span>30 <span style=''></span><span style='background: #F0ADAD'>      stage.setScene(new Scene(root))
+</span>31 <span style=''></span><span style='background: #F0ADAD'>
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      //stabilisco cosa fare alla chiusura della finestra
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      stage.setOnCloseRequest(_ =&gt; {
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        Platform.exit()
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        System.exit(0)
+</span>36 <span style=''></span><span style='background: #F0ADAD'>      })
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      stage.show()
+</span>38 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>39 <span style=''>  }
+</span>40 <span style=''>
+</span>41 <span style=''>  def close(): Unit = {
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
+</span>43 <span style=''></span><span style='background: #F0ADAD'>      stage.close()
+</span>44 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  def updateWorld(world: CellWorld): Unit = {
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
+</span>49 <span style=''></span><span style='background: #F0ADAD'>      implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
+</span>50 <span style=''></span><span style='background: #F0ADAD'>      graphicsContext.clearRect(0, 0, canvas.getWidth, canvas.getHeight)
+</span>51 <span style=''></span><span style='background: #F0ADAD'>      import it.cwmp.client.view.game.model.CellView._
+</span>52 <span style=''></span><span style='background: #F0ADAD'>
+</span>53 <span style=''></span><span style='background: #F0ADAD'>      world.attacks.foreach(tentacle =&gt; drawArch(tentacle, world.instant))
+</span>54 <span style=''></span><span style='background: #F0ADAD'>      // println(world.characters.map(_.size))
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      world.characters.foreach(cell =&gt; root.getChildren.add(drawCell(cell)))
+</span>56 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>57 <span style=''>  }
+</span>58 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          937
+        </td>
+        <td>
+          572
+          -
+          586
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.embed.swing.JFXPanel.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.embed.swing.JFXPanel()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          956
+        </td>
+        <td>
+          591
+          -
+          981
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.runLater
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.runLater((() =&gt; {
+  GameFX.this.stage_=(new javafx.stage.Stage());
+  GameFX.this.root_=(new javafx.scene.Group());
+  GameFX.this.canvas_=(new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble));
+  GameFX.this.stage.setTitle(title);
+  GameFX.this.root.getChildren().add(GameFX.this.canvas);
+  GameFX.this.stage.setScene(new javafx.scene.Scene(GameFX.this.root));
+  GameFX.this.stage.setOnCloseRequest(((x$1: javafx.stage.WindowEvent) =&gt; {
+    javafx.application.Platform.exit();
+    java.lang.System.exit(0)
+  }));
+  GameFX.this.stage.show()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          938
+        </td>
+        <td>
+          631
+          -
+          640
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.stage.Stage()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          939
+        </td>
+        <td>
+          623
+          -
+          640
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.stage_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage_=(new javafx.stage.Stage())
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          941
+        </td>
+        <td>
+          647
+          -
+          663
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.root_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root_=(new javafx.scene.Group())
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          940
+        </td>
+        <td>
+          654
+          -
+          663
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Group.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.Group()
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          944
+        </td>
+        <td>
+          679
+          -
+          701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.canvas.Canvas.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          943
+        </td>
+        <td>
+          696
+          -
+          700
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          size.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          670
+          -
+          701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.canvas_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas_=(new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          942
+        </td>
+        <td>
+          690
+          -
+          694
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          size.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          946
+        </td>
+        <td>
+          709
+          -
+          730
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.setTitle(title)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          947
+        </td>
+        <td>
+          758
+          -
+          764
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.canvas
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          948
+        </td>
+        <td>
+          737
+          -
+          765
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.add
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root.getChildren().add(GameFX.this.canvas)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          950
+        </td>
+        <td>
+          787
+          -
+          802
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Scene.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.Scene(GameFX.this.root)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          949
+        </td>
+        <td>
+          797
+          -
+          801
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.root
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          951
+        </td>
+        <td>
+          772
+          -
+          803
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setScene
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.setScene(new javafx.scene.Scene(GameFX.this.root))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          954
+        </td>
+        <td>
+          869
+          -
+          955
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Window.setOnCloseRequest
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.setOnCloseRequest(((x$1: javafx.stage.WindowEvent) =&gt; {
+  javafx.application.Platform.exit();
+  java.lang.System.exit(0)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          952
+        </td>
+        <td>
+          908
+          -
+          923
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.exit
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.exit()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          953
+        </td>
+        <td>
+          932
+          -
+          946
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(0)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          955
+        </td>
+        <td>
+          962
+          -
+          974
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.show
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.show()
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          958
+        </td>
+        <td>
+          1015
+          -
+          1067
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.runLater
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.runLater((() =&gt; GameFX.this.stage.close()))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          957
+        </td>
+        <td>
+          1047
+          -
+          1060
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.close
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.close()
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          970
+        </td>
+        <td>
+          1123
+          -
+          1565
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.runLater
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.runLater((() =&gt; {
+  implicit val graphicsContext: javafx.scene.canvas.GraphicsContext = GameFX.this.canvas.getGraphicsContext2D();
+  graphicsContext.clearRect(0.0, 0.0, GameFX.this.canvas.getWidth(), GameFX.this.canvas.getHeight());
+  import it.cwmp.client.view.game.model.CellView._;
+  world.attacks.foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawArch(tentacle, world.instant)(graphicsContext)));
+  world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToViewCell(cell))(graphicsContext))))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          959
+        </td>
+        <td>
+          1203
+          -
+          1230
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.canvas.Canvas.getGraphicsContext2D
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas.getGraphicsContext2D()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          962
+        </td>
+        <td>
+          1269
+          -
+          1284
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.canvas.Canvas.getWidth
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas.getWidth()
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          964
+        </td>
+        <td>
+          1237
+          -
+          1303
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.canvas.GraphicsContext.clearRect
+        </td>
+        <td style="background: #F0ADAD">
+          graphicsContext.clearRect(0.0, 0.0, GameFX.this.canvas.getWidth(), GameFX.this.canvas.getHeight())
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          961
+        </td>
+        <td>
+          1266
+          -
+          1267
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          960
+        </td>
+        <td>
+          1263
+          -
+          1264
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          963
+        </td>
+        <td>
+          1286
+          -
+          1302
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.canvas.Canvas.getHeight
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas.getHeight()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          965
+        </td>
+        <td>
+          1400
+          -
+          1433
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.client.view.game.ObjectDrawer.drawArch
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.drawArch(tentacle, world.instant)(graphicsContext)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          966
+        </td>
+        <td>
+          1366
+          -
+          1434
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          world.attacks.foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawArch(tentacle, world.instant)(graphicsContext)))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          968
+        </td>
+        <td>
+          1521
+          -
+          1557
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.add
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToViewCell(cell))(graphicsContext))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          967
+        </td>
+        <td>
+          1542
+          -
+          1556
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.client.view.game.ObjectDrawer.drawCell
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToViewCell(cell))(graphicsContext)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          969
+        </td>
+        <td>
+          1488
+          -
+          1558
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToViewCell(cell))(graphicsContext))))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

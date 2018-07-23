@@ -1,0 +1,585 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/model/Address.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.model
+</span>2 <span style=''>
+</span>3 <span style=''>import io.vertx.lang.scala.json.{Json, JsonObject}
+</span>4 <span style=''>import it.cwmp.utils.Utils._
+</span>5 <span style=''>
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * A trait describing an address
+</span>8 <span style=''>  *
+</span>9 <span style=''>  * @author Enrico Siboni
+</span>10 <span style=''>  */
+</span>11 <span style=''>trait Address {
+</span>12 <span style=''>  def address: String
+</span>13 <span style=''>}
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Companion Object
+</span>17 <span style=''>  */
+</span>18 <span style=''>object Address {
+</span>19 <span style=''>
+</span>20 <span style=''>  val FIELD_ADDRESS = </span><span style='background: #AEF1AE'>&quot;user_address&quot;</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>  def apply(address: String): Address = {
+</span>23 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(address), </span><span style='background: #F0ADAD'>&quot;Address should not be empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>AddressDefault(address)</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  def unapply(toExtract: Address): Option[String] =
+</span>28 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract eq null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.address)</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>  /**
+</span>31 <span style=''>    * Default implementation of Address
+</span>32 <span style=''>    *
+</span>33 <span style=''>    * @param address the address contained
+</span>34 <span style=''>    */
+</span>35 <span style=''>  private case class AddressDefault(address: String) extends Address
+</span>36 <span style=''>
+</span>37 <span style=''>  /**
+</span>38 <span style=''>    * Converters for Address
+</span>39 <span style=''>    */
+</span>40 <span style=''>  object Converters {
+</span>41 <span style=''>
+</span>42 <span style=''>    /**
+</span>43 <span style=''>      * Address to JSON converter
+</span>44 <span style=''>      */
+</span>45 <span style=''>    implicit class RichAddress(address: Address) {
+</span>46 <span style=''>      def toJson: JsonObject = </span><span style='background: #AEF1AE'>Json obj ((FIELD_ADDRESS, address.address))</span><span style=''>
+</span>47 <span style=''>    }
+</span>48 <span style=''>
+</span>49 <span style=''>    /**
+</span>50 <span style=''>      * Json to Address Converter
+</span>51 <span style=''>      */
+</span>52 <span style=''>    implicit class JsonToAddressConverter(json: JsonObject) {
+</span>53 <span style=''>      def toAddress: Address = {
+</span>54 <span style=''>        if (</span><span style='background: #AEF1AE'>json containsKey FIELD_ADDRESS</span><span style=''>) </span><span style='background: #AEF1AE'>Address(json.getString(FIELD_ADDRESS))</span><span style=''>
+</span>55 <span style=''>        else </span><span style='background: #F0ADAD'>throw parseException(&quot;Address Parsing&quot;, s&quot;The input doesn't contain $FIELD_ADDRESS --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
+</span>56 <span style=''>      }
+</span>57 <span style=''>    }
+</span>58 <span style=''>
+</span>59 <span style=''>  }
+</span>60 <span style=''>
+</span>61 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          288
+          -
+          302
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;user_address&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          381
+          -
+          410
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Address should not be empty&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          358
+          -
+          379
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.Utils.emptyString(address).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          350
+          -
+          411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(it.cwmp.utils.Utils.emptyString(address).unary_!, &quot;Address should not be empty&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          416
+          -
+          439
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.AddressDefault.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Address.this.AddressDefault.apply(address)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          505
+          -
+          522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.eq
+        </td>
+        <td style="background: #F0ADAD">
+          toExtract.eq(null)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          539
+          -
+          556
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.address
+        </td>
+        <td style="background: #F0ADAD">
+          toExtract.address
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          534
+          -
+          557
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](toExtract.address)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          524
+          -
+          528
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          524
+          -
+          528
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          534
+          -
+          557
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](toExtract.address)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          929
+          -
+          972
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.lang.scala.json.Json.obj
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.lang.scala.json.Json.obj(scala.Tuple2.apply[String, String](Address.this.FIELD_ADDRESS, RichAddress.this.address.address))
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          940
+          -
+          953
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.FIELD_ADDRESS
+        </td>
+        <td style="background: #AEF1AE">
+          Address.this.FIELD_ADDRESS
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          939
+          -
+          971
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, String](Address.this.FIELD_ADDRESS, RichAddress.this.address.address)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          955
+          -
+          970
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.address
+        </td>
+        <td style="background: #AEF1AE">
+          RichAddress.this.address.address
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1170
+          -
+          1208
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Address.apply(JsonToAddressConverter.this.json.getString(Address.this.FIELD_ADDRESS))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1193
+          -
+          1206
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.FIELD_ADDRESS
+        </td>
+        <td style="background: #AEF1AE">
+          Address.this.FIELD_ADDRESS
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          1170
+          -
+          1208
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Address.apply(JsonToAddressConverter.this.json.getString(Address.this.FIELD_ADDRESS))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1138
+          -
+          1168
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.containsKey
+        </td>
+        <td style="background: #AEF1AE">
+          JsonToAddressConverter.this.json.containsKey(Address.this.FIELD_ADDRESS)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1155
+          -
+          1168
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.FIELD_ADDRESS
+        </td>
+        <td style="background: #AEF1AE">
+          Address.this.FIELD_ADDRESS
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1178
+          -
+          1207
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getString
+        </td>
+        <td style="background: #AEF1AE">
+          JsonToAddressConverter.this.json.getString(Address.this.FIELD_ADDRESS)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1222
+          -
+          1335
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw it.cwmp.utils.Utils.parseException(&quot;Address Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.this.FIELD_ADDRESS, JsonToAddressConverter.this.json.encodePrettily()))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1222
+          -
+          1335
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw it.cwmp.utils.Utils.parseException(&quot;Address Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.this.FIELD_ADDRESS, JsonToAddressConverter.this.json.encodePrettily()))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,431 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/authentication/ServerParameters.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication
+</span>2 <span style=''>
+</span>3 <span style=''>object ServerParameters {
+</span>4 <span style=''>
+</span>5 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8666</span><span style=''>
+</span>6 <span style=''>
+</span>7 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/authentication&quot;</span><span style=''>
+</span>8 <span style=''>  val API_SIGNUP = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signup&quot;</span><span style=''>
+</span>9 <span style=''>  val API_SIGNOUT = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signout&quot;</span><span style=''>
+</span>10 <span style=''>  val API_LOGIN = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/login&quot;</span><span style=''>
+</span>11 <span style=''>  val API_VALIDATE = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/validate&quot;</span><span style=''>
+</span>12 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          5
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          89
+          -
+          93
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          8666
+        </td>
+      </tr><tr>
+        <td>
+          7
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          125
+          -
+          146
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/api/authentication&quot;
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          182
+          -
+          190
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/signup&quot;
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          166
+          -
+          190
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/signup&quot;).s(ServerParameters.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          168
+          -
+          169
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          169
+          -
+          182
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          211
+          -
+          236
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/signout&quot;).s(ServerParameters.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          214
+          -
+          227
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          227
+          -
+          236
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/signout&quot;
+        </td>
+      </tr><tr>
+        <td>
+          9
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          213
+          -
+          214
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          258
+          -
+          271
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          271
+          -
+          278
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/login&quot;
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          257
+          -
+          258
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          10
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          255
+          -
+          278
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/login&quot;).s(ServerParameters.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          302
+          -
+          303
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          300
+          -
+          326
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/validate&quot;).s(ServerParameters.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          303
+          -
+          316
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          316
+          -
+          326
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/validate&quot;
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

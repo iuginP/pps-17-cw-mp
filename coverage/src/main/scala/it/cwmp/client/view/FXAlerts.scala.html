@@ -1,0 +1,478 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/FXAlerts.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
+</span>2 <span style=''>
+</span>3 <span style=''>import java.util.Optional
+</span>4 <span style=''>
+</span>5 <span style=''>import javafx.application.Platform
+</span>6 <span style=''>import javafx.scene.control.Alert.AlertType
+</span>7 <span style=''>import javafx.scene.control.{Alert, ButtonType}
+</span>8 <span style=''>
+</span>9 <span style=''>trait FXAlerts {
+</span>10 <span style=''>  this: FXController =&gt;
+</span>11 <span style=''>
+</span>12 <span style=''>  def showInfo(title: String, message: String, onClose: Option[() =&gt; Unit] = None): Unit =
+</span>13 <span style=''>    </span><span style='background: #F0ADAD'>genericAlert(AlertType.INFORMATION, title, s&quot;$title&quot;, message, onClose)</span><span style=''>
+</span>14 <span style=''>
+</span>15 <span style=''>  def showError(title: String, message: String, onClose: Option[() =&gt; Unit] = None): Unit =
+</span>16 <span style=''>    </span><span style='background: #F0ADAD'>genericAlert(AlertType.ERROR, title, s&quot;$title&quot;, message, onClose)</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  private def genericAlert(alertType: AlertType, title: String, headerTitle: String, message: String, onClose: Option[() =&gt; Unit]): Unit = {
+</span>19 <span style=''>    </span><span style='background: #F0ADAD'>Platform runLater(() =&gt; {
+</span>20 <span style=''></span><span style='background: #F0ADAD'>      val alert = new Alert(alertType, message, ButtonType.OK)
+</span>21 <span style=''></span><span style='background: #F0ADAD'>      alert setTitle title
+</span>22 <span style=''></span><span style='background: #F0ADAD'>      alert setHeaderText headerTitle
+</span>23 <span style=''></span><span style='background: #F0ADAD'>      val result: Optional[ButtonType] = alert.showAndWait
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      if (result.get.eq(ButtonType.OK) &amp;&amp; onClose.isDefined) {
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        onClose.get()
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>28 <span style=''>  }
+</span>29 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          795
+        </td>
+        <td>
+          364
+          -
+          373
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(title)
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          794
+        </td>
+        <td>
+          334
+          -
+          355
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          INFORMATION
+        </td>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          796
+        </td>
+        <td>
+          321
+          -
+          392
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlerts.genericAlert
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlerts.this.genericAlert(INFORMATION, title, scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(title), message, onClose)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          797
+        </td>
+        <td>
+          503
+          -
+          518
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ERROR
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          799
+        </td>
+        <td>
+          490
+          -
+          555
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlerts.genericAlert
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlerts.this.genericAlert(ERROR, title, scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(title), message, onClose)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          798
+        </td>
+        <td>
+          527
+          -
+          536
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(title)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          812
+        </td>
+        <td>
+          702
+          -
+          1014
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.runLater
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.runLater((() =&gt; {
+  val alert: javafx.scene.control.Alert = new javafx.scene.control.Alert(alertType, message, javafx.scene.control.ButtonType.OK);
+  alert.setTitle(title);
+  alert.setHeaderText(headerTitle);
+  val result: java.util.Optional[javafx.scene.control.ButtonType] = alert.showAndWait();
+  if (result.get().eq(javafx.scene.control.ButtonType.OK).&amp;&amp;(onClose.isDefined))
+    onClose.get.apply()
+  else
+    ()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          801
+        </td>
+        <td>
+          746
+          -
+          790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Alert.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Alert(alertType, message, javafx.scene.control.ButtonType.OK)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          800
+        </td>
+        <td>
+          776
+          -
+          789
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          802
+        </td>
+        <td>
+          797
+          -
+          817
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          alert.setTitle(title)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          803
+        </td>
+        <td>
+          824
+          -
+          855
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setHeaderText
+        </td>
+        <td style="background: #F0ADAD">
+          alert.setHeaderText(headerTitle)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          804
+        </td>
+        <td>
+          897
+          -
+          914
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.showAndWait
+        </td>
+        <td style="background: #F0ADAD">
+          alert.showAndWait()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          810
+        </td>
+        <td>
+          921
+          -
+          921
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          806
+        </td>
+        <td>
+          957
+          -
+          974
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          onClose.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          811
+        </td>
+        <td>
+          921
+          -
+          921
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          805
+        </td>
+        <td>
+          939
+          -
+          952
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          807
+        </td>
+        <td>
+          925
+          -
+          974
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          result.get().eq(javafx.scene.control.ButtonType.OK).&amp;&amp;(onClose.isDefined)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          809
+        </td>
+        <td>
+          986
+          -
+          999
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Function0.apply
+        </td>
+        <td style="background: #F0ADAD">
+          onClose.get.apply()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          808
+        </td>
+        <td>
+          986
+          -
+          999
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function0.apply
+        </td>
+        <td style="background: #F0ADAD">
+          onClose.get.apply()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

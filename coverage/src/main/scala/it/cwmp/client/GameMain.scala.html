@@ -1,0 +1,649 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/GameMain.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client
+</span>2 <span style=''>
+</span>3 <span style=''>import java.time.{Duration, Instant}
+</span>4 <span style=''>
+</span>5 <span style=''>import akka.actor.{ActorSystem, Props}
+</span>6 <span style=''>import com.typesafe.config.ConfigFactory
+</span>7 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
+</span>8 <span style=''>import it.cwmp.client.view.game.GameViewActor
+</span>9 <span style=''>import it.cwmp.model.User
+</span>10 <span style=''>
+</span>11 <span style=''>object GameMain extends App {
+</span>12 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;ClientApp&quot;</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  val gameActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[GameViewActor]), GameViewActor.getClass.getName)</span><span style=''>
+</span>19 <span style=''>
+</span>20 <span style=''>  import GameViewActor._
+</span>21 <span style=''>
+</span>22 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! ShowGUI</span><span style=''>
+</span>23 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! NewWorld(debugWorld)</span><span style=''>
+</span>24 <span style=''>
+</span>25 <span style=''>  def debugWorld: CellWorld = {
+</span>26 <span style=''>    val cells =
+</span>27 <span style=''>      Cell(User(&quot;Winner&quot;), Point(20, 20), 20) </span><span style='background: #F0ADAD'>::
+</span>28 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Mantis&quot;), Point(90, 400), 40) ::
+</span>29 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Candle&quot;), Point(200, 150), 200) ::
+</span>30 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Enrico&quot;), Point(400, 500), 150) ::
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        Nil</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>CellWorld(Instant.now().plus(Duration.ofSeconds(1)), cells,
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      Tentacle(cells(2), cells(1), Instant.now()) ::
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(1), cells(2), Instant.now()) ::
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(3), cells(1), Instant.now()) ::
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        Nil)</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          335
+          -
+          346
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;ClientApp&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          397
+          -
+          427
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;akka.remote.netty.tcp.port=0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          371
+          -
+          463
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.typesafe.config.Config.withFallback
+        </td>
+        <td style="background: #F0ADAD">
+          com.typesafe.config.ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(com.typesafe.config.ConfigFactory.load())
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          442
+          -
+          462
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.typesafe.config.ConfigFactory.load
+        </td>
+        <td style="background: #F0ADAD">
+          com.typesafe.config.ConfigFactory.load()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          492
+          -
+          500
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.APP_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.APP_NAME
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          480
+          -
+          509
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorSystem.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.ActorSystem.apply(GameMain.this.APP_NAME, GameMain.this.config)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          502
+          -
+          508
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.config
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.config
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          544
+          -
+          573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor])
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          529
+          -
+          606
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorRefFactory.actorOf
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor]), it.cwmp.client.view.game.GameViewActor.getClass().getName())
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          575
+          -
+          605
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          636
+          -
+          645
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.gameActor
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.gameActor
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          646
+          -
+          646
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.!$default$2(x$8)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          648
+          -
+          655
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.ShowGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.ShowGUI
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          636
+          -
+          655
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.!(x$8)(x$9)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          636
+          -
+          645
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          668
+          -
+          668
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.!$default$2(x$10)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          658
+          -
+          667
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          670
+          -
+          690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.NewWorld.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.NewWorld.apply(GameMain.this.debugWorld)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          658
+          -
+          667
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.gameActor
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.gameActor
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          679
+          -
+          689
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.debugWorld
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.debugWorld
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          658
+          -
+          690
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.!(x$10)(x$11)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          786
+          -
+          960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.::
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$3: it.cwmp.client.model.game.impl.Cell = it.cwmp.client.model.game.impl.Cell.apply(it.cwmp.model.User.apply(&quot;Mantis&quot;), it.cwmp.client.model.game.impl.Point.apply(90, 400), 40.0);
+  {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$2: it.cwmp.client.model.game.impl.Cell = it.cwmp.client.model.game.impl.Cell.apply(it.cwmp.model.User.apply(&quot;Candle&quot;), it.cwmp.client.model.game.impl.Point.apply(200, 150), 200.0);
+  {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$1: it.cwmp.client.model.game.impl.Cell = it.cwmp.client.model.game.impl.Cell.apply(it.cwmp.model.User.apply(&quot;Enrico&quot;), it.cwmp.client.model.game.impl.Point.apply(400, 500), 150.0);
+  scala.collection.immutable.Nil.::[it.cwmp.client.model.game.impl.Cell](x$1)
+}.::[it.cwmp.client.model.game.impl.Cell](x$2)
+}.::[it.cwmp.client.model.game.impl.Cell](x$3)
+}.::[it.cwmp.client.model.game.impl.Cell](x$4)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          994
+          -
+          1015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Duration.ofSeconds
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.Duration.ofSeconds(1L)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          38
+        </td>
+        <td>
+          965
+          -
+          1200
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.CellWorld.apply(java.time.Instant.now().plus(java.time.Duration.ofSeconds(1L)), cells, {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$7: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(cells.apply(2), cells.apply(1), java.time.Instant.now());
+  {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$6: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(cells.apply(1), cells.apply(2), java.time.Instant.now());
+  {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$5: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(cells.apply(3), cells.apply(1), java.time.Instant.now());
+  scala.collection.immutable.Nil.::[it.cwmp.client.model.game.impl.Tentacle](x$5)
+}.::[it.cwmp.client.model.game.impl.Tentacle](x$6)
+}.::[it.cwmp.client.model.game.impl.Tentacle](x$7)
+})
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          975
+          -
+          1016
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Instant.plus
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.Instant.now().plus(java.time.Duration.ofSeconds(1L))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          1075
+          -
+          1199
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.::
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$6: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(cells.apply(1), cells.apply(2), java.time.Instant.now());
+  {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$5: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(cells.apply(3), cells.apply(1), java.time.Instant.now());
+  scala.collection.immutable.Nil.::[it.cwmp.client.model.game.impl.Tentacle](x$5)
+}.::[it.cwmp.client.model.game.impl.Tentacle](x$6)
+}.::[it.cwmp.client.model.game.impl.Tentacle](x$7)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>
