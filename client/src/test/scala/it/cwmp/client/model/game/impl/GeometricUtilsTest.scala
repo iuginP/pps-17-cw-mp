@@ -6,6 +6,8 @@ import org.scalatest.{Matchers, PropSpec}
 
 /**
   * A test class for GeometricUtils
+  *
+  * @author Enrico Siboni
   */
 class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
 

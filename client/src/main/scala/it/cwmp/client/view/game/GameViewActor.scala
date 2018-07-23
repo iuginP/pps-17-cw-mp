@@ -3,40 +3,10 @@ package it.cwmp.client.view.game
 import akka.actor.{Actor, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.utils.Logging
 
 import scala.concurrent.duration._
-
-object GameViewActor {
-  def apply(): GameViewActor = new GameViewActor
-
-  case object ShowGUI
-
-  case object HideGUI
-
-  case class NewWorld(world: CellWorld)
-
-  case object UpdateLocalWorld
-
-
-  /**
-    * A message stating that an attack has been launched from one point to another
-    *
-    * @param from the point from which attack is starting
-    * @param to   the point to which the attack is going
-    */
-  case class AddAttack(from: Point, to: Point)
-
-  /**
-    * A message stating that an attack has been removed
-    *
-    * @param pointOnAttackView the point clicked by the player to remove the attack
-    */
-  case class RemoveAttack(pointOnAttackView: Point)
-
-}
-
-import it.cwmp.client.view.game.GameViewActor._
 
 /**
   * @author contributor Enrico Siboni
@@ -87,4 +57,35 @@ class GameViewActor extends Actor with Logging {
     // TODO: convert point on attack view to the corresponding tentacle, calculating the distance of this point
     // TODO: from the straight line passing through the tentacle "from" and "to" points
   }
+}
+
+/**
+  * Companion object, containing actor messages
+  */
+object GameViewActor {
+  def apply(): GameViewActor = new GameViewActor
+
+  case object ShowGUI
+
+  case object HideGUI
+
+  case class NewWorld(world: CellWorld)
+
+  case object UpdateLocalWorld
+
+
+  /**
+    * A message stating that an attack has been launched from one point to another
+    *
+    * @param from the point from which attack is starting
+    * @param to   the point to which the attack is going
+    */
+  case class AddAttack(from: Point, to: Point)
+
+  /**
+    * A message stating that an attack has been removed
+    *
+    * @param pointOnAttackView the point clicked by the player to remove the attack
+    */
+  case class RemoveAttack(pointOnAttackView: Point)
 }
