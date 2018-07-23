@@ -16,14 +16,20 @@
  * Service room-receiver
     - [Scala](/pps-17-cw-mp/scala/:services:room-receiver/)
     - [Java](/pps-17-cw-mp/java/:services:room-receiver/)
- * Service client
+ * Client
     - [Scala](/pps-17-cw-mp/scala/:client/)
     - [Java](/pps-17-cw-mp/java/:client/)
 
-## Coverage reports
- * [Core](/pps-17-cw-mp/coverage/:core/)
- * [Core-testing](/pps-17-cw-mp/coverage/:core-testing/)
- * [Service authentication](/pps-17-cw-mp/coverage/:services:authentication/)
- * [Service rooms](/pps-17-cw-mp/coverage/:services:rooms/)
- * [Service room-receiver](/pps-17-cw-mp/coverage/:services:room-receiver/)
- * [Client](/pps-17-cw-mp/coverage/:client/)
+## Reports
+ * Core
+    - [Scoverage](/pps-17-cw-mp/coverage/core/scoverage/)
+ * Core-testing
+    - [Scoverage](/pps-17-cw-mp/coverage/core-testing/scoverage/)
+ * Service authentication
+    - [Scoverage](/pps-17-cw-mp/coverage/authentication/scoverage/)
+ * Service rooms
+    - [Scoverage](/pps-17-cw-mp/coverage/rooms/scoverage/)
+ * Service room-receiver
+    - [Scoverage](/pps-17-cw-mp/coverage/room-receiver/scoverage/)
+ * Client
+    - [Scoverage](/pps-17-cw-mp/coverage/client/scoverage/)
