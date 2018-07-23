@@ -1,0 +1,606 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/roomreceiver/RoomReceiverServiceVerticle.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.roomreceiver
+</span>2 <span style=''>
+</span>3 <span style=''>import io.vertx.core.Handler
+</span>4 <span style=''>import io.vertx.core.buffer.Buffer
+</span>5 <span style=''>import io.vertx.lang.scala.json.JsonObject
+</span>6 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
+</span>7 <span style=''>import it.cwmp.model.Participant
+</span>8 <span style=''>import it.cwmp.utils.{Logging, VertxServer}
+</span>9 <span style=''>
+</span>10 <span style=''>case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] =&gt; Unit) extends VertxServer with Logging {
+</span>11 <span style=''>
+</span>12 <span style=''>  override protected val serverPort: Int = </span><span style='background: #AEF1AE'>0</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  def port: Int = </span><span style='background: #AEF1AE'>server.actualPort()</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  override protected def initRouter(router: Router): Unit = {
+</span>17 <span style=''>    import it.cwmp.services.roomreceiver.ServerParameters._
+</span>18 <span style=''>    </span><span style='background: #AEF1AE'>router post API_RECEIVE_PARTICIPANTS_URL(token) handler updateRoomParticipantsHandler</span><span style=''>
+</span>19 <span style=''>    log.info(s&quot;Starting the RoomReceiver service with the token: $token ...&quot;)
+</span>20 <span style=''>  }
+</span>21 <span style=''>
+</span>22 <span style=''>  private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>23 <span style=''>    log.info(&quot;Receiving participant list...&quot;)
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
+</span>25 <span style=''></span><span style='background: #AEF1AE'>      extractIncomingParticipantListFromBody(body) match {
+</span>26 <span style=''></span><span style='background: #AEF1AE'>        case Some(participants) =&gt;
+</span>27 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;List is valid.&quot;)
+</span>28 <span style=''></span><span style='background: #AEF1AE'>          log.debug(&quot;Applying reception strategy...&quot;)
+</span>29 <span style=''></span><span style='background: #AEF1AE'>          receptionStrategy(participants)
+</span>30 <span style=''></span><span style='background: #AEF1AE'>          response.endHandler(_ =&gt; server.close())
+</span>31 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(201)
+</span>32 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
+</span>33 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;Error: List is invalid.&quot;)
+</span>34 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(400, &quot;Invalid parameter: no participant list JSON in body&quot;)
+</span>35 <span style=''></span><span style='background: #AEF1AE'>      })</span><span style=''>
+</span>36 <span style=''>
+</span>37 <span style=''>    def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
+</span>38 <span style=''>      try {
+</span>39 <span style=''>        </span><span style='background: #AEF1AE'>var result = List[Participant]()
+</span>40 <span style=''></span><span style='background: #AEF1AE'>        val jsonArray = body.toJsonArray
+</span>41 <span style=''></span><span style='background: #AEF1AE'>        import Participant.Converters._
+</span>42 <span style=''></span><span style='background: #AEF1AE'>        jsonArray.forEach {
+</span>43 <span style=''></span><span style='background: #AEF1AE'>          case jsonObject: JsonObject =&gt; result = result :+ jsonObject.toParticipant
+</span>44 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>45 <span style=''></span><span style='background: #AEF1AE'>        Some(result)</span><span style=''>
+</span>46 <span style=''>      } catch {
+</span>47 <span style=''>        case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>48 <span style=''>      }
+</span>49 <span style=''>    }
+</span>50 <span style=''>  }
+</span>51 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          458
+          -
+          459
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          479
+          -
+          498
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.http.HttpServer.actualPort
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.server.actualPort()
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          682
+          -
+          711
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.updateRoomParticipantsHandler
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.updateRoomParticipantsHandler
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          638
+          -
+          673
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(RoomReceiverServiceVerticle.this.token)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          667
+          -
+          672
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.token
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.token
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          626
+          -
+          711
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.Route.handler
+        </td>
+        <td style="background: #AEF1AE">
+          router.post(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(RoomReceiverServiceVerticle.this.token)).handler(RoomReceiverServiceVerticle.this.updateRoomParticipantsHandler)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          945
+          -
+          1437
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.http.HttpServerRequest.bodyHandler
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.request(routingContext).bodyHandler(((body: io.vertx.core.buffer.Buffer) =&gt; extractIncomingParticipantListFromBody(body) match {
+  case (value: List[it.cwmp.model.Participant])Some[List[it.cwmp.model.Participant]]((participants @ _)) =&gt; {
+    (if (RoomReceiverServiceVerticle.this.log.underlying.isInfoEnabled())
+      RoomReceiverServiceVerticle.this.log.underlying.info(&quot;List is valid.&quot;)
+    else
+      (): Unit);
+    (if (RoomReceiverServiceVerticle.this.log.underlying.isDebugEnabled())
+      RoomReceiverServiceVerticle.this.log.underlying.debug(&quot;Applying reception strategy...&quot;)
+    else
+      (): Unit);
+    RoomReceiverServiceVerticle.this.receptionStrategy.apply(participants);
+    RoomReceiverServiceVerticle.this.response(routingContext).endHandler(((x$1: Unit) =&gt; RoomReceiverServiceVerticle.this.server.close()));
+    RoomReceiverServiceVerticle.this.sendResponse(201, RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }
+  case scala.None =&gt; {
+    (if (RoomReceiverServiceVerticle.this.log.underlying.isInfoEnabled())
+      RoomReceiverServiceVerticle.this.log.underlying.info(&quot;Error: List is invalid.&quot;)
+    else
+      (): Unit);
+    RoomReceiverServiceVerticle.this.sendResponse(400, &quot;Invalid parameter: no participant list JSON in body&quot;)(routingContext)
+  }
+}))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          979
+          -
+          1023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.extractIncomingParticipantListFromBody
+        </td>
+        <td style="background: #AEF1AE">
+          extractIncomingParticipantListFromBody(body)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          1168
+          -
+          1199
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.receptionStrategy.apply(participants)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          1210
+          -
+          1250
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.http.HttpServerResponse.endHandler
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.response(routingContext).endHandler(((x$1: Unit) =&gt; RoomReceiverServiceVerticle.this.server.close()))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          1235
+          -
+          1249
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.http.HttpServer.close
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.server.close()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          1261
+          -
+          1278
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.sendResponse(201, RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          1356
+          -
+          1428
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomReceiverServiceVerticle.this.sendResponse(400, &quot;Invalid parameter: no participant list JSON in body&quot;)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1551
+          -
+          1808
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  var result: List[it.cwmp.model.Participant] = scala.collection.immutable.Nil;
+  val jsonArray: io.vertx.core.json.JsonArray = body.toJsonArray();
+  import it.cwmp.model.Participant.Converters._;
+  jsonArray.forEach(((x0$1: Object) =&gt; x0$1 match {
+    case (jsonObject @ (_: io.vertx.lang.scala.json.JsonObject)) =&gt; result = result.:+[it.cwmp.model.Participant, List[it.cwmp.model.Participant]](it.cwmp.model.Participant.Converters.JsonParticipantConverter(jsonObject).toParticipant)(immutable.this.List.canBuildFrom[it.cwmp.model.Participant])
+  }));
+  scala.Some.apply[List[it.cwmp.model.Participant]](result)
+}
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          1564
+          -
+          1583
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.Nil
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.immutable.Nil
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          1608
+          -
+          1624
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.buffer.Buffer.toJsonArray
+        </td>
+        <td style="background: #AEF1AE">
+          body.toJsonArray()
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1673
+          -
+          1787
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Iterable.forEach
+        </td>
+        <td style="background: #AEF1AE">
+          jsonArray.forEach(((x0$1: Object) =&gt; x0$1 match {
+  case (jsonObject @ (_: io.vertx.lang.scala.json.JsonObject)) =&gt; result = result.:+[it.cwmp.model.Participant, List[it.cwmp.model.Participant]](it.cwmp.model.Participant.Converters.JsonParticipantConverter(jsonObject).toParticipant)(immutable.this.List.canBuildFrom[it.cwmp.model.Participant])
+}))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          1750
+          -
+          1750
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.List.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.List.canBuildFrom[it.cwmp.model.Participant]
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          1753
+          -
+          1777
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Participant.Converters.JsonParticipantConverter.toParticipant
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Participant.Converters.JsonParticipantConverter(jsonObject).toParticipant
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1743
+          -
+          1777
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SeqLike.:+
+        </td>
+        <td style="background: #AEF1AE">
+          result.:+[it.cwmp.model.Participant, List[it.cwmp.model.Participant]](it.cwmp.model.Participant.Converters.JsonParticipantConverter(jsonObject).toParticipant)(immutable.this.List.canBuildFrom[it.cwmp.model.Participant])
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1796
+          -
+          1808
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[List[it.cwmp.model.Participant]](result)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          1854
+          -
+          1858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #AEF1AE">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1875
+          -
+          1875
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

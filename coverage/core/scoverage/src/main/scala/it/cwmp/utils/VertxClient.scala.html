@@ -1,0 +1,832 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/utils/VertxClient.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import io.vertx.scala.ext.web.client.{HttpRequest, HttpResponse, WebClient, WebClientOptions}
+</span>4 <span style=''>import it.cwmp.exceptions.HTTPException
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.concurrent.Future
+</span>7 <span style=''>import scala.util.{Failure, Success}
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * This trait provides all the utilities to get an instance of a client in the Vertx environment.
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Eugenio Pierfederici
+</span>13 <span style=''>  */
+</span>14 <span style=''>trait VertxClient {
+</span>15 <span style=''>  this: VertxInstance =&gt;
+</span>16 <span style=''>
+</span>17 <span style=''>  private var cachedClient: WebClient = _
+</span>18 <span style=''>
+</span>19 <span style=''>  /**
+</span>20 <span style=''>    * This method must be implemented in order to provide a default configuration for the client.
+</span>21 <span style=''>    *
+</span>22 <span style=''>    * @return The default client configuration
+</span>23 <span style=''>    */
+</span>24 <span style=''>  protected def clientOptions: WebClientOptions
+</span>25 <span style=''>
+</span>26 <span style=''>  /**
+</span>27 <span style=''>    * This method should be called to obtain an instance of the default [[WebClient]].
+</span>28 <span style=''>    * The client is cached, so it will be instantiated only the first time it is called.
+</span>29 <span style=''>    *
+</span>30 <span style=''>    * @return the client
+</span>31 <span style=''>    */
+</span>32 <span style=''>  implicit protected def client: WebClient = </span><span style='background: #AEF1AE'>cachedClient</span><span style=''> match {
+</span>33 <span style=''>    case client: WebClient =&gt; client
+</span>34 <span style=''>    case _ =&gt;
+</span>35 <span style=''>      </span><span style='background: #AEF1AE'>cachedClient = WebClient.create(vertx, clientOptions)</span><span style=''>
+</span>36 <span style=''>      </span><span style='background: #AEF1AE'>cachedClient</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  /**
+</span>40 <span style=''>    * When called it returns the client corresponding to the configuration passed,
+</span>41 <span style=''>    * or the default client if the configuration is null or invalid.
+</span>42 <span style=''>    *
+</span>43 <span style=''>    * @param options the configuration to use
+</span>44 <span style=''>    * @return the client
+</span>45 <span style=''>    */
+</span>46 <span style=''>  implicit protected def client(options: WebClientOptions): WebClient = options match {
+</span>47 <span style=''>    case options: WebClientOptions if </span><span style='background: #F0ADAD'>options == clientOptions</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>client</span><span style=''>
+</span>48 <span style=''>    case options: WebClientOptions =&gt; </span><span style='background: #F0ADAD'>WebClient.create(vertx, options)</span><span style=''>
+</span>49 <span style=''>    case _ =&gt; </span><span style='background: #F0ADAD'>client</span><span style=''>
+</span>50 <span style=''>  }
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * An implicit class to provide the [[HttpRequest]] with some more useful utilities.
+</span>54 <span style=''>    */
+</span>55 <span style=''>
+</span>56 <span style=''>  import io.netty.handler.codec.http.HttpHeaderNames
+</span>57 <span style=''>
+</span>58 <span style=''>  implicit class richHttpRequest[T](request: HttpRequest[T]) {
+</span>59 <span style=''>
+</span>60 <span style=''>    /**
+</span>61 <span style=''>      * Simplified way to add the basic Authorization header with the provided username and password
+</span>62 <span style=''>      *
+</span>63 <span style=''>      * @param username the username
+</span>64 <span style=''>      * @param password the password
+</span>65 <span style=''>      * @return the same [[HttpRequest]] enriched, with the authorization header
+</span>66 <span style=''>      */
+</span>67 <span style=''>    def addAuthentication(username: String, password: String): HttpRequest[T] =
+</span>68 <span style=''>      </span><span style='background: #AEF1AE'>HttpUtils.buildBasicAuthentication(username, password)
+</span>69 <span style=''></span><span style='background: #AEF1AE'>        .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
+</span>70 <span style=''></span><span style='background: #AEF1AE'>        .getOrElse(</span><span style='background: #F0ADAD'>request</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>71 <span style=''>
+</span>72 <span style=''>    /**
+</span>73 <span style=''>      * Simplified way to add the jwt Authorization header with the provided jwt token
+</span>74 <span style=''>      *
+</span>75 <span style=''>      * @param token the token
+</span>76 <span style=''>      * @return the same [[HttpRequest]] enriched, with the authorization header
+</span>77 <span style=''>      */
+</span>78 <span style=''>    def addAuthentication(implicit token: String): HttpRequest[T] =
+</span>79 <span style=''>      </span><span style='background: #AEF1AE'>HttpUtils.buildJwtAuthentication(token)
+</span>80 <span style=''></span><span style='background: #AEF1AE'>        .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
+</span>81 <span style=''></span><span style='background: #AEF1AE'>        .getOrElse(</span><span style='background: #F0ADAD'>request</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>82 <span style=''>  }
+</span>83 <span style=''>
+</span>84 <span style=''>  /**
+</span>85 <span style=''>    * An implicit class to provide the &lt;code&gt;Future[HttpResponse]&lt;/code&gt; with some more useful utilities.
+</span>86 <span style=''>    */
+</span>87 <span style=''>  implicit class richHttpResponse[T](response: Future[HttpResponse[T]]) {
+</span>88 <span style=''>
+</span>89 <span style=''>    /**
+</span>90 <span style=''>      * Causes the future to fail if the status code if different from one of those passed
+</span>91 <span style=''>      *
+</span>92 <span style=''>      * @param statusCode a varargs containing all the allowed status codes
+</span>93 <span style=''>      * @return the same future, but makes it fail if the status code is different from one of those passed
+</span>94 <span style=''>      */
+</span>95 <span style=''>    def expectStatus(statusCode: Int*): Future[HttpResponse[T]] = {
+</span>96 <span style=''>      </span><span style='background: #AEF1AE'>response.transform {
+</span>97 <span style=''></span><span style='background: #AEF1AE'>        case s@Success(res) if statusCode.contains(res.statusCode()) =&gt; s
+</span>98 <span style=''></span><span style='background: #AEF1AE'>        case Success(res) =&gt; Failure(HTTPException(res.statusCode(), &quot;Invalid response code&quot;))
+</span>99 <span style=''></span><span style='background: #AEF1AE'>        case f@Failure(_) =&gt; f
+</span>100 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>101 <span style=''>    }
+</span>102 <span style=''>
+</span>103 <span style=''>    /**
+</span>104 <span style=''>      * Maps the body of the request
+</span>105 <span style=''>      *
+</span>106 <span style=''>      * @param strategy the strategy used to map the body
+</span>107 <span style=''>      * @tparam P the type of data returned from the mapping
+</span>108 <span style=''>      * @return a future containing the mapped body
+</span>109 <span style=''>      */
+</span>110 <span style=''>    def mapBody[P](strategy: Option[String] =&gt; Future[P]): Future[P] = {
+</span>111 <span style=''>      </span><span style='background: #AEF1AE'>response.flatMap(res =&gt; strategy(res.bodyAsString()))</span><span style=''>
+</span>112 <span style=''>    }
+</span>113 <span style=''>  }
+</span>114 <span style=''>
+</span>115 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          939
+          -
+          951
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.cachedClient
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.cachedClient
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          1032
+          -
+          1070
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.WebClient.create
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.ext.web.client.WebClient.create(VertxClient.this.vertx, VertxClient.this.clientOptions)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          1056
+          -
+          1069
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.clientOptions
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.clientOptions
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          1017
+          -
+          1070
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.cachedClient_=
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.cachedClient_=(io.vertx.scala.ext.web.client.WebClient.create(VertxClient.this.vertx, VertxClient.this.clientOptions))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          1049
+          -
+          1054
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertx
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.vertx
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          1077
+          -
+          1089
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.cachedClient
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.cachedClient
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          385
+        </td>
+        <td>
+          1474
+          -
+          1487
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.clientOptions
+        </td>
+        <td style="background: #F0ADAD">
+          VertxClient.this.clientOptions
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          1491
+          -
+          1497
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #F0ADAD">
+          VertxClient.this.client
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          1463
+          -
+          1487
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          options.==(VertxClient.this.clientOptions)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          388
+        </td>
+        <td>
+          1553
+          -
+          1558
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertx
+        </td>
+        <td style="background: #F0ADAD">
+          VertxClient.this.vertx
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          1536
+          -
+          1568
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.WebClient.create
+        </td>
+        <td style="background: #F0ADAD">
+          io.vertx.scala.ext.web.client.WebClient.create(VertxClient.this.vertx, options)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          1583
+          -
+          1589
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #F0ADAD">
+          VertxClient.this.client
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          391
+        </td>
+        <td>
+          2268
+          -
+          2306
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.netty.util.AsciiString.toString
+        </td>
+        <td style="background: #AEF1AE">
+          io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString()
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          392
+        </td>
+        <td>
+          2250
+          -
+          2310
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.putHeader
+        </td>
+        <td style="background: #AEF1AE">
+          richHttpRequest.this.request.putHeader(io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString(), x$1)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          394
+        </td>
+        <td>
+          2182
+          -
+          2339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          HttpUtils.buildBasicAuthentication(username, password).map[io.vertx.scala.ext.web.client.HttpRequest[T]](((x$1: String) =&gt; richHttpRequest.this.request.putHeader(io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString(), x$1))).getOrElse[io.vertx.scala.ext.web.client.HttpRequest[T]](richHttpRequest.this.request)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          393
+        </td>
+        <td>
+          2331
+          -
+          2338
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.richHttpRequest.request
+        </td>
+        <td style="background: #F0ADAD">
+          richHttpRequest.this.request
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          396
+        </td>
+        <td>
+          2692
+          -
+          2752
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.putHeader
+        </td>
+        <td style="background: #AEF1AE">
+          richHttpRequest.this.request.putHeader(io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString(), x$2)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          2710
+          -
+          2748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.netty.util.AsciiString.toString
+        </td>
+        <td style="background: #AEF1AE">
+          io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString()
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          397
+        </td>
+        <td>
+          2773
+          -
+          2780
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.richHttpRequest.request
+        </td>
+        <td style="background: #F0ADAD">
+          richHttpRequest.this.request
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          398
+        </td>
+        <td>
+          2639
+          -
+          2781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          HttpUtils.buildJwtAuthentication(token).map[io.vertx.scala.ext.web.client.HttpRequest[T]](((x$2: String) =&gt; richHttpRequest.this.request.putHeader(io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION.toString(), x$2))).getOrElse[io.vertx.scala.ext.web.client.HttpRequest[T]](richHttpRequest.this.request)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          406
+        </td>
+        <td>
+          3355
+          -
+          3583
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.transform
+        </td>
+        <td style="background: #AEF1AE">
+          richHttpResponse.this.response.transform[io.vertx.scala.ext.web.client.HttpResponse[T]](((x0$1: scala.util.Try[io.vertx.scala.ext.web.client.HttpResponse[T]]) =&gt; x0$1 match {
+  case (s @ (value: io.vertx.scala.ext.web.client.HttpResponse[T])scala.util.Success[io.vertx.scala.ext.web.client.HttpResponse[T]]((res @ _))) if statusCode.contains[Int](res.statusCode()) =&gt; s
+  case (value: io.vertx.scala.ext.web.client.HttpResponse[T])scala.util.Success[io.vertx.scala.ext.web.client.HttpResponse[T]]((res @ _)) =&gt; scala.util.Failure.apply[Nothing](it.cwmp.exceptions.HTTPException.apply(res.statusCode(), &quot;Invalid response code&quot;))
+  case (f @ (exception: Throwable)scala.util.Failure[io.vertx.scala.ext.web.client.HttpResponse[T]](_)) =&gt; f
+}))(VertxClient.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          405
+        </td>
+        <td>
+          3374
+          -
+          3374
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          400
+        </td>
+        <td>
+          3407
+          -
+          3444
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.SeqLike.contains
+        </td>
+        <td style="background: #AEF1AE">
+          statusCode.contains[Int](res.statusCode())
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          399
+        </td>
+        <td>
+          3427
+          -
+          3443
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpResponse.statusCode
+        </td>
+        <td style="background: #AEF1AE">
+          res.statusCode()
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          403
+        </td>
+        <td>
+          3487
+          -
+          3543
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.exceptions.HTTPException.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.exceptions.HTTPException.apply(res.statusCode(), &quot;Invalid response code&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          402
+        </td>
+        <td>
+          3519
+          -
+          3542
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Invalid response code&quot;
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          401
+        </td>
+        <td>
+          3501
+          -
+          3517
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpResponse.statusCode
+        </td>
+        <td style="background: #AEF1AE">
+          res.statusCode()
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          404
+        </td>
+        <td>
+          3479
+          -
+          3544
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Failure.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.util.Failure.apply[Nothing](it.cwmp.exceptions.HTTPException.apply(res.statusCode(), &quot;Invalid response code&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          409
+        </td>
+        <td>
+          3919
+          -
+          3919
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxClient.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          3927
+          -
+          3955
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          strategy.apply(res.bodyAsString())
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          410
+        </td>
+        <td>
+          3903
+          -
+          3956
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          richHttpResponse.this.response.flatMap[P](((res: io.vertx.scala.ext.web.client.HttpResponse[T]) =&gt; strategy.apply(res.bodyAsString())))(VertxClient.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          407
+        </td>
+        <td>
+          3936
+          -
+          3954
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpResponse.bodyAsString
+        </td>
+        <td style="background: #AEF1AE">
+          res.bodyAsString()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

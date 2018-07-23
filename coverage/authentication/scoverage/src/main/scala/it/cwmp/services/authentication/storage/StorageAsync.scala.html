@@ -1,0 +1,1665 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/authentication/storage/StorageAsync.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication.storage
+</span>2 <span style=''>
+</span>3 <span style=''>import io.vertx.core.json.JsonArray
+</span>4 <span style=''>import it.cwmp.utils.{VertxInstance, VertxJDBC}
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.concurrent._
+</span>7 <span style=''>
+</span>8 <span style=''>trait StorageAsync {
+</span>9 <span style=''>
+</span>10 <span style=''>  def init(): Future[Unit]
+</span>11 <span style=''>
+</span>12 <span style=''>  def signupFuture(username: String, password: String): Future[Unit]
+</span>13 <span style=''>
+</span>14 <span style=''>  def signoutFuture(username: String): Future[Unit]
+</span>15 <span style=''>
+</span>16 <span style=''>  def loginFuture(username: String, password: String): Future[Unit]
+</span>17 <span style=''>
+</span>18 <span style=''>  def existsFuture(username: String): Future[Unit]
+</span>19 <span style=''>}
+</span>20 <span style=''>
+</span>21 <span style=''>object StorageAsync {
+</span>22 <span style=''>
+</span>23 <span style=''>  def apply(): StorageAsync = </span><span style='background: #AEF1AE'>new StorageAsyncImpl()</span><span style=''>
+</span>24 <span style=''>
+</span>25 <span style=''>  def apply(configurationPath: String): StorageAsync = </span><span style='background: #F0ADAD'>new StorageAsyncImpl(configurationPath)</span><span style=''>
+</span>26 <span style=''>
+</span>27 <span style=''>  class StorageAsyncImpl(override val configurationPath: String = &quot;authentication/database.json&quot;) extends StorageAsync with VertxInstance with VertxJDBC {
+</span>28 <span style=''>
+</span>29 <span style=''>    override def init(): Future[Unit] =
+</span>30 <span style=''>      (</span><span style='background: #AEF1AE'>for (
+</span>31 <span style=''></span><span style='background: #AEF1AE'>        connection &lt;- openConnection();
+</span>32 <span style=''></span><span style='background: #AEF1AE'>        result &lt;- connection.executeFuture(
+</span>33 <span style=''></span><span style='background: #AEF1AE'>          &quot;&quot;&quot;
+</span>34 <span style=''></span><span style='background: #AEF1AE'>          CREATE TABLE IF NOT EXISTS authorization (
+</span>35 <span style=''></span><span style='background: #AEF1AE'>            auth_username VARCHAR(45) NOT NULL,
+</span>36 <span style=''></span><span style='background: #AEF1AE'>            auth_password VARCHAR(45) NOT NULL,
+</span>37 <span style=''></span><span style='background: #AEF1AE'>            auth_salt CHAR(32) NOT NULL,
+</span>38 <span style=''></span><span style='background: #AEF1AE'>            PRIMARY KEY (auth_username))
+</span>39 <span style=''></span><span style='background: #AEF1AE'>          &quot;&quot;&quot;)
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      ) yield result).closeConnections</span><span style=''>
+</span>41 <span style=''>
+</span>42 <span style=''>    override def signupFuture(usernameP: String, passwordP: String): Future[Unit] =
+</span>43 <span style=''>      (</span><span style='background: #AEF1AE'>for (
+</span>44 <span style=''></span><span style='background: #AEF1AE'>        // Controllo l'input
+</span>45 <span style=''></span><span style='background: #AEF1AE'>        username &lt;- Option(usernameP) if username.nonEmpty;
+</span>46 <span style=''></span><span style='background: #AEF1AE'>        password &lt;- Option(passwordP) if password.nonEmpty
+</span>47 <span style=''></span><span style='background: #AEF1AE'>      ) yield {
+</span>48 <span style=''></span><span style='background: #AEF1AE'>        (for (
+</span>49 <span style=''></span><span style='background: #AEF1AE'>          // Eseguo operazioni sul db in maniera sequenziale
+</span>50 <span style=''></span><span style='background: #AEF1AE'>          connection &lt;- openConnection();
+</span>51 <span style=''></span><span style='background: #AEF1AE'>          _ &lt;- connection.updateWithParamsFuture(
+</span>52 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;
+</span>53 <span style=''></span><span style='background: #AEF1AE'>              INSERT INTO authorization values (?, ?, ?)
+</span>54 <span style=''></span><span style='background: #AEF1AE'>              &quot;&quot;&quot;, new JsonArray().add(username).add(password).add(&quot;SALT&quot;))
+</span>55 <span style=''></span><span style='background: #AEF1AE'>        ) yield ()).closeConnections
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>57 <span style=''>
+</span>58 <span style=''>    override def signoutFuture(usernameP: String): Future[Unit] =
+</span>59 <span style=''>      (</span><span style='background: #AEF1AE'>for (
+</span>60 <span style=''></span><span style='background: #AEF1AE'>        // Controllo l'input
+</span>61 <span style=''></span><span style='background: #AEF1AE'>        username &lt;- Option(usernameP) if username.nonEmpty
+</span>62 <span style=''></span><span style='background: #AEF1AE'>      ) yield {
+</span>63 <span style=''></span><span style='background: #AEF1AE'>        (for (
+</span>64 <span style=''></span><span style='background: #AEF1AE'>          // Eseguo operazioni sul db in maniera sequenziale
+</span>65 <span style=''></span><span style='background: #AEF1AE'>          connection &lt;- openConnection();
+</span>66 <span style=''></span><span style='background: #AEF1AE'>          result &lt;- connection.updateWithParamsFuture(
+</span>67 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;
+</span>68 <span style=''></span><span style='background: #AEF1AE'>            DELETE FROM authorization WHERE auth_username = ?
+</span>69 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;, new JsonArray().add(username)) if result.getUpdated &gt; 0
+</span>70 <span style=''></span><span style='background: #AEF1AE'>        ) yield ()).closeConnections
+</span>71 <span style=''></span><span style='background: #AEF1AE'>      }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>72 <span style=''>
+</span>73 <span style=''>    override def loginFuture(usernameP: String, passwordP: String): Future[Unit] =
+</span>74 <span style=''>      (</span><span style='background: #AEF1AE'>for (
+</span>75 <span style=''></span><span style='background: #AEF1AE'>        // Controllo l'input
+</span>76 <span style=''></span><span style='background: #AEF1AE'>        username &lt;- Option(usernameP) if username.nonEmpty;
+</span>77 <span style=''></span><span style='background: #AEF1AE'>        password &lt;- Option(passwordP) if password.nonEmpty
+</span>78 <span style=''></span><span style='background: #AEF1AE'>      ) yield {
+</span>79 <span style=''></span><span style='background: #AEF1AE'>        (for (
+</span>80 <span style=''></span><span style='background: #AEF1AE'>          // Eseguo operazioni sul db in maniera sequenziale
+</span>81 <span style=''></span><span style='background: #AEF1AE'>          connection &lt;- openConnection();
+</span>82 <span style=''></span><span style='background: #AEF1AE'>          result &lt;- connection.queryWithParamsFuture(
+</span>83 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;
+</span>84 <span style=''></span><span style='background: #AEF1AE'>            SELECT *
+</span>85 <span style=''></span><span style='background: #AEF1AE'>            FROM authorization
+</span>86 <span style=''></span><span style='background: #AEF1AE'>            WHERE auth_username = ?
+</span>87 <span style=''></span><span style='background: #AEF1AE'>            AND auth_password = ?
+</span>88 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;, new JsonArray().add(username).add(password)) if result.getResults.nonEmpty
+</span>89 <span style=''></span><span style='background: #AEF1AE'>        ) yield ()).closeConnections
+</span>90 <span style=''></span><span style='background: #AEF1AE'>      }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>91 <span style=''>
+</span>92 <span style=''>
+</span>93 <span style=''>    override def existsFuture(usernameP: String): Future[Unit] =
+</span>94 <span style=''>      (</span><span style='background: #AEF1AE'>for (
+</span>95 <span style=''></span><span style='background: #AEF1AE'>        // Controllo l'input
+</span>96 <span style=''></span><span style='background: #AEF1AE'>        username &lt;- Option(usernameP) if username.nonEmpty
+</span>97 <span style=''></span><span style='background: #AEF1AE'>      ) yield {
+</span>98 <span style=''></span><span style='background: #AEF1AE'>        (for (
+</span>99 <span style=''></span><span style='background: #AEF1AE'>          // Eseguo operazioni sul db in maniera sequenziale
+</span>100 <span style=''></span><span style='background: #AEF1AE'>          connection &lt;- openConnection();
+</span>101 <span style=''></span><span style='background: #AEF1AE'>          result &lt;- connection.queryWithParamsFuture(
+</span>102 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;
+</span>103 <span style=''></span><span style='background: #AEF1AE'>            SELECT *
+</span>104 <span style=''></span><span style='background: #AEF1AE'>            FROM authorization
+</span>105 <span style=''></span><span style='background: #AEF1AE'>            WHERE auth_username = ?
+</span>106 <span style=''></span><span style='background: #AEF1AE'>            &quot;&quot;&quot;, new JsonArray().add(username)) if result.getResults.nonEmpty
+</span>107 <span style=''></span><span style='background: #AEF1AE'>        ) yield ()).closeConnections
+</span>108 <span style=''></span><span style='background: #AEF1AE'>      }).getOrElse(</span><span style='background: #F0ADAD'>Future.failed(new IllegalArgumentException())</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>109 <span style=''>
+</span>110 <span style=''>  }
+</span>111 <span style=''>
+</span>112 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          510
+          -
+          532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.storage.StorageAsync.StorageAsyncImpl.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new StorageAsync.this.StorageAsyncImpl(StorageAsync.this.StorageAsyncImpl.&lt;init&gt;$default$1)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          510
+          -
+          510
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.storage.StorageAsync.StorageAsyncImpl.&lt;init&gt;$default$1
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsync.this.StorageAsyncImpl.&lt;init&gt;$default$1
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          119
+        </td>
+        <td>
+          589
+          -
+          628
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.storage.StorageAsync.StorageAsyncImpl.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new StorageAsync.this.StorageAsyncImpl(configurationPath)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          833
+          -
+          1203
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.executeFuture(&quot;\n          CREATE TABLE IF NOT EXISTS authorization (\n            auth_username VARCHAR(45) NOT NULL,\n            auth_password VARCHAR(45) NOT NULL,\n            auth_salt CHAR(32) NOT NULL,\n            PRIMARY KEY (auth_username))\n          &quot;).map[Unit](((result: Unit) =&gt; result))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          858
+          -
+          858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          887
+          -
+          1203
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.executeFuture(&quot;\n          CREATE TABLE IF NOT EXISTS authorization (\n            auth_username VARCHAR(45) NOT NULL,\n            auth_password VARCHAR(45) NOT NULL,\n            auth_salt CHAR(32) NOT NULL,\n            PRIMARY KEY (auth_username))\n          &quot;).map[Unit](((result: Unit) =&gt; result))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          121
+        </td>
+        <td>
+          894
+          -
+          894
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          933
+          -
+          1181
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n          CREATE TABLE IF NOT EXISTS authorization (\n            auth_username VARCHAR(45) NOT NULL,\n            auth_password VARCHAR(45) NOT NULL,\n            auth_salt CHAR(32) NOT NULL,\n            PRIMARY KEY (auth_username))\n          &quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          1205
+          -
+          1205
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          833
+          -
+          1221
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.executeFuture(&quot;\n          CREATE TABLE IF NOT EXISTS authorization (\n            auth_username VARCHAR(45) NOT NULL,\n            auth_password VARCHAR(45) NOT NULL,\n            auth_salt CHAR(32) NOT NULL,\n            PRIMARY KEY (auth_username))\n          &quot;).map[Unit](((result: Unit) =&gt; result))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          1390
+          -
+          1407
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          1450
+          -
+          1467
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(password).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          1417
+          -
+          1837
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;, new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          1581
+          -
+          1581
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          1493
+          -
+          1819
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;, new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          1612
+          -
+          1819
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.updateWithParamsFuture(&quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;, new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          1614
+          -
+          1614
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          1664
+          -
+          1742
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          1744
+          -
+          1799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonArray.add
+        </td>
+        <td style="background: #AEF1AE">
+          new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          1493
+          -
+          1837
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;, new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          1817
+          -
+          1819
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          1821
+          -
+          1821
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          1857
+          -
+          1902
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          1871
+          -
+          1901
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          1314
+          -
+          1903
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).flatMap[scala.concurrent.Future[Unit]](((username: String) =&gt; scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n              INSERT INTO authorization values (?, ?, ?)\n              &quot;, new io.vertx.core.json.JsonArray().add(username).add(password).add(&quot;SALT&quot;)).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext))))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          2054
+          -
+          2071
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          2097
+          -
+          2430
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n            DELETE FROM authorization WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          2185
+          -
+          2185
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          2259
+          -
+          2259
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          2216
+          -
+          2430
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.updateWithParamsFuture(&quot;\n            DELETE FROM authorization WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          2223
+          -
+          2223
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          2273
+          -
+          2354
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n            DELETE FROM authorization WHERE auth_username = ?\n            &quot;
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          2390
+          -
+          2411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          result.getUpdated.&gt;(0)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          2356
+          -
+          2385
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonArray.add
+        </td>
+        <td style="background: #AEF1AE">
+          new io.vertx.core.json.JsonArray().add(username)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          2428
+          -
+          2430
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          2097
+          -
+          2448
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n            DELETE FROM authorization WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          2432
+          -
+          2432
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          2468
+          -
+          2513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          2482
+          -
+          2512
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          1978
+          -
+          2514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).map[scala.concurrent.Future[Unit]](((username: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(&quot;\n            DELETE FROM authorization WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          2682
+          -
+          2699
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          2742
+          -
+          2759
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(password).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          2709
+          -
+          3214
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username).add(password)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          2785
+          -
+          3196
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username).add(password)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          2873
+          -
+          2873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          2911
+          -
+          2911
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          2904
+          -
+          3196
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username).add(password)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          2946
+          -
+          2946
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          2960
+          -
+          3101
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          3103
+          -
+          3146
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonArray.add
+        </td>
+        <td style="background: #AEF1AE">
+          new io.vertx.core.json.JsonArray().add(username).add(password)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          3151
+          -
+          3177
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          result.getResults.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          2785
+          -
+          3214
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username).add(password)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          3194
+          -
+          3196
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          3198
+          -
+          3198
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          173
+        </td>
+        <td>
+          2606
+          -
+          3280
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).flatMap[scala.concurrent.Future[Unit]](((username: String) =&gt; scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            AND auth_password = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username).add(password)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext))))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          172
+        </td>
+        <td>
+          3234
+          -
+          3279
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          3248
+          -
+          3278
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          3431
+          -
+          3448
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          182
+        </td>
+        <td>
+          3562
+          -
+          3562
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          183
+        </td>
+        <td>
+          3474
+          -
+          3837
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          178
+        </td>
+        <td>
+          3635
+          -
+          3635
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          181
+        </td>
+        <td>
+          3593
+          -
+          3837
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          180
+        </td>
+        <td>
+          3600
+          -
+          3600
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          175
+        </td>
+        <td>
+          3649
+          -
+          3756
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            &quot;
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          176
+        </td>
+        <td>
+          3758
+          -
+          3787
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonArray.add
+        </td>
+        <td style="background: #AEF1AE">
+          new io.vertx.core.json.JsonArray().add(username)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          177
+        </td>
+        <td>
+          3792
+          -
+          3818
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          result.getResults.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          185
+        </td>
+        <td>
+          3474
+          -
+          3855
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          184
+        </td>
+        <td>
+          3839
+          -
+          3839
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          StorageAsyncImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          179
+        </td>
+        <td>
+          3835
+          -
+          3837
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          187
+        </td>
+        <td>
+          3875
+          -
+          3920
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          186
+        </td>
+        <td>
+          3889
+          -
+          3919
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          3355
+          -
+          3921
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).map[scala.concurrent.Future[Unit]](((username: String) =&gt; StorageAsyncImpl.this.RichFuture[Unit](StorageAsyncImpl.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(&quot;\n            SELECT *\n            FROM authorization\n            WHERE auth_username = ?\n            &quot;, new io.vertx.core.json.JsonArray().add(username)).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(StorageAsyncImpl.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(StorageAsyncImpl.this.vertxExecutionContext)))(StorageAsyncImpl.this.vertxExecutionContext)).closeConnections(StorageAsyncImpl.this.vertxExecutionContext))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

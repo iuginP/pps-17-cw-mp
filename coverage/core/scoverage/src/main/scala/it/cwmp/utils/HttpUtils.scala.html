@@ -1,0 +1,953 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/utils/HttpUtils.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import java.util.Base64
+</span>4 <span style=''>
+</span>5 <span style=''>/**
+</span>6 <span style=''>  * This object contains utility methods for managing the authentication.
+</span>7 <span style=''>  *
+</span>8 <span style=''>  * @author Eugenio Pierfederici
+</span>9 <span style=''>  * @author Davide Borficchia
+</span>10 <span style=''>  */
+</span>11 <span style=''>object HttpUtils {
+</span>12 <span style=''>
+</span>13 <span style=''>  private val PREFIX_BASIC = </span><span style='background: #AEF1AE'>&quot;Basic&quot;</span><span style=''>
+</span>14 <span style=''>  private val PREFIX_JWT = </span><span style='background: #AEF1AE'>&quot;Bearer&quot;</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  /**
+</span>17 <span style=''>    * Build the basic authentication header for the http request.
+</span>18 <span style=''>    * It si composed from the [[PREFIX_BASIC]] prefix followed by the Base64 of 'username:password'
+</span>19 <span style=''>    *
+</span>20 <span style=''>    * @param username the username
+</span>21 <span style=''>    * @param password the password
+</span>22 <span style=''>    * @return the header for the request, or None
+</span>23 <span style=''>    */
+</span>24 <span style=''>  def buildBasicAuthentication(username: String, password: String): Option[String] =
+</span>25 <span style=''>    </span><span style='background: #AEF1AE'>for (
+</span>26 <span style=''></span><span style='background: #AEF1AE'>      usernameVal &lt;- Option(username) if usernameVal.nonEmpty;
+</span>27 <span style=''></span><span style='background: #AEF1AE'>      passwordVal &lt;- Option(password) if passwordVal.nonEmpty
+</span>28 <span style=''></span><span style='background: #AEF1AE'>    ) yield s&quot;$PREFIX_BASIC &quot; + Base64.getEncoder.encodeToString(s&quot;$usernameVal:$passwordVal&quot;.getBytes())</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>  /**
+</span>31 <span style=''>    * Reads the couple (username,password) from the authentication header in the request.
+</span>32 <span style=''>    *
+</span>33 <span style=''>    * @param header the authentication header
+</span>34 <span style=''>    * @return the couple containing username and password, or None
+</span>35 <span style=''>    */
+</span>36 <span style=''>  def readBasicAuthentication(header: String): Option[(String, String)] =
+</span>37 <span style=''>    try {
+</span>38 <span style=''>      </span><span style='background: #AEF1AE'>for (
+</span>39 <span style=''></span><span style='background: #AEF1AE'>        headerVal &lt;- Option(header) if headerVal.nonEmpty;
+</span>40 <span style=''></span><span style='background: #AEF1AE'>        //divido la stringa &quot;Basic &quot; dalla parte in Base64
+</span>41 <span style=''></span><span style='background: #AEF1AE'>        credentialFromHeader = headerVal.split(s&quot;$PREFIX_BASIC &quot;)(1) if credentialFromHeader.nonEmpty;
+</span>42 <span style=''></span><span style='background: #AEF1AE'>        //decodifico il payload e ottengo, quando è possibile, username e password in chiaro
+</span>43 <span style=''></span><span style='background: #AEF1AE'>        headerDecoded = new String(Base64.getDecoder.decode(credentialFromHeader)).split(&quot;:&quot;)
+</span>44 <span style=''></span><span style='background: #AEF1AE'>      ) yield (headerDecoded(0), headerDecoded(1))</span><span style=''>
+</span>45 <span style=''>    } catch {
+</span>46 <span style=''>      case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>47 <span style=''>    }
+</span>48 <span style=''>
+</span>49 <span style=''>  /**
+</span>50 <span style=''>    * Build the jwt authentication header for the http request.
+</span>51 <span style=''>    * It si composed from the [[PREFIX_JWT]] prefix followed by the real JWT token.
+</span>52 <span style=''>    *
+</span>53 <span style=''>    * @param token the token
+</span>54 <span style=''>    * @return the header for the request, or None
+</span>55 <span style=''>    */
+</span>56 <span style=''>  def buildJwtAuthentication(token: String): Option[String] =
+</span>57 <span style=''>    </span><span style='background: #AEF1AE'>for (
+</span>58 <span style=''></span><span style='background: #AEF1AE'>      tokenVal &lt;- Option(token) if tokenVal.nonEmpty
+</span>59 <span style=''></span><span style='background: #AEF1AE'>    ) yield s&quot;$PREFIX_JWT $tokenVal&quot;</span><span style=''>
+</span>60 <span style=''>
+</span>61 <span style=''>  /**
+</span>62 <span style=''>    * Reads the JWT token from the authentication header in the request.
+</span>63 <span style=''>    *
+</span>64 <span style=''>    * @param header the authentication header
+</span>65 <span style=''>    * @return the token itself, or None
+</span>66 <span style=''>    */
+</span>67 <span style=''>  def readJwtAuthentication(header: String): Option[String] =
+</span>68 <span style=''>    try {
+</span>69 <span style=''>      </span><span style='background: #AEF1AE'>for (
+</span>70 <span style=''></span><span style='background: #AEF1AE'>        headerVal &lt;- Option(header) if headerVal.nonEmpty;
+</span>71 <span style=''></span><span style='background: #AEF1AE'>        token = headerVal.split(s&quot;$PREFIX_JWT &quot;)(1) if token.nonEmpty
+</span>72 <span style=''></span><span style='background: #AEF1AE'>      ) yield token</span><span style=''>
+</span>73 <span style=''>    } catch {
+</span>74 <span style=''>      case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>75 <span style=''>    }
+</span>76 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          13
+        </td>
+        <td>
+          332
+        </td>
+        <td>
+          247
+          -
+          254
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Basic&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          333
+        </td>
+        <td>
+          282
+          -
+          290
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Bearer&quot;
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          343
+        </td>
+        <td>
+          686
+          -
+          922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](username).withFilter(((usernameVal: String) =&gt; scala.Predef.augmentString(usernameVal).nonEmpty)).flatMap[String](((usernameVal: String) =&gt; scala.Option.apply[String](password).withFilter(((passwordVal: String) =&gt; scala.Predef.augmentString(passwordVal).nonEmpty)).map[String](((passwordVal: String) =&gt; scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC).+(java.util.Base64.getEncoder().encodeToString(scala.StringContext.apply(&quot;&quot;, &quot;:&quot;, &quot;&quot;).s(usernameVal, passwordVal).getBytes()))))))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          334
+        </td>
+        <td>
+          733
+          -
+          753
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(usernameVal).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          761
+          -
+          922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](password).withFilter(((passwordVal: String) =&gt; scala.Predef.augmentString(passwordVal).nonEmpty)).map[String](((passwordVal: String) =&gt; scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC).+(java.util.Base64.getEncoder().encodeToString(scala.StringContext.apply(&quot;&quot;, &quot;:&quot;, &quot;&quot;).s(usernameVal, passwordVal).getBytes()))))
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          335
+        </td>
+        <td>
+          796
+          -
+          816
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(passwordVal).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          340
+        </td>
+        <td>
+          849
+          -
+          922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Base64.Encoder.encodeToString
+        </td>
+        <td style="background: #AEF1AE">
+          java.util.Base64.getEncoder().encodeToString(scala.StringContext.apply(&quot;&quot;, &quot;:&quot;, &quot;&quot;).s(usernameVal, passwordVal).getBytes())
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          337
+        </td>
+        <td>
+          844
+          -
+          846
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          336
+        </td>
+        <td>
+          831
+          -
+          832
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          339
+        </td>
+        <td>
+          882
+          -
+          921
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.getBytes
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;:&quot;, &quot;&quot;).s(usernameVal, passwordVal).getBytes()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          341
+        </td>
+        <td>
+          829
+          -
+          922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC).+(java.util.Base64.getEncoder().encodeToString(scala.StringContext.apply(&quot;&quot;, &quot;:&quot;, &quot;&quot;).s(usernameVal, passwordVal).getBytes()))
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          832
+          -
+          844
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HttpUtils.PREFIX_BASIC
+        </td>
+        <td style="background: #AEF1AE">
+          HttpUtils.this.PREFIX_BASIC
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          1250
+          -
+          1250
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, String](headerVal, credentialFromHeader)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          349
+        </td>
+        <td>
+          1250
+          -
+          1250
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[(String, String), Array[String]](x$2, headerDecoded)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          354
+        </td>
+        <td>
+          1236
+          -
+          1700
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](header).withFilter(((headerVal: String) =&gt; scala.Predef.augmentString(headerVal).nonEmpty)).map[(String, String)](((headerVal: String) =&gt; {
+  val credentialFromHeader: String = headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC)).apply(1);
+  scala.Tuple2.apply[String, String](headerVal, credentialFromHeader)
+})).withFilter(((x$1: (String, String)) =&gt; (x$1: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _)) =&gt; scala.Predef.augmentString(credentialFromHeader).nonEmpty
+})).map[((String, String), Array[String])](((x$3: (String, String)) =&gt; (x$3: (String, String) @unchecked) match {
+  case (x$2 @ (_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _))) =&gt; {
+    val headerDecoded: Array[String] = new scala.Predef.String(java.util.Base64.getDecoder().decode(credentialFromHeader)).split(&quot;:&quot;);
+    scala.Tuple2.apply[(String, String), Array[String]](x$2, headerDecoded)
+  }
+})).map[(String, String)](((x$4: ((String, String), Array[String])) =&gt; (x$4: ((String, String), Array[String]) @unchecked) match {
+  case (_1: (String, String), _2: Array[String])((String, String), Array[String])((_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _)), (headerDecoded @ _)) =&gt; scala.Tuple2.apply[String, String](headerDecoded.apply(0), headerDecoded.apply(1))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          344
+        </td>
+        <td>
+          1281
+          -
+          1299
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(headerVal).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          353
+        </td>
+        <td>
+          1236
+          -
+          1700
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](header).withFilter(((headerVal: String) =&gt; scala.Predef.augmentString(headerVal).nonEmpty)).map[(String, String)](((headerVal: String) =&gt; {
+  val credentialFromHeader: String = headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC)).apply(1);
+  scala.Tuple2.apply[String, String](headerVal, credentialFromHeader)
+})).withFilter(((x$1: (String, String)) =&gt; (x$1: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _)) =&gt; scala.Predef.augmentString(credentialFromHeader).nonEmpty
+})).map[((String, String), Array[String])](((x$3: (String, String)) =&gt; (x$3: (String, String) @unchecked) match {
+  case (x$2 @ (_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _))) =&gt; {
+    val headerDecoded: Array[String] = new scala.Predef.String(java.util.Base64.getDecoder().decode(credentialFromHeader)).split(&quot;:&quot;);
+    scala.Tuple2.apply[(String, String), Array[String]](x$2, headerDecoded)
+  }
+})).map[(String, String)](((x$4: ((String, String), Array[String])) =&gt; (x$4: ((String, String), Array[String]) @unchecked) match {
+  case (_1: (String, String), _2: Array[String])((String, String), Array[String])((_1: String, _2: String)(String, String)((headerVal @ _), (credentialFromHeader @ _)), (headerDecoded @ _)) =&gt; scala.Tuple2.apply[String, String](headerDecoded.apply(0), headerDecoded.apply(1))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          345
+        </td>
+        <td>
+          1391
+          -
+          1428
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #AEF1AE">
+          headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_BASIC)).apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          1432
+          -
+          1461
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(credentialFromHeader).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          1580
+          -
+          1649
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.split
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.Predef.String(java.util.Base64.getDecoder().decode(credentialFromHeader)).split(&quot;:&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          352
+        </td>
+        <td>
+          1664
+          -
+          1700
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, String](headerDecoded.apply(0), headerDecoded.apply(1))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          351
+        </td>
+        <td>
+          1683
+          -
+          1699
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #AEF1AE">
+          headerDecoded.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          1665
+          -
+          1681
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #AEF1AE">
+          headerDecoded.apply(0)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          355
+        </td>
+        <td>
+          1742
+          -
+          1746
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          2066
+          -
+          2161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](token).withFilter(((tokenVal: String) =&gt; scala.Predef.augmentString(tokenVal).nonEmpty)).map[String](((tokenVal: String) =&gt; scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(HttpUtils.this.PREFIX_JWT, tokenVal)))
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          2107
+          -
+          2124
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(tokenVal).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          358
+        </td>
+        <td>
+          2150
+          -
+          2152
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; &quot;
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          361
+        </td>
+        <td>
+          2137
+          -
+          2161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(HttpUtils.this.PREFIX_JWT, tokenVal)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          2140
+          -
+          2150
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HttpUtils.PREFIX_JWT
+        </td>
+        <td style="background: #AEF1AE">
+          HttpUtils.this.PREFIX_JWT
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          2139
+          -
+          2140
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          2160
+          -
+          2161
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          2419
+          -
+          2573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](header).withFilter(((headerVal: String) =&gt; scala.Predef.augmentString(headerVal).nonEmpty)).map[(String, String)](((headerVal: String) =&gt; {
+  val token: String = headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_JWT)).apply(1);
+  scala.Tuple2.apply[String, String](headerVal, token)
+})).withFilter(((x$5: (String, String)) =&gt; (x$5: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (token @ _)) =&gt; scala.Predef.augmentString(token).nonEmpty
+})).map[String](((x$6: (String, String)) =&gt; (x$6: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (token @ _)) =&gt; token
+}))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          2464
+          -
+          2482
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(headerVal).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          2419
+          -
+          2573
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](header).withFilter(((headerVal: String) =&gt; scala.Predef.augmentString(headerVal).nonEmpty)).map[(String, String)](((headerVal: String) =&gt; {
+  val token: String = headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_JWT)).apply(1);
+  scala.Tuple2.apply[String, String](headerVal, token)
+})).withFilter(((x$5: (String, String)) =&gt; (x$5: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (token @ _)) =&gt; scala.Predef.augmentString(token).nonEmpty
+})).map[String](((x$6: (String, String)) =&gt; (x$6: (String, String) @unchecked) match {
+  case (_1: String, _2: String)(String, String)((headerVal @ _), (token @ _)) =&gt; token
+}))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          2433
+          -
+          2433
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, String](headerVal, token)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          2500
+          -
+          2535
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #AEF1AE">
+          headerVal.split(scala.StringContext.apply(&quot;&quot;, &quot; &quot;).s(HttpUtils.this.PREFIX_JWT)).apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          2539
+          -
+          2553
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(token).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          2615
+          -
+          2619
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

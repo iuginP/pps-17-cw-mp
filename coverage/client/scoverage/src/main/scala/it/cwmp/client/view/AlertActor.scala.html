@@ -1,0 +1,147 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/AlertActor.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.Actor.Receive
+</span>4 <span style=''>
+</span>5 <span style=''>object AlertMessages {
+</span>6 <span style=''>
+</span>7 <span style=''>  /**
+</span>8 <span style=''>    * Questo messagio serve per mostrare un messaggio all'utente di tipo informativo.
+</span>9 <span style=''>    *
+</span>10 <span style=''>    * @param title contiene il titolo del messaggio
+</span>11 <span style=''>    * @param message contiene il corpo del messaggio da visualizzare
+</span>12 <span style=''>    */
+</span>13 <span style=''>  case class Info(title: String, message: String, onClose: Option[() =&gt; Unit] = None)
+</span>14 <span style=''>
+</span>15 <span style=''>  /**
+</span>16 <span style=''>    * Questo messagio serve per mostrare un messaggio di errore all'utente.
+</span>17 <span style=''>    *
+</span>18 <span style=''>    * @param title contiene il titolo del messaggio
+</span>19 <span style=''>    * @param message contiene il corpo del messaggio da visualizzare
+</span>20 <span style=''>    */
+</span>21 <span style=''>  case class Error(title: String, message: String, onClose: Option[() =&gt; Unit] = None)
+</span>22 <span style=''>}
+</span>23 <span style=''>
+</span>24 <span style=''>/**
+</span>25 <span style=''>  *
+</span>26 <span style=''>  * Trait da estendere ogni volta che si vuole avere in automatico la gestione di dei messaggi informativi o di errore.
+</span>27 <span style=''>  * Per usarlo va aggiunto il behaviour: alertBehaviour al comportamento della receive.
+</span>28 <span style=''>  *
+</span>29 <span style=''>  * @author Eugenio Pierfederici
+</span>30 <span style=''>  */
+</span>31 <span style=''>trait AlertActor {
+</span>32 <span style=''>
+</span>33 <span style=''>  def fxController: FXAlerts
+</span>34 <span style=''>
+</span>35 <span style=''>  /**
+</span>36 <span style=''>    * Il behaviour che si occupa di restare in ascolto per i messaggi specificati in [[AlertMessages]].
+</span>37 <span style=''>    */
+</span>38 <span style=''>  import AlertMessages._
+</span>39 <span style=''>  protected def alertBehaviour: Receive = {
+</span>40 <span style=''>    case Info(title, message, onClose) =&gt; </span><span style='background: #F0ADAD'>fxController showInfo(title, message, onClose)</span><span style=''>
+</span>41 <span style=''>    case Error(title, message, onClose) =&gt; </span><span style='background: #F0ADAD'>fxController showError(title, message, onClose)</span><span style=''>
+</span>42 <span style=''>  }
+</span>43 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          793
+        </td>
+        <td>
+          1197
+          -
+          1197
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          791
+        </td>
+        <td>
+          1241
+          -
+          1287
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlerts.showInfo
+        </td>
+        <td style="background: #F0ADAD">
+          AlertActor.this.fxController.showInfo(title, message, onClose)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          792
+        </td>
+        <td>
+          1331
+          -
+          1378
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlerts.showError
+        </td>
+        <td style="background: #F0ADAD">
+          AlertActor.this.fxController.showError(title, message, onClose)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

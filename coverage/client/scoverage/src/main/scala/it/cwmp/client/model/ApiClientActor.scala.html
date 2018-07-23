@@ -1,0 +1,1460 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/ApiClientActor.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.Actor
+</span>4 <span style=''>import it.cwmp.model.Address
+</span>5 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
+</span>6 <span style=''>
+</span>7 <span style=''>import scala.concurrent.ExecutionContext.Implicits.global
+</span>8 <span style=''>import scala.util.{Failure, Success}
+</span>9 <span style=''>
+</span>10 <span style=''>/**
+</span>11 <span style=''>  * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
+</span>12 <span style=''>  */
+</span>13 <span style=''>object ApiClientIncomingMessages {
+</span>14 <span style=''>
+</span>15 <span style=''>  /**
+</span>16 <span style=''>    * Message indicating the need to log into the system.
+</span>17 <span style=''>    * When the system receives it, it sends the request to the online service.
+</span>18 <span style=''>    *
+</span>19 <span style=''>    * @param username identification chosen by the player to access the system
+</span>20 <span style=''>    * @param password password chosen during sign up
+</span>21 <span style=''>    */
+</span>22 <span style=''>  case class AuthenticationPerformSignIn(username: String, password: String)
+</span>23 <span style=''>
+</span>24 <span style=''>  /**
+</span>25 <span style=''>    * Message indicating the need to create a new account.
+</span>26 <span style=''>    * When the system receives it, it sends the request to the online service.
+</span>27 <span style=''>    *
+</span>28 <span style=''>    * @param username identification chosen by the player to register in the system
+</span>29 <span style=''>    * @param password password chosen to authenticate in the system
+</span>30 <span style=''>    */
+</span>31 <span style=''>  case class AuthenticationPerformSignUp(username: String, password: String)
+</span>32 <span style=''>
+</span>33 <span style=''>  /**
+</span>34 <span style=''>    * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
+</span>35 <span style=''>    * Quando lo ricevo, inoltro la richiesta al servizio online.
+</span>36 <span style=''>    *
+</span>37 <span style=''>    * @param name    è il nome della stanza da creare
+</span>38 <span style=''>    * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
+</span>39 <span style=''>    * @param token   è il token d'autenticazione per poter fare le richieste
+</span>40 <span style=''>    */
+</span>41 <span style=''>  case class RoomCreatePrivate(name: String, nPlayer: Int, token: String)
+</span>42 <span style=''>
+</span>43 <span style=''>  /**
+</span>44 <span style=''>    * Questo messaggio gestisce la volontà di entrare in  una stanza privata.
+</span>45 <span style=''>    * Quando lo ricevo, inoltro la richiesta al servizio online.
+</span>46 <span style=''>    *
+</span>47 <span style=''>    * @param idRoom        è l'id della stanza nella quale voglio entrare
+</span>48 <span style=''>    * @param playerAddress è il partecipante che si vuole far entrare nella stanza
+</span>49 <span style=''>    * @param webAddress    è l'indirizzo del web server in ascolto per la lista dei partecipanti
+</span>50 <span style=''>    * @param token         è il token d'autenticazione per poter fare le richieste
+</span>51 <span style=''>    */
+</span>52 <span style=''>  case class RoomEnterPrivate(idRoom: String, playerAddress: Address, webAddress: Address, token: String)
+</span>53 <span style=''>
+</span>54 <span style=''>  /**
+</span>55 <span style=''>    * Questo messaggio gestisce la volontà di entrare in una stanza pubblica
+</span>56 <span style=''>    * Quando lo ricevo, inoltro la richiesta al servizio online.
+</span>57 <span style=''>    *
+</span>58 <span style=''>    * @param nPlayer è il numero dei partecipanti a quella stanza
+</span>59 <span style=''>    */
+</span>60 <span style=''>  case class RoomEnterPublic(nPlayer: Int, playerAddress: Address, webAddress: Address, token: String)
+</span>61 <span style=''>
+</span>62 <span style=''>}
+</span>63 <span style=''>
+</span>64 <span style=''>/**
+</span>65 <span style=''>  * Questo oggetto contiene tutti i messaggi che questo attore può inviare.
+</span>66 <span style=''>  */
+</span>67 <span style=''>object ApiClientOutgoingMessages {
+</span>68 <span style=''>
+</span>69 <span style=''>  /**
+</span>70 <span style=''>    * Message that represents the successfully access to the system.
+</span>71 <span style=''>    *
+</span>72 <span style=''>    * @param token user identification token within the system
+</span>73 <span style=''>    */
+</span>74 <span style=''>  case class AuthenticationSignInSuccessful(token: String)
+</span>75 <span style=''>
+</span>76 <span style=''>  /**
+</span>77 <span style=''>    * Message representing the failure of access to the system.
+</span>78 <span style=''>    *
+</span>79 <span style=''>    * @param reason reason that generated the failure
+</span>80 <span style=''>    */
+</span>81 <span style=''>  case class AuthenticationSignInFailure(reason: Option[String])
+</span>82 <span style=''>
+</span>83 <span style=''>  /**
+</span>84 <span style=''>    * Message that represents the successfully registration in the system.
+</span>85 <span style=''>    *
+</span>86 <span style=''>    * @param token user identification token within the system
+</span>87 <span style=''>    */
+</span>88 <span style=''>  case class AuthenticationSignUpSuccessful(token: String)
+</span>89 <span style=''>
+</span>90 <span style=''>  /**
+</span>91 <span style=''>    * Message representing the failure of registration in the system.
+</span>92 <span style=''>    *
+</span>93 <span style=''>    * @param reason reason that generated the failure
+</span>94 <span style=''>    */
+</span>95 <span style=''>  case class AuthenticationSignUpFailure(reason: Option[String])
+</span>96 <span style=''>
+</span>97 <span style=''>  /**
+</span>98 <span style=''>    * Questo messaggio rappresenta il successo della crazione di una stanza privata.
+</span>99 <span style=''>    *
+</span>100 <span style=''>    * @param token è il token identificativo che restitusice il model dopo che la stanza viene creata correttamente
+</span>101 <span style=''>    */
+</span>102 <span style=''>  case class RoomCreatePrivateSuccessful(token: String)
+</span>103 <span style=''>
+</span>104 <span style=''>  /**
+</span>105 <span style=''>    * Questo messaggio rappresenta il fallimento nella crazione di una stanza privata.
+</span>106 <span style=''>    *
+</span>107 <span style=''>    * @param reason è il motivo che ha generato il fallimento
+</span>108 <span style=''>    */
+</span>109 <span style=''>  case class RoomCreatePrivateFailure(reason: Option[String])
+</span>110 <span style=''>
+</span>111 <span style=''>  /**
+</span>112 <span style=''>    * Questo messaggio rappresenta che si è entrati in una stanza privata
+</span>113 <span style=''>    */
+</span>114 <span style=''>  case object RoomEnterPrivateSuccessful
+</span>115 <span style=''>
+</span>116 <span style=''>  /**
+</span>117 <span style=''>    * Questo messaggio rappresenta che si è entrati in una stanza pubblica
+</span>118 <span style=''>    */
+</span>119 <span style=''>  case object RoomEnterPublicSuccessful
+</span>120 <span style=''>
+</span>121 <span style=''>  /**
+</span>122 <span style=''>    * Questo messaggio rappresenta che non si è entrati in una stanza pubblica
+</span>123 <span style=''>    */
+</span>124 <span style=''>  /**
+</span>125 <span style=''>    * Questo messaggio rappresenta il fallimento nella entrata in una stanza pubblica.
+</span>126 <span style=''>    *
+</span>127 <span style=''>    * @param reason è il motivo che ha generato il fallimento
+</span>128 <span style=''>    */
+</span>129 <span style=''>  case class RoomEnterPublicFailure(reason: Option[String])
+</span>130 <span style=''>
+</span>131 <span style=''>  /**
+</span>132 <span style=''>    * Questo messaggio rappresenta il fallimento quando si prova ad entrare in una stanza privata
+</span>133 <span style=''>    *
+</span>134 <span style=''>    * @param reason è il motivo del fallimento
+</span>135 <span style=''>    */
+</span>136 <span style=''>  case class RoomEnterPrivateFailure(reason: Option[String])
+</span>137 <span style=''>
+</span>138 <span style=''>}
+</span>139 <span style=''>
+</span>140 <span style=''>import it.cwmp.client.model.ApiClientIncomingMessages._
+</span>141 <span style=''>import it.cwmp.client.model.ApiClientOutgoingMessages._
+</span>142 <span style=''>
+</span>143 <span style=''>object ApiClientActor {
+</span>144 <span style=''>  def apply(): ApiClientActor = </span><span style='background: #F0ADAD'>new ApiClientActor()</span><span style=''>
+</span>145 <span style=''>}
+</span>146 <span style=''>
+</span>147 <span style=''>class ApiClientActor() extends Actor {
+</span>148 <span style=''>
+</span>149 <span style=''>  /**
+</span>150 <span style=''>    * Possono essere ricevuti messaggi di tipo [[ApiClientIncomingMessages]] ed inviati quelli di tipo [[ApiClientOutgoingMessages]]
+</span>151 <span style=''>    *
+</span>152 <span style=''>    * @return [[Receive]] che gestisce tutti i messaggi corrispondenti alle richieste che è possibile inviare ai servizi online
+</span>153 <span style=''>    */
+</span>154 <span style=''>  // Tutti i behaviour sono attivi in contemporanea, la separazione è solo logica per una migliore leggibilità
+</span>155 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>authenticationBehaviour orElse roomManagerBehaviour</span><span style=''> // orElse ...
+</span>156 <span style=''>
+</span>157 <span style=''>  /*
+</span>158 <span style=''>   * Behaviour che gestisce tutte le chiamate al servizio di gestione delle stanze.
+</span>159 <span style=''>   */
+</span>160 <span style=''>  private val roomApiWrapper = </span><span style='background: #F0ADAD'>RoomsApiWrapper()</span><span style=''>
+</span>161 <span style=''>
+</span>162 <span style=''>  import roomApiWrapper._
+</span>163 <span style=''>
+</span>164 <span style=''>  private def roomManagerBehaviour: Receive = {
+</span>165 <span style=''>    case RoomCreatePrivate(name, nPlayer, token) =&gt;
+</span>166 <span style=''>      val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
+</span>167 <span style=''>      </span><span style='background: #F0ADAD'>createRoom(name, nPlayer)(token).onComplete({
+</span>168 <span style=''></span><span style='background: #F0ADAD'>        case Success(t) =&gt; senderTmp ! RoomCreatePrivateSuccessful(t)
+</span>169 <span style=''></span><span style='background: #F0ADAD'>        case Failure(error) =&gt; senderTmp ! RoomCreatePrivateFailure(Option(error.getMessage))
+</span>170 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>171 <span style=''>    case RoomEnterPrivate(idRoom, address, webAddress, token) =&gt;
+</span>172 <span style=''>      val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
+</span>173 <span style=''>      </span><span style='background: #F0ADAD'>enterRoom(idRoom, address, webAddress)(token).onComplete({
+</span>174 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; senderTmp ! RoomEnterPrivateSuccessful
+</span>175 <span style=''></span><span style='background: #F0ADAD'>        case Failure(error) =&gt; senderTmp ! RoomEnterPrivateFailure(Option(error.getMessage))
+</span>176 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>177 <span style=''>    case RoomEnterPublic(nPlayer, address, webAddress, token) =&gt;
+</span>178 <span style=''>      val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
+</span>179 <span style=''>      </span><span style='background: #F0ADAD'>enterPublicRoom(nPlayer, address, webAddress)(token).onComplete({
+</span>180 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; senderTmp ! RoomEnterPublicSuccessful
+</span>181 <span style=''></span><span style='background: #F0ADAD'>        case Failure(error) =&gt; senderTmp ! RoomEnterPublicFailure(Option(error.getMessage))
+</span>182 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>183 <span style=''>  }
+</span>184 <span style=''>
+</span>185 <span style=''>  /*
+</span>186 <span style=''>    * Behavior that handles the calls to the authentication management service.
+</span>187 <span style=''>    */
+</span>188 <span style=''>  private val authenticationApiWrapper = </span><span style='background: #F0ADAD'>AuthenticationApiWrapper()</span><span style=''>
+</span>189 <span style=''>
+</span>190 <span style=''>  import authenticationApiWrapper._
+</span>191 <span style=''>
+</span>192 <span style=''>  private def authenticationBehaviour: Receive = {
+</span>193 <span style=''>    case AuthenticationPerformSignIn(username, password) =&gt;
+</span>194 <span style=''>      val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
+</span>195 <span style=''>      </span><span style='background: #F0ADAD'>login(username, password).onComplete({
+</span>196 <span style=''></span><span style='background: #F0ADAD'>        case Success(token) =&gt; senderTmp ! AuthenticationSignInSuccessful(token)
+</span>197 <span style=''></span><span style='background: #F0ADAD'>        case Failure(reason) =&gt; senderTmp ! AuthenticationSignInFailure(Option(reason.getMessage))
+</span>198 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>199 <span style=''>    case AuthenticationPerformSignUp(username, password) =&gt;
+</span>200 <span style=''>      val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
+</span>201 <span style=''>      </span><span style='background: #F0ADAD'>signUp(username, password).onComplete({
+</span>202 <span style=''></span><span style='background: #F0ADAD'>        case Success(token) =&gt; senderTmp ! AuthenticationSignUpSuccessful(token)
+</span>203 <span style=''></span><span style='background: #F0ADAD'>        case Failure(reason) =&gt; senderTmp ! AuthenticationSignUpFailure(Option(reason.getMessage))
+</span>204 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>205 <span style=''>
+</span>206 <span style=''>  }
+</span>207 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          144
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          4967
+          -
+          4987
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientActor.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new ApiClientActor()
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          5456
+          -
+          5507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.authenticationBehaviour.orElse[Any, Unit](ApiClientActor.this.roomManagerBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          5487
+          -
+          5507
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientActor.roomManagerBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.roomManagerBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          160
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          5649
+          -
+          5666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.RoomsApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          164
+        </td>
+        <td>
+          401
+        </td>
+        <td>
+          5741
+          -
+          5741
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          166
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          5817
+          -
+          5823
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          5830
+          -
+          6048
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.roomApiWrapper.createRoom(name, nPlayer)(token).onComplete[Unit](((x0$1: scala.util.Try[String]) =&gt; x0$1 match {
+  case (value: String)scala.util.Success[String]((t @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateSuccessful.apply(t))(ApiClientActor.this.self)
+  case (exception: Throwable)scala.util.Failure[String]((error @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+}))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          5913
+          -
+          5913
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          5915
+          -
+          5945
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateSuccessful.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateSuccessful.apply(t)
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          5903
+          -
+          5945
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateSuccessful.apply(t))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          169
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          6014
+          -
+          6038
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Option.apply[String](error.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          169
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          5977
+          -
+          6039
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          169
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          5987
+          -
+          5987
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          169
+        </td>
+        <td>
+          375
+        </td>
+        <td>
+          6021
+          -
+          6037
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          error.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          169
+        </td>
+        <td>
+          377
+        </td>
+        <td>
+          5989
+          -
+          6039
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateFailure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomCreatePrivateFailure.apply(scala.Option.apply[String](error.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          172
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          6136
+          -
+          6142
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          390
+        </td>
+        <td>
+          6149
+          -
+          6375
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.roomApiWrapper.enterRoom(idRoom, address, webAddress)(token).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateSuccessful)(ApiClientActor.this.self)
+  case (exception: Throwable)scala.util.Failure[Unit]((error @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+}))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          174
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          6247
+          -
+          6273
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateSuccessful
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateSuccessful
+        </td>
+      </tr><tr>
+        <td>
+          174
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          6235
+          -
+          6273
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateSuccessful)(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          174
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          6245
+          -
+          6245
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          385
+        </td>
+        <td>
+          6348
+          -
+          6364
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          error.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          388
+        </td>
+        <td>
+          6315
+          -
+          6315
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          6317
+          -
+          6366
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateFailure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateFailure.apply(scala.Option.apply[String](error.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          6341
+          -
+          6365
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Option.apply[String](error.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          6305
+          -
+          6366
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPrivateFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          391
+        </td>
+        <td>
+          6463
+          -
+          6469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          400
+        </td>
+        <td>
+          6476
+          -
+          6707
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.roomApiWrapper.enterPublicRoom(nPlayer, address, webAddress)(token).onComplete[Unit](((x0$3: scala.util.Try[Unit]) =&gt; x0$3 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicSuccessful)(ApiClientActor.this.self)
+  case (exception: Throwable)scala.util.Failure[Unit]((error @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+}))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          180
+        </td>
+        <td>
+          394
+        </td>
+        <td>
+          6569
+          -
+          6606
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicSuccessful)(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          180
+        </td>
+        <td>
+          393
+        </td>
+        <td>
+          6579
+          -
+          6579
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          180
+        </td>
+        <td>
+          392
+        </td>
+        <td>
+          6581
+          -
+          6606
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicSuccessful
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicSuccessful
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          397
+        </td>
+        <td>
+          6650
+          -
+          6698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicFailure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicFailure.apply(scala.Option.apply[String](error.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          396
+        </td>
+        <td>
+          6673
+          -
+          6697
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Option.apply[String](error.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          399
+        </td>
+        <td>
+          6638
+          -
+          6698
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.RoomEnterPublicFailure.apply(scala.Option.apply[String](error.getMessage())))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          6680
+          -
+          6696
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          error.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          398
+        </td>
+        <td>
+          6648
+          -
+          6648
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          188
+        </td>
+        <td>
+          402
+        </td>
+        <td>
+          6846
+          -
+          6872
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          192
+        </td>
+        <td>
+          423
+        </td>
+        <td>
+          6960
+          -
+          6960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          194
+        </td>
+        <td>
+          403
+        </td>
+        <td>
+          7044
+          -
+          7050
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          195
+        </td>
+        <td>
+          412
+        </td>
+        <td>
+          7057
+          -
+          7284
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.authenticationApiWrapper.login(username, password).onComplete[Unit](((x0$4: scala.util.Try[String]) =&gt; x0$4 match {
+  case (value: String)scala.util.Success[String]((token @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInSuccessful.apply(token))(ApiClientActor.this.self)
+  case (exception: Throwable)scala.util.Failure[String]((reason @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInFailure.apply(scala.Option.apply[String](reason.getMessage())))(ApiClientActor.this.self)
+}))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          406
+        </td>
+        <td>
+          7127
+          -
+          7176
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInSuccessful.apply(token))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          405
+        </td>
+        <td>
+          7137
+          -
+          7137
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          404
+        </td>
+        <td>
+          7139
+          -
+          7176
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInSuccessful.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInSuccessful.apply(token)
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          409
+        </td>
+        <td>
+          7221
+          -
+          7275
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInFailure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInFailure.apply(scala.Option.apply[String](reason.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          7249
+          -
+          7274
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Option.apply[String](reason.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          411
+        </td>
+        <td>
+          7209
+          -
+          7275
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignInFailure.apply(scala.Option.apply[String](reason.getMessage())))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          410
+        </td>
+        <td>
+          7219
+          -
+          7219
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          407
+        </td>
+        <td>
+          7256
+          -
+          7273
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          200
+        </td>
+        <td>
+          413
+        </td>
+        <td>
+          7367
+          -
+          7373
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          201
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          7380
+          -
+          7608
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.authenticationApiWrapper.signUp(username, password).onComplete[Unit](((x0$5: scala.util.Try[String]) =&gt; x0$5 match {
+  case (value: String)scala.util.Success[String]((token @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpSuccessful.apply(token))(ApiClientActor.this.self)
+  case (exception: Throwable)scala.util.Failure[String]((reason @ _)) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpFailure.apply(scala.Option.apply[String](reason.getMessage())))(ApiClientActor.this.self)
+}))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          415
+        </td>
+        <td>
+          7461
+          -
+          7461
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          414
+        </td>
+        <td>
+          7463
+          -
+          7500
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpSuccessful.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpSuccessful.apply(token)
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          416
+        </td>
+        <td>
+          7451
+          -
+          7500
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpSuccessful.apply(token))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          418
+        </td>
+        <td>
+          7573
+          -
+          7598
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Option.apply[String](reason.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          421
+        </td>
+        <td>
+          7533
+          -
+          7599
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpFailure.apply(scala.Option.apply[String](reason.getMessage())))(ApiClientActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          420
+        </td>
+        <td>
+          7543
+          -
+          7543
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ApiClientActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          417
+        </td>
+        <td>
+          7580
+          -
+          7597
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          419
+        </td>
+        <td>
+          7545
+          -
+          7599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpFailure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientOutgoingMessages.AuthenticationSignUpFailure.apply(scala.Option.apply[String](reason.getMessage()))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

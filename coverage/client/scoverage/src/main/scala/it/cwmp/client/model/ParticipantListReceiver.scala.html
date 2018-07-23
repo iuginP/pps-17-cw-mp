@@ -1,0 +1,335 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/ParticipantListReceiver.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model
+</span>2 <span style=''>
+</span>3 <span style=''>import java.net.InetAddress
+</span>4 <span style=''>
+</span>5 <span style=''>import it.cwmp.model.{Address, Participant}
+</span>6 <span style=''>import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
+</span>7 <span style=''>import it.cwmp.services.roomreceiver.ServerParameters._
+</span>8 <span style=''>import it.cwmp.utils.{Utils, VertxInstance}
+</span>9 <span style=''>
+</span>10 <span style=''>import scala.concurrent.Future
+</span>11 <span style=''>
+</span>12 <span style=''>trait ParticipantListReceiver extends VertxInstance {
+</span>13 <span style=''>
+</span>14 <span style=''>  def listenForParticipantListFuture(onListReceived: List[Participant] =&gt; Unit): Future[Address] = {
+</span>15 <span style=''>    val token = </span><span style='background: #F0ADAD'>Utils.randomString(20)</span><span style=''>
+</span>16 <span style=''>    val verticle = </span><span style='background: #F0ADAD'>RoomReceiverServiceVerticle(token, participants =&gt; onListReceived(participants))</span><span style=''>
+</span>17 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(verticle)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; Address(s&quot;http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}&quot;
+</span>19 <span style=''></span><span style='background: #F0ADAD'>        + API_RECEIVE_PARTICIPANTS_URL(token)))</span><span style=''>
+</span>20 <span style=''>  }
+</span>21 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          450
+        </td>
+        <td>
+          473
+          -
+          495
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.Utils.randomString
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.randomString(20)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          566
+          -
+          594
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          onListReceived.apply(participants)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          452
+        </td>
+        <td>
+          515
+          -
+          595
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply(token, ((participants: List[it.cwmp.model.Participant]) =&gt; onListReceived.apply(participants)))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          460
+        </td>
+        <td>
+          653
+          -
+          777
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)))
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          454
+        </td>
+        <td>
+          712
+          -
+          714
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          457
+        </td>
+        <td>
+          715
+          -
+          728
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.port
+        </td>
+        <td style="background: #F0ADAD">
+          verticle.port
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          456
+        </td>
+        <td>
+          672
+          -
+          711
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.net.InetAddress.getHostAddress
+        </td>
+        <td style="background: #F0ADAD">
+          java.net.InetAddress.getLocalHost().getHostAddress()
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          453
+        </td>
+        <td>
+          663
+          -
+          671
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;http://&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          462
+        </td>
+        <td>
+          600
+          -
+          778
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          ParticipantListReceiver.this.vertx.deployVerticleFuture(verticle).map[it.cwmp.model.Address](((x$1: String) =&gt; it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)))))(ParticipantListReceiver.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          461
+        </td>
+        <td>
+          647
+          -
+          647
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ParticipantListReceiver.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          455
+        </td>
+        <td>
+          729
+          -
+          730
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          459
+        </td>
+        <td>
+          661
+          -
+          776
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token))
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          458
+        </td>
+        <td>
+          741
+          -
+          776
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

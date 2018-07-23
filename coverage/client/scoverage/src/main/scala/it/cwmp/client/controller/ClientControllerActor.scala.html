@@ -1,0 +1,4521 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/controller/ClientControllerActor.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+</span>4 <span style=''>import com.typesafe.scalalogging.Logger
+</span>5 <span style=''>import it.cwmp.client.model.PlayerActor._
+</span>6 <span style=''>import it.cwmp.client.model._
+</span>7 <span style=''>import it.cwmp.client.view.AlertMessages
+</span>8 <span style=''>import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
+</span>9 <span style=''>import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
+</span>10 <span style=''>import it.cwmp.model.{Address, Participant}
+</span>11 <span style=''>
+</span>12 <span style=''>import scala.concurrent.Future
+</span>13 <span style=''>import scala.util.{Failure, Success}
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
+</span>17 <span style=''>  */
+</span>18 <span style=''>object ClientControllerMessages {
+</span>19 <span style=''>
+</span>20 <span style=''>  /**
+</span>21 <span style=''>    * Message indicating the need to log into the system.
+</span>22 <span style=''>    * When the system receives it, it sends the request to the authentication online service.
+</span>23 <span style=''>    *
+</span>24 <span style=''>    * @param username identification chosen by the player to access the system
+</span>25 <span style=''>    * @param password password chosen during sign up
+</span>26 <span style=''>    */
+</span>27 <span style=''>  case class AuthenticationPerformSignIn(username: String, password: String)
+</span>28 <span style=''>
+</span>29 <span style=''>  /**
+</span>30 <span style=''>    * Message indicating the need to create a new account.
+</span>31 <span style=''>    * When the system receives it, it sends the request to the authentication online service.
+</span>32 <span style=''>    *
+</span>33 <span style=''>    * @param username identification chosen by the player to register in the system
+</span>34 <span style=''>    * @param password password chosen to authenticate in the system
+</span>35 <span style=''>    */
+</span>36 <span style=''>  case class AuthenticationPerformSignUp(username: String, password: String)
+</span>37 <span style=''>
+</span>38 <span style=''>
+</span>39 <span style=''>  /**
+</span>40 <span style=''>    * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
+</span>41 <span style=''>    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
+</span>42 <span style=''>    *
+</span>43 <span style=''>    * @param name    è il nome della stanza da creare
+</span>44 <span style=''>    * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
+</span>45 <span style=''>    */
+</span>46 <span style=''>  case class RoomCreatePrivate(name: String, nPlayer: Int)
+</span>47 <span style=''>
+</span>48 <span style=''>  /**
+</span>49 <span style=''>    * Questo messaggio gestisce la volontà di entrare in una stanza privata.
+</span>50 <span style=''>    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
+</span>51 <span style=''>    *
+</span>52 <span style=''>    * @param idRoom è l'id che identifica la stanza privata
+</span>53 <span style=''>    */
+</span>54 <span style=''>  case class RoomEnterPrivate(idRoom: String)
+</span>55 <span style=''>
+</span>56 <span style=''>  /**
+</span>57 <span style=''>    * Questo messaggio gestisce la volontà di entrare in una stanza pubblica.
+</span>58 <span style=''>    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
+</span>59 <span style=''>    *
+</span>60 <span style=''>    * @param nPlayer è il numero dei partecipanti con i quali si vuole giocare
+</span>61 <span style=''>    */
+</span>62 <span style=''>  case class RoomEnterPublic(nPlayer: Int)
+</span>63 <span style=''>
+</span>64 <span style=''>}
+</span>65 <span style=''>
+</span>66 <span style=''>object ClientControllerActor {
+</span>67 <span style=''>  def apply(system: ActorSystem): ClientControllerActor = </span><span style='background: #F0ADAD'>new ClientControllerActor(system)</span><span style=''>
+</span>68 <span style=''>}
+</span>69 <span style=''>
+</span>70 <span style=''>/**
+</span>71 <span style=''>  * Questa classe rappresenta l'attore del controller del client che ha il compito
+</span>72 <span style=''>  * di fare da tramite tra le view e i model.
+</span>73 <span style=''>  *
+</span>74 <span style=''>  * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
+</span>75 <span style=''>  * @author Davide Borficchia
+</span>76 <span style=''>  * @author Eugenio Pierfederici
+</span>77 <span style=''>  */
+</span>78 <span style=''>class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver {
+</span>79 <span style=''>
+</span>80 <span style=''>  private val UNKNOWN_ERROR = </span><span style='background: #F0ADAD'>&quot;Unknown Error&quot;</span><span style=''>
+</span>81 <span style=''>  private val logger: Logger = </span><span style='background: #F0ADAD'>Logger[ClientControllerActor]</span><span style=''> // TODO: replace with our logging
+</span>82 <span style=''>
+</span>83 <span style=''>  var jwtToken: String = _
+</span>84 <span style=''>
+</span>85 <span style=''>  /**
+</span>86 <span style=''>    * Questo attore è quello che si occupa di gestire la partita di gioco.
+</span>87 <span style=''>    * Sono questi attori, per ciascun client, a connettersi nel cluster e gestire lo svolgimento del gioco.
+</span>88 <span style=''>    */
+</span>89 <span style=''>  var playerActor: ActorRef = _
+</span>90 <span style=''>  var playerAddress: String = _
+</span>91 <span style=''>
+</span>92 <span style=''>  /**
+</span>93 <span style=''>    * Questo attore si occupa di effettuare tutte le richieste ai servizi web e attendere le risposte.
+</span>94 <span style=''>    */
+</span>95 <span style=''>  var apiClientActor: ActorRef = _
+</span>96 <span style=''>
+</span>97 <span style=''>  /**
+</span>98 <span style=''>    * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
+</span>99 <span style=''>    */
+</span>100 <span style=''>  var roomViewActor: ActorRef = _
+</span>101 <span style=''>
+</span>102 <span style=''>  /**
+</span>103 <span style=''>    * Actor for the management of authentication processes to which the relative messages will be sent.
+</span>104 <span style=''>    */
+</span>105 <span style=''>  var authenticationViewActor: ActorRef = _
+</span>106 <span style=''>
+</span>107 <span style=''>  /**
+</span>108 <span style=''>    * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
+</span>109 <span style=''>    * quando viene creato l'attore [[ClientControllerActor]].
+</span>110 <span style=''>    * Il suo compito è quello di creare l'attore [[RoomViewActor]].
+</span>111 <span style=''>    * Una volta creato inizializza e mostra la GUI
+</span>112 <span style=''>    */
+</span>113 <span style=''>  override def preStart(): Unit = {
+</span>114 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
+</span>115 <span style=''>    // Initialize all actors
+</span>116 <span style=''>    logger.info(s&quot;Initializing the player actor...&quot;)
+</span>117 <span style=''>    </span><span style='background: #F0ADAD'>playerActor = system.actorOf(Props(classOf[PlayerActor], system), &quot;player&quot;)</span><span style=''>
+</span>118 <span style=''>    </span><span style='background: #F0ADAD'>playerActor ! RetrieveAddress</span><span style=''>
+</span>119 <span style=''>    logger.info(s&quot;Initializing the API client actor...&quot;)
+</span>120 <span style=''>    </span><span style='background: #F0ADAD'>apiClientActor = system.actorOf(Props[ApiClientActor], &quot;roomAPIClient&quot;)</span><span style=''> //todo parametrizzare le stringhe
+</span>121 <span style=''>    logger.info(s&quot;Initializing the authentication view actor...&quot;)
+</span>122 <span style=''>    </span><span style='background: #F0ADAD'>authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], &quot;authenticationView&quot;)</span><span style=''>
+</span>123 <span style=''>    </span><span style='background: #F0ADAD'>authenticationViewActor ! AuthenticationViewMessages.InitController</span><span style=''>
+</span>124 <span style=''>    logger.info(s&quot;Initializing the room view actor...&quot;)
+</span>125 <span style=''>    </span><span style='background: #F0ADAD'>roomViewActor = system.actorOf(Props[RoomViewActor], &quot;roomView&quot;)</span><span style=''>
+</span>126 <span style=''>    </span><span style='background: #F0ADAD'>roomViewActor ! RoomViewMessages.InitController</span><span style=''>
+</span>127 <span style=''>
+</span>128 <span style=''>    logger.info(s&quot;Displaying the view...&quot;)
+</span>129 <span style=''>    </span><span style='background: #F0ADAD'>authenticationViewActor ! AuthenticationViewMessages.ShowGUI</span><span style=''>
+</span>130 <span style=''>  }
+</span>131 <span style=''>
+</span>132 <span style=''>  /**
+</span>133 <span style=''>    * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
+</span>134 <span style=''>    * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
+</span>135 <span style=''>    */
+</span>136 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse {
+</span>137 <span style=''></span><span style='background: #F0ADAD'>    case RetrieveAddressResponse(address) =&gt;
+</span>138 <span style=''></span><span style='background: #F0ADAD'>      playerAddress = address
+</span>139 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>140 <span style=''>
+</span>141 <span style=''>  /**
+</span>142 <span style=''>    * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
+</span>143 <span style=''>    */
+</span>144 <span style=''>  def becomeAuthenticationManager(): Unit = {
+</span>145 <span style=''>    logger.info(s&quot;Setting the behaviour 'authentication-manager'&quot;)
+</span>146 <span style=''>    </span><span style='background: #F0ADAD'>context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)</span><span style=''>
+</span>147 <span style=''>  }
+</span>148 <span style=''>
+</span>149 <span style=''>  /**
+</span>150 <span style=''>    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
+</span>151 <span style=''>    */
+</span>152 <span style=''>  private def becomeRoomsManager(): Unit = {
+</span>153 <span style=''>    logger.info(s&quot;Setting the behaviour 'room-manager'&quot;)
+</span>154 <span style=''>    </span><span style='background: #F0ADAD'>context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)</span><span style=''>
+</span>155 <span style=''>    </span><span style='background: #F0ADAD'>roomViewActor ! RoomViewMessages.ShowGUI</span><span style=''>
+</span>156 <span style=''>  }
+</span>157 <span style=''>
+</span>158 <span style=''>  private def becomeInGame(participants: List[Participant]): Unit = {
+</span>159 <span style=''>    logger.info(s&quot;Setting the behaviour 'in-game'&quot;)
+</span>160 <span style=''>    </span><span style='background: #F0ADAD'>context.become(inGameBehaviour)</span><span style=''>
+</span>161 <span style=''>    </span><span style='background: #F0ADAD'>roomViewActor ! RoomViewMessages.HideGUI</span><span style=''>
+</span>162 <span style=''>    </span><span style='background: #F0ADAD'>playerActor ! StartGame(participants)</span><span style=''>
+</span>163 <span style=''>  }
+</span>164 <span style=''>
+</span>165 <span style=''>
+</span>166 <span style=''>  import it.cwmp.client.controller.ClientControllerMessages._
+</span>167 <span style=''>
+</span>168 <span style=''>  /**
+</span>169 <span style=''>    * Behavior to be applied to manage authentication processes.
+</span>170 <span style=''>    * Messages that can be processed in this behavior are shown in [[ClientControllerMessages]]
+</span>171 <span style=''>    *
+</span>172 <span style=''>    */
+</span>173 <span style=''>  def authenticationManagerBehaviour: Receive = {
+</span>174 <span style=''>    case AuthenticationPerformSignIn(username, password) =&gt;
+</span>175 <span style=''>      logger.info(s&quot;Signing in as $username&quot;)
+</span>176 <span style=''>      </span><span style='background: #F0ADAD'>apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)</span><span style=''>
+</span>177 <span style=''>    case AuthenticationPerformSignUp(username, password) =&gt;
+</span>178 <span style=''>      logger.info(s&quot;Signing up as $username&quot;)
+</span>179 <span style=''>      </span><span style='background: #F0ADAD'>apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)</span><span style=''>
+</span>180 <span style=''>  }
+</span>181 <span style=''>
+</span>182 <span style=''>  /**
+</span>183 <span style=''>    * Questo metodo rappresenta il behavior che si ha quando si sta gestendo la lobby delle stanze.
+</span>184 <span style=''>    * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
+</span>185 <span style=''>    *
+</span>186 <span style=''>    */
+</span>187 <span style=''>
+</span>188 <span style=''>  import it.cwmp.client.controller.ClientControllerMessages._
+</span>189 <span style=''>
+</span>190 <span style=''>  private def roomManagerBehaviour: Receive = {
+</span>191 <span style=''>    case RoomCreatePrivate(name, nPlayer) =&gt;
+</span>192 <span style=''>      logger.info(s&quot;Creating the room $name&quot;)
+</span>193 <span style=''>      </span><span style='background: #F0ADAD'>apiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)</span><span style=''>
+</span>194 <span style=''>    case RoomEnterPrivate(idRoom) =&gt;
+</span>195 <span style=''>      logger.info(s&quot;Entering the private room $idRoom&quot;)
+</span>196 <span style=''>      </span><span style='background: #F0ADAD'>enterRoom().map(url =&gt;
+</span>197 <span style=''></span><span style='background: #F0ADAD'>        apiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
+</span>198 <span style=''></span><span style='background: #F0ADAD'>          idRoom, Address(playerAddress), url, jwtToken)
+</span>199 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>200 <span style=''>    case RoomEnterPublic(nPlayer) =&gt;
+</span>201 <span style=''>      logger.info(s&quot;Entering the public room with $nPlayer players&quot;)
+</span>202 <span style=''>      </span><span style='background: #F0ADAD'>enterRoom().map(url =&gt;
+</span>203 <span style=''></span><span style='background: #F0ADAD'>        apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
+</span>204 <span style=''></span><span style='background: #F0ADAD'>          nPlayer, Address(playerAddress), url, jwtToken)
+</span>205 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>206 <span style=''>  }
+</span>207 <span style=''>
+</span>208 <span style=''>  private def inGameBehaviour: Receive = {
+</span>209 <span style=''>    case _ </span><span style='background: #F0ADAD'>=&gt;</span><span style=''> // TODO
+</span>210 <span style=''>  }
+</span>211 <span style=''>
+</span>212 <span style=''>  private def enterRoom(): Future[Address] = {
+</span>213 <span style=''>    logger.debug(s&quot;Starting the local one-time reception server...&quot;)
+</span>214 <span style=''>    // Apre il server in ricezione per la lista dei partecipanti
+</span>215 <span style=''>    </span><span style='background: #F0ADAD'>listenForParticipantListFuture(
+</span>216 <span style=''></span><span style='background: #F0ADAD'>      // Quando ha ricevuto la lista dei partecipanti dal server
+</span>217 <span style=''></span><span style='background: #F0ADAD'>      participants =&gt; {
+</span>218 <span style=''></span><span style='background: #F0ADAD'>        logger.info(s&quot;Participants list received!&quot;)
+</span>219 <span style=''></span><span style='background: #F0ADAD'>        becomeInGame(participants)
+</span>220 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>221 <span style=''></span><span style='background: #F0ADAD'>    ).andThen({ // Una volta creato
+</span>222 <span style=''></span><span style='background: #F0ADAD'>      case Success(address) =&gt;
+</span>223 <span style=''></span><span style='background: #F0ADAD'>        logger.debug(s&quot;Server completely started listening at the address: $address&quot;)
+</span>224 <span style=''></span><span style='background: #F0ADAD'>      case Failure(error) =&gt; // Invia un messaggio di errore alla GUI
+</span>225 <span style=''></span><span style='background: #F0ADAD'>        logger.error(s&quot;Problem starting the server: ${error.getMessage}&quot;)
+</span>226 <span style=''></span><span style='background: #F0ADAD'>        roomViewActor ! AlertMessages.Error(&quot;Error&quot;, error.getMessage)
+</span>227 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>228 <span style=''>  }
+</span>229 <span style=''>
+</span>230 <span style=''>  /**
+</span>231 <span style=''>    * Questo è il behavior che sta in ascolto del successo o meno di una chiamata fatta ad un servizio online tramite l'ApiClientActor.
+</span>232 <span style=''>    * I messaggi che questo attore, in questo behavoir, è in grado di ricevere sono raggruppati in [[ApiClientOutgoingMessages]]
+</span>233 <span style=''>    *
+</span>234 <span style=''>    */
+</span>235 <span style=''>
+</span>236 <span style=''>  import ApiClientOutgoingMessages._
+</span>237 <span style=''>
+</span>238 <span style=''>  // TODO: qui lasciamo il behaviuor misto?
+</span>239 <span style=''>  private def apiClientReceiverBehaviour: Receive = {
+</span>240 <span style=''>    case AuthenticationSignInSuccessful(token) =&gt;
+</span>241 <span style=''>      </span><span style='background: #F0ADAD'>authenticationViewActor ! AlertMessages.Info(s&quot;Result&quot;, &quot;Sign in successfully completed!&quot;, Some(() =&gt; {
+</span>242 <span style=''></span><span style='background: #F0ADAD'>        this.jwtToken = token
+</span>243 <span style=''></span><span style='background: #F0ADAD'>        becomeRoomsManager()
+</span>244 <span style=''></span><span style='background: #F0ADAD'>        authenticationViewActor ! AuthenticationViewMessages.HideGUI
+</span>245 <span style=''></span><span style='background: #F0ADAD'>      }))</span><span style=''>
+</span>246 <span style=''>    case AuthenticationSignInFailure(reason) =&gt;
+</span>247 <span style=''>      </span><span style='background: #F0ADAD'>authenticationViewActor ! AlertMessages.Error(&quot;Warning&quot;, reason.getOrElse(UNKNOWN_ERROR))</span><span style=''>
+</span>248 <span style=''>    case AuthenticationSignUpSuccessful(token) =&gt;
+</span>249 <span style=''>      </span><span style='background: #F0ADAD'>authenticationViewActor ! AlertMessages.Info(s&quot;Result&quot;, &quot;Sign up successfully completed!&quot;, Some(() =&gt; {
+</span>250 <span style=''></span><span style='background: #F0ADAD'>        this.jwtToken = token
+</span>251 <span style=''></span><span style='background: #F0ADAD'>        becomeRoomsManager()
+</span>252 <span style=''></span><span style='background: #F0ADAD'>        authenticationViewActor ! AuthenticationViewMessages.HideGUI
+</span>253 <span style=''></span><span style='background: #F0ADAD'>      }))</span><span style=''>
+</span>254 <span style=''>    case AuthenticationSignUpFailure(reason) =&gt;
+</span>255 <span style=''>      </span><span style='background: #F0ADAD'>authenticationViewActor ! AlertMessages.Error(&quot;Warning&quot;, reason.getOrElse(UNKNOWN_ERROR))</span><span style=''>
+</span>256 <span style=''>
+</span>257 <span style=''>    case RoomCreatePrivateSuccessful(token) =&gt;
+</span>258 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Info(&quot;Token&quot;, token)</span><span style=''>
+</span>259 <span style=''>    case RoomCreatePrivateFailure(reason) =&gt;
+</span>260 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Error(&quot;Problem&quot;, reason.getOrElse(UNKNOWN_ERROR))</span><span style=''> // TODO parametrizzazione stringhe
+</span>261 <span style=''>    case RoomEnterPrivateSuccessful =&gt;
+</span>262 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Info(&quot;Stanza privata&quot;, &quot;Sei entrato&quot;)</span><span style=''> // TODO parametrizzazione stringhe
+</span>263 <span style=''>    case RoomEnterPrivateFailure(reason) =&gt;
+</span>264 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Error(&quot;Problem&quot;, reason.getOrElse(UNKNOWN_ERROR))</span><span style=''> // TODO parametrizzazione stringhe
+</span>265 <span style=''>    case RoomEnterPublicSuccessful =&gt;
+</span>266 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Info(&quot;Stanza pubblica&quot;, &quot;Sei entrato&quot;)</span><span style=''> // TODO parametrizzazione stringhe
+</span>267 <span style=''>    case RoomEnterPublicFailure(reason) =&gt;
+</span>268 <span style=''>      </span><span style='background: #F0ADAD'>roomViewActor ! AlertMessages.Error(&quot;Problem&quot;, reason.getOrElse(UNKNOWN_ERROR))</span><span style=''> // TODO parametrizzazione stringhe
+</span>269 <span style=''>  }
+</span>270 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          39
+        </td>
+        <td>
+          2527
+          -
+          2560
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new ClientControllerActor(system)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          40
+        </td>
+        <td>
+          2990
+          -
+          3005
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Unknown Error&quot;
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          3037
+          -
+          3066
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          com.typesafe.scalalogging.Logger.apply
+        </td>
+        <td style="background: #F0ADAD">
+          com.typesafe.scalalogging.Logger.apply[it.cwmp.client.controller.ClientControllerActor]((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor]))
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          42
+        </td>
+        <td>
+          4170
+          -
+          4186
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.preStart
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.super.preStart()
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          44
+        </td>
+        <td>
+          4330
+          -
+          4336
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.system
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.system
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          47
+        </td>
+        <td>
+          4287
+          -
+          4348
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorRefFactory.actorOf
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.model.PlayerActor], ClientControllerActor.this.system), &quot;player&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          46
+        </td>
+        <td>
+          4339
+          -
+          4347
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;player&quot;
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          43
+        </td>
+        <td>
+          4308
+          -
+          4328
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          classOf[it.cwmp.client.model.PlayerActor]
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          45
+        </td>
+        <td>
+          4302
+          -
+          4337
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply(classOf[it.cwmp.client.model.PlayerActor], ClientControllerActor.this.system)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          48
+        </td>
+        <td>
+          4273
+          -
+          4348
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerActor_=(ClientControllerActor.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.model.PlayerActor], ClientControllerActor.this.system), &quot;player&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          4367
+          -
+          4382
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.PlayerActor.RetrieveAddress
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.PlayerActor.RetrieveAddress
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          4353
+          -
+          4364
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerActor
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          4353
+          -
+          4382
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.playerActor).!(it.cwmp.client.model.PlayerActor.RetrieveAddress)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          4365
+          -
+          4365
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          4476
+          -
+          4497
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply[it.cwmp.client.model.ApiClientActor]()((ClassTag.apply[it.cwmp.client.model.ApiClientActor](classOf[it.cwmp.client.model.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.model.ApiClientActor]))
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          56
+        </td>
+        <td>
+          4444
+          -
+          4515
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor_=(ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.model.ApiClientActor]()((ClassTag.apply[it.cwmp.client.model.ApiClientActor](classOf[it.cwmp.client.model.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.model.ApiClientActor])), &quot;roomAPIClient&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          55
+        </td>
+        <td>
+          4461
+          -
+          4515
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorRefFactory.actorOf
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.model.ApiClientActor]()((ClassTag.apply[it.cwmp.client.model.ApiClientActor](classOf[it.cwmp.client.model.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.model.ApiClientActor])), &quot;roomAPIClient&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          4499
+          -
+          4514
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;roomAPIClient&quot;
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          59
+        </td>
+        <td>
+          4646
+          -
+          4714
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorRefFactory.actorOf
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.authentication.AuthenticationViewActor]()((ClassTag.apply[it.cwmp.client.view.authentication.AuthenticationViewActor](classOf[it.cwmp.client.view.authentication.AuthenticationViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.authentication.AuthenticationViewActor])), &quot;authenticationView&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          58
+        </td>
+        <td>
+          4693
+          -
+          4713
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;authenticationView&quot;
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          60
+        </td>
+        <td>
+          4620
+          -
+          4714
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor_=(ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.authentication.AuthenticationViewActor]()((ClassTag.apply[it.cwmp.client.view.authentication.AuthenticationViewActor](classOf[it.cwmp.client.view.authentication.AuthenticationViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.authentication.AuthenticationViewActor])), &quot;authenticationView&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          57
+        </td>
+        <td>
+          4661
+          -
+          4691
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply[it.cwmp.client.view.authentication.AuthenticationViewActor]()((ClassTag.apply[it.cwmp.client.view.authentication.AuthenticationViewActor](classOf[it.cwmp.client.view.authentication.AuthenticationViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.authentication.AuthenticationViewActor]))
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          62
+        </td>
+        <td>
+          4745
+          -
+          4786
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.InitController
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.InitController
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          64
+        </td>
+        <td>
+          4719
+          -
+          4786
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.InitController)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          61
+        </td>
+        <td>
+          4719
+          -
+          4742
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          63
+        </td>
+        <td>
+          4743
+          -
+          4743
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          68
+        </td>
+        <td>
+          4847
+          -
+          4911
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor_=(ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.room.RoomViewActor]()((ClassTag.apply[it.cwmp.client.view.room.RoomViewActor](classOf[it.cwmp.client.view.room.RoomViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.room.RoomViewActor])), &quot;roomView&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          65
+        </td>
+        <td>
+          4878
+          -
+          4898
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply[it.cwmp.client.view.room.RoomViewActor]()((ClassTag.apply[it.cwmp.client.view.room.RoomViewActor](classOf[it.cwmp.client.view.room.RoomViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.room.RoomViewActor]))
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          67
+        </td>
+        <td>
+          4863
+          -
+          4911
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorRefFactory.actorOf
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.room.RoomViewActor]()((ClassTag.apply[it.cwmp.client.view.room.RoomViewActor](classOf[it.cwmp.client.view.room.RoomViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.room.RoomViewActor])), &quot;roomView&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          66
+        </td>
+        <td>
+          4900
+          -
+          4910
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;roomView&quot;
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          71
+        </td>
+        <td>
+          4930
+          -
+          4930
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          70
+        </td>
+        <td>
+          4932
+          -
+          4963
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewMessages.InitController
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewMessages.InitController
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          69
+        </td>
+        <td>
+          4916
+          -
+          4929
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          72
+        </td>
+        <td>
+          4916
+          -
+          4963
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.room.RoomViewMessages.InitController)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          74
+        </td>
+        <td>
+          5038
+          -
+          5072
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.ShowGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.ShowGUI
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          73
+        </td>
+        <td>
+          5012
+          -
+          5035
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          76
+        </td>
+        <td>
+          5012
+          -
+          5072
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.ShowGUI)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          75
+        </td>
+        <td>
+          5036
+          -
+          5036
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          77
+        </td>
+        <td>
+          5367
+          -
+          5397
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationManagerBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationManagerBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          80
+        </td>
+        <td>
+          5333
+          -
+          5485
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientReceiverBehaviour.orElse[Any, Unit](ClientControllerActor.this.authenticationManagerBehaviour).orElse[Any, Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (address: String)it.cwmp.client.model.PlayerActor.RetrieveAddressResponse((address @ _)) =&gt; ClientControllerActor.this.playerAddress_=(address)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (address: String)it.cwmp.client.model.PlayerActor.RetrieveAddressResponse((address @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,Unit]))
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          79
+        </td>
+        <td>
+          5405
+          -
+          5405
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          78
+        </td>
+        <td>
+          5458
+          -
+          5481
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerAddress_=
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerAddress_=(address)
+        </td>
+      </tr><tr>
+        <td>
+          146
+        </td>
+        <td>
+          83
+        </td>
+        <td>
+          5717
+          -
+          5797
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorContext.become
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.context.become(ClientControllerActor.this.apiClientReceiverBehaviour.orElse[Any, Unit](ClientControllerActor.this.authenticationManagerBehaviour))
+        </td>
+      </tr><tr>
+        <td>
+          146
+        </td>
+        <td>
+          82
+        </td>
+        <td>
+          5732
+          -
+          5796
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientReceiverBehaviour.orElse[Any, Unit](ClientControllerActor.this.authenticationManagerBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          146
+        </td>
+        <td>
+          81
+        </td>
+        <td>
+          5766
+          -
+          5796
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationManagerBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationManagerBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          86
+        </td>
+        <td>
+          6024
+          -
+          6094
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorContext.become
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.context.become(ClientControllerActor.this.apiClientReceiverBehaviour.orElse[Any, Unit](ClientControllerActor.this.roomManagerBehaviour))
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          85
+        </td>
+        <td>
+          6039
+          -
+          6093
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientReceiverBehaviour.orElse[Any, Unit](ClientControllerActor.this.roomManagerBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          84
+        </td>
+        <td>
+          6073
+          -
+          6093
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomManagerBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomManagerBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          6113
+          -
+          6113
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          88
+        </td>
+        <td>
+          6115
+          -
+          6139
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewMessages.ShowGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewMessages.ShowGUI
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          87
+        </td>
+        <td>
+          6099
+          -
+          6112
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          90
+        </td>
+        <td>
+          6099
+          -
+          6139
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.room.RoomViewMessages.ShowGUI)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          160
+        </td>
+        <td>
+          92
+        </td>
+        <td>
+          6271
+          -
+          6302
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorContext.become
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.context.become(ClientControllerActor.this.inGameBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          160
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          6286
+          -
+          6301
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.inGameBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.inGameBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          95
+        </td>
+        <td>
+          6321
+          -
+          6321
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          94
+        </td>
+        <td>
+          6323
+          -
+          6347
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewMessages.HideGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewMessages.HideGUI
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          96
+        </td>
+        <td>
+          6307
+          -
+          6347
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.room.RoomViewMessages.HideGUI)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          6307
+          -
+          6320
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          98
+        </td>
+        <td>
+          6366
+          -
+          6389
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.PlayerActor.StartGame.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.PlayerActor.StartGame.apply(participants)
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          100
+        </td>
+        <td>
+          6352
+          -
+          6389
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.playerActor).!(it.cwmp.client.model.PlayerActor.StartGame.apply(participants))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          97
+        </td>
+        <td>
+          6352
+          -
+          6363
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerActor
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          99
+        </td>
+        <td>
+          6364
+          -
+          6364
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          109
+        </td>
+        <td>
+          6687
+          -
+          6687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          101
+        </td>
+        <td>
+          6801
+          -
+          6815
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          6801
+          -
+          6891
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignIn.apply(username, password))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          6816
+          -
+          6816
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          102
+        </td>
+        <td>
+          6818
+          -
+          6891
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignIn.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignIn.apply(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          107
+        </td>
+        <td>
+          7019
+          -
+          7019
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          7021
+          -
+          7094
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignUp.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignUp.apply(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          7004
+          -
+          7018
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          108
+        </td>
+        <td>
+          7004
+          -
+          7094
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.AuthenticationPerformSignUp.apply(username, password))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          7456
+          -
+          7456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          110
+        </td>
+        <td>
+          7555
+          -
+          7569
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          7570
+          -
+          7570
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          112
+        </td>
+        <td>
+          7572
+          -
+          7640
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomCreatePrivate.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomCreatePrivate.apply(name, nPlayer, ClientControllerActor.this.jwtToken)
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          114
+        </td>
+        <td>
+          7555
+          -
+          7640
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.RoomCreatePrivate.apply(name, nPlayer, ClientControllerActor.this.jwtToken))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          111
+        </td>
+        <td>
+          7631
+          -
+          7639
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.jwtToken
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.jwtToken
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          7755
+          -
+          7755
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          7755
+          -
+          7755
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          7740
+          -
+          7896
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.enterRoom().map[Unit](((url: it.cwmp.model.Address) =&gt; actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPrivate.apply(idRoom, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken))(ClientControllerActor.this.self)))(ClientControllerActor.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          119
+        </td>
+        <td>
+          7788
+          -
+          7888
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPrivate.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPrivate.apply(idRoom, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken)
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          115
+        </td>
+        <td>
+          7771
+          -
+          7785
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          121
+        </td>
+        <td>
+          7771
+          -
+          7888
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPrivate.apply(idRoom, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          7786
+          -
+          7786
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          198
+        </td>
+        <td>
+          116
+        </td>
+        <td>
+          7858
+          -
+          7871
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerAddress
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerAddress
+        </td>
+      </tr><tr>
+        <td>
+          198
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          7879
+          -
+          7887
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.jwtToken
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.jwtToken
+        </td>
+      </tr><tr>
+        <td>
+          198
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          7850
+          -
+          7872
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress)
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          8024
+          -
+          8024
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          8009
+          -
+          8165
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.enterRoom().map[Unit](((url: it.cwmp.model.Address) =&gt; actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPublic.apply(nPlayer, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken))(ClientControllerActor.this.self)))(ClientControllerActor.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          8024
+          -
+          8024
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          8040
+          -
+          8157
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.apiClientActor).!(it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPublic.apply(nPlayer, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          8040
+          -
+          8054
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.apiClientActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.apiClientActor
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          8055
+          -
+          8055
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          203
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          8057
+          -
+          8157
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPublic.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.ApiClientIncomingMessages.RoomEnterPublic.apply(nPlayer, it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress), url, ClientControllerActor.this.jwtToken)
+        </td>
+      </tr><tr>
+        <td>
+          204
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          8148
+          -
+          8156
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.jwtToken
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.jwtToken
+        </td>
+      </tr><tr>
+        <td>
+          204
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          8119
+          -
+          8141
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.model.Address.apply(ClientControllerActor.this.playerAddress)
+        </td>
+      </tr><tr>
+        <td>
+          204
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          8127
+          -
+          8140
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.playerAddress
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.playerAddress
+        </td>
+      </tr><tr>
+        <td>
+          208
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          8212
+          -
+          8212
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          8225
+          -
+          8227
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          219
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          8607
+          -
+          8633
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.becomeInGame
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.becomeInGame(participants)
+        </td>
+      </tr><tr>
+        <td>
+          221
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          8656
+          -
+          8656
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          221
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          8426
+          -
+          9016
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.listenForParticipantListFuture(((participants: List[it.cwmp.model.Participant]) =&gt; {
+  (if (ClientControllerActor.this.logger.underlying.isInfoEnabled())
+    ClientControllerActor.this.logger.underlying.info(&quot;Participants list received!&quot;)
+  else
+    (): Unit);
+  ClientControllerActor.this.becomeInGame(participants)
+})).andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[it.cwmp.model.Address],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[it.cwmp.model.Address] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[it.cwmp.model.Address], B1 &gt;: Unit](x5: A1, default: A1 =&gt; B1): B1 = ((x5.asInstanceOf[scala.util.Try[it.cwmp.model.Address]]: scala.util.Try[it.cwmp.model.Address]): scala.util.Try[it.cwmp.model.Address] @unchecked) match {
+      case (value: it.cwmp.model.Address)scala.util.Success[it.cwmp.model.Address]((address @ _)) =&gt; (if (ClientControllerActor.this.logger.underlying.isDebugEnabled())
+        ClientControllerActor.this.logger.underlying.debug(&quot;Server completely started listening at the address: {}&quot;, address)
+      else
+        (): Unit)
+      case (exception: Throwable)scala.util.Failure[it.cwmp.model.Address]((error @ _)) =&gt; {
+        (if (ClientControllerActor.this.logger.underlying.isErrorEnabled())
+          ClientControllerActor.this.logger.underlying.error(&quot;Problem starting the server: {}&quot;, error.getMessage())
+        else
+          (): Unit);
+        actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Error&quot;, error.getMessage(), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+      }
+      case (defaultCase$ @ _) =&gt; default.apply(x5)
+    };
+    final def isDefinedAt(x5: scala.util.Try[it.cwmp.model.Address]): Boolean = ((x5.asInstanceOf[scala.util.Try[it.cwmp.model.Address]]: scala.util.Try[it.cwmp.model.Address]): scala.util.Try[it.cwmp.model.Address] @unchecked) match {
+      case (value: it.cwmp.model.Address)scala.util.Success[it.cwmp.model.Address]((address @ _)) =&gt; true
+      case (exception: Throwable)scala.util.Failure[it.cwmp.model.Address]((error @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[it.cwmp.model.Address],Unit]))(ClientControllerActor.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          221
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          8655
+          -
+          8655
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          8983
+          -
+          8990
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error&quot;
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          8977
+          -
+          8977
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          8947
+          -
+          9009
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Error&quot;, error.getMessage(), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          8947
+          -
+          8960
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          8992
+          -
+          9008
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          error.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          8961
+          -
+          8961
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          8963
+          -
+          9009
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Error&quot;, error.getMessage(), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          239
+        </td>
+        <td>
+          235
+        </td>
+        <td>
+          9441
+          -
+          9441
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          9590
+          -
+          9739
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          9499
+          -
+          9522
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          9555
+          -
+          9588
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Sign in successfully completed!&quot;
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          9523
+          -
+          9523
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          9544
+          -
+          9553
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Result&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          9525
+          -
+          9740
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply(scala.StringContext.apply(&quot;Result&quot;).s(), &quot;Sign in successfully completed!&quot;, scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+})))
+        </td>
+      </tr><tr>
+        <td>
+          241
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          9499
+          -
+          9740
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.AlertMessages.Info.apply(scala.StringContext.apply(&quot;Result&quot;).s(), &quot;Sign in successfully completed!&quot;, scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+}))))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          242
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          9611
+          -
+          9632
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.jwtToken_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.jwtToken_=(token)
+        </td>
+      </tr><tr>
+        <td>
+          243
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          9641
+          -
+          9661
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.becomeRoomsManager
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.becomeRoomsManager()
+        </td>
+      </tr><tr>
+        <td>
+          244
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          9696
+          -
+          9730
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI
+        </td>
+      </tr><tr>
+        <td>
+          244
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          9670
+          -
+          9693
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          244
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          9670
+          -
+          9730
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          244
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          9694
+          -
+          9694
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          9869
+          -
+          9882
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.UNKNOWN_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.UNKNOWN_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          9821
+          -
+          9884
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Warning&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          9835
+          -
+          9835
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          9795
+          -
+          9884
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Warning&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          9841
+          -
+          9850
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Warning&quot;
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          9852
+          -
+          9883
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR)
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          9819
+          -
+          9819
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          9795
+          -
+          9818
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          182
+        </td>
+        <td>
+          9941
+          -
+          10182
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.AlertMessages.Info.apply(scala.StringContext.apply(&quot;Result&quot;).s(), &quot;Sign up successfully completed!&quot;, scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+}))))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          181
+        </td>
+        <td>
+          9965
+          -
+          9965
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          172
+        </td>
+        <td>
+          9997
+          -
+          10030
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Sign up successfully completed!&quot;
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          180
+        </td>
+        <td>
+          9967
+          -
+          10182
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply(scala.StringContext.apply(&quot;Result&quot;).s(), &quot;Sign up successfully completed!&quot;, scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+})))
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          9986
+          -
+          9995
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Result&quot;).s()
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          179
+        </td>
+        <td>
+          10032
+          -
+          10181
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[() =&gt; Unit]((() =&gt; {
+  this.jwtToken_=(token);
+  ClientControllerActor.this.becomeRoomsManager();
+  actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          9941
+          -
+          9964
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          173
+        </td>
+        <td>
+          10053
+          -
+          10074
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.jwtToken_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.jwtToken_=(token)
+        </td>
+      </tr><tr>
+        <td>
+          251
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          10083
+          -
+          10103
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.becomeRoomsManager
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.becomeRoomsManager()
+        </td>
+      </tr><tr>
+        <td>
+          252
+        </td>
+        <td>
+          176
+        </td>
+        <td>
+          10138
+          -
+          10172
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI
+        </td>
+      </tr><tr>
+        <td>
+          252
+        </td>
+        <td>
+          175
+        </td>
+        <td>
+          10112
+          -
+          10135
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          252
+        </td>
+        <td>
+          178
+        </td>
+        <td>
+          10112
+          -
+          10172
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.authentication.AuthenticationViewMessages.HideGUI)(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          252
+        </td>
+        <td>
+          177
+        </td>
+        <td>
+          10136
+          -
+          10136
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          185
+        </td>
+        <td>
+          10311
+          -
+          10324
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.UNKNOWN_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.UNKNOWN_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          184
+        </td>
+        <td>
+          10283
+          -
+          10292
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Warning&quot;
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          187
+        </td>
+        <td>
+          10277
+          -
+          10277
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          190
+        </td>
+        <td>
+          10237
+          -
+          10326
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.authenticationViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Warning&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          189
+        </td>
+        <td>
+          10261
+          -
+          10261
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          183
+        </td>
+        <td>
+          10237
+          -
+          10260
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.authenticationViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.authenticationViewActor
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          186
+        </td>
+        <td>
+          10294
+          -
+          10325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR)
+        </td>
+      </tr><tr>
+        <td>
+          255
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          10263
+          -
+          10326
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Warning&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          191
+        </td>
+        <td>
+          10381
+          -
+          10394
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          194
+        </td>
+        <td>
+          10397
+          -
+          10431
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply(&quot;Token&quot;, token, it.cwmp.client.view.AlertMessages.Info.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          10411
+          -
+          10411
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          196
+        </td>
+        <td>
+          10381
+          -
+          10431
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Info.apply(&quot;Token&quot;, token, it.cwmp.client.view.AlertMessages.Info.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          10416
+          -
+          10423
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Token&quot;
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          195
+        </td>
+        <td>
+          10395
+          -
+          10395
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          200
+        </td>
+        <td>
+          10530
+          -
+          10561
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR)
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          202
+        </td>
+        <td>
+          10499
+          -
+          10562
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          10547
+          -
+          10560
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.UNKNOWN_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.UNKNOWN_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          198
+        </td>
+        <td>
+          10519
+          -
+          10528
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Problem&quot;
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          10513
+          -
+          10513
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          204
+        </td>
+        <td>
+          10483
+          -
+          10562
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          203
+        </td>
+        <td>
+          10497
+          -
+          10497
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          260
+        </td>
+        <td>
+          197
+        </td>
+        <td>
+          10483
+          -
+          10496
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          209
+        </td>
+        <td>
+          10659
+          -
+          10710
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply(&quot;Stanza privata&quot;, &quot;Sei entrato&quot;, it.cwmp.client.view.AlertMessages.Info.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          211
+        </td>
+        <td>
+          10643
+          -
+          10710
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Info.apply(&quot;Stanza privata&quot;, &quot;Sei entrato&quot;, it.cwmp.client.view.AlertMessages.Info.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          205
+        </td>
+        <td>
+          10643
+          -
+          10656
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          208
+        </td>
+        <td>
+          10673
+          -
+          10673
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          207
+        </td>
+        <td>
+          10696
+          -
+          10709
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Sei entrato&quot;
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          210
+        </td>
+        <td>
+          10657
+          -
+          10657
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          10678
+          -
+          10694
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Stanza privata&quot;
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          218
+        </td>
+        <td>
+          10810
+          -
+          10810
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          10860
+          -
+          10873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.UNKNOWN_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.UNKNOWN_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          217
+        </td>
+        <td>
+          10812
+          -
+          10875
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          216
+        </td>
+        <td>
+          10826
+          -
+          10826
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          219
+        </td>
+        <td>
+          10796
+          -
+          10875
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          213
+        </td>
+        <td>
+          10832
+          -
+          10841
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Problem&quot;
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          10796
+          -
+          10809
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          264
+        </td>
+        <td>
+          215
+        </td>
+        <td>
+          10843
+          -
+          10874
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR)
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          226
+        </td>
+        <td>
+          10955
+          -
+          11023
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Info.apply(&quot;Stanza pubblica&quot;, &quot;Sei entrato&quot;, it.cwmp.client.view.AlertMessages.Info.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          220
+        </td>
+        <td>
+          10955
+          -
+          10968
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          223
+        </td>
+        <td>
+          10985
+          -
+          10985
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          10969
+          -
+          10969
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          222
+        </td>
+        <td>
+          11009
+          -
+          11022
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Sei entrato&quot;
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          221
+        </td>
+        <td>
+          10990
+          -
+          11007
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Stanza pubblica&quot;
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          224
+        </td>
+        <td>
+          10971
+          -
+          11023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Info.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Info.apply(&quot;Stanza pubblica&quot;, &quot;Sei entrato&quot;, it.cwmp.client.view.AlertMessages.Info.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          227
+        </td>
+        <td>
+          11108
+          -
+          11121
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.roomViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.roomViewActor
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          229
+        </td>
+        <td>
+          11172
+          -
+          11185
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ClientControllerActor.UNKNOWN_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.UNKNOWN_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          232
+        </td>
+        <td>
+          11124
+          -
+          11187
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          234
+        </td>
+        <td>
+          11108
+          -
+          11187
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(ClientControllerActor.this.roomViewActor).!(it.cwmp.client.view.AlertMessages.Error.apply(&quot;Problem&quot;, reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR), it.cwmp.client.view.AlertMessages.Error.apply$default$3))(ClientControllerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          228
+        </td>
+        <td>
+          11144
+          -
+          11153
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Problem&quot;
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          231
+        </td>
+        <td>
+          11138
+          -
+          11138
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.AlertMessages.Error.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          230
+        </td>
+        <td>
+          11155
+          -
+          11186
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #F0ADAD">
+          reason.getOrElse[String](ClientControllerActor.this.UNKNOWN_ERROR)
+        </td>
+      </tr><tr>
+        <td>
+          268
+        </td>
+        <td>
+          233
+        </td>
+        <td>
+          11122
+          -
+          11122
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          ClientControllerActor.this.self
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

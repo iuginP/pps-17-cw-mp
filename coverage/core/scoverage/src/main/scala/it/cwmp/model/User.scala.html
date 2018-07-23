@@ -1,0 +1,583 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/model/User.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.model
+</span>2 <span style=''>
+</span>3 <span style=''>import io.vertx.lang.scala.json.{Json, JsonObject}
+</span>4 <span style=''>import it.cwmp.utils.Utils._
+</span>5 <span style=''>
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * A trait describing the user
+</span>8 <span style=''>  *
+</span>9 <span style=''>  * @author Enrico Siboni
+</span>10 <span style=''>  */
+</span>11 <span style=''>trait User {
+</span>12 <span style=''>  def username: String
+</span>13 <span style=''>}
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Companion object
+</span>17 <span style=''>  *
+</span>18 <span style=''>  * @author Enrico Siboni
+</span>19 <span style=''>  */
+</span>20 <span style=''>object User {
+</span>21 <span style=''>
+</span>22 <span style=''>  val FIELD_USERNAME = </span><span style='background: #AEF1AE'>&quot;user_username&quot;</span><span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>  def apply(username: String): User = {
+</span>25 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(username), </span><span style='background: #F0ADAD'>&quot;Username empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>26 <span style=''>    </span><span style='background: #AEF1AE'>UserDefault(username)</span><span style=''>
+</span>27 <span style=''>  }
+</span>28 <span style=''>
+</span>29 <span style=''>  def unapply(toExtract: User): Option[String] =
+</span>30 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract eq null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.username)</span><span style=''>
+</span>31 <span style=''>
+</span>32 <span style=''>  private case class UserDefault(username: String) extends User
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>    * Converters for User
+</span>36 <span style=''>    *
+</span>37 <span style=''>    * @author Enrico Siboni
+</span>38 <span style=''>    */
+</span>39 <span style=''>  object Converters {
+</span>40 <span style=''>
+</span>41 <span style=''>    /**
+</span>42 <span style=''>      * User to Json Converter
+</span>43 <span style=''>      */
+</span>44 <span style=''>    implicit class RichUser(user: User) {
+</span>45 <span style=''>      def toJson: JsonObject = </span><span style='background: #AEF1AE'>Json obj ((FIELD_USERNAME, user.username))</span><span style=''>
+</span>46 <span style=''>    }
+</span>47 <span style=''>
+</span>48 <span style=''>    /**
+</span>49 <span style=''>      * Json to User Converter
+</span>50 <span style=''>      */
+</span>51 <span style=''>    implicit class JsonUserConverter(json: JsonObject) {
+</span>52 <span style=''>      def toUser: User =
+</span>53 <span style=''>        if (</span><span style='background: #AEF1AE'>json containsKey FIELD_USERNAME</span><span style=''>) </span><span style='background: #AEF1AE'>User(json.getString(FIELD_USERNAME))</span><span style=''>
+</span>54 <span style=''>        else </span><span style='background: #F0ADAD'>throw parseException(&quot;User JsonParsing&quot;, s&quot;The input doesn't contain $FIELD_USERNAME --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
+</span>55 <span style=''>    }
+</span>56 <span style=''>
+</span>57 <span style=''>  }
+</span>58 <span style=''>
+</span>59 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          312
+          -
+          327
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;user_username&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          405
+          -
+          421
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Username empty&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          381
+          -
+          403
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.Utils.emptyString(username).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          373
+          -
+          422
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(it.cwmp.utils.Utils.emptyString(username).unary_!, &quot;Username empty&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          427
+          -
+          448
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.User.UserDefault.apply
+        </td>
+        <td style="background: #AEF1AE">
+          User.this.UserDefault.apply(username)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          511
+          -
+          528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.eq
+        </td>
+        <td style="background: #F0ADAD">
+          toExtract.eq(null)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          545
+          -
+          563
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #F0ADAD">
+          toExtract.username
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          540
+          -
+          564
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](toExtract.username)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          530
+          -
+          534
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          530
+          -
+          534
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          540
+          -
+          564
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](toExtract.username)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          848
+          -
+          890
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.lang.scala.json.Json.obj
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.lang.scala.json.Json.obj(scala.Tuple2.apply[String, String](User.this.FIELD_USERNAME, RichUser.this.user.username))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          859
+          -
+          873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.FIELD_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          User.this.FIELD_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          858
+          -
+          889
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, String](User.this.FIELD_USERNAME, RichUser.this.user.username)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          875
+          -
+          888
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #AEF1AE">
+          RichUser.this.user.username
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          1093
+          -
+          1107
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.FIELD_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          User.this.FIELD_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          1073
+          -
+          1109
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.User.apply
+        </td>
+        <td style="background: #AEF1AE">
+          User.apply(JsonUserConverter.this.json.getString(User.this.FIELD_USERNAME))
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          1040
+          -
+          1071
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.containsKey
+        </td>
+        <td style="background: #AEF1AE">
+          JsonUserConverter.this.json.containsKey(User.this.FIELD_USERNAME)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          1057
+          -
+          1071
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.FIELD_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          User.this.FIELD_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          1078
+          -
+          1108
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getString
+        </td>
+        <td style="background: #AEF1AE">
+          JsonUserConverter.this.json.getString(User.this.FIELD_USERNAME)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          1073
+          -
+          1109
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.model.User.apply
+        </td>
+        <td style="background: #AEF1AE">
+          User.apply(JsonUserConverter.this.json.getString(User.this.FIELD_USERNAME))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          1123
+          -
+          1238
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw it.cwmp.utils.Utils.parseException(&quot;User JsonParsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(User.this.FIELD_USERNAME, JsonUserConverter.this.json.encodePrettily()))
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          1123
+          -
+          1238
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw it.cwmp.utils.Utils.parseException(&quot;User JsonParsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(User.this.FIELD_USERNAME, JsonUserConverter.this.json.encodePrettily()))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,274 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/utils/AdvancedLogging.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
+</span>2 <span style=''>
+</span>3 <span style=''>import scala.concurrent.{ExecutionContext, Future}
+</span>4 <span style=''>import scala.reflect.{ClassTag, classTag}
+</span>5 <span style=''>import scala.util.{Failure, Success}
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * This trait provides a [[ch.qos.logback.classic.Logger]] as [[Logging]], but it has also a set of utility methods for logging.
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * @author Eugenio Pierfederici
+</span>11 <span style=''>  */
+</span>12 <span style=''>trait AdvancedLogging extends Logging {
+</span>13 <span style=''>
+</span>14 <span style=''>  /**
+</span>15 <span style=''>    * Enrich a future with logging capabilities.
+</span>16 <span style=''>    *
+</span>17 <span style=''>    * @param future the future to enrich.
+</span>18 <span style=''>    * @tparam T the type of value provided from the future.
+</span>19 <span style=''>    */
+</span>20 <span style=''>  implicit class RichFuture[T](future: Future[T]) {
+</span>21 <span style=''>
+</span>22 <span style=''>    /**
+</span>23 <span style=''>      * Log an info message containing the text message if the future succeeds.
+</span>24 <span style=''>      *
+</span>25 <span style=''>      * @param message          the message to display.
+</span>26 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>27 <span style=''>      * @return The future itself.
+</span>28 <span style=''>      */
+</span>29 <span style=''>    def logSuccessInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
+</span>30 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; log.info(message)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>    /**
+</span>35 <span style=''>      * Log an info message containing the text message if the future succeeds and the condition is respected.
+</span>36 <span style=''>      *
+</span>37 <span style=''>      * @param message          the message to display.
+</span>38 <span style=''>      * @param condition        the strategy that specifies if the argument of the successful future is right.
+</span>39 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>40 <span style=''>      * @return The future itself.
+</span>41 <span style=''>      */
+</span>42 <span style=''>    def logSuccessInfo(message: String, condition: T =&gt; Boolean)(implicit executionContext: ExecutionContext): Future[T] =
+</span>43 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>44 <span style=''></span><span style='background: #F0ADAD'>        case Success(s) if condition(s) =&gt; log.info(message)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>46 <span style=''>
+</span>47 <span style=''>    /**
+</span>48 <span style=''>      * Log an info message containing the text message if the future fails.
+</span>49 <span style=''>      *
+</span>50 <span style=''>      * @param message          the message to display.
+</span>51 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>52 <span style=''>      * @return The future itself.
+</span>53 <span style=''>      */
+</span>54 <span style=''>    def logFailureInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
+</span>55 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>56 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) =&gt; log.info(message, e)
+</span>57 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>58 <span style=''>
+</span>59 <span style=''>    /**
+</span>60 <span style=''>      * Log an info message containing the text message if the future fails with the specified exception type.
+</span>61 <span style=''>      *
+</span>62 <span style=''>      * @param message the message to display.
+</span>63 <span style=''>      * @tparam A the type of exception that should be returned as failure.
+</span>64 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>65 <span style=''>      * @return The future itself.
+</span>66 <span style=''>      */
+</span>67 <span style=''>    def logFailureInfo[A &lt;: Exception : ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
+</span>68 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>69 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; log.info(message, e)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>71 <span style=''>  }
+</span>72 <span style=''>
+</span>73 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          328
+        </td>
+        <td>
+          992
+          -
+          1061
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          RichFuture.this.future.andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[T],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[T] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[T], B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (value: T)scala.util.Success[T](_) =&gt; (if (AdvancedLogging.this.log.underlying.isInfoEnabled())
+        AdvancedLogging.this.log.underlying.info(message)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: scala.util.Try[T]): Boolean = ((x1.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (value: T)scala.util.Success[T](_) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[T],Unit]))(executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          329
+        </td>
+        <td>
+          1628
+          -
+          1713
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          RichFuture.this.future.andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[T],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[T] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[T], B1 &gt;: Unit](x2: A1, default: A1 =&gt; B1): B1 = ((x2.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (value: T)scala.util.Success[T]((s @ _)) if condition.apply(s) =&gt; (if (AdvancedLogging.this.log.underlying.isInfoEnabled())
+        AdvancedLogging.this.log.underlying.info(message)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x2)
+    };
+    final def isDefinedAt(x2: scala.util.Try[T]): Boolean = ((x2.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (value: T)scala.util.Success[T]((s @ _)) if condition.apply(s) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[T],Unit]))(executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          330
+        </td>
+        <td>
+          2110
+          -
+          2182
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          RichFuture.this.future.andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[T],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[T] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[T], B1 &gt;: Unit](x3: A1, default: A1 =&gt; B1): B1 = ((x3.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (exception: Throwable)scala.util.Failure[T]((e @ _)) =&gt; (if (AdvancedLogging.this.log.underlying.isInfoEnabled())
+        AdvancedLogging.this.log.underlying.info(message, e)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x3)
+    };
+    final def isDefinedAt(x3: scala.util.Try[T]): Boolean = ((x3.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (exception: Throwable)scala.util.Failure[T]((e @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[T],Unit]))(executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          331
+        </td>
+        <td>
+          2707
+          -
+          2821
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          RichFuture.this.future.andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[T],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[T] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[T], B1 &gt;: Unit](x4: A1, default: A1 =&gt; B1): B1 = ((x4.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (exception: Throwable)scala.util.Failure[T]((e @ _)) if scala.reflect.`package`.classTag[A](evidence$1).runtimeClass.isInstance(e) =&gt; (if (AdvancedLogging.this.log.underlying.isInfoEnabled())
+        AdvancedLogging.this.log.underlying.info(message, e)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x4)
+    };
+    final def isDefinedAt(x4: scala.util.Try[T]): Boolean = ((x4.asInstanceOf[scala.util.Try[T]]: scala.util.Try[T]): scala.util.Try[T] @unchecked) match {
+      case (exception: Throwable)scala.util.Failure[T]((e @ _)) if scala.reflect.`package`.classTag[A](evidence$1).runtimeClass.isInstance(e) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[T],Unit]))(executionContext)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>
