@@ -75,6 +75,7 @@ subprojects {
         // delete production folder
         delete(file(jarDestinationFolder))
         ant.delete dir: "latest-reports"
+        ant.delete dir: "latest-docs"
     }
 
     reportScoverage.doLast {
