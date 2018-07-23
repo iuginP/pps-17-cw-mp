@@ -80,7 +80,7 @@ subprojects {
 
     reportScoverage.doLast {
         ant.move file: "${buildDir}/reports/scoverage",
-                todir: "latest-reports/.${project.name}"
+                todir: "latest-reports/${project.name}"
     }
 
     build.finalizedBy scalaStyle
