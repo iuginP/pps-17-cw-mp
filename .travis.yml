@@ -7,6 +7,7 @@ script:
 after_success:
   - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/scala -d scala'
   - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/java -d java'
+  - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s build/reports/scoverage -d coverage'
 deploy:
   provider: releases
   api-key: $GITHUB_API_KEY
