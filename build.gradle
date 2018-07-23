@@ -74,11 +74,10 @@ subprojects {
     clean {
         // delete production folder
         delete(file(jarDestinationFolder))
+        ant.delete dir: "latest-reports"
     }
 
     reportScoverage.doLast {
-        ant.delete dir: "latest-reports"
-    }.doLast {
         ant.move file: "${buildDir}/reports/scoverage",
                 todir: "latest-reports/.${project.name}"
     }
