@@ -4,8 +4,9 @@ import java.awt.Color
 
 import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.model.game.impl.{Cell, Point}
-import it.cwmp.client.model.game.{ColoringStrategy, SizingStrategy}
-import it.cwmp.client.view.game.GameConstants._
+import it.cwmp.client.model.game.SizingStrategy
+import it.cwmp.client.view.game.ColoringStrategy
+import it.cwmp.client.view.game.GameViewConstants._
 
 import scala.language.implicitConversions
 
@@ -17,7 +18,7 @@ import scala.language.implicitConversions
   * @param center punto nel quale verrà disegnata la cella
   * @param size   dimensione della cella
   */
-case class CellView(center: Point, color: Color = defaultColor, size: Int = cellSize)
+case class CellView(center: Point, color: Color, size: Int)
 
 /**
   * Companion object
