@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 group = projectGroup
 version = projectVersion
 description = projectDescription
@@ -5,7 +7,7 @@ description = projectDescription
 def jarDestinationFolder = "${rootDir.path}$productionJarFolder"
 
 def scalaStyleResPath = "${rootDir.path}$scalaStyleResFile"
-def scalaStyleOutputPath = "${buildDir.path}$scalaStyleOutput"
+def scalaStyleOutputPath = "${buildDir.path}/$scalaStyleOutput"
 
 allprojects {
     apply plugin: 'idea'
@@ -74,6 +76,13 @@ subprojects {
     clean {
         // delete production folder
         delete(file(jarDestinationFolder))
+    }
+
+    reportScoverage.doLast {
+        ant.delete dir: "latest-reports"
+    }.doLast {
+        ant.move file: "${buildDir}/reports/scoverage",
+                todir: "latest-reports/.${project.name}"
     }
 
     build.finalizedBy scalaStyle
