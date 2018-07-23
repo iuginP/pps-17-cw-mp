@@ -4,6 +4,9 @@ description = projectDescription
 
 def jarDestinationFolder = "${rootDir.path}$productionJarFolder"
 
+def scalaStyleResPath = "${rootDir.path}$scalaStyleResFile"
+def scalaStyleOutputPath = "${buildDir.path}$scalaStyleOutput"
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -20,8 +23,7 @@ subprojects {
     apply plugin: 'scala'
     apply plugin: 'org.scoverage'
     apply plugin: 'com.github.maiflai.scalatest'
-    apply plugin: 'pmd'
-    apply plugin: 'checkstyle'
+    apply plugin: 'scalaStyle'
 
     sourceCompatibility = "$jdkVersion"
     javadoc.destinationDir = file("$docsFolderJava/${it.path}")
@@ -60,10 +62,21 @@ subprojects {
         }
     }
 
+    scalaStyle {
+        configLocation = scalaStyleResPath
+        includeTestSourceDirectory = true
+        source = "$scalaStyleSource"
+        testSource = "$scalaStyleTestSource"
+        outputFile = scalaStyleOutputPath
+        failOnWarning = false
+    }
+
     clean {
         // delete production folder
         delete(file(jarDestinationFolder))
     }
+
+    build.finalizedBy scalaStyle
 }
 
 configure(subprojects.findAll { it.name == 'core' || it.parent.name == 'services' }) {
@@ -95,8 +108,9 @@ buildscript {
         classpath "gradle.plugin.org.scoverage:gradle-scoverage:2.3.0"
         classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
 
-        // to build fatJars
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+
+        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_2.11:1.0.1"
     }
 }
 
