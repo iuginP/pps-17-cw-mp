@@ -52,6 +52,7 @@ if [ ! -z "${BRANCH}" ] &&
       [ "${TRAVIS_BRANCH}" == "${BRANCH}" ]; then
 
         echo -e "Publishing ${DESTINATION} into ${REPOSITORY} (${BRANCH}) from all ${SOURCE}:\n"
+        rm -R $HOME/git_upload_tmp
         mkdir $HOME/git_upload_tmp
         find -path "*/${SOURCE}" -print0 | while IFS= read -r -d $'\0' line; do ls $line; cp -r $line/* $HOME/git_upload_tmp; done;
         cd $HOME
