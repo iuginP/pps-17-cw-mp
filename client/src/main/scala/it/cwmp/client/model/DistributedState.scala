@@ -11,7 +11,7 @@ import it.cwmp.utils.Logging
 object DistributedStateMessages {
 
   /**
-    * The message received when the user do something in the GUI
+    * The message received when the user does something in the GUI
     *
     * @param world The world to update in the GUI
     * @tparam W Type of the world
