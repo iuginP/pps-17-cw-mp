@@ -2,19 +2,19 @@ package it.cwmp.services.authentication
 
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import it.cwmp.services.authentication.ServerParameters._
 import it.cwmp.services.authentication.storage.StorageAsync
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+/**
+  * Class that implements the Authentication micro-service
+  */
 case class AuthenticationServiceVerticle() extends VertxServer with Logging {
 
-  import it.cwmp.services.authentication.ServerParameters._
-
   override protected val serverPort: Int = DEFAULT_PORT
-
-  import it.cwmp.services.authentication.ServerParameters._
 
   private var storageFuture: Future[StorageAsync] = _
 
