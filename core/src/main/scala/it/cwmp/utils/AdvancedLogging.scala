@@ -26,7 +26,8 @@ trait AdvancedLogging extends Logging {
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
-    def logSuccessInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
+    def logSuccessInfo(message: String)
+                      (implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
         case Success(_) => log.info(message)
       }
@@ -39,7 +40,8 @@ trait AdvancedLogging extends Logging {
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
-    def logSuccessInfo(message: String, condition: T => Boolean)(implicit executionContext: ExecutionContext): Future[T] =
+    def logSuccessInfo(message: String, condition: T => Boolean)
+                      (implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
         case Success(s) if condition(s) => log.info(message)
       }
@@ -51,7 +53,8 @@ trait AdvancedLogging extends Logging {
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
-    def logFailureInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
+    def logFailureInfo(message: String)
+                      (implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
         case Failure(e) => log.info(message, e)
       }
@@ -64,7 +67,8 @@ trait AdvancedLogging extends Logging {
       * @param executionContext the implicit execution context on which to execute the operation.
       * @return The future itself.
       */
-    def logFailureInfo[A <: Exception : ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
+    def logFailureInfo[A <: Exception : ClassTag](message: String)
+                                                 (implicit executionContext: ExecutionContext): Future[T] =
       future.andThen {
         case Failure(e) if classTag[A].runtimeClass.isInstance(e) => log.info(message, e)
       }

@@ -2,8 +2,17 @@ package it.cwmp.utils
 
 import java.text.ParseException
 
+/**
+  * Generic utilities that can be used anywhere
+  */
 object Utils {
 
+  /**
+    * Generates a random string of specified length
+    *
+    * @param length the length of the random String
+    * @return the random string
+    */
   def randomString(length: Int): String = scala.util.Random.alphanumeric.take(length).mkString
 
   /**
