@@ -6,17 +6,52 @@ import it.cwmp.services.authentication.StorageLoaclDAO._
 import it.cwmp.utils.{VertxInstance, VertxJDBC}
 import scala.concurrent._
 
+/**
+  * Trait che descrive l' Authentication Data Access Object
+  *
+  * @author Davide Borficchia
+  */
 trait StorageDAO {
-
+  /**
+    * Registra un nuovo utente all'interno dello storage
+    *
+    * @param username username del nuovo utente
+    * @param password password del nuovo utente
+    * @return ritorna un Future vuoto
+    */
   def signupFuture(username: String, password: String): Future[Unit]
 
+  /**
+    * Fa sloggare un utente che ha precedentemente fatto login
+    *
+    * @param username username dell'utente che si vuole fare sloggare
+    * @return ritorna un Future vuoto
+    */
   def signoutFuture(username: String): Future[Unit]
 
+  /**
+    * Permette di far loggare un utente precedentemente registrato nel sistema
+    *
+    * @param username username dell'utente
+    * @param password password dell'utente
+    * @return ritorna un Future vuoto
+    */
   def loginFuture(username: String, password: String): Future[Unit]
 
+  /**
+    * controlla se un utente è presente nel sistema
+    *
+    * @param username utente da controllare
+    * @return ritorna un Future vuoto
+    */
   def existsFuture(username: String): Future[Unit]
 }
 
+/**
+  * Wrapper per accedere allo storage Vertex locale per l'autenticazione
+  *
+  * @author Davide Borficchia
+  */
 case class StorageLoaclDAO(override val configurationPath: String = "authentication/database.json") extends StorageDAO with VertxInstance with VertxJDBC {
   private var notInitialized = true
 
@@ -32,7 +67,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
       notInitialized = false
     }).closeConnections
   }
-
 
   override def signupFuture(usernameP: String, passwordP: String): Future[Unit] = {
     logger.debug(s"signup() username:$usernameP, password:$passwordP")
@@ -53,7 +87,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
 
-
   override def signoutFuture(usernameP: String): Future[Unit] = {
     logger.debug(s"signoutFuture() username:$usernameP")
     (for (
@@ -68,7 +101,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
-
 
   override def loginFuture(usernameP: String, passwordP: String): Future[Unit] = {
     logger.debug(s"loginFuture() username:$usernameP, password:$passwordP")
@@ -86,7 +118,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
 
-
   override def existsFuture(usernameP: String): Future[Unit] = {
     logger.debug(s"existsFuture() username:$usernameP")
     (for (
@@ -101,8 +132,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
-
-
 }
 
 object StorageLoaclDAO {
@@ -112,7 +141,7 @@ object StorageLoaclDAO {
   private val FIELD_AUTH_SALT = "auth_salt"
 
   /**
-    * Utility method to check if DAO is initialized
+    * Utility method per controlloare se il DAO è stato inizializzato
     */
   private def checkInitialization(notInitialized: Boolean): Option[Future[Unit]] = {
     //if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
