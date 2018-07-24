@@ -59,9 +59,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       (fromCell, toCell) match {
         case (Some(attacker), Some(attacked)) =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
-          parentActor ! DistributedState.UpdateState(
-            tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant)
-          )
+          parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
         case tmp@_ => log.debug(s"No cells detected $tmp")
       }
 
@@ -71,9 +69,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       attack match {
         case Some(tentacle) =>
           log.debug(s"Removing this attack: $tentacle ...")
-          parentActor ! DistributedState.UpdateState(
-            tempWorld -- tentacle
-          )
+          parentActor ! DistributedState.UpdateState(tempWorld -- tentacle)
         case tmp@_ => log.debug(s"No attack detected $tmp")
       }
   }
