@@ -54,7 +54,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
-    gameViewActor = system.actorOf(Props[GameViewActor], "game-view")
+    gameViewActor = system.actorOf(Props(classOf[GameViewActor], self), "game-view")
     log.info(s"Subscribing to cluster changes...")
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])

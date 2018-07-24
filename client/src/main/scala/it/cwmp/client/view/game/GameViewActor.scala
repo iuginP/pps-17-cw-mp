@@ -1,7 +1,8 @@
 package it.cwmp.client.view.game
 
-import akka.actor.{Actor, Cancellable}
+import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
+import it.cwmp.client.model.DistributedStateMessages
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.CellView
@@ -12,7 +13,7 @@ import scala.concurrent.duration._
 /**
   * @author contributor Enrico Siboni
   */
-class GameViewActor extends Actor with Logging {
+class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX()
   private val FRAME_RATE: FiniteDuration = 50.millis
@@ -57,7 +58,7 @@ class GameViewActor extends Actor with Logging {
       (fromCell, toCell) match {
         case (Some(attacker), Some(attacked)) =>
           tempWorld = tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant)
-        // TODO: tell playerActor that world has changed
+          parentActor ! DistributedStateMessages.UpdateWorld(tempWorld)
         case tmp@_ => log.debug(s"No attack detected... $tmp")
       }
 
@@ -73,7 +74,7 @@ class GameViewActor extends Actor with Logging {
   * Companion object, containing actor messages
   */
 object GameViewActor {
-  def apply(): GameViewActor = new GameViewActor
+  def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
 
   case object ShowGUI
 
