@@ -1,5 +1,8 @@
 package it.cwmp.services.authentication
 
+/**
+  * An object containing Authentication Service info
+  */
 object ServerParameters {
 
   val DEFAULT_PORT = 8666
