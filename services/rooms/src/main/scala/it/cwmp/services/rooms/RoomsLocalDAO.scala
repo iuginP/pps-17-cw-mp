@@ -316,7 +316,7 @@ object RoomsLocalDAO {
     else Future.successful(Unit)
   }
 
-
+  private val ROOM_ID_LENGTH = 20
   private val userToRoomLinkField = "user_room"
   private val createRoomTableSql =
     s"""
@@ -435,7 +435,7 @@ object RoomsLocalDAO {
   /**
     * Method that generates a random room identifier
     */
-  private def generateRandomRoomID() = Utils.randomString(Int.MaxValue)
+  private def generateRandomRoomID() = Utils.randomString(ROOM_ID_LENGTH)
 
   /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
