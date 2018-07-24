@@ -86,7 +86,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
                                allTentacles: Seq[Tentacle],
                                maturedEnergy: Double): Cell = {
     val firstAttackerOfCell = allTentacles.min(Tentacle.orderByLaunchInstant).from.owner
-    Cell(firstAttackerOfCell, cell.position, GameConstants.cellWhenBornEnergy + maturedEnergy)
+    Cell(firstAttackerOfCell, cell.position, GameConstants.CELL_ENERGY_WHEN_BORN + maturedEnergy)
   }
 
   /**

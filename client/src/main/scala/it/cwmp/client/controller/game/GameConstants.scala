@@ -12,7 +12,7 @@ object GameConstants {
     *
     * The energy that a cell has when it's born
     */
-  val cellWhenBornEnergy = 20d
+  val CELL_ENERGY_WHEN_BORN = 20d
 
   /**
     * ==Cell==

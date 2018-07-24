@@ -46,7 +46,7 @@ trait ObjectDrawer {
     */
   def drawArch(tentacle: Tentacle, actualInstant: Instant)(implicit graphicsContext: GraphicsContext): Unit = {
     graphicsContext.setStroke(TentacleView.coloringStrategy(tentacle))
-    graphicsContext.setLineWidth(3.0)
+    graphicsContext.setLineWidth(TentacleView.thicknessStrategy(tentacle))
 
     val attackerPosition = tentacle.from.position
     val tentacleReachedPoint = TentacleView.reachedPoint(tentacle, actualInstant)
