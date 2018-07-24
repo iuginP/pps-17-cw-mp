@@ -5,12 +5,11 @@ import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsLocalDAO._
 import it.cwmp.utils.Utils.emptyString
 import it.cwmp.utils.VertxJDBC.stringsToJsonArray
-import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
+import it.cwmp.utils.{Logging, Utils, VertxInstance, VertxJDBC}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
-import scala.util.Random
 
 /**
   * A trait that describes the Rooms Data Access Object
@@ -436,7 +435,7 @@ object RoomsLocalDAO {
   /**
     * Method that generates a random room identifier
     */
-  private def generateRandomRoomID() = Random.nextInt(Int.MaxValue).toString
+  private def generateRandomRoomID() = Utils.randomString(Int.MaxValue)
 
   /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
