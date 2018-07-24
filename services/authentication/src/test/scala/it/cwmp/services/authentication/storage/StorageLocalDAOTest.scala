@@ -1,19 +1,20 @@
 package it.cwmp.services.authentication.storage
 
+import it.cwmp.services.authentication.{StorageDAO, StorageLoaclDAO}
 import it.cwmp.testing.{FutureMatchers, VertxTest}
 import it.cwmp.utils.Utils
 import org.scalatest.{BeforeAndAfterEach, Matchers}
 
 import scala.concurrent.Future
 
-class StorageAsyncTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
+class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
 
-  var storageFuture: Future[StorageAsync] = _
+  var storageFuture: Future[StorageDAO] = _
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    val storage = StorageAsync()
-    storageFuture = storage.init().map(_ => storage)
+    val storage = StorageLoaclDAO()
+    storageFuture = storage.initialize().map(_ => storage)
   }
 
   describe("Storage manager") {
