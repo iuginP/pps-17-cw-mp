@@ -1,10 +1,12 @@
 package it.cwmp.utils
 
+import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
 import scala.util.Success
 
 /**
@@ -21,7 +23,7 @@ trait VertxJDBC {
 
   private val clientFuture: Future[JDBCClient] =
     vertx.fileSystem.readFileFuture(configurationPath)
-      .recoverWith { case _ => vertx.fileSystem.readFileFuture("database/jdbc_config.json") }
+      .recoverWith { case _ => vertx.fileSystem.readFileFuture(DEFAULT_CONFIG_PATH) }
       .map(_.toJsonObject)
       .map(JDBCClient.createShared(vertx, _))
 
@@ -68,9 +70,23 @@ trait VertxJDBC {
       * @return the future itself
       */
     def closeConnections(implicit executionContext: ExecutionContext): Future[F] =
-      future.andThen {
-        case _ => closeAllConnections()
-      }
+      future.andThen { case _ => closeAllConnections() }
   }
 
+}
+
+
+/**
+  * Companion object
+  */
+object VertxJDBC {
+
+  /**
+    * Implicit conversion to jsonArray
+    *
+    * @return the converted data
+    */
+  implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = { // TODO: import and use this in AuthDAO
+    arguments.foldLeft(new JsonArray)(_.add(_))
+  }
 }

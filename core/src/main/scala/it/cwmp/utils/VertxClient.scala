@@ -1,9 +1,11 @@
 package it.cwmp.utils
 
+import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{HttpRequest, HttpResponse, WebClient, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
 
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scala.util.{Failure, Success}
 
 /**
@@ -52,10 +54,7 @@ trait VertxClient {
   /**
     * An implicit class to provide the [[HttpRequest]] with some more useful utilities.
     */
-
-  import io.netty.handler.codec.http.HttpHeaderNames
-
-  implicit class richHttpRequest[T](request: HttpRequest[T]) {
+  implicit class RichHttpRequest[T](request: HttpRequest[T]) {
 
     /**
       * Simplified way to add the basic Authorization header with the provided username and password
@@ -84,7 +83,7 @@ trait VertxClient {
   /**
     * An implicit class to provide the <code>Future[HttpResponse]</code> with some more useful utilities.
     */
-  implicit class richHttpResponse[T](response: Future[HttpResponse[T]]) {
+  implicit class RichHttpResponse[T](response: Future[HttpResponse[T]]) {
 
     /**
       * Causes the future to fail if the status code if different from one of those passed
