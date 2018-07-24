@@ -30,12 +30,12 @@ trait ObjectDrawer {
     val svgShape = new Region
     svgShape.setShape(svg)
     // TODO: the cell size is not drawn according to size value!!!!
-    svgShape.setMinSize(cell.size, cell.size)
-    svgShape.setPrefSize(cell.size, cell.size)
-    svgShape.setMaxSize(cell.size, cell.size)
+    svgShape.setMinSize(cell.radius, cell.radius)
+    svgShape.setPrefSize(cell.radius, cell.radius) // TODO: la cellula ora fornisce il suo raggio, rivedere il dimensionamento (fare raggio * 2?)
+    svgShape.setMaxSize(cell.radius, cell.radius)
     svgShape.setStyle("-fx-background-color: " + "#" + Integer.toHexString(cell.color.getRGB).substring(2))
-    svgShape.setLayoutX(cell.center.x - cell.size / 2)
-    svgShape.setLayoutY(cell.center.y - cell.size / 2)
+    svgShape.setLayoutX(cell.center.x - cell.radius / 2)
+    svgShape.setLayoutY(cell.center.y - cell.radius / 2)
     svgShape
   }
 

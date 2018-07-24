@@ -3,10 +3,9 @@ package it.cwmp.client.view.game.model
 import java.awt.Color
 
 import com.github.tkqubo.colorHash.ColorHash
-import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.model.game.SizingStrategy
+import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.ColoringStrategy
-import it.cwmp.client.view.game.GameViewConstants._
 
 import scala.language.implicitConversions
 
@@ -16,9 +15,9 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   * @param center punto nel quale verrà disegnata la cella
-  * @param size   dimensione della cella
+  * @param radius dimensione della cella
   */
-case class CellView(center: Point, color: Color, size: Int)
+case class CellView(center: Point, radius: Double, color: Color)
 
 /**
   * Companion object
@@ -28,7 +27,7 @@ object CellView {
   /**
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToViewCell(cell: Cell): CellView = CellView(cell.position, coloringStrategy(cell), sizingStrategy(cell))
+  implicit def cellToViewCell(cell: Cell): CellView = CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell))
 
   /**
     * Default cell coloring strategy
@@ -41,9 +40,9 @@ object CellView {
   }
 
   /**
-    * The default sizing strategy
+    * The default sizing strategy; returns the radius that the cellView should have
     *
-    * Maps size to energy
+    * Maps energy to radius
     */
-  val sizingStrategy: SizingStrategy[Cell, Int] = _.energy.toInt
+  val sizingStrategy: SizingStrategy[Cell, Double] = _.energy
 }

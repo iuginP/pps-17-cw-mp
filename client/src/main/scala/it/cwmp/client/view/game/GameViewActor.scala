@@ -2,8 +2,9 @@ package it.cwmp.client.view.game
 
 import akka.actor.{Actor, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
-import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
+import it.cwmp.client.view.game.model.CellView
 import it.cwmp.utils.Logging
 
 import scala.concurrent.duration._
@@ -49,8 +50,17 @@ class GameViewActor extends Actor with Logging {
 
     case AddAttack(from, to) =>
       log.info(s"AddAttack from:$from to:$to")
-    // TODO: convert those points (implementing a utility method in GeometricUtils) in an attack
-    // TODO: discovering to which cell are near the points provided
+      val worldCharacters = tempWorld.characters
+      val fromCell = findCellNearTo(from, worldCharacters)
+      val toCell = findCellNearTo(to, worldCharacters)
+      log.debug(s"Attack detected from $fromCell to $toCell")
+      (fromCell, toCell) match {
+        case (Some(attacker), Some(attacked)) =>
+          tempWorld = tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant)
+        // TODO: tell playerActor that world has changed
+        case tmp@_ => log.debug(s"No attack detected... $tmp")
+      }
+
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
@@ -88,4 +98,14 @@ object GameViewActor {
     * @param pointOnAttackView the point clicked by the player to remove the attack
     */
   case class RemoveAttack(pointOnAttackView: Point)
+
+  /**
+    * A method to find a cell near to a clicked point on view, according to actual cell sizing
+    *
+    * @param clickedPoint the clicked point on view
+    * @param cells        the collection of cells on screen
+    * @return optionally the cell near the clicked point
+    */
+  private def findCellNearTo(clickedPoint: Point, cells: Seq[Cell]): Option[Cell] =
+    cells.find(cell => GeometricUtils.isWithinCircumference(clickedPoint, cell.position, CellView.sizingStrategy(cell)))
 }
