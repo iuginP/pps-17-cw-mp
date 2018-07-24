@@ -6,8 +6,9 @@ import java.time.Instant
 import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.layout.Region
-import javafx.scene.shape.SVGPath
+import javafx.scene.layout._
+import javafx.scene.shape.{Line, SVGPath}
+import javafx.scene.text.Text
 
 import scala.language.implicitConversions
 
@@ -30,6 +31,8 @@ trait ObjectDrawer {
     val svgShape = new Region
     svgShape.setShape(svg)
     // TODO: the cell size is not drawn according to size value!!!!
+    svgShape.setBorder(new Border(new BorderStroke(Color.BLACK,
+      BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)))
     svgShape.setMinSize(cell.size, cell.size)
     svgShape.setPrefSize(cell.size, cell.size)
     svgShape.setMaxSize(cell.size, cell.size)
@@ -39,19 +42,31 @@ trait ObjectDrawer {
     svgShape
   }
 
+  def drawCellEnergy(cell: CellView)(implicit graphicsContext: GraphicsContext): Text = {
+    val t = new Text(cell.center.x - cell.size / 2, cell.center.y - cell.size / 2, cell.energy.toInt.toString)
+    import javafx.scene.text.Font
+    t.setFont(Font.font("Verdana", 20))
+    t.setFill(Color.BLACK)
+    t
+  }
+
   /**
     * Metodo utilizato per disegnare l'arco che unisce due celle
     *
     * @param graphicsContext è l'oggetto che disenga l'arco
     */
-  def drawArch(tentacle: Tentacle, actualInstant: Instant)(implicit graphicsContext: GraphicsContext): Unit = {
-    graphicsContext.setStroke(TentacleView.coloringStrategy(tentacle))
-    graphicsContext.setLineWidth(3.0)
+  def drawArch(tentacle: Tentacle, actualInstant: Instant)(implicit graphicsContext: GraphicsContext): Line = {
+    val line = new Line()
+    line.setStroke(TentacleView.coloringStrategy(tentacle))
 
     val attackerPosition = tentacle.from.position
     val tentacleReachedPoint = TentacleView.reachedPoint(tentacle, actualInstant)
-    graphicsContext.strokeLine(attackerPosition.x, attackerPosition.y,
-      tentacleReachedPoint.x, tentacleReachedPoint.y)
+    line.setStrokeWidth(3.0)
+    line.setStartX(attackerPosition.x)
+    line.setStartY(attackerPosition.y)
+    line.setEndX(tentacleReachedPoint.x)
+    line.setEndY(tentacleReachedPoint.y)
+    line
   }
 
   /**
