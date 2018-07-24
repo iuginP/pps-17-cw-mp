@@ -7,6 +7,9 @@ import it.cwmp.utils.Utils
 import scala.concurrent.Promise
 import scala.util.Failure
 
+/**
+  * A test class for AuthenticationApiWrapper
+  */
 class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
 
   private val auth = AuthenticationApiWrapper()

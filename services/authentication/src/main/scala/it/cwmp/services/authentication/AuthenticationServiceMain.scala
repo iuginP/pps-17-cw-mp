@@ -4,7 +4,7 @@ import io.vertx.scala.core.Vertx
 import it.cwmp.utils.Logging
 
 /**
-  * Hello class for server
+  * AuthenticationService entry-point
   */
 object AuthenticationServiceMain extends App with Logging {
 
