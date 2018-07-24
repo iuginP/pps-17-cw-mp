@@ -32,7 +32,8 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
   private val cluster: Cluster = Cluster(context.system)
 
   // Distributed world
-  private val distributedState: DistributedState[CellWorld] = CellWorldDistributedState(self, println)(replicator, cluster)
+  private val distributedState: DistributedState[CellWorld] =
+    CellWorldDistributedState(self, onWorldUpdatedAction)(replicator, cluster)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
@@ -85,6 +86,14 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
   }
 
   private def backToLobbyAction(): Unit = context.become(clusterBehaviour orElse lobbyBehaviour)
+
+  /**
+    * Action that will be executed every time the world will be updated
+    *
+    * @param world the updated world
+    */
+  private def onWorldUpdatedAction(world: CellWorld): Unit = gameViewActor ! NewWorld(world)
+
 
   private def join(participants: List[Address]): Unit = {
     cluster.join(AddressFromURIString(participants.head.address))
