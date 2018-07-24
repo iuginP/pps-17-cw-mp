@@ -29,10 +29,10 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
 
   // distributed replica system
   private val replicator: ActorRef = DistributedData(context.system).replicator
-  private implicit val cluster: Cluster = Cluster(context.system)
+  private val cluster: Cluster = Cluster(context.system)
 
   // Distributed world
-  private val distributedState: DistributedState[CellWorld] = CellWorldDistributedState(self, println)
+  private val distributedState: DistributedState[CellWorld] = CellWorldDistributedState(self, println)(replicator, cluster)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
