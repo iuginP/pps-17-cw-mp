@@ -32,7 +32,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
   private implicit val cluster: Cluster = Cluster(context.system)
 
   // Distributed world
-  private val distributedState: DistributedState[CellWorld] = DistributedState(this, println)
+  private val distributedState: DistributedState[CellWorld] = CellWorldDistributedState(self, println)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
@@ -74,7 +74,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
     * @return the behaviour of the actor when it's in game
     */
   private def inGameBehaviour: Receive =
-    distributedState.stateBehaviour orElse {
+    distributedState.distributedStateBehaviour orElse {
       case EndGame => backToLobbyAction()
     }
 

@@ -2,7 +2,7 @@ package it.cwmp.client.view.game
 
 import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
-import it.cwmp.client.model.DistributedStateMessages
+import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
@@ -60,7 +60,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
         case (Some(attacker), Some(attacked)) =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           tempWorld = tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant)
-          parentActor ! DistributedStateMessages.UpdateWorld(tempWorld)
+          parentActor ! DistributedState.UpdateState(tempWorld)
         case tmp@_ => log.debug(s"No cells detected $tmp")
       }
 
@@ -71,7 +71,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
         case Some(tentacle) =>
           log.debug(s"Removing this attack: $tentacle ...")
           tempWorld = tempWorld -- tentacle
-          parentActor ! DistributedStateMessages.UpdateWorld(tempWorld)
+          parentActor ! DistributedState.UpdateState(tempWorld)
         case tmp@_ => log.debug(s"No attack detected $tmp")
       }
   }
