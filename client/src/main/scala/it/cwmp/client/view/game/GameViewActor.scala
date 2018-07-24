@@ -11,6 +11,8 @@ import it.cwmp.utils.Logging
 import scala.concurrent.duration._
 
 /**
+  * The actor that deals with Game View
+  *
   * @author contributor Enrico Siboni
   */
 class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
@@ -54,9 +56,9 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       val worldCharacters = tempWorld.characters
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
-      log.debug(s"Attack detected from $fromCell to $toCell")
       (fromCell, toCell) match {
         case (Some(attacker), Some(attacked)) =>
+          log.debug(s"Attack detected from $attacker to $attacked")
           tempWorld = tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant)
           parentActor ! DistributedStateMessages.UpdateWorld(tempWorld)
         case tmp@_ => log.debug(s"No attack detected... $tmp")
@@ -65,6 +67,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
+
     // TODO: convert point on attack view to the corresponding tentacle, calculating the distance of this point
     // TODO: from the straight line passing through the tentacle "from" and "to" points
   }
@@ -76,14 +79,27 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 object GameViewActor {
   def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
 
+  /**
+    * Shows the GUI
+    */
   case object ShowGUI
 
+  /**
+    * Hides the GUI
+    */
   case object HideGUI
 
+  /**
+    * Sets a new world to display
+    *
+    * @param world the newWorld from which to compute new evolution
+    */
   case class NewWorld(world: CellWorld)
 
+  /**
+    * Updates local version of the world making it "move"
+    */
   case object UpdateLocalWorld
-
 
   /**
     * A message stating that an attack has been launched from one point to another
