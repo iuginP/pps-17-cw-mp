@@ -1,6 +1,6 @@
 package it.cwmp.client.view.game.model
 
-import com.github.tkqubo.colorHash.ColorHash
+import com.github.tkqubo.colorHash.{ColorHash, Rgb}
 import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
@@ -50,8 +50,16 @@ object CellView {
     * Color based on the username hash value
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
-    val color = new ColorHash().rgb(cell.owner.username)
-    new Color(color.red / RGB_RANGE, color.green / RGB_RANGE, color.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
+    implicit def colorFromRGB(userColor: Rgb): Color =
+      new Color(userColor.red / RGB_RANGE, userColor.green / RGB_RANGE, userColor.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
+
+    val colorHash = new ColorHash()
+    val username = cell.owner.username
+    val userColor: Color = colorHash.rgb(username)
+    // if userName hash gives a color used in GUI take another color
+    if (Seq(GameViewConstants.GAME_DEFAULT_FONT_COLOR, CellView.CELL_DYING_FONT_COLOR).contains(userColor)) {
+      colorHash.rgb(username.substring(username.length / 2))
+    } else userColor
   }
 
   /**
