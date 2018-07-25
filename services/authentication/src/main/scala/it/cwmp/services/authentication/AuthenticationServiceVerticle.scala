@@ -18,8 +18,8 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private var storageFuture: Future[AuthenticationDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_SIGNUP handler handlerSignup
-    router post API_SIGNOUT handler handlerSignout
+    router post API_SIGNUP handler handlerSignUp
+    router post API_SIGNOUT handler handlerSignOut
     router get API_LOGIN handler handlerLogin
     router get API_VALIDATE handler handlerValidation
   }
@@ -30,7 +30,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
     storageFuture
   }
 
-  private def handlerSignup: Handler[RoutingContext] = implicit routingContext => {
+  private def handlerSignUp: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign up request.")
     (for (
       authorizationHeader <- request.getAuthentication;
@@ -47,7 +47,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
     }) orElse Some(sendResponse(400))
   }
 
-  private def handlerSignout: Handler[RoutingContext] = implicit routingContext => {
+  private def handlerSignOut: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign out request.")
     (for (
       authorizationHeader <- request.getAuthentication;
