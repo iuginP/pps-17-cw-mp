@@ -77,15 +77,6 @@ trait ObjectDrawer {
     line
   }
 
-//  def drawInstant(instant: Instant) (implicit graphicsContext: GraphicsContext) : Text = {
-//    val t = new Text(, cell.center.y, instant.toString)
-//    t.setFont(Font.font("Verdana", 20))
-//    t.setFill(Color.BLACK)
-//    t.setX(cell.center.x - (t.getLayoutBounds.getWidth /2))
-//    t.setY(cell.center.y + (t.getLayoutBounds.getHeight /2))
-//    t
-//  }
-
   /**
     * Funzione per convertire i colori java.awt nel formato di colori utilizzato da javaFX
     *

@@ -53,7 +53,6 @@ case class GameFX() extends ObjectDrawer {
       world.attacks.foreach(tentacle => root.getChildren.add(drawArch(tentacle, world.instant)))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
       world.characters.foreach(cell => root.getChildren.add(drawCellEnergy(cell)))
-      //root.getChildren.add(drawInstant(world.instant))
     })
   }
 }
