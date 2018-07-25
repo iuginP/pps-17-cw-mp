@@ -13,10 +13,10 @@ import scala.concurrent.Future
   */
 class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
 
-  var storageFuture: Future[AuthenticationDAO] = _
-  var storageNotInitializedFuture: Future[AuthenticationDAO] = _
-  var username: String = _
-  var password: String = _
+  private var storageFuture: Future[AuthenticationDAO] = _
+  private var storageNotInitializedFuture: Future[AuthenticationDAO] = _
+  private var username: String = _
+  private var password: String = _
 
   private val USERNAME_LENGTH = 10
   private val PASSWORD_LENGTH = 15

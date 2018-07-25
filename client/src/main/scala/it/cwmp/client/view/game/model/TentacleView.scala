@@ -47,7 +47,7 @@ object TentacleView {
     *
     * Returns always same thickness
     */
-  val thicknessStrategy: SizingStrategy[Tentacle, Double] = // TODO: make thickness vary with attackers cell energy
+  val thicknessStrategy: SizingStrategy[Tentacle, Double] =
     (_: Tentacle) => TENTACLE_DEFAULT_THICKNESS
 
   /**

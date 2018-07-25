@@ -15,12 +15,12 @@ import javafx.stage.Stage
   */
 case class GameFX() extends ObjectDrawer {
 
-  var stage: Stage = _
-  var root: Group = _
-  var canvas: Canvas = _
+  private var stage: Stage = _
+  private var root: Group = _
+  private var canvas: Canvas = _
 
   def start(title: String, size: Int): Unit = {
-    new JFXPanel()
+    new JFXPanel() // initializes JavaFX
     Platform.runLater(() => {
       stage = new Stage
       root = new Group
