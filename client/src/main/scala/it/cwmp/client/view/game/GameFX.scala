@@ -47,12 +47,12 @@ case class GameFX() extends ObjectDrawer {
   def updateWorld(world: CellWorld): Unit = {
     Platform.runLater(() => {
       implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
-      graphicsContext.clearRect(0, 0, canvas.getWidth, canvas.getHeight)
+      root.getChildren.clear()
       import it.cwmp.client.view.game.model.CellView._
 
-      world.attacks.foreach(tentacle => drawArch(tentacle, world.instant))
-      // println(world.characters.map(_.size))
+      world.attacks.foreach(tentacle => root.getChildren.add(drawArch(tentacle, world.instant)))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
+      world.characters.foreach(cell => root.getChildren.add(drawCellEnergy(cell)))
     })
   }
 }
