@@ -1,9 +1,9 @@
 package it.cwmp.client.model.game.impl
 
 import java.time.{Duration, Instant}
-import java.util.Objects._
+import java.util.Objects.requireNonNull
 
-import it.cwmp.client.controller.game.GameConstants._
+import it.cwmp.client.controller.game.GameConstants.{ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE, LENGTH_TO_ENERGY_REDUCTION_RATE}
 import it.cwmp.client.model.game.{SizingStrategy, World}
 
 /**
