@@ -1,14 +1,13 @@
 package it.cwmp.services.authentication
 
-import io.vertx.scala.core.Vertx
-import it.cwmp.utils.Logging
+import it.cwmp.utils.{Logging, VertxInstance}
 
 /**
   * AuthenticationService entry-point
   */
-object AuthenticationServiceMain extends App with Logging {
+object AuthenticationServiceMain extends App with VertxInstance with Logging {
 
-  Vertx.vertx().deployVerticle(new AuthenticationServiceVerticle)
+  vertx.deployVerticle(new AuthenticationServiceVerticle)
 
   log.info("Deploying AuthenticationServiceVerticle... ")
 }
