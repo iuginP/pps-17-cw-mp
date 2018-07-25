@@ -4,6 +4,7 @@ import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.ColoringStrategy
+import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
 import javafx.scene.paint.Color
 
 import scala.language.implicitConversions
@@ -38,7 +39,7 @@ object CellView {
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
     val color = new ColorHash().rgb(cell.owner.username)
-    new Color(color.red, color.green, color.blue, CELL_VIEW_COLOR_OPACITY)
+    new Color(color.red / RGB_RANGE, color.green / RGB_RANGE, color.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
   }
 
   /**

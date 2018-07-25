@@ -8,7 +8,7 @@ package it.cwmp.client.view.game
 object GameViewConstants {
 
   /**
-    * Provides default value for tentacle thickness
+    * The constant value indicating the rgb range max value
     */
-  val DEFAULT_TENTACLE_THICKNESS = 3d
+  val RGB_RANGE = 255.0
 }

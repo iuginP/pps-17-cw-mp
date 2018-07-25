@@ -85,6 +85,6 @@ trait ObjectDrawer {
     * @return il colore awt
     */
   private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
-    new java.awt.Color((fxColor.getRed * 255).toFloat, (fxColor.getGreen * 255).toFloat, (fxColor.getBlue * 255).toFloat, (fxColor.getOpacity * 255).toFloat)
+    new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
   }
 }
