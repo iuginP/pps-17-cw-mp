@@ -1,6 +1,5 @@
 package it.cwmp.services.rooms
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomReceiverApiWrapper}
