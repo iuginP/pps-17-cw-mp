@@ -2,14 +2,23 @@ package it.cwmp.client.view.game.model
 
 import java.time.{Duration, Instant}
 
-import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.model.game.impl.{Point, Tentacle}
+import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.view.game.ColoringStrategy
 import javafx.scene.paint.Color
 
+/**
+  * A class representing the View counterpart of Tentacle
+  *
+  * @param startPoint  the starting point for this tentacle
+  * @param arrivePoint the arrive point for thi tentacle
+  * @param color       the color of this tetacle
+  * @author Enrico Siboni
+  */
+case class TentacleView(startPoint: Point, arrivePoint: Point, color: Color)
 
 /**
-  * Tentacle View utilities
+  * Companion Object
   *
   * @author Enrico Siboni
   */
