@@ -15,7 +15,8 @@ import it.cwmp.utils.Logging
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class DistributedState[T](updateSubscriber: ActorRef, onWorldUpdate: T => Unit)(implicit replicatorActor: ActorRef, cluster: Cluster) extends Logging {
+abstract class DistributedState[T](updateSubscriber: ActorRef, onWorldUpdate: T => Unit)
+                                  (implicit replicatorActor: ActorRef, cluster: Cluster) extends Logging {
 
   protected val DistributedKey: LWWRegisterKey[T] = LWWRegisterKey[T](DISTRIBUTED_KEY_NAME)
 
