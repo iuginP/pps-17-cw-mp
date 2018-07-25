@@ -7,6 +7,8 @@ import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.view.game.ColoringStrategy
 import javafx.scene.paint.Color
 
+import scala.language.implicitConversions
+
 /**
   * A class representing the View counterpart of Tentacle
   *
@@ -15,7 +17,7 @@ import javafx.scene.paint.Color
   * @param color       the color of this tetacle
   * @author Enrico Siboni
   */
-case class TentacleView(startPoint: Point, arrivePoint: Point, color: Color)
+case class TentacleView(startPoint: Point, arrivePoint: Point, color: Color, thickness: Double)
 
 /**
   * Companion Object
@@ -27,7 +29,10 @@ object TentacleView {
   /**
     * Provides default value for tentacle thickness
     */
-  val DEFAULT_TENTACLE_THICKNESS = 3d
+  val TENTACLE_DEFAULT_THICKNESS = 3d
+
+  implicit def tentacleToTentacleView(tentacle: Tentacle): TentacleView =
+    TentacleView(tentacle.from.position, tentacle.to.position, coloringStrategy(tentacle), thicknessStrategy(tentacle))
 
   /**
     * Default coloring strategy for tentacles
@@ -43,7 +48,7 @@ object TentacleView {
     * Returns always same thickness
     */
   val thicknessStrategy: SizingStrategy[Tentacle, Double] = // TODO: make thickness vary with attackers cell energy
-    (_: Tentacle) => DEFAULT_TENTACLE_THICKNESS
+    (_: Tentacle) => TENTACLE_DEFAULT_THICKNESS
 
   /**
     * A method returning the Point reached actually by the tentacle
