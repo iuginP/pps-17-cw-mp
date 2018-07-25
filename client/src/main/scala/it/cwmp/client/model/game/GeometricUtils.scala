@@ -1,4 +1,6 @@
-package it.cwmp.client.model.game.impl
+package it.cwmp.client.model.game
+
+import it.cwmp.client.model.game.impl.Point
 
 /**
   * A little collection of useful geometric utils
