@@ -1,6 +1,7 @@
 package it.cwmp.testing.rooms
 
 import it.cwmp.testing.VertxTest
+import it.cwmp.testing.rooms.RoomsTesting.{privateRoomPlayersNumber, publicRoomPlayersNumber, roomName}
 import org.scalatest.Matchers
 
 import scala.concurrent.Future
@@ -11,10 +12,6 @@ import scala.concurrent.Future
   * @author Enrico Siboni
   */
 abstract class RoomsTesting extends VertxTest with Matchers {
-
-  private val roomName = "Stanza"
-  private val privateRoomPlayersNumber = 2
-  private val publicRoomPlayersNumber = 2
 
   protected val TOO_BIG_PLAYERS_NUMBER = 20
 
@@ -79,4 +76,13 @@ abstract class RoomsTesting extends VertxTest with Matchers {
     * Describes what should happen when testing the given function with wrong players number
     */
   protected def onWrongPlayersNumber(test: Int => Future[_])
+}
+
+/**
+  * Companion object
+  */
+object RoomsTesting {
+  private val roomName = "Stanza"
+  private val privateRoomPlayersNumber = 2
+  private val publicRoomPlayersNumber = 2
 }
