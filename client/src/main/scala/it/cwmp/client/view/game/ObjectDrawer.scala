@@ -4,10 +4,12 @@ import java.time.{Duration, Instant}
 
 import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
+import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
 import javafx.scene.text.Text
+
 import scala.language.implicitConversions
 
 /**
@@ -79,18 +81,25 @@ trait ObjectDrawer {
     line
   }
 
-  def drawInstant(worldInstant: Instant): Text = {
+  /**
+    * Metodo per disegnare il tempo trascorso dall'inizio della partita
+    * @param worldInstant tempo attuale
+    * @return il text da disegnare
+    */
+  def drawInstant(worldInstant: Instant)(implicit graphicsContext: GraphicsContext) : Text = {
     var instantToDraw: Duration = Duration.ofSeconds(0)
     var actualInstant: Instant = worldInstant
-    if(!firstDraw){
-      instantToDraw =  Duration.between(oldInstant, actualInstant)
-    }else {
+    if (!firstDraw) {
+      instantToDraw = Duration.between(oldInstant, actualInstant)
+    } else {
       firstDraw = false
       oldInstant = actualInstant
     }
-    val instantText = new Text(70, 20, instantToDraw.getSeconds.toString)
+    val instantText = new Text(70, 20, (instantToDraw.getSeconds / 60) + ":" + (instantToDraw.getSeconds % 60))
     instantText.setFont(CellView.ENERGY_FONT)
     instantText.setFill(Color.BLACK)
+    instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
+    instantText.setY(instantText.getLayoutBounds.getHeight)
     instantText
   }
 
