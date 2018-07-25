@@ -1,6 +1,7 @@
 package it.cwmp.client.view.game
 
 import it.cwmp.client.model.game.impl.CellWorld
+import it.cwmp.client.view.game.model.CellView._
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -48,7 +49,6 @@ case class GameFX() extends ObjectDrawer {
     Platform.runLater(() => {
       implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
       root.getChildren.clear()
-      import it.cwmp.client.view.game.model.CellView._
 
       world.attacks.foreach(tentacle => root.getChildren.add(drawArch(tentacle, world.instant)))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
