@@ -8,7 +8,7 @@ import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
-import javafx.scene.text.{Font, Text}
+import javafx.scene.text.Text
 
 import scala.language.implicitConversions
 
@@ -50,8 +50,8 @@ trait ObjectDrawer {
     */
   def drawCellEnergy(cell: CellView): Text = {
     val energyText = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
-    energyText.setFont(Font.font("Verdana", 20))
-    energyText.setFill(Color.BLACK)
+    energyText.setFont(CellView.ENERGY_FONT)
+    energyText.setFill(Color.BLACK) // TODO: move to a coloring strategy inside CellView
     energyText.setX(cell.center.x - (energyText.getLayoutBounds.getWidth / 2))
     energyText.setY(cell.center.y + (energyText.getLayoutBounds.getHeight / 2))
     energyText

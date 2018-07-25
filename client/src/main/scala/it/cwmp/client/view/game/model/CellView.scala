@@ -6,6 +6,7 @@ import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.ColoringStrategy
 import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
 import javafx.scene.paint.Color
+import javafx.scene.text.Font
 
 import scala.language.implicitConversions
 
@@ -24,6 +25,8 @@ case class CellView(center: Point, radius: Double, color: Color, energy: Double)
   * Companion object
   */
 object CellView {
+
+  val ENERGY_FONT = Font.font("Verdana", 20)
 
   private val CELL_VIEW_COLOR_OPACITY = 1
 
