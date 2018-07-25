@@ -262,7 +262,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
       test(0).shouldFailWith[IllegalArgumentException]
     }
     it("if there's no room with such players number") {
-      test(20).shouldFailWith[NoSuchElementException]
+      test(TOO_BIG_PLAYERS_NUMBER).shouldFailWith[NoSuchElementException]
     }
   }
 

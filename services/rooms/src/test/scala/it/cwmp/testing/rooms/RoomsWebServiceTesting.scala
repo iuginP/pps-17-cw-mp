@@ -21,10 +21,12 @@ import scala.concurrent.Future
   */
 abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAndAfterEach {
 
+  private val participantAddress = "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"
+
   protected val participants: Map[String, Participant] = Map(
-    "CORRECT_TOKEN_1" -> Participant("Enrico1", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"),
-    "CORRECT_TOKEN_2" -> Participant("Enrico2", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"),
-    "CORRECT_TOKEN_3" -> Participant("Enrico3", "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"))
+    "CORRECT_TOKEN_1" -> Participant("Enrico1", participantAddress),
+    "CORRECT_TOKEN_2" -> Participant("Enrico2", participantAddress),
+    "CORRECT_TOKEN_3" -> Participant("Enrico3", participantAddress))
   protected implicit val defaultParticipant: Participant = participants.values.head
   protected val participantList: List[Participant] = participants.values.toList
   protected implicit val defaultToken: String = participants.keys.head
