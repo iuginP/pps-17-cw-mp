@@ -2,8 +2,8 @@ package it.cwmp.client.view.game.model
 
 import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.controller.game.GameConstants
-import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Cell, Point}
+import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
 import it.cwmp.client.view.game.{ColoringStrategy, GameViewConstants}
 import javafx.scene.paint.Color
@@ -35,6 +35,9 @@ object CellView {
   private val CELL_VIEW_COLOR_OPACITY = 1
   private val CELL_DYING_FONT_COLOR = Color.DARKRED
 
+  private val CELL_MINIMUM_RADIUS_FOR_ENERGY = (25d, 20d)
+  private val CELL_MAX_RADIUS_FOR_ENERGY = (45d, 100d)
+
   /**
     * @return the ViewCell corresponding to the given Cell
     */
@@ -61,8 +64,31 @@ object CellView {
 
   /**
     * The default sizing strategy; returns the radius that the cellView should have
-    *
-    * Maps energy to radius
     */
-  val sizingStrategy: SizingStrategy[Cell, Double] = _.energy
+  val sizingStrategy: SizingStrategy[Cell, Double] = {
+    case cell: Cell if cell.energy <= CELL_MINIMUM_RADIUS_FOR_ENERGY._2 => CELL_MINIMUM_RADIUS_FOR_ENERGY._1
+    case cell: Cell if cell.energy >= CELL_MAX_RADIUS_FOR_ENERGY._2 => CELL_MAX_RADIUS_FOR_ENERGY._1
+    case cell: Cell => radiusBetweenMinimumAndMaximum(cell, CELL_MINIMUM_RADIUS_FOR_ENERGY, CELL_MAX_RADIUS_FOR_ENERGY)
+  }
+
+  /**
+    * A method to calculate the radius of the cell between maximum and minimum provided
+    *
+    * @param cell                   the cell to draw
+    * @param minimumRadiusAndEnergy the lower bound values
+    * @param maximumRadiusAndEnergy the upper bound values
+    * @return the sized cell radius
+    */
+  private def radiusBetweenMinimumAndMaximum(cell: Cell,
+                                             minimumRadiusAndEnergy: (Double, Double),
+                                             maximumRadiusAndEnergy: (Double, Double)): Double = {
+    val energyDeltaFromMinimum = cell.energy - minimumRadiusAndEnergy._2
+    val minimumPoint = Point(minimumRadiusAndEnergy._1.toInt, minimumRadiusAndEnergy._2.toInt)
+    val maximumPoint = Point(maximumRadiusAndEnergy._1.toInt, maximumRadiusAndEnergy._2.toInt)
+
+    // I use geometric utils to calculate a pair (a point) between minimum and maximum pairs, related to energy delta
+    // I'm interested in first component of the delta because it represents the radius
+    val radiusDelta = GeometricUtils.deltaXYFromFirstPoint(minimumPoint, maximumPoint, energyDeltaFromMinimum)._1
+    minimumRadiusAndEnergy._1 + radiusDelta
+  }
 }

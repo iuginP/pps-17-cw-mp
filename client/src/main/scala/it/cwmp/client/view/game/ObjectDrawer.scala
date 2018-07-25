@@ -34,7 +34,7 @@ trait ObjectDrawer {
     svgShape.setBorder(new Border(new BorderStroke(Color.BLACK,
       BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)))
     svgShape.setPrefSize(cell.radius * 2, cell.radius * 2)
-    svgShape.setStyle("-fx-background-color: #" + Integer.toHexString(cell.color.getRGB).substring(2))
+    svgShape.setStyle("-fx-background-color: #" + Integer.toHexString(cell.color.getRGB).substring(2)) // TODO: make a method for this conversion
     svgShape.setLayoutX(cell.center.x - cell.radius)
     svgShape.setLayoutY(cell.center.y - cell.radius)
     svgShape

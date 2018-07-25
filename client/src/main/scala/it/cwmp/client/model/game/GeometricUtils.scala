@@ -63,7 +63,7 @@ object GeometricUtils {
   def deltaXYFromFirstPoint(point1: Point,
                             point2: Point,
                             distance: Double): (Double, Double) = {
-    require(distance > 0, "Distance should be greater that 0")
+    require(distance > 0, "Distance should be greater than 0")
 
     val deltaY =
       if (point1.y == point2.y) 0 // point on same horizontal line has no delta Y
