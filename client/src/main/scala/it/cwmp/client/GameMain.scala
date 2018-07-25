@@ -15,7 +15,7 @@ object GameMain extends App {
 
   val system = ActorSystem(APP_NAME, config)
 
-  val gameActor = system.actorOf(Props(classOf[GameViewActor]), GameViewActor.getClass.getName)
+  val gameActor = system.actorOf(Props(classOf[GameViewActor], null), GameViewActor.getClass.getName)
 
   import GameViewActor._
 
