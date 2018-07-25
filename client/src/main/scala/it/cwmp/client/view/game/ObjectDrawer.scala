@@ -9,6 +9,7 @@ import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.shape.{Line, SVGPath}
 import javafx.scene.text.Text
+import javafx.scene.text.Font
 
 import scala.language.implicitConversions
 
@@ -49,22 +50,20 @@ trait ObjectDrawer {
     */
   def drawCellEnergy(cell: CellView): Text = {
     val t = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
-    import javafx.scene.text.Font
     t.setFont(Font.font("Verdana", 20))
     t.setFill(Color.BLACK)
-    val width = t.getLayoutBounds.getWidth
-    val height = t.getLayoutBounds.getHeight
-    t.setX(cell.center.x - (width /2))
-    t.setY(cell.center.y + (height /2))
+    t.setX(cell.center.x - (t.getLayoutBounds.getWidth /2))
+    t.setY(cell.center.y + (t.getLayoutBounds.getHeight /2))
     t
   }
 
   /**
-    * Metodo utilizato per disegnare l'arco che unisce due celle
-    *
-    * @param graphicsContext è l'oggetto che disenga l'arco
+    * Metodo utilizato per disegnare il tentacolo che unisce due celle
+    * @param tentacle il tentacolo da disegnare
+    * @param actualInstant l'istante di gioco
+    * @return la linea da visualizzare nella GUI
     */
-  def drawArch(tentacle: Tentacle, actualInstant: Instant)(implicit graphicsContext: GraphicsContext): Line = {
+  def drawArch(tentacle: Tentacle, actualInstant: Instant): Line = {
     val line = new Line()
     line.setStroke(TentacleView.coloringStrategy(tentacle))
 
@@ -77,6 +76,15 @@ trait ObjectDrawer {
     line.setEndY(tentacleReachedPoint.y)
     line
   }
+
+//  def drawInstant(instant: Instant) (implicit graphicsContext: GraphicsContext) : Text = {
+//    val t = new Text(, cell.center.y, instant.toString)
+//    t.setFont(Font.font("Verdana", 20))
+//    t.setFill(Color.BLACK)
+//    t.setX(cell.center.x - (t.getLayoutBounds.getWidth /2))
+//    t.setY(cell.center.y + (t.getLayoutBounds.getHeight /2))
+//    t
+//  }
 
   /**
     * Funzione per convertire i colori java.awt nel formato di colori utilizzato da javaFX
