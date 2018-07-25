@@ -60,7 +60,7 @@ trait ObjectDrawer {
     * @param tentacle the tentacle View to draw
     * @return the line to add in GUI
     */
-  def drawArch(tentacle: TentacleView): Line = {
+  def drawTentacle(tentacle: TentacleView): Line = {
     val line = new Line()
     line.setStroke(tentacle.color)
     line.setStrokeWidth(tentacle.thickness)

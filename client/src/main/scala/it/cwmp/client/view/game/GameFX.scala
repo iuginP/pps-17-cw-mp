@@ -65,7 +65,7 @@ case class GameFX() extends ObjectDrawer {
       implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
       root.getChildren.clear()
 
-      world.attacks.foreach(tentacle => root.getChildren.add(drawArch(TentacleView.tentacleToView(tentacle, world.instant))))
+      world.attacks.foreach(tentacle => root.getChildren.add(drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))
       world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
       world.characters.foreach(cell => root.getChildren.add(drawCellEnergy(cell)))
     })
