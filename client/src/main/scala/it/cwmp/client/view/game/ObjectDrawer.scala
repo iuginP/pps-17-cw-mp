@@ -50,7 +50,7 @@ trait ObjectDrawer {
     */
   def drawCellEnergy(cell: CellView): Text = {
     val energyText = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
-    energyText.setFont(CellView.ENERGY_FONT)
+    energyText.setFont(CellView.ENERGY_DEFAULT_FONT)
     energyText.setFill(Color.BLACK) // TODO: move to a coloring strategy inside CellView
     energyText.setX(cell.center.x - (energyText.getLayoutBounds.getWidth / 2))
     energyText.setY(cell.center.y + (energyText.getLayoutBounds.getHeight / 2))

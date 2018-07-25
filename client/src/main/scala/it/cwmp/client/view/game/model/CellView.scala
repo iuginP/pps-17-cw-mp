@@ -1,6 +1,7 @@
 package it.cwmp.client.view.game.model
 
 import com.github.tkqubo.colorHash.ColorHash
+import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
@@ -26,9 +27,13 @@ case class CellView(center: Point, radius: Double, color: Color, energy: Double)
   */
 object CellView {
 
-  val ENERGY_FONT: Font = Font.font("Verdana", GameViewConstants.GAME_FONT_SIZE)
+  /**
+    * The default font for energy text on cellViews
+    */
+  val ENERGY_DEFAULT_FONT: Font = Font.font("Verdana", GameViewConstants.GAME_DEFAULT_FONT_SIZE)
 
   private val CELL_VIEW_COLOR_OPACITY = 1
+  private val CELL_DYING_FONT_COLOR = Color.DARKRED
 
   /**
     * @return the ViewCell corresponding to the given Cell
@@ -43,6 +48,14 @@ object CellView {
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
     val color = new ColorHash().rgb(cell.owner.username)
     new Color(color.red / RGB_RANGE, color.green / RGB_RANGE, color.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
+  }
+
+  /**
+    * Default energy text coloring strategy
+    */
+  val energyTextColoringStrategy: ColoringStrategy[Cell, Color] = {
+    case cell: Cell if cell.energy < GameConstants.CELL_ENERGY_WHEN_BORN => CELL_DYING_FONT_COLOR
+    case _ => GameViewConstants.GAME_DEFAULT_FONT_COLOR
   }
 
   /**
