@@ -57,7 +57,6 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
 
   def initialize(): Future[Unit] = {
     logger.info("Initializing RoomLocalDAO...")
-
     (for (
       connection <- openConnection();
       _ <- connection.executeFuture(createStorageTableSql)
@@ -93,6 +92,7 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     ) yield {
       (for (
         // Eseguo operazioni sul db in maniera sequenziale
+        _ <- checkInitialization(notInitialized);
         connection <- openConnection();
         result <- connection.updateWithParamsFuture(signoutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
@@ -108,9 +108,9 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     ) yield {
       (for (
         // Eseguo operazioni sul db in maniera sequenziale
+        _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.queryWithParamsFuture(
-          loginUserSql, new JsonArray().add(username).add(password)) if result.getResults.nonEmpty
+        result <- connection.queryWithParamsFuture(loginUserSql, new JsonArray().add(username).add(password)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
@@ -123,9 +123,9 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     ) yield {
       (for (
         // Eseguo operazioni sul db in maniera sequenziale
+        _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.queryWithParamsFuture(
-          existFutureUserSql, new JsonArray().add(username)) if result.getResults.nonEmpty
+        result <- connection.queryWithParamsFuture(existFutureUserSql, new JsonArray().add(username)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
