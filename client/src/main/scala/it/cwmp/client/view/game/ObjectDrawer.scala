@@ -1,15 +1,13 @@
 package it.cwmp.client.view.game
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 
 import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
-import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
 import javafx.scene.text.Text
-
 import scala.language.implicitConversions
 
 /**
@@ -18,10 +16,14 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   */
 trait ObjectDrawer {
+
+  var firstDraw = true
+  var oldInstant: Instant = _
+
   /**
     * Meodo utilizzato per disegnare una cella nella GUI
     *
-    * @param cell            oggetto che rappresenta la cella che verrà disegnata
+    * @param cell oggetto che rappresenta la cella che verrà disegnata
     */
   def drawCell(cell: CellView): Region = {
     val svg = new SVGPath
@@ -75,6 +77,21 @@ trait ObjectDrawer {
     line.setEndX(tentacleReachedPoint.x)
     line.setEndY(tentacleReachedPoint.y)
     line
+  }
+
+  def drawInstant(worldInstant: Instant): Text = {
+    var instantToDraw: Duration = Duration.ofSeconds(0)
+    var actualInstant: Instant = worldInstant
+    if(!firstDraw){
+      instantToDraw =  Duration.between(oldInstant, actualInstant)
+    }else {
+      firstDraw = false
+      oldInstant = actualInstant
+    }
+    val instantText = new Text(70, 20, instantToDraw.getSeconds.toString)
+    instantText.setFont(CellView.ENERGY_FONT)
+    instantText.setFill(Color.BLACK)
+    instantText
   }
 
   /**
