@@ -75,10 +75,10 @@ trait ObjectDrawer {
   }
 
   /**
-    * Funzione per convertire i colori javaFX nel formato di colori utilizzato da java.awt
+    * Converter from JavaFX Colors to JavaAWT colors
     *
-    * @param fxColor Colore che si vuole convertire
-    * @return il colore awt
+    * @param fxColor the JavaFX color to convert
+    * @return the JAvaAWT correspondent
     */
   private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
     new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
