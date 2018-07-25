@@ -1,16 +1,15 @@
 package it.cwmp.services.rooms
 
-import com.typesafe.scalalogging.Logger
-import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsLocalDAO._
-import it.cwmp.utils.{Utils, VertxInstance, VertxJDBC}
+import it.cwmp.utils.Utils.emptyString
+import it.cwmp.utils.VertxJDBC.stringsToJsonArray
+import it.cwmp.utils.{Logging, Utils, VertxInstance, VertxJDBC}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
-import scala.util.Random
 
 /**
   * A trait that describes the Rooms Data Access Object
@@ -39,7 +38,8 @@ trait RoomDAO {
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String)(implicit user: Participant, notificationAddress: Address): Future[Unit]
+  def enterRoom(roomID: String)
+               (implicit user: Participant, notificationAddress: Address): Future[Unit]
 
   /**
     * Retrieves room information, and related user notification addresses
@@ -59,7 +59,8 @@ trait RoomDAO {
     *         or fails if roomId is not provided or not present
     *         or user is not inside that room
     */
-  def exitRoom(roomID: String)(implicit user: User): Future[Unit]
+  def exitRoom(roomID: String)
+              (implicit user: User): Future[Unit]
 
   /**
     * retrieves a list of available public rooms
@@ -78,7 +79,8 @@ trait RoomDAO {
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int)(implicit user: Participant, notificationAddress: Address): Future[Unit]
+  def enterPublicRoom(playersNumber: Int)
+                     (implicit user: Participant, notificationAddress: Address): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players, and relative user notification addresses
@@ -98,7 +100,8 @@ trait RoomDAO {
     *         or fails if players number is not correct,
     *         or user not inside that room
     */
-  def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit]
+  def exitPublicRoom(playersNumber: Int)
+                    (implicit user: User): Future[Unit]
 
   /**
     * Deletes a room if it's full
@@ -126,7 +129,9 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomsLocalDAO(override val configurationPath: String = "rooms/database.json") extends RoomDAO with VertxInstance with VertxJDBC {
+case class RoomsLocalDAO(override val configurationPath: String = "rooms/database.json") extends RoomDAO
+  with VertxInstance with VertxJDBC with Logging {
+
   private var notInitialized = true
 
   private val PUBLIC_ROOM_MAX_SIZE = 4
@@ -139,10 +144,8 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
   private val DELETING_NON_FULL_ROOM_ERROR = "Cannot delete room if it's not full"
 
-  import RoomsLocalDAO.stringsToJsonArray
-
   def initialize(): Future[Unit] = {
-    logger.info("Initializing RoomLocalDAO...")
+    log.info("Initializing RoomLocalDAO...")
 
     def createDefaultPublicRooms(conn: SQLConnection) =
       Future.sequence { // waits all creation future to end, or returns the failed one
@@ -157,16 +160,16 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
         .flatMap(_ => listPublicRooms())
         .filter(_.isEmpty)
         .flatMap(_ => {
-          logger.info(s"No public rooms found, creating public ones with players from 2 to $PUBLIC_ROOM_MAX_SIZE.")
+          log.info(s"No public rooms found, creating public ones with players from 2 to $PUBLIC_ROOM_MAX_SIZE.")
           createDefaultPublicRooms(conn)
         })
-        .recover { case _: NoSuchElementException => logger.info("Room database already exists, skipping creation.") }
+        .recover { case _: NoSuchElementException => log.info("Room database already exists, skipping creation.") }
         .andThen { case _ => conn.close() })
       .flatMap(_ => Future.successful(()))
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
-    logger.debug(s"createRoom() roomName:$roomName, playersNumber:$playersNumber")
+    log.debug(s"createRoom() roomName:$roomName, playersNumber:$playersNumber")
     checkInitialization(notInitialized)
       .flatMap(_ => stringCheckFuture(roomName, EMPTY_ROOM_NAME_ERROR))
       .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
@@ -178,8 +181,9 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
       )
   }
 
-  override def enterRoom(roomID: String)(implicit user: Participant, notificationAddress: Address): Future[Unit] = {
-    logger.debug(s"enterRoom() roomID:$roomID, user:$user, notificationAddress:$notificationAddress")
+  override def enterRoom(roomID: String)
+                        (implicit user: Participant, notificationAddress: Address): Future[Unit] = {
+    log.debug(s"enterRoom() roomID:$roomID, user:$user, notificationAddress:$notificationAddress")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
       .flatMap(_ => openConnection())
@@ -195,7 +199,7 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   }
 
   override def roomInfo(roomID: String): Future[(Room, Seq[Address])] = {
-    logger.debug(s"roomInfo() roomID:$roomID")
+    log.debug(s"roomInfo() roomID:$roomID")
     checkInitialization(notInitialized)
       .flatMap(_ => stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR))
       .flatMap(_ => openConnection())
@@ -205,8 +209,9 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
         .andThen { case _ => conn.close() })
   }
 
-  override def exitRoom(roomID: String)(implicit user: User): Future[Unit] = {
-    logger.debug(s"exitRoom() roomID:$roomID, user:$user")
+  override def exitRoom(roomID: String)
+                       (implicit user: User): Future[Unit] = {
+    log.debug(s"exitRoom() roomID:$roomID, user:$user")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID))
       .flatMap(_ => openConnection())
@@ -221,7 +226,7 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   }
 
   override def listPublicRooms(): Future[Seq[Room]] = {
-    logger.debug("listPublicRooms()")
+    log.debug("listPublicRooms()")
     checkInitialization(notInitialized)
       .flatMap(_ => openConnection())
       .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
@@ -229,29 +234,31 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
       .map(resultOfJoinToRooms).map(_.map(_._1))
   }
 
-  override def enterPublicRoom(playersNumber: Int)(implicit user: Participant, address: Address): Future[Unit] = {
-    logger.debug(s"enterPublicRoom() playersNumber:$playersNumber, user:$user, address:$address")
+  override def enterPublicRoom(playersNumber: Int)
+                              (implicit user: Participant, address: Address): Future[Unit] = {
+    log.debug(s"enterPublicRoom() playersNumber:$playersNumber, user:$user, address:$address")
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(enterRoom(_)(user, address))
   }
 
   override def publicRoomInfo(playersNumber: Int): Future[(Room, Seq[Address])] = {
-    logger.debug(s"publicRoomInfo() playersNumber:$playersNumber")
+    log.debug(s"publicRoomInfo() playersNumber:$playersNumber")
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(roomInfo)
   }
 
-  override def exitPublicRoom(playersNumber: Int)(implicit user: User): Future[Unit] = {
-    logger.debug(s"exitPublicRoom() playersNumber:$playersNumber, user:$user")
+  override def exitPublicRoom(playersNumber: Int)
+                             (implicit user: User): Future[Unit] = {
+    log.debug(s"exitPublicRoom() playersNumber:$playersNumber, user:$user")
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(exitRoom)
   }
 
   override def deleteRoom(roomID: String): Future[Unit] = {
-    logger.debug(s"deleteRoom() roomID:$roomID")
+    log.debug(s"deleteRoom() roomID:$roomID")
     checkInitialization(notInitialized)
       .flatMap(_ => roomInfo(roomID)).map(_._1)
       .flatMap(room => openConnection()
@@ -269,7 +276,7 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   }
 
   override def deleteAndRecreatePublicRoom(playersNumber: Int): Future[Unit] = {
-    logger.debug(s"deleteAndRecreatePublicRoom() playersNumber:$playersNumber")
+    log.debug(s"deleteAndRecreatePublicRoom() playersNumber:$playersNumber")
     checkInitialization(notInitialized)
       .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
       .flatMap(deleteRoom)
@@ -298,7 +305,6 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   * Companion Object
   */
 object RoomsLocalDAO {
-  private val logger: Logger = Logger[RoomsLocalDAO]
 
   val publicPrefix: String = "public"
 
@@ -310,7 +316,7 @@ object RoomsLocalDAO {
     else Future.successful(Unit)
   }
 
-
+  private val ROOM_ID_LENGTH = 20
   private val userToRoomLinkField = "user_room"
   private val createRoomTableSql =
     s"""
@@ -361,6 +367,7 @@ object RoomsLocalDAO {
   private def getNotAlreadyPresentRoomID(connection: SQLConnection, generator: => String)
                                         (implicit executionContext: ExecutionContext): Future[String] = {
 
+    //noinspection ScalaStyle
     def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
       checkRoomPresence(toCheckID, connection, "")
         .flatMap(_ => _getNotAlreadyPresentRoomID(generator, connection))
@@ -426,26 +433,17 @@ object RoomsLocalDAO {
   }
 
   /**
-    * Implicit conversion to jsonArray
-    *
-    * @return the converted data
-    */
-  protected implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
-    arguments.foldLeft(new JsonArray)(_.add(_))
-  }
-
-  /**
     * Method that generates a random room identifier
     */
-  private def generateRandomRoomID() = Random.nextInt(Int.MaxValue).toString
+  private def generateRandomRoomID() = Utils.randomString(ROOM_ID_LENGTH)
 
   /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
     */
-  private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] = Future {
-    import Utils.emptyString
-    require(!emptyString(toCheck), errorMessage)
-  }(ExecutionContext.Implicits.global)
+  private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] =
+    Future {
+      require(!emptyString(toCheck), errorMessage)
+    }(ExecutionContext.Implicits.global)
 
   /**
     * @return a succeeded Future if playersNumber is correct, a failed Future otherwise
@@ -457,9 +455,8 @@ object RoomsLocalDAO {
   /**
     * @return a succeeded future if the room with given ID is present, a failed future otherwise
     */
-  private def checkRoomPresence(roomID: String,
-                                connection: SQLConnection,
-                                errorMessage: String)(implicit executionContext: ExecutionContext): Future[Unit] = {
+  private def checkRoomPresence(roomID: String, connection: SQLConnection, errorMessage: String)
+                               (implicit executionContext: ExecutionContext): Future[Unit] = {
     connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
       .flatMap(_.getResults.size match {
         case 0 => Future.failed(new NoSuchElementException(errorMessage))
@@ -472,8 +469,8 @@ object RoomsLocalDAO {
     *
     * @return the future that completes when the room is created
     */
-  private def createPublicRoom(connection: SQLConnection,
-                               playersNumber: Int)(implicit executionContext: ExecutionContext): Future[Unit] = {
+  private def createPublicRoom(connection: SQLConnection, playersNumber: Int)
+                              (implicit executionContext: ExecutionContext): Future[Unit] = {
     getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}")
       .flatMap(publicRoomID =>
         connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString)))
@@ -483,9 +480,8 @@ object RoomsLocalDAO {
   /**
     * @return a succeeded future if the room has available space for other users
     */
-  private def checkRoomSpaceAvailable(roomID: String,
-                                      connection: SQLConnection,
-                                      errorMessage: String)(implicit executionContext: ExecutionContext): Future[Unit] = {
+  private def checkRoomSpaceAvailable(roomID: String, connection: SQLConnection, errorMessage: String)
+                                     (implicit executionContext: ExecutionContext): Future[Unit] = {
     connection.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
       .map(resultOfJoinToRooms(_).map(_._1))
       .flatMap(_.head match {

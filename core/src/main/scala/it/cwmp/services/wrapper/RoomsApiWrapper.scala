@@ -4,8 +4,10 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
+import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Room}
 import it.cwmp.services.rooms.RoomApiWrapperUtils
+import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.utils.{VertxClient, VertxInstance}
 
 import scala.concurrent.Future
@@ -27,7 +29,8 @@ trait RoomsApiWrapper {
     * @return the future containing the identifier of the created room,
     *         or fails if roomName is empty or playersNumber not correct
     */
-  def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String]
+  def createRoom(roomName: String, playersNumber: Int)
+                (implicit userToken: String): Future[String]
 
   /**
     * Enters a room
@@ -40,7 +43,8 @@ trait RoomsApiWrapper {
     *         or fails if roomID not provided, not present
     *         or user already inside a room, or room full
     */
-  def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
+  def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
+               (implicit userToken: String): Future[Unit]
 
   /**
     * Retrieves room information
@@ -50,7 +54,8 @@ trait RoomsApiWrapper {
     * @return the future that completes when the room information is available,
     *         or fails if room id not provided or not present
     */
-  def roomInfo(roomID: String)(implicit userToken: String): Future[Room]
+  def roomInfo(roomID: String)
+              (implicit userToken: String): Future[Room]
 
   /**
     * Exits a room
@@ -61,7 +66,8 @@ trait RoomsApiWrapper {
     *         or fails if roomId is not provided or not present
     *         or user is not inside that room
     */
-  def exitRoom(roomID: String)(implicit userToken: String): Future[Unit]
+  def exitRoom(roomID: String)
+              (implicit userToken: String): Future[Unit]
 
   /**
     * retrieves a list of available public rooms
@@ -82,7 +88,8 @@ trait RoomsApiWrapper {
     *         or fails if players number is not correct,
     *         or user already inside a room
     */
-  def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
+  def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
+                     (implicit userToken: String): Future[Unit]
 
   /**
     * Retrieves information about a public room with specific number of players
@@ -92,7 +99,8 @@ trait RoomsApiWrapper {
     * @return the future that completes when the information is available,
     *         or fails if players number not correct
     */
-  def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room]
+  def publicRoomInfo(playersNumber: Int)
+                    (implicit userToken: String): Future[Room]
 
   /**
     * Exits a public room
@@ -103,7 +111,8 @@ trait RoomsApiWrapper {
     *         or fails if players number is not correct,
     *         or user not inside that room
     */
-  def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit]
+  def exitPublicRoom(playersNumber: Int)
+                    (implicit userToken: String): Future[Unit]
 }
 
 /**
@@ -114,8 +123,6 @@ trait RoomsApiWrapper {
 object RoomsApiWrapper {
 
   val DEFAULT_HOST = "localhost"
-
-  import it.cwmp.services.rooms.ServerParameters._
 
   def apply(): RoomsApiWrapper = RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)
 
@@ -134,22 +141,25 @@ object RoomsApiWrapper {
   private class RoomsApiWrapperDefault(override protected val clientOptions: WebClientOptions)
     extends RoomsApiWrapper with RoomApiWrapperUtils with VertxInstance with VertxClient {
 
-    override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] =
+    override def createRoom(roomName: String, playersNumber: Int)
+                           (implicit userToken: String): Future[String] =
       createPrivateRoomRequest(roomName, playersNumber)
         .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), 201))
 
-    override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
+    override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
+                          (implicit userToken: String): Future[Unit] =
       enterPrivateRoomRequest(roomID, userAddress, notificationAddress)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
-    override def roomInfo(roomID: String)(implicit userToken: String): Future[Room] =
+    override def roomInfo(roomID: String)
+                         (implicit userToken: String): Future[Room] =
       privateRoomInfoRequest(roomID)
         .flatMap(implicit response => handleResponse({
-          import Room.Converters._
           Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
         }, 200))
 
-    override def exitRoom(roomID: String)(implicit userToken: String): Future[Unit] =
+    override def exitRoom(roomID: String)
+                         (implicit userToken: String): Future[Unit] =
       exitPrivateRoomRequest(roomID)
         .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
 
@@ -157,17 +167,34 @@ object RoomsApiWrapper {
       listPublicRoomsRequest()
         .flatMap(implicit response => handleResponse({
           Future.successful {
-            import Room.Converters._
             Json.fromArrayString(response.bodyAsString().get)
               .stream().toArray().toSeq.map(_.toString)
               .map(jsonString => Json.fromObjectString(jsonString).toRoom)
           }
         }, 200))
 
+    override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
+                                (implicit userToken: String): Future[Unit] =
+      enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
+        .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
+
+    override def publicRoomInfo(playersNumber: Int)
+                               (implicit userToken: String): Future[Room] =
+      publicRoomInfoRequest(playersNumber)
+        .flatMap(implicit response => handleResponse({
+          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
+        }, 200))
+
+    override def exitPublicRoom(playersNumber: Int)
+                               (implicit userToken: String): Future[Unit] =
+      exitPublicRoomRequest(playersNumber)
+        .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
+
     /**
       * Utility method to handle the Service response
       */
-    private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
+    private def handleResponse[T](onSuccessFuture: => Future[T], successHttpCodes: Int*)
+                                 (implicit response: HttpResponse[Buffer]) =
       successHttpCodes find (_ == response.statusCode) match {
         case Some(_) => onSuccessFuture
         case None => response.bodyAsString match {
@@ -177,21 +204,6 @@ object RoomsApiWrapper {
             Future.failed(HTTPException(response.statusCode))
         }
       }
-
-    override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
-      enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
-        .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
-
-    override def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room] =
-      publicRoomInfoRequest(playersNumber)
-        .flatMap(implicit response => handleResponse({
-          import Room.Converters._
-          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
-        }, 200))
-
-    override def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
-      exitPublicRoomRequest(playersNumber)
-        .flatMap(implicit response => handleResponse(Future.successful(Unit), 200))
   }
 
 }

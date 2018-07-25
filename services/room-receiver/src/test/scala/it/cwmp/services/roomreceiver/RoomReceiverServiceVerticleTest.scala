@@ -11,6 +11,9 @@ import it.cwmp.utils.VertxClient
 
 import scala.util.{Failure, Success}
 
+/**
+  * A test class for Room receiver service
+  */
 class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
   with HttpMatchers with FutureMatchers with VertxClient {
 

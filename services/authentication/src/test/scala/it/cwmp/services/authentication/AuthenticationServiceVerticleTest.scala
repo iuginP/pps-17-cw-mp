@@ -6,6 +6,9 @@ import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.VertxClient
 
+/**
+  * A test class for Authentication service
+  */
 class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
   with HttpMatchers with FutureMatchers with VertxClient {
 

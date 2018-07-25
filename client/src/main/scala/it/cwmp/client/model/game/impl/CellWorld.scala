@@ -74,6 +74,4 @@ object CellWorld {
     */
   val durationToEnergyConversionStrategy: SizingStrategy[Duration, Double] =
     (attackDuration: Duration) => attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE
-
-  // TODO: Add converter to DDATA
 }

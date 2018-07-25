@@ -6,7 +6,7 @@ import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.GameMain
 import it.cwmp.client.model.PlayerActor._
-import it.cwmp.client.model.game.impl.CellWorld
+import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.Address

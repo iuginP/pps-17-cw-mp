@@ -11,6 +11,8 @@ import io.vertx.scala.core.Vertx
   * @author Eugenio Pierfederici
   */
 trait VertxInstance {
-  val vertx: Vertx = Vertx.vertx
-  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertx.getOrCreateContext())
+  private val vertxContext = Vertx.currentContext().getOrElse(Vertx.vertx.getOrCreateContext())
+
+  val vertx: Vertx = vertxContext.owner()
+  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertxContext)
 }

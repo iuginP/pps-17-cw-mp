@@ -4,6 +4,7 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
@@ -11,11 +12,6 @@ import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-
-object RoomsServiceVerticle {
-  def apply(implicit validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
-    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
-}
 
 /**
   * Class that implements the Rooms micro-service
@@ -116,9 +112,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
-            case Success(room) =>
-              import Room.Converters._
-              sendResponse(200, room.toJson.encode())
+            case Success(room) => sendResponse(200, room.toJson.encode())
             case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
             case Failure(ex) => sendResponse(400, ex.getMessage)
           })
@@ -153,7 +147,6 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     request.checkAuthenticationOrReject.map(_ => {
       daoFuture.map(_.listPublicRooms().onComplete {
         case Success(rooms) =>
-          import Room.Converters._
           val jsonArray = rooms.foldLeft(Json emptyArr())(_ add _.toJson)
           sendResponse(200, jsonArray encode())
         case Failure(ex) => sendResponse(400, ex.getMessage)
@@ -205,9 +198,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }) match {
         case Some(playersNumber) =>
           daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
-            case Success(room) =>
-              import Room.Converters._
-              sendResponse(200, room.toJson.encode())
+            case Success(room) => sendResponse(200, room.toJson.encode())
             case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
             case Failure(ex) => sendResponse(400, ex.getMessage)
           })
@@ -240,4 +231,12 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }
     })
   }
+}
+
+/**
+  * Cmpanion object
+  */
+object RoomsServiceVerticle {
+  def apply(implicit validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
 }

@@ -4,6 +4,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.model.Room
+import it.cwmp.model.Room.Converters._
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
@@ -84,7 +85,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       createAPrivateRoomAndGetID(roomName, playersNumber)
         .flatMap(roomID => privateRoomInfoRequest(roomID)
           .map(response => {
-            import Room.Converters._
             roomJson = Room(roomID, roomName, playersNumber, Seq()).toJson.encode()
             response
           }))
@@ -189,7 +189,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      (enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress) flatMap (_ => exitPublicRoomRequest(playersNumber))) shouldAnswerWith 200
+      enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
+        .flatMap(_ => exitPublicRoomRequest(playersNumber)) shouldAnswerWith 200
     }
     it("user should not be inside after it") {
       enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
@@ -233,7 +234,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
           client.request(apiCall._1, apiCall._2).addAuthentication("token").sendFuture() shouldAnswerWith 401
         }
         it(s"if token isn't valid, doing ${apiCall._1.toString} on ${apiCall._2}") {
-          client.request(apiCall._1, apiCall._2).addAuthentication("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
+          client.request(apiCall._1, apiCall._2)
+            .addAuthentication("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68")
             .sendFuture() shouldAnswerWith 401
         }
       }
@@ -260,7 +262,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       apiCall(0).mapTo[HttpResponse[Buffer]] shouldAnswerWith 400
     }
     it("if room with such players number doesn't exist") {
-      apiCall(20).mapTo[HttpResponse[Buffer]] shouldAnswerWith 404
+      apiCall(TOO_BIG_PLAYERS_NUMBER).mapTo[HttpResponse[Buffer]] shouldAnswerWith 404
     }
   }
 

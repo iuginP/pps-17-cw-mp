@@ -5,8 +5,16 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Participant
+import it.cwmp.model.Participant.Converters._
+import it.cwmp.services.roomreceiver.ServerParameters._
 import it.cwmp.utils.{Logging, VertxServer}
 
+/**
+  * A class implementing a one-time service provided by clients to receive room infromation
+  *
+  * @param token             the token on which to listen for an authorized response
+  * @param receptionStrategy the strategy to use when the data has been received
+  */
 case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] => Unit) extends VertxServer with Logging {
 
   override protected val serverPort: Int = 0
@@ -14,12 +22,14 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   def port: Int = server.actualPort()
 
   override protected def initRouter(router: Router): Unit = {
-    import it.cwmp.services.roomreceiver.ServerParameters._
-    router post API_RECEIVE_PARTICIPANTS_URL(token) handler updateRoomParticipantsHandler
+    router post API_RECEIVE_PARTICIPANTS_URL(token) handler createParticipantReceiverHandler
     log.info(s"Starting the RoomReceiver service with the token: $token ...")
   }
 
-  private def updateRoomParticipantsHandler: Handler[RoutingContext] = implicit routingContext => {
+  /**
+    * Handles the reception of list of participants to the room
+    */
+  private def createParticipantReceiverHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Receiving participant list...")
     request.bodyHandler(body =>
       extractIncomingParticipantListFromBody(body) match {
@@ -38,7 +48,6 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
       try {
         var result = List[Participant]()
         val jsonArray = body.toJsonArray
-        import Participant.Converters._
         jsonArray.forEach {
           case jsonObject: JsonObject => result = result :+ jsonObject.toParticipant
         }
