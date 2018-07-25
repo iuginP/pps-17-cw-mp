@@ -3,7 +3,6 @@ package it.cwmp.services.authentication
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.ServerParameters._
-import it.cwmp.services.authentication.storage.StorageAsync
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future
@@ -16,7 +15,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
 
   override protected val serverPort: Int = DEFAULT_PORT
 
-  private var storageFuture: Future[StorageAsync] = _
+  private var storageFuture: Future[StorageDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
     router post API_SIGNUP handler handlerSignup
@@ -26,8 +25,8 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   }
 
   override protected def initServer: Future[_] = {
-    val storage = StorageAsync()
-    storageFuture = storage.init().map(_ => storage)
+    val storage = StorageLoaclDAO()
+    storageFuture = storage.initialize().map(_ => storage)
     storageFuture
   }
 
