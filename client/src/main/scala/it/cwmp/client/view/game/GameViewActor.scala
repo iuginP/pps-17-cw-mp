@@ -1,17 +1,21 @@
 package it.cwmp.client.view.game
 
-import akka.actor.{Actor, Cancellable}
+import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
-import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.model.DistributedState
+import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
+import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.utils.Logging
 
 import scala.concurrent.duration._
 
 /**
+  * The actor that deals with Game View
+  *
   * @author contributor Enrico Siboni
   */
-class GameViewActor extends Actor with Logging {
+class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX()
   private val FRAME_RATE: FiniteDuration = 50.millis
@@ -49,13 +53,25 @@ class GameViewActor extends Actor with Logging {
 
     case AddAttack(from, to) =>
       log.info(s"AddAttack from:$from to:$to")
-    // TODO: convert those points (implementing a utility method in GeometricUtils) in an attack
-    // TODO: discovering to which cell are near the points provided
+      val worldCharacters = tempWorld.characters
+      val fromCell = findCellNearTo(from, worldCharacters)
+      val toCell = findCellNearTo(to, worldCharacters)
+      (fromCell, toCell) match {
+        case (Some(attacker), Some(attacked)) =>
+          log.debug(s"Adding attack from $attacker to $attacked ...")
+          parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
+        case tmp@_ => log.debug(s"No cells detected $tmp")
+      }
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
-    // TODO: convert point on attack view to the corresponding tentacle, calculating the distance of this point
-    // TODO: from the straight line passing through the tentacle "from" and "to" points
+      val attack = findTentacleNearTo(pointOnAttackView, tempWorld.attacks)
+      attack match {
+        case Some(tentacle) =>
+          log.debug(s"Removing this attack: $tentacle ...")
+          parentActor ! DistributedState.UpdateState(tempWorld -- tentacle)
+        case tmp@_ => log.debug(s"No attack detected $tmp")
+      }
   }
 }
 
@@ -63,16 +79,29 @@ class GameViewActor extends Actor with Logging {
   * Companion object, containing actor messages
   */
 object GameViewActor {
-  def apply(): GameViewActor = new GameViewActor
+  def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
 
+  /**
+    * Shows the GUI
+    */
   case object ShowGUI
 
+  /**
+    * Hides the GUI
+    */
   case object HideGUI
 
+  /**
+    * Sets a new world to display
+    *
+    * @param world the newWorld from which to compute new evolution
+    */
   case class NewWorld(world: CellWorld)
 
+  /**
+    * Updates local version of the world making it "move"
+    */
   case object UpdateLocalWorld
-
 
   /**
     * A message stating that an attack has been launched from one point to another
@@ -88,4 +117,25 @@ object GameViewActor {
     * @param pointOnAttackView the point clicked by the player to remove the attack
     */
   case class RemoveAttack(pointOnAttackView: Point)
+
+  /**
+    * A method to find a cell near to a clicked point on view, according to actual cell sizing
+    *
+    * @param clickedPoint the clicked point on view
+    * @param cells        the collection of cells on screen
+    * @return optionally the cell near the clicked point
+    */
+  private def findCellNearTo(clickedPoint: Point, cells: Seq[Cell]): Option[Cell] =
+    cells.find(cell => GeometricUtils.isWithinCircumference(clickedPoint, cell.position, CellView.sizingStrategy(cell)))
+
+  /**
+    * A method to find the tentacle near to a clicked point on view, according to actual tentacle sizing
+    *
+    * @param clickedPoint the cliked point on view
+    * @param tentacles    the collection of attacks on screen
+    * @return optionally the tentacle near the clicked point
+    */
+  private def findTentacleNearTo(clickedPoint: Point, tentacles: Seq[Tentacle]): Option[Tentacle] =
+    tentacles.find(tentacle => GeometricUtils.
+      pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position) <= TentacleView.thicknessStrategy(tentacle))
 }

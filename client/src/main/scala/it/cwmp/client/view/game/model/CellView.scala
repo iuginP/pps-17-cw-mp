@@ -1,12 +1,12 @@
 package it.cwmp.client.view.game.model
 
-import java.awt.Color
-
 import com.github.tkqubo.colorHash.ColorHash
-import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.model.game.SizingStrategy
+import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.ColoringStrategy
-import it.cwmp.client.view.game.GameViewConstants._
+import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+import javafx.scene.paint.Color
+import javafx.scene.text.Font
 
 import scala.language.implicitConversions
 
@@ -16,20 +16,24 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   * @param center punto nel quale verrà disegnata la cella
-  * @param size   dimensione della cella
+  * @param radius dimensione della cella
   * @param energy energia della cella
   */
-case class CellView(center: Point, color: Color, size: Int, energy: Double)
+case class CellView(center: Point, radius: Double, color: Color, energy: Double)
 
 /**
   * Companion object
   */
 object CellView {
 
+  val ENERGY_FONT = Font.font("Verdana", 20)
+
+  private val CELL_VIEW_COLOR_OPACITY = 1
+
   /**
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToViewCell(cell: Cell): CellView = CellView(cell.position, coloringStrategy(cell), sizingStrategy(cell), cell.energy)
+  implicit def cellToViewCell(cell: Cell): CellView = CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell), cell.energy)
 
   /**
     * Default cell coloring strategy
@@ -38,13 +42,13 @@ object CellView {
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
     val color = new ColorHash().rgb(cell.owner.username)
-    new Color(color.red, color.green, color.blue)
+    new Color(color.red / RGB_RANGE, color.green / RGB_RANGE, color.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
   }
 
   /**
-    * The default sizing strategy
+    * The default sizing strategy; returns the radius that the cellView should have
     *
-    * Maps size to energy
+    * Maps energy to radius
     */
-  val sizingStrategy: SizingStrategy[Cell, Int] = _.energy.toInt
+  val sizingStrategy: SizingStrategy[Cell, Double] = _.energy
 }

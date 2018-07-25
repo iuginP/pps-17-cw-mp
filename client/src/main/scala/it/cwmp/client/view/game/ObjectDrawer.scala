@@ -1,15 +1,14 @@
 package it.cwmp.client.view.game
 
-import java.awt.Color
 import java.time.Instant
 
 import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
+import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
 import javafx.scene.text.Text
-import javafx.scene.text.Font
 
 import scala.language.implicitConversions
 
@@ -34,42 +33,44 @@ trait ObjectDrawer {
     // TODO: the cell size is not drawn according to size value!!!!
     svgShape.setBorder(new Border(new BorderStroke(Color.BLACK,
       BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)))
-    svgShape.setMinSize(cell.size, cell.size)
-    svgShape.setPrefSize(cell.size, cell.size)
-    svgShape.setMaxSize(cell.size, cell.size)
+    svgShape.setMinSize(cell.radius, cell.radius)
+    svgShape.setPrefSize(cell.radius, cell.radius) // TODO: la cellula ora fornisce il suo raggio, rivedere il dimensionamento (fare raggio * 2?)
+    svgShape.setMaxSize(cell.radius, cell.radius)
     svgShape.setStyle("-fx-background-color: " + "#" + Integer.toHexString(cell.color.getRGB).substring(2))
-    svgShape.setLayoutX(cell.center.x - cell.size / 2)
-    svgShape.setLayoutY(cell.center.y - cell.size / 2)
+    svgShape.setLayoutX(cell.center.x - cell.radius / 2)
+    svgShape.setLayoutY(cell.center.y - cell.radius / 2)
     svgShape
   }
 
   /**
     * Metodo per disegnare l'energia di una cella
+    *
     * @param cell cella della quale disegnare l'energia
     * @return il testo da aggiungere alla scena
     */
   def drawCellEnergy(cell: CellView): Text = {
-    val t = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
-    t.setFont(Font.font("Verdana", 20))
-    t.setFill(Color.BLACK)
-    t.setX(cell.center.x - (t.getLayoutBounds.getWidth /2))
-    t.setY(cell.center.y + (t.getLayoutBounds.getHeight /2))
-    t
+    val energyText = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
+    energyText.setFont(CellView.ENERGY_FONT)
+    energyText.setFill(Color.BLACK) // TODO: move to a coloring strategy inside CellView
+    energyText.setX(cell.center.x - (energyText.getLayoutBounds.getWidth / 2))
+    energyText.setY(cell.center.y + (energyText.getLayoutBounds.getHeight / 2))
+    energyText
   }
 
   /**
     * Metodo utilizato per disegnare il tentacolo che unisce due celle
-    * @param tentacle il tentacolo da disegnare
+    *
+    * @param tentacle      il tentacolo da disegnare
     * @param actualInstant l'istante di gioco
     * @return la linea da visualizzare nella GUI
     */
   def drawArch(tentacle: Tentacle, actualInstant: Instant): Line = {
     val line = new Line()
     line.setStroke(TentacleView.coloringStrategy(tentacle))
+    line.setStrokeWidth(TentacleView.thicknessStrategy(tentacle))
 
     val attackerPosition = tentacle.from.position
     val tentacleReachedPoint = TentacleView.reachedPoint(tentacle, actualInstant)
-    line.setStrokeWidth(3.0)
     line.setStartX(attackerPosition.x)
     line.setStartY(attackerPosition.y)
     line.setEndX(tentacleReachedPoint.x)
@@ -78,12 +79,12 @@ trait ObjectDrawer {
   }
 
   /**
-    * Funzione per convertire i colori java.awt nel formato di colori utilizzato da javaFX
+    * Funzione per convertire i colori javaFX nel formato di colori utilizzato da java.awt
     *
-    * @param awtColor Colore che si vuole convertire
-    * @return
+    * @param fxColor Colore che si vuole convertire
+    * @return il colore awt
     */
-  private implicit def awtColorToFxColor(awtColor: Color): javafx.scene.paint.Color = {
-    new javafx.scene.paint.Color(awtColor.getRed / 255.0, awtColor.getGreen / 255.0, awtColor.getBlue / 255.0, awtColor.getAlpha / 255.0)
+  private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
+    new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
   }
 }
