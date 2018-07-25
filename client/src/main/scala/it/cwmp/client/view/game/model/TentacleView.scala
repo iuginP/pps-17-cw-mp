@@ -12,12 +12,12 @@ import scala.language.implicitConversions
 /**
   * A class representing the View counterpart of Tentacle
   *
-  * @param startPoint  the starting point for this tentacle
-  * @param arrivePoint the arrive point for thi tentacle
-  * @param color       the color of this tetacle
+  * @param startPoint   the starting point for this tentacle View
+  * @param reachedPoint the arrive point for this tentacle View
+  * @param color        the color of this tetacle
   * @author Enrico Siboni
   */
-case class TentacleView(startPoint: Point, arrivePoint: Point, color: Color, thickness: Double)
+case class TentacleView(startPoint: Point, reachedPoint: Point, color: Color, thickness: Double)
 
 /**
   * Companion Object
@@ -31,8 +31,8 @@ object TentacleView {
     */
   val TENTACLE_DEFAULT_THICKNESS = 3d
 
-  implicit def tentacleToTentacleView(tentacle: Tentacle): TentacleView =
-    TentacleView(tentacle.from.position, tentacle.to.position, coloringStrategy(tentacle), thicknessStrategy(tentacle))
+  def tentacleToView(tentacle: Tentacle, actualInstant: Instant): TentacleView =
+    TentacleView(tentacle.from.position, reachedPoint(tentacle, actualInstant), coloringStrategy(tentacle), thicknessStrategy(tentacle))
 
   /**
     * Default coloring strategy for tentacles
