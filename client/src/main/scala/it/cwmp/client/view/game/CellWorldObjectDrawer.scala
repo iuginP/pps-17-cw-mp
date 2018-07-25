@@ -17,7 +17,7 @@ import scala.language.implicitConversions
   * @author Eugenio Pierfederici
   * @author Davide Borficchia
   */
-trait ObjectDrawer {
+trait CellWorldObjectDrawer {
 
   var firstDraw = true
   var oldInstant: Instant = _
@@ -78,12 +78,14 @@ trait ObjectDrawer {
   }
 
   /**
-    * Metodo per disegnare il tempo trascorso dall'inizio della partita
+    * A method to draw elapsed time on GUI
     *
-    * @param worldInstant tempo attuale
-    * @return il text da disegnare
+    * @param worldInstant    the actualWorldInstant
+    * @param graphicsContext the graphic context on which to draw
+    * @return the text to draw
     */
-  def drawInstant(worldInstant: Instant)(implicit graphicsContext: GraphicsContext): Text = {
+  def drawInstant(worldInstant: Instant)
+                 (implicit graphicsContext: GraphicsContext): Text = {
     var instantToDraw: Duration = Duration.ofSeconds(0)
     var actualInstant: Instant = worldInstant
     if (!firstDraw) {

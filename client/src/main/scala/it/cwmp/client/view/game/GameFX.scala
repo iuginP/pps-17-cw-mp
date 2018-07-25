@@ -14,7 +14,7 @@ import javafx.stage.Stage
   *
   * @author Davide Borficchia
   */
-case class GameFX() extends ObjectDrawer {
+case class GameFX() extends CellWorldObjectDrawer {
 
   private var stage: Stage = _
   private var root: Group = _
