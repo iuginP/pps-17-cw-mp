@@ -19,8 +19,7 @@ import scala.language.implicitConversions
   */
 trait CellWorldObjectDrawer {
 
-  var firstDraw = true
-  var oldInstant: Instant = _
+  private var firstWorldInstantOption: Option[Instant] = None
 
   /**
     * A method to draw a CellView
@@ -49,7 +48,7 @@ trait CellWorldObjectDrawer {
     * @return the text to add to scene
     */
   def drawCellEnergy(cell: CellView): Text = {
-    val energyText = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
+    val energyText = new Text(cell.energy.toInt.toString)
     energyText.setFont(CellView.ENERGY_DEFAULT_FONT)
     energyText.setFill(cell.energyTextColor)
     energyText.setX(cell.center.x - (energyText.getLayoutBounds.getWidth / 2))
@@ -80,21 +79,20 @@ trait CellWorldObjectDrawer {
   /**
     * A method to draw elapsed time on GUI
     *
-    * @param worldInstant    the actualWorldInstant
-    * @param graphicsContext the graphic context on which to draw
+    * @param actualWorldInstant the actual World Instant
+    * @param graphicsContext    the graphic context on which to draw
     * @return the text to draw
     */
-  def drawInstant(worldInstant: Instant)
+  def drawInstant(actualWorldInstant: Instant)
                  (implicit graphicsContext: GraphicsContext): Text = {
-    var instantToDraw: Duration = Duration.ofSeconds(0)
-    var actualInstant: Instant = worldInstant
-    if (!firstDraw) {
-      instantToDraw = Duration.between(oldInstant, actualInstant)
-    } else {
-      firstDraw = false
-      oldInstant = actualInstant
-    }
-    val instantText = new Text(70, 20, (instantToDraw.getSeconds / 60) + ":" + (instantToDraw.getSeconds % 60))
+    val elapsedTimeFromBeginning: Duration =
+      firstWorldInstantOption match {
+        case Some(firstWorldInstant) => Duration.between(firstWorldInstant, actualWorldInstant)
+        case None =>
+          firstWorldInstantOption = Some(actualWorldInstant)
+          Duration.ofSeconds(0)
+      }
+    val instantText = new Text((elapsedTimeFromBeginning.getSeconds / 60) + ":" + (elapsedTimeFromBeginning.getSeconds % 60))
     instantText.setFont(CellView.ENERGY_DEFAULT_FONT) // TODO: add font for instant
     instantText.setFill(Color.BLACK) // TODO: add constant for game instant color
     instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
