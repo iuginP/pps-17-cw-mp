@@ -11,4 +11,9 @@ object GameViewConstants {
     * The constant value indicating the rgb range max value
     */
   val RGB_RANGE = 255.0
+
+  /**
+    * The game font size
+    */
+  val GAME_FONT_SIZE = 20
 }

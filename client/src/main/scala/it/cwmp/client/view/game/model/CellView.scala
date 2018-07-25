@@ -3,8 +3,8 @@ package it.cwmp.client.view.game.model
 import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Cell, Point}
-import it.cwmp.client.view.game.ColoringStrategy
 import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+import it.cwmp.client.view.game.{ColoringStrategy, GameViewConstants}
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 
@@ -26,7 +26,7 @@ case class CellView(center: Point, radius: Double, color: Color, energy: Double)
   */
 object CellView {
 
-  val ENERGY_FONT = Font.font("Verdana", 20)
+  val ENERGY_FONT: Font = Font.font("Verdana", GameViewConstants.GAME_FONT_SIZE)
 
   private val CELL_VIEW_COLOR_OPACITY = 1
 
