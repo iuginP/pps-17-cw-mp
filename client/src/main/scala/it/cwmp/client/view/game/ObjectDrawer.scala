@@ -45,14 +45,17 @@ trait ObjectDrawer {
   /**
     * Metodo per disegnare l'energia di una cella
     * @param cell cella della quale disegnare l'energia
-    * @param graphicsContext oggetto che disegna la cella
     * @return il testo da aggiungere alla scena
     */
-  def drawCellEnergy(cell: CellView)(implicit graphicsContext: GraphicsContext): Text = {
-    val t = new Text(cell.center.x - cell.size / 2, cell.center.y - cell.size / 2, cell.energy.toInt.toString)
+  def drawCellEnergy(cell: CellView): Text = {
+    val t = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
     import javafx.scene.text.Font
     t.setFont(Font.font("Verdana", 20))
     t.setFill(Color.BLACK)
+    val width = t.getLayoutBounds.getWidth
+    val height = t.getLayoutBounds.getHeight
+    t.setX(cell.center.x - (width /2))
+    t.setY(cell.center.y + (height /2))
     t
   }
 
