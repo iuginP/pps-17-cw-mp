@@ -45,7 +45,7 @@ object CellView {
   /**
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToViewCell(cell: Cell): CellView =
+  implicit def cellToView(cell: Cell): CellView =
     CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell), cell.energy, energyTextColoringStrategy(cell))
 
   /**
