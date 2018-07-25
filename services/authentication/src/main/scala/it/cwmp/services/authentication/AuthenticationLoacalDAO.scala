@@ -2,7 +2,7 @@ package it.cwmp.services.authentication
 
 import com.typesafe.scalalogging.Logger
 import io.vertx.core.json.JsonArray
-import it.cwmp.services.authentication.StorageLoaclDAO._
+import it.cwmp.services.authentication.AuthenticationLoacalDAO._
 import it.cwmp.utils.{VertxInstance, VertxJDBC}
 import scala.concurrent._
 
@@ -11,7 +11,7 @@ import scala.concurrent._
   *
   * @author Davide Borficchia
   */
-trait StorageDAO {
+trait AuthenticationDAO {
   /**
     * Registra un nuovo utente all'interno dello storage
     *
@@ -52,7 +52,7 @@ trait StorageDAO {
   *
   * @author Davide Borficchia
   */
-case class StorageLoaclDAO(override val configurationPath: String = "authentication/database.json") extends StorageDAO with VertxInstance with VertxJDBC {
+case class AuthenticationLoacalDAO(override val configurationPath: String = "authentication/database.json") extends AuthenticationDAO with VertxInstance with VertxJDBC {
   private var notInitialized = true
 
   def initialize(): Future[Unit] = {
@@ -131,8 +131,8 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
   }
 }
 
-object StorageLoaclDAO {
-  private val logger: Logger = Logger[StorageLoaclDAO]
+object AuthenticationLoacalDAO {
+  private val logger: Logger = Logger[AuthenticationLoacalDAO]
   private val FIELD_AUTH_USERNAME = "auth_username"
   private val FIELD_AUTH_PASSWORD = "auth_password"
   private val FIELD_AUTH_SALT = "auth_salt"

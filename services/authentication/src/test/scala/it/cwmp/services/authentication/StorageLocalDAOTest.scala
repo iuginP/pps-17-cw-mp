@@ -12,14 +12,14 @@ import scala.concurrent.Future
   */
 class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
 
-  var storageFuture: Future[StorageDAO] = _
-  var storageNotInizializedFuture: Future[StorageDAO] = _
+  var storageFuture: Future[AuthenticationDAO] = _
+  var storageNotInizializedFuture: Future[AuthenticationDAO] = _
   var username: String = _
   var password: String = _
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    val storage = StorageLoaclDAO()
+    val storage = AuthenticationLoacalDAO()
     storageFuture = storage.initialize().map(_ => storage)
     storageNotInizializedFuture = Future(storage)
     username = Utils.randomString(10)

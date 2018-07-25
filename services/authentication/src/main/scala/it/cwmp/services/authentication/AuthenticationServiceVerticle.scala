@@ -15,7 +15,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
 
   override protected val serverPort: Int = DEFAULT_PORT
 
-  private var storageFuture: Future[StorageDAO] = _
+  private var storageFuture: Future[AuthenticationDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
     router post API_SIGNUP handler handlerSignup
@@ -25,7 +25,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   }
 
   override protected def initServer: Future[_] = {
-    val storage = StorageLoaclDAO()
+    val storage = AuthenticationLoacalDAO()
     storageFuture = storage.initialize().map(_ => storage)
     storageFuture
   }
