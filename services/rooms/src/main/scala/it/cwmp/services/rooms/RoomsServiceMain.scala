@@ -21,5 +21,4 @@ object RoomsServiceMain extends App with Logging {
       case Success(_) => log.info("RoomsService up and running!")
       case Failure(ex) => log.info("Error deploying RoomsService", ex)
     }(VertxExecutionContext(vertx.getOrCreateContext()))
-
 }

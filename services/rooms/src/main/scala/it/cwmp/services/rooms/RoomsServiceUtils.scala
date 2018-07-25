@@ -4,12 +4,16 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.RoutingContext
+import it.cwmp.model.Address.Converters._
 import it.cwmp.model.{Address, Room}
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Logging, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+  * A trait containing RoomsService utilities
+  */
 trait RoomsServiceUtils {
   this: VertxServer with Logging =>
 
@@ -35,7 +39,6 @@ trait RoomsServiceUtils {
       val userAddressJson = jsonArray.getJsonObject(0)
       val userNotificationAddressJson = jsonArray.getJsonObject(1)
       if ((userAddressJson containsKey Address.FIELD_ADDRESS) && (userNotificationAddressJson containsKey Address.FIELD_ADDRESS)) {
-        import Address.Converters._
         Some((userAddressJson.toAddress, userNotificationAddressJson.toAddress))
       } else None
     } catch {
@@ -74,10 +77,8 @@ trait RoomsServiceUtils {
     * @param onRetrievedRoomAction the action to do if the room is full
     * @return a future that completes when all players received addresses
     */
-  private[this] def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])],
-                                      onRetrievedRoomAction: => Future[Unit])
-                                     (implicit communicationStrategy: RoomReceiverApiWrapper,
-                                      executionContext: ExecutionContext): Future[Unit] = {
+  private[this] def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])], onRetrievedRoomAction: => Future[Unit])
+                                     (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
     roomInformationFuture.map(tuple => tuple._1).filter(roomIsFull)
       .flatMap(_ => {
         onRetrievedRoomAction
@@ -96,8 +97,7 @@ trait RoomsServiceUtils {
     * @param roomInformation the room where players are waiting in
     */
   private[rooms] def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
-                                             (implicit communicationStrategy: RoomReceiverApiWrapper,
-                                              executionContext: ExecutionContext): Future[Unit] = {
+                                             (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
     log.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
     val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
     val players = for (player <- roomInformation._1.participants) yield player
