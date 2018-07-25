@@ -1,9 +1,9 @@
 package it.cwmp.services.authentication
 
-import com.typesafe.scalalogging.Logger
 import io.vertx.core.json.JsonArray
-import it.cwmp.services.authentication.AuthenticationLoacalDAO._
-import it.cwmp.utils.{VertxInstance, VertxJDBC}
+import it.cwmp.services.authentication.AuthenticationLocalDAO._
+import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
+
 import scala.concurrent._
 
 /**
@@ -19,7 +19,7 @@ trait AuthenticationDAO {
     * @param password password del nuovo utente
     * @return ritorna un Future vuoto
     */
-  def signupFuture(username: String, password: String): Future[Unit]
+  def signUpFuture(username: String, password: String): Future[Unit]
 
   /**
     * Fa sloggare un utente che ha precedentemente fatto login
@@ -27,7 +27,7 @@ trait AuthenticationDAO {
     * @param username username dell'utente che si vuole fare sloggare
     * @return ritorna un Future vuoto
     */
-  def signoutFuture(username: String): Future[Unit]
+  def signOutFuture(username: String): Future[Unit]
 
   /**
     * Permette di far loggare un utente precedentemente registrato nel sistema
@@ -52,11 +52,12 @@ trait AuthenticationDAO {
   *
   * @author Davide Borficchia
   */
-case class AuthenticationLoacalDAO(override val configurationPath: String = "authentication/database.json") extends AuthenticationDAO with VertxInstance with VertxJDBC {
+case class AuthenticationLocalDAO(override val configurationPath: String = "authentication/database.json")
+  extends AuthenticationDAO with VertxInstance with VertxJDBC with Logging {
   private var notInitialized = true
 
   def initialize(): Future[Unit] = {
-    logger.info("Initializing RoomLocalDAO...")
+    log.info("Initializing RoomLocalDAO...")
     (for (
       connection <- openConnection();
       _ <- connection.executeFuture(createStorageTableSql)
@@ -65,8 +66,8 @@ case class AuthenticationLoacalDAO(override val configurationPath: String = "aut
     }).closeConnections
   }
 
-  override def signupFuture(usernameP: String, passwordP: String): Future[Unit] = {
-    logger.debug(s"signup() username:$usernameP, password:$passwordP")
+  override def signUpFuture(usernameP: String, passwordP: String): Future[Unit] = {
+    log.debug(s"signup() username:$usernameP, password:$passwordP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty;
@@ -79,13 +80,13 @@ case class AuthenticationLoacalDAO(override val configurationPath: String = "aut
         _ <- connection.updateWithParamsFuture(
           insertNewUserSql, new JsonArray().add(username).add(password).add("SALT"))
       ) yield {
-        logger.debug("inizialized")
+        log.debug("inizialized")
       }).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
 
-  override def signoutFuture(usernameP: String): Future[Unit] = {
-    logger.debug(s"signoutFuture() username:$usernameP")
+  override def signOutFuture(usernameP: String): Future[Unit] = {
+    log.debug(s"signoutFuture() username:$usernameP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty
@@ -94,13 +95,13 @@ case class AuthenticationLoacalDAO(override val configurationPath: String = "aut
         // Eseguo operazioni sul db in maniera sequenziale
         _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.updateWithParamsFuture(signoutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
+        result <- connection.updateWithParamsFuture(signOutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
 
   override def loginFuture(usernameP: String, passwordP: String): Future[Unit] = {
-    logger.debug(s"loginFuture() username:$usernameP, password:$passwordP")
+    log.debug(s"loginFuture() username:$usernameP, password:$passwordP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty;
@@ -116,7 +117,7 @@ case class AuthenticationLoacalDAO(override val configurationPath: String = "aut
   }
 
   override def existsFuture(usernameP: String): Future[Unit] = {
-    logger.debug(s"existsFuture() username:$usernameP")
+    log.debug(s"existsFuture() username:$usernameP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty
@@ -131,8 +132,11 @@ case class AuthenticationLoacalDAO(override val configurationPath: String = "aut
   }
 }
 
-object AuthenticationLoacalDAO {
-  private val logger: Logger = Logger[AuthenticationLoacalDAO]
+/**
+  * Companion Object
+  */
+object AuthenticationLocalDAO {
+
   private val FIELD_AUTH_USERNAME = "auth_username"
   private val FIELD_AUTH_PASSWORD = "auth_password"
   private val FIELD_AUTH_SALT = "auth_salt"
@@ -155,7 +159,7 @@ object AuthenticationLoacalDAO {
   """
 
   private val insertNewUserSql = "INSERT INTO authorization VALUES (?, ?, ?)"
-  private val signoutUserSql = "DELETE FROM authorization WHERE auth_username = ?"
+  private val signOutUserSql = "DELETE FROM authorization WHERE auth_username = ?"
   private val loginUserSql =
     s"""
   SELECT *

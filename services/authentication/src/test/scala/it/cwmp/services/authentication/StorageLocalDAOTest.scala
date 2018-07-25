@@ -19,7 +19,7 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    val storage = AuthenticationLoacalDAO()
+    val storage = AuthenticationLocalDAO()
     storageFuture = storage.initialize().map(_ => storage)
     storageNotInizializedFuture = Future(storage)
     username = Utils.randomString(10)
@@ -32,21 +32,21 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
         it("when username empty") {
           val password = Utils.randomString(10)
           storageFuture
-            .flatMap(storage => storage.signupFuture("", password))
+            .flatMap(storage => storage.signUpFuture("", password))
             .shouldFail
         }
         it("when password empty") {
           val username = Utils.randomString(10)
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, ""))
+            .flatMap(storage => storage.signUpFuture(username, ""))
             .shouldFail
         }
         it("when username already present") {
           val username = Utils.randomString(10)
           val password = Utils.randomString(10)
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signupFuture(username, password))
+            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
+            .flatMap(storage => storage.signUpFuture(username, password))
             .shouldFail
         }
       }
@@ -55,8 +55,8 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
           val username = Utils.randomString(10)
           val password = Utils.randomString(10)
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signoutFuture(username))
+            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
+            .flatMap(storage => storage.signOutFuture(username))
             .shouldSucceed
         }
       }
@@ -66,20 +66,20 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
       describe("should fail with error") {
         it("when username empty") {
           storageFuture
-            .flatMap(storage => storage.signoutFuture(""))
+            .flatMap(storage => storage.signOutFuture(""))
             .shouldFail
         }
         it("when username doesn't exists") {
           storageFuture
-            .flatMap(storage => storage.signoutFuture(username))
+            .flatMap(storage => storage.signOutFuture(username))
             .shouldFail
         }
       }
       describe("should succeed") {
         it("when all right") {
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signoutFuture(username))
+            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
+            .flatMap(storage => storage.signOutFuture(username))
             .shouldSucceed
         }
       }
@@ -100,18 +100,18 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
         it("when password is wrong") {
           val passwordWrong = Utils.randomString(10)
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
+            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
             .flatMap(storage => storage.loginFuture(username, passwordWrong).map(_ => storage))
-            .flatMap(storage => storage.signoutFuture(username))
+            .flatMap(storage => storage.signOutFuture(username))
             .shouldFail
         }
       }
       describe("should succeed") {
         it("when all right") {
           storageFuture
-            .flatMap(storage => storage.signupFuture(username, password).map(_ => storage))
+            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
             .flatMap(storage => storage.loginFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signoutFuture(username))
+            .flatMap(storage => storage.signOutFuture(username))
             .shouldSucceed
         }
       }
@@ -122,12 +122,12 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
 
       it("sign up") {
         storageNotInizializedFuture
-          .flatMap(storage => storage.signupFuture(username, password))
+          .flatMap(storage => storage.signUpFuture(username, password))
           .shouldFailWith[IllegalStateException]
       }
       it("sign out") {
         storageNotInizializedFuture
-          .flatMap(storage => storage.signoutFuture(username))
+          .flatMap(storage => storage.signOutFuture(username))
           .shouldFailWith[IllegalStateException]
       }
       it("login") {

@@ -25,7 +25,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   }
 
   override protected def initServer: Future[_] = {
-    val storage = AuthenticationLoacalDAO()
+    val storage = AuthenticationLocalDAO()
     storageFuture = storage.initialize().map(_ => storage)
     storageFuture
   }
@@ -36,7 +36,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
       authorizationHeader <- request.getAuthentication;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
-      storageFuture flatMap (_.signupFuture(username, password)) onComplete {
+      storageFuture flatMap (_.signUpFuture(username, password)) onComplete {
         case Success(_) =>
           log.info(s"User $username signed up.")
           JwtUtils
@@ -55,7 +55,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
       // If every check pass, username contains the username contained in the token and we can check it exists
-      storageFuture.map(_.signoutFuture(username).onComplete {
+      storageFuture.map(_.signOutFuture(username).onComplete {
         case Success(_) =>
           log.info(s"User $username signed out.")
           sendResponse(202)
