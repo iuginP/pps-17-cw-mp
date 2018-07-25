@@ -1,7 +1,7 @@
 package it.cwmp.services.authentication
 
-import io.vertx.core.json.JsonArray
 import it.cwmp.services.authentication.AuthenticationLocalDAO._
+import it.cwmp.utils.VertxJDBC.stringsToJsonArray
 import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
 
 import scala.concurrent._
@@ -78,7 +78,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         _ <- checkInitialization(notInitialized);
         connection <- openConnection();
         _ <- connection.updateWithParamsFuture(
-          insertNewUserSql, new JsonArray().add(username).add(password).add("SALT"))
+          insertNewUserSql, Seq(username, password, "SALT"))
       ) yield {
         log.debug("inizialized")
       }).closeConnections
@@ -95,7 +95,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         // Eseguo operazioni sul db in maniera sequenziale
         _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.updateWithParamsFuture(signOutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
+        result <- connection.updateWithParamsFuture(signOutUserSql, Seq(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
@@ -111,7 +111,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         // Eseguo operazioni sul db in maniera sequenziale
         _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.queryWithParamsFuture(loginUserSql, new JsonArray().add(username).add(password)) if result.getResults.nonEmpty
+        result <- connection.queryWithParamsFuture(loginUserSql, Seq(username, password)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
@@ -126,7 +126,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         // Eseguo operazioni sul db in maniera sequenziale
         _ <- checkInitialization(notInitialized);
         connection <- openConnection();
-        result <- connection.queryWithParamsFuture(existFutureUserSql, new JsonArray().add(username)) if result.getResults.nonEmpty
+        result <- connection.queryWithParamsFuture(existFutureUserSql, Seq(username)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
