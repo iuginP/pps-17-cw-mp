@@ -20,7 +20,7 @@ import scala.language.implicitConversions
   * @param radius dimensione della cella
   * @param energy energia della cella
   */
-case class CellView(center: Point, radius: Double, color: Color, energy: Double)
+case class CellView(center: Point, radius: Double, color: Color, energy: Double, energyTextColor: Color)
 
 /**
   * Companion object
@@ -38,7 +38,8 @@ object CellView {
   /**
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToViewCell(cell: Cell): CellView = CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell), cell.energy)
+  implicit def cellToViewCell(cell: Cell): CellView =
+    CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell), cell.energy, energyTextColoringStrategy(cell))
 
   /**
     * Default cell coloring strategy
