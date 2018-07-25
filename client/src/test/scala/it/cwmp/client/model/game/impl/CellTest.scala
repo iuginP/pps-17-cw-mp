@@ -7,6 +7,8 @@ import org.scalatest.FunSpec
 
 /**
   * A test for cell class
+  *
+  * @author Enrico Siboni
   */
 class CellTest extends FunSpec {
 
