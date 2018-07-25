@@ -1,19 +1,14 @@
 package it.cwmp.client.view.game
 
-import java.awt.Color
-
 /**
   * An object where to put constants about the game visual
+  *
+  * @author Enrico Siboni
   */
 object GameViewConstants {
 
   /**
-    * @return the cell Size
+    * The constant value indicating the rgb range max value
     */
-  def cellSize: Int = 20
-
-  /**
-    * @return the default color
-    */
-  def defaultColor: Color = Color.BLACK
+  val RGB_RANGE = 255.0
 }

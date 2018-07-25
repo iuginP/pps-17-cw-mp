@@ -77,6 +77,41 @@ object GeometricUtils {
   }
 
   /**
+    * A method returning the distance of a point from a straight line passing through two points
+    *
+    * @param myPoint the point from which to calculate the distance
+    * @param point1  the first point from which the straight line is passing through
+    * @param point2  the second point from which the straight line is passing through
+    * @return the distance of first point from this straight line
+    */
+  def pointDistanceFromStraightLine(myPoint: Point,
+                                    point1: Point,
+                                    point2: Point): Double = {
+    val angularCoefficient = GeometricUtils.angularCoefficient(point1, point2)
+
+    if (angularCoefficient.isPosInfinity) Math.abs(myPoint.x - point1.x) // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
+    else
+      Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
+        Math.sqrt(angularCoefficient.squared + 1)
+  }
+
+  /**
+    * A method that says if provided point is inside the circumference with provided center and radius
+    *
+    * @param point  the point to verify inside circumference
+    * @param center the center of the circumference
+    * @param radius the radius of the circumference
+    * @return true if the point is inside or on the circumference, false otherwise
+    */
+  def isWithinCircumference(point: Point,
+                            center: Point,
+                            radius: Double): Boolean = {
+    require(radius >= 0, "Circumference radius must be positive")
+
+    (point.x - center.x).squared + (point.y - center.y).squared <= radius.squared
+  }
+
+  /**
     * A class that makes possible to square numbers
     *
     * @param number a number to square
