@@ -13,6 +13,7 @@ import javafx.scene.text.Text
 import scala.language.implicitConversions
 
 /**
+  * A trait that makes possible to draw View items
   *
   * @author Eugenio Pierfederici
   * @author Davide Borficchia
@@ -34,7 +35,7 @@ trait ObjectDrawer {
     svgShape.setBorder(new Border(new BorderStroke(Color.BLACK,
       BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)))
     svgShape.setPrefSize(cell.radius * 2, cell.radius * 2)
-    svgShape.setStyle("-fx-background-color: #" + Integer.toHexString(cell.color.getRGB).substring(2)) // TODO: make a method for this conversion
+    svgShape.setStyle("-fx-background-color: #" + getHexDecimalColor(cell.color))
     svgShape.setLayoutX(cell.center.x - cell.radius)
     svgShape.setLayoutY(cell.center.y - cell.radius)
     svgShape
@@ -85,4 +86,12 @@ trait ObjectDrawer {
   private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
     new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
   }
+
+  /**
+    * Returns the Hex string representation of the color
+    *
+    * @param color the color of which to calculate the Hex representation
+    * @return the Hex string representation
+    */
+  private def getHexDecimalColor(color: Color): String = Integer.toHexString(color.getRGB).substring(2)
 }
