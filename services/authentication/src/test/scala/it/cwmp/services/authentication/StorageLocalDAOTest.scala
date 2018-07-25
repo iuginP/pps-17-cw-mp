@@ -1,6 +1,5 @@
-package it.cwmp.services.authentication.storage
+package it.cwmp.services.authentication
 
-import it.cwmp.services.authentication.{StorageDAO, StorageLoaclDAO}
 import it.cwmp.testing.{FutureMatchers, VertxTest}
 import it.cwmp.utils.Utils
 import org.scalatest.{BeforeAndAfterEach, Matchers}
@@ -10,11 +9,13 @@ import scala.concurrent.Future
 class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
 
   var storageFuture: Future[StorageDAO] = _
+  var storageNotInizializedFuture: Future[StorageDAO] = _
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     val storage = StorageLoaclDAO()
     storageFuture = storage.initialize().map(_ => storage)
+    storageNotInizializedFuture = Future(storage)
   }
 
   describe("Storage manager") {
@@ -117,5 +118,30 @@ class StorageLocalDAOTest extends VertxTest with Matchers with FutureMatchers wi
       }
     }
   }
+  describe("The Helper shouldn't work") {
+    describe("if not initialized") {
 
+      it("sign up") {
+        val password = Utils.randomString(10)
+        val username = Utils.randomString(10)
+        storageNotInizializedFuture
+          .flatMap(storage => storage.signupFuture(username, password))
+          .shouldFailWith[IllegalStateException]
+      }
+      it("sign out") {
+        val password = Utils.randomString(10)
+        val username = Utils.randomString(10)
+        storageNotInizializedFuture
+          .flatMap(storage => storage.signoutFuture(username))
+          .shouldFailWith[IllegalStateException]
+      }
+      it("login") {
+        val password = Utils.randomString(10)
+        val username = Utils.randomString(10)
+        storageNotInizializedFuture
+          .flatMap(storage => storage.loginFuture(username, password))
+          .shouldFailWith[IllegalStateException]
+      }
+    }
+  }
 }
