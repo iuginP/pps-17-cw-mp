@@ -60,10 +60,8 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
 
     (for (
       connection <- openConnection();
-      result <- connection.executeFuture(
-        createStorageTableSql)
+      _ <- connection.executeFuture(createStorageTableSql)
     ) yield {
-      result
       notInitialized = false
     }).closeConnections
   }
@@ -73,11 +71,11 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty;
-      password <- Option(passwordP) if password.nonEmpty;
-      future <- checkInitialization(notInitialized)
+      password <- Option(passwordP) if password.nonEmpty
     ) yield {
       (for (
         // Eseguo operazioni sul db in maniera sequenziale
+        _ <- checkInitialization(notInitialized);
         connection <- openConnection();
         _ <- connection.updateWithParamsFuture(
           insertNewUserSql, new JsonArray().add(username).add(password).add("SALT"))
@@ -96,8 +94,7 @@ case class StorageLoaclDAO(override val configurationPath: String = "authenticat
       (for (
         // Eseguo operazioni sul db in maniera sequenziale
         connection <- openConnection();
-        result <- connection.updateWithParamsFuture(
-          signoutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
+        result <- connection.updateWithParamsFuture(signoutUserSql, new JsonArray().add(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
@@ -143,10 +140,9 @@ object StorageLoaclDAO {
   /**
     * Utility method per controlloare se il DAO è stato inizializzato
     */
-  private def checkInitialization(notInitialized: Boolean): Option[Future[Unit]] = {
-    //if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
-    if (notInitialized) None //TODO implementare eccezione della riga sopra
-    else Some(Future.successful(Unit))
+  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
+    if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
+    else Future.successful(Unit)
   }
 
   private val createStorageTableSql =
