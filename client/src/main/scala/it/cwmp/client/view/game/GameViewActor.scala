@@ -94,7 +94,7 @@ object GameViewActor {
   /**
     * The title of game view
     */
-  val VIEW_TITLE = "GIOCO"
+  val VIEW_TITLE = "CellWars"
 
   /**
     * The size of the squared view
