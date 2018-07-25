@@ -1,11 +1,10 @@
 package it.cwmp.client.view.game.model
 
-import java.awt.Color
-
 import com.github.tkqubo.colorHash.ColorHash
 import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.view.game.ColoringStrategy
+import javafx.scene.paint.Color
 
 import scala.language.implicitConversions
 
@@ -25,6 +24,8 @@ case class CellView(center: Point, radius: Double, color: Color, energy: Double)
   */
 object CellView {
 
+  private val CELL_VIEW_COLOR_OPACITY = 1
+
   /**
     * @return the ViewCell corresponding to the given Cell
     */
@@ -37,7 +38,7 @@ object CellView {
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
     val color = new ColorHash().rgb(cell.owner.username)
-    new Color(color.red, color.green, color.blue)
+    new Color(color.red, color.green, color.blue, CELL_VIEW_COLOR_OPACITY)
   }
 
   /**

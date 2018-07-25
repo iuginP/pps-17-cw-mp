@@ -1,15 +1,14 @@
 package it.cwmp.client.view.game
 
-import java.awt.Color
 import java.time.Instant
 
 import it.cwmp.client.model.game.impl.Tentacle
 import it.cwmp.client.view.game.model._
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
+import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
-import javafx.scene.text.Text
-import javafx.scene.text.Font
+import javafx.scene.text.{Font, Text}
 
 import scala.language.implicitConversions
 
@@ -45,21 +44,23 @@ trait ObjectDrawer {
 
   /**
     * Metodo per disegnare l'energia di una cella
+    *
     * @param cell cella della quale disegnare l'energia
     * @return il testo da aggiungere alla scena
     */
   def drawCellEnergy(cell: CellView): Text = {
-    val t = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
-    t.setFont(Font.font("Verdana", 20))
-    t.setFill(Color.BLACK)
-    t.setX(cell.center.x - (t.getLayoutBounds.getWidth /2))
-    t.setY(cell.center.y + (t.getLayoutBounds.getHeight /2))
-    t
+    val energyText = new Text(cell.center.x, cell.center.y, cell.energy.toInt.toString)
+    energyText.setFont(Font.font("Verdana", 20))
+    energyText.setFill(Color.BLACK)
+    energyText.setX(cell.center.x - (energyText.getLayoutBounds.getWidth / 2))
+    energyText.setY(cell.center.y + (energyText.getLayoutBounds.getHeight / 2))
+    energyText
   }
 
   /**
     * Metodo utilizato per disegnare il tentacolo che unisce due celle
-    * @param tentacle il tentacolo da disegnare
+    *
+    * @param tentacle      il tentacolo da disegnare
     * @param actualInstant l'istante di gioco
     * @return la linea da visualizzare nella GUI
     */
@@ -78,12 +79,12 @@ trait ObjectDrawer {
   }
 
   /**
-    * Funzione per convertire i colori java.awt nel formato di colori utilizzato da javaFX
+    * Funzione per convertire i colori javaFX nel formato di colori utilizzato da java.awt
     *
-    * @param awtColor Colore che si vuole convertire
-    * @return
+    * @param fxColor Colore che si vuole convertire
+    * @return il colore awt
     */
-  private implicit def awtColorToFxColor(awtColor: Color): javafx.scene.paint.Color = {
-    new javafx.scene.paint.Color(awtColor.getRed / 255.0, awtColor.getGreen / 255.0, awtColor.getBlue / 255.0, awtColor.getAlpha / 255.0)
+  private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
+    new java.awt.Color((fxColor.getRed * 255).toFloat, (fxColor.getGreen * 255).toFloat, (fxColor.getBlue * 255).toFloat, (fxColor.getOpacity * 255).toFloat)
   }
 }

@@ -1,6 +1,6 @@
 package it.cwmp.client.view.game.model
 
-import java.awt.Color
+import javafx.scene.paint.Color
 import java.time.{Duration, Instant}
 
 import it.cwmp.client.model.game.SizingStrategy
