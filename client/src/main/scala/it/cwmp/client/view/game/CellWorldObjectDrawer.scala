@@ -85,13 +85,12 @@ trait CellWorldObjectDrawer {
     */
   def drawInstant(actualWorldInstant: Instant)
                  (implicit graphicsContext: GraphicsContext): Text = {
-    val elapsedTimeFromBeginning: Duration =
-      firstWorldInstantOption match {
-        case Some(firstWorldInstant) => Duration.between(firstWorldInstant, actualWorldInstant)
-        case None =>
-          firstWorldInstantOption = Some(actualWorldInstant)
-          Duration.ofSeconds(0)
-      }
+    val elapsedTimeFromBeginning: Duration = firstWorldInstantOption match {
+      case Some(firstWorldInstant) => Duration.between(firstWorldInstant, actualWorldInstant)
+      case None =>
+        firstWorldInstantOption = Some(actualWorldInstant)
+        Duration.ofSeconds(0)
+    }
     val instantText = new Text((elapsedTimeFromBeginning.getSeconds / 60) + ":" + (elapsedTimeFromBeginning.getSeconds % 60))
     instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
     instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
