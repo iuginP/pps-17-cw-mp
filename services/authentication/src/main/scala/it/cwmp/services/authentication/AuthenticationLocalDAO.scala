@@ -54,6 +54,7 @@ trait AuthenticationDAO {
   */
 case class AuthenticationLocalDAO(override val configurationPath: String = "authentication/database.json")
   extends AuthenticationDAO with VertxInstance with VertxJDBC with Logging {
+
   private var notInitialized = true
 
   def initialize(): Future[Unit] = {
