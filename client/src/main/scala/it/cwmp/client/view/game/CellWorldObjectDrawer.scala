@@ -93,8 +93,8 @@ trait CellWorldObjectDrawer {
           Duration.ofSeconds(0)
       }
     val instantText = new Text((elapsedTimeFromBeginning.getSeconds / 60) + ":" + (elapsedTimeFromBeginning.getSeconds % 60))
-    instantText.setFont(CellView.ENERGY_DEFAULT_FONT) // TODO: add font for instant
-    instantText.setFill(Color.BLACK) // TODO: add constant for game instant color
+    instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
+    instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
     instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
     instantText.setY(instantText.getLayoutBounds.getHeight)
     instantText
