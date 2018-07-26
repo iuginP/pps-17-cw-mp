@@ -4,7 +4,7 @@ import com.github.tkqubo.colorHash.{ColorHash, Rgb}
 import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
-import it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+import it.cwmp.client.view.game.GameViewConstants.{GAME_DEFAULT_FONT_COLOR, GAME_TIME_TEXT_COLOR, RGB_RANGE}
 import it.cwmp.client.view.game.{ColoringStrategy, GameViewConstants}
 import javafx.scene.layout._
 import javafx.scene.paint.Color
@@ -76,7 +76,7 @@ object CellView {
     val username = cell.owner.username
     val userColor: Color = colorHash.rgb(username)
     // if userName hash gives a color used in GUI take another color
-    if (Seq(GameViewConstants.GAME_DEFAULT_FONT_COLOR, CellView.CELL_DYING_FONT_COLOR).contains(userColor)) {
+    if (Seq(GAME_DEFAULT_FONT_COLOR, CELL_DYING_FONT_COLOR, GAME_TIME_TEXT_COLOR).contains(userColor)) {
       colorHash.rgb(username.substring(username.length / 2))
     } else userColor
   }
@@ -86,7 +86,7 @@ object CellView {
     */
   val energyTextColoringStrategy: ColoringStrategy[Cell, Color] = {
     case cell: Cell if cell.energy < GameConstants.CELL_ENERGY_WHEN_BORN => CELL_DYING_FONT_COLOR
-    case _ => GameViewConstants.GAME_DEFAULT_FONT_COLOR
+    case _ => GAME_DEFAULT_FONT_COLOR
   }
 
   /**
