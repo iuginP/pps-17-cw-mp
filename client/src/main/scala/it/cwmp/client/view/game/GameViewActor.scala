@@ -67,10 +67,10 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
       (fromCell, toCell) match {
-        case (Some(attacker), Some(attacked)) =>
+        case (Some(attacker), Some(attacked)) if attacker != attacked =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
-        case tmp@_ => log.debug(s"No cells detected $tmp")
+        case tmp@_ => log.debug(s"No cells detected or auto-attack $tmp")
       }
 
     case RemoveAttack(pointOnAttackView) =>
