@@ -85,9 +85,7 @@ case class GameFX() extends CellWorldObjectDrawer {
     */
   private object UserEventHandler {
 
-    private var mouseIsDragging = false
-
-    private var startDragPoint: Point = _
+    private var startDragPoint: Option[Point] = None
 
     /**
       * A method to initialize event handlers for GUI user actions
@@ -96,19 +94,22 @@ case class GameFX() extends CellWorldObjectDrawer {
       */
     def initializeEventHandlers(viewGroup: Group): Unit = {
 
-      viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED, (event: MouseEvent) => {
-        mouseIsDragging = true
-        startDragPoint = event
-      })
+      // start of user dragging
+      viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED,
+        (event: MouseEvent) => startDragPoint = Some(event))
+
+      // stop of user dragging
       viewGroup.addEventHandler(MouseEvent.MOUSE_RELEASED, (event: MouseEvent) =>
-        if (mouseIsDragging) {
+        if (startDragPoint.isDefined) {
           val stopDragPoint: Point = event
           // TODO: send a message to GameViewActor
         })
 
+      // user click event
       viewGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, (event: MouseEvent) =>
-        if (mouseIsDragging) {
-          mouseIsDragging = false
+        // if the user was dragging this event is launched after MOUSE_RELEASED
+        if (startDragPoint.isDefined) {
+          startDragPoint = None // reset user dragging state
         } else {
           val clickedPoint: Point = event
           // TODO: send a message to GameViewActor
