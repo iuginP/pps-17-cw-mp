@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
-  private val FRAME_RATE: FiniteDuration = 50.millis
+  private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
 
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
@@ -53,14 +53,14 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
       updatingSchedule = context.system.scheduler
-        .schedule(0.millis, FRAME_RATE, self, UpdateLocalWorld)(context.dispatcher)
+        .schedule(0.millis, TIME_BETWEEN_FRAMES, self, UpdateLocalWorld)(context.dispatcher)
 
     case UpdateLocalWorld =>
       //  log.info(s"World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}")
       gameFX.updateWorld(tempWorld)
 
       // is that to heavy computation here ???
-      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(FRAME_RATE.toMillis))
+      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
   }
 
   /**
