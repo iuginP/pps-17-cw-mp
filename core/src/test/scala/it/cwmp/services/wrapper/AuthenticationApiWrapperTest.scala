@@ -2,7 +2,7 @@ package it.cwmp.services.wrapper
 
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
-import it.cwmp.utils.{HttpUtils, Utils}
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Promise
 import scala.util.Failure
