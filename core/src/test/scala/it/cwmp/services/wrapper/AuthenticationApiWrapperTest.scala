@@ -14,6 +14,11 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
 
   private val auth = AuthenticationApiWrapper()
 
+  /**
+    * @return a new authentication header with a token
+    */
+  protected def nextHeader: String = HttpUtils.buildJwtAuthentication(super.nextToken).get
+
   override protected def singUpTests(): Unit = {
     it("when right should succeed") {
       val username = nextUsername
@@ -103,11 +108,11 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
       promiseResult.future.map(_ => succeed)
     }
 
-    it("when unauthorized token should fail") {
-      val myToken = nextToken
+    it("when unauthorized header should fail") {
+      val myAuthHeader = nextHeader
 
       val promiseResult: Promise[Unit] = Promise()
-      auth.validate(HttpUtils.buildJwtAuthentication(myToken).get)
+      auth.validate(myAuthHeader)
         .onComplete({
           case Failure(HTTPException(statusCode, _)) if statusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)
