@@ -32,7 +32,8 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   private def showGUIBehaviour: Receive = {
     case ShowGUI =>
       gameFX.start(VIEW_TITLE, VIEW_SIZE)
-      context.become(hideGUIBehaviour orElse worldModificationsBehaviour)
+      context.become(hideGUIBehaviour orElse
+        newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -45,9 +46,9 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   }
 
   /**
-    * The behaviour of receiving and sending world modifications
+    * The behaviour of receiving world modifications from external source
     */
-  private def worldModificationsBehaviour: Receive = {
+  private def newWorldBehaviour: Receive = {
     case NewWorld(world) =>
       if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
@@ -60,7 +61,12 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
       // is that to heavy computation here ???
       tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(FRAME_RATE.toMillis))
+  }
 
+  /**
+    * The behaviour of listening for user events on GUI
+    */
+  private def guiWorldModificationsBehaviour: Receive = {
     case AddAttack(from, to) =>
       log.info(s"AddAttack from:$from to:$to")
       val worldCharacters = tempWorld.characters
