@@ -38,5 +38,6 @@ object GameViewConstants {
   /**
     * The game time default font color
     */
-  val GAME_TIME_TEXT_COLOR: Color = GAME_DEFAULT_FONT_COLOR
+  val GAME_TIME_TEXT_COLOR: Color = Color.rgb(GAME_DEFAULT_FONT_COLOR.getRed.toInt, GameViewConstants.GAME_DEFAULT_FONT_COLOR.getGreen.toInt,
+    GameViewConstants.GAME_DEFAULT_FONT_COLOR.getBlue.toInt, GameViewConstants.TRANSPARENCY_INSTANT)
 }

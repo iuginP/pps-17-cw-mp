@@ -93,8 +93,7 @@ trait CellWorldObjectDrawer {
     }
     val instantText = new Text((elapsedTimeFromBeginning.getSeconds / 60) + ":" + (elapsedTimeFromBeginning.getSeconds % 60))
     instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
-    instantText.setFill(Color.rgb(GameViewConstants.GAME_TIME_TEXT_COLOR.getRed.toInt, GameViewConstants.GAME_TIME_TEXT_COLOR.getGreen.toInt,
-      GameViewConstants.GAME_TIME_TEXT_COLOR.getBlue.toInt, GameViewConstants.TRANSPARENCY_INSTANT))
+    instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
     instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
     instantText.setY(instantText.getLayoutBounds.getHeight)
     instantText
