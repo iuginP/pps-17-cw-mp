@@ -55,6 +55,8 @@ object CellView {
   private val CELL_MAX_RADIUS_FOR_ENERGY = (45d, 100d)
 
   /**
+    * Implicit Conversion from Cell to CellView
+    *
     * @return the ViewCell corresponding to the given Cell
     */
   implicit def cellToView(cell: Cell): CellView =

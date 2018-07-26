@@ -25,6 +25,9 @@ object GameViewConstants {
     */
   val GAME_DEFAULT_FONT_COLOR: Color = Color.BLACK
 
+
+  // GAME TIME TEXT CONSTANTS
+
   /**
     * The game time default font
     */
@@ -41,4 +44,9 @@ object GameViewConstants {
   val GAME_TIME_TEXT_COLOR: Color =
     Color.color(GAME_DEFAULT_FONT_COLOR.getRed, GameViewConstants.GAME_DEFAULT_FONT_COLOR.getGreen,
       GameViewConstants.GAME_DEFAULT_FONT_COLOR.getBlue, GameViewConstants.GAME_TIME_TEXT_TRANSPARENCY)
+
+  /**
+    * The game time default format
+    */
+  val GAME_TIME_TEXT_FORMAT: String = "%02dm : %02ds"
 }

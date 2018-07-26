@@ -31,6 +31,13 @@ object TentacleView {
     */
   val TENTACLE_DEFAULT_THICKNESS = 3d
 
+  /**
+    * Conversion from Tentacle to TentacleView
+    *
+    * @param tentacle      the tentacle to convert
+    * @param actualInstant the instant of the world
+    * @return the TentacleView corresponding to the give Tentacle
+    */
   def tentacleToView(tentacle: Tentacle, actualInstant: Instant): TentacleView =
     TentacleView(tentacle.from.position, reachedPoint(tentacle, actualInstant), coloringStrategy(tentacle), thicknessStrategy(tentacle))
 
