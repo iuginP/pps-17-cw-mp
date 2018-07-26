@@ -1,5 +1,6 @@
 package it.cwmp.client.view.game
 
+import akka.actor.ActorRef
 import it.cwmp.client.model.game.impl.{CellWorld, Point}
 import it.cwmp.client.view.game.model.CellView._
 import it.cwmp.client.view.game.model.TentacleView
@@ -116,6 +117,25 @@ case class GameFX() extends CellWorldObjectDrawer {
         }
       )
     }
+
+    /**
+      * A method to send the AddAttack message to provided actor
+      *
+      * @param start the start point of the attack
+      * @param stop  the stop point of the attack
+      * @param actor the actor responsible of this management
+      */
+    private def sendAddAttackEvent(start: Point, stop: Point)(implicit actor: ActorRef): Unit =
+      actor ! GameViewActor.AddAttack(start, stop)
+
+    /**
+      * A method to send the RemoveAttack messsage to provided actor
+      *
+      * @param onAttackPoint the point on the Attack View to remove
+      * @param actor         the actor responsible of this management
+      */
+    private def sendRemoveAttackEvent(onAttackPoint: Point)(implicit actor: ActorRef): Unit =
+      actor ! GameViewActor.RemoveAttack(onAttackPoint)
 
     /**
       * An implicit conversion from mouse event to the point where event was generated
