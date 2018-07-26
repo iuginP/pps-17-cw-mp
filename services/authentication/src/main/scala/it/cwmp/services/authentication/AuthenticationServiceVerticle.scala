@@ -33,7 +33,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerSignUp: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign up request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
       storageFuture flatMap (_.signUpFuture(username, password)) onComplete {
@@ -50,7 +50,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerSignOut: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign out request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
@@ -67,7 +67,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerLogin: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received login request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
       storageFuture flatMap (_.loginFuture(username, password)) onComplete {
@@ -84,7 +84,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerValidation: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received token validation request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {

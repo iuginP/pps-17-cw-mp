@@ -17,6 +17,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   private val apiWrapper = RoomsApiWrapper()
 
+  //noinspection ScalaStyle
   import apiWrapper._
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
@@ -162,7 +163,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
       apiCall(0).shouldFailWith[HTTPException]
     }
     it("if room with such players number doesn't exist") {
-      apiCall(20).shouldFailWith[HTTPException]
+      apiCall(TOO_BIG_PLAYERS_NUMBER).shouldFailWith[HTTPException]
     }
   }
 
