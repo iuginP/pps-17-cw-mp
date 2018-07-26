@@ -18,8 +18,8 @@ import scala.concurrent.duration._
   */
 class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
-  private val gameFX: GameFX = GameFX()
-  private val FRAME_RATE: FiniteDuration = 50.millis
+  private val gameFX: GameFX = GameFX(self)
+  private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
 
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
@@ -32,7 +32,8 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   private def showGUIBehaviour: Receive = {
     case ShowGUI =>
       gameFX.start(VIEW_TITLE, VIEW_SIZE)
-      context.become(hideGUIBehaviour orElse worldModificationsBehaviour)
+      context.become(hideGUIBehaviour orElse
+        newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -45,32 +46,37 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   }
 
   /**
-    * The behaviour of receiving and sending world modifications
+    * The behaviour of receiving world modifications from external source
     */
-  private def worldModificationsBehaviour: Receive = {
+  private def newWorldBehaviour: Receive = {
     case NewWorld(world) =>
       if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
       updatingSchedule = context.system.scheduler
-        .schedule(0.millis, FRAME_RATE, self, UpdateLocalWorld)(context.dispatcher)
+        .schedule(0.millis, TIME_BETWEEN_FRAMES, self, UpdateLocalWorld)(context.dispatcher)
 
     case UpdateLocalWorld =>
       //  log.info(s"World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}")
       gameFX.updateWorld(tempWorld)
 
       // is that to heavy computation here ???
-      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(FRAME_RATE.toMillis))
+      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+  }
 
+  /**
+    * The behaviour of listening for user events on GUI
+    */
+  private def guiWorldModificationsBehaviour: Receive = {
     case AddAttack(from, to) =>
       log.info(s"AddAttack from:$from to:$to")
       val worldCharacters = tempWorld.characters
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
       (fromCell, toCell) match {
-        case (Some(attacker), Some(attacked)) =>
+        case (Some(attacker), Some(attacked)) if attacker != attacked =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
-        case tmp@_ => log.debug(s"No cells detected $tmp")
+        case tmp@_ => log.debug(s"No cells detected or auto-attack $tmp")
       }
 
     case RemoveAttack(pointOnAttackView) =>

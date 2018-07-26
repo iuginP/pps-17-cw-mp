@@ -33,7 +33,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
 
   // Distributed world
   private val distributedState: DistributedState[CellWorld] =
-    CellWorldDistributedState(self, onWorldUpdatedAction)(replicator, cluster)
+    CellWorldDistributedState(onWorldUpdatedAction)(replicator, cluster)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
@@ -41,9 +41,13 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging {
     log.info(s"Subscribing to cluster changes...")
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])
+    distributedState.subscribe(self)
   }
 
-  override def postStop(): Unit = cluster.unsubscribe(self)
+  override def postStop(): Unit = {
+    cluster.unsubscribe(self)
+    distributedState.unsubscribe(self)
+  }
 
   override def receive: Receive = clusterBehaviour orElse lobbyBehaviour
 
