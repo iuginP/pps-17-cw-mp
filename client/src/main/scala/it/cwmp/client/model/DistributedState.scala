@@ -11,11 +11,11 @@ import it.cwmp.utils.Logging
 /**
   * Distributed representation of data and attached behaviours.
   *
-  * @param onWorldUpdate the update strategy when the world is changed
+  * @param onDistributedStateUpdate the update strategy when the world is changed
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class DistributedState[T](updateSubscriber: ActorRef, onWorldUpdate: T => Unit)
+abstract class DistributedState[T](onDistributedStateUpdate: T => Unit)
                                   (implicit replicatorActor: ActorRef, cluster: Cluster) extends Logging {
 
   protected val DistributedKey: LWWRegisterKey[T] = LWWRegisterKey[T](DISTRIBUTED_KEY_NAME)
@@ -23,11 +23,18 @@ abstract class DistributedState[T](updateSubscriber: ActorRef, onWorldUpdate: T 
   /**
     * Subscribes the provided actor to receive changes in this distributed state
     *
-    * @param actorRef the actor to subscribe
+    * @param subscriber the actor to subscribe
     */
-  def subscribe(actorRef: ActorRef): Unit = {
-    replicatorActor ! Subscribe(DistributedKey, actorRef)
-  }
+  def subscribe(subscriber: ActorRef): Unit =
+    replicatorActor ! Subscribe(DistributedKey, subscriber)
+
+  /**
+    * Un-subscribes the provided actor from updates of this distributed state
+    *
+    * @param subscriber the exiting subscriber
+    */
+  def unsubscribe(subscriber: ActorRef): Unit =
+    replicatorActor ! Unsubscribe(DistributedKey, subscriber)
 
   /**
     * This behaviour provides an easy way to make the interested actor,
@@ -42,7 +49,7 @@ abstract class DistributedState[T](updateSubscriber: ActorRef, onWorldUpdate: T 
     // Called when notified of the distributed data change
     case c@Changed(DistributedKey) =>
       log.debug("Being notified that distributed state has changed")
-      onWorldUpdate(c.get(DistributedKey).getValue)
+      onDistributedStateUpdate(c.get(DistributedKey).getValue)
   }
 
   /**

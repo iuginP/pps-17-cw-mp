@@ -14,8 +14,8 @@ import it.cwmp.client.model.DistributedState.UpdateState
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class CellWorldDistributedState(updateSubscriber: ActorRef, onWorldUpdate: CellWorld => Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
-  extends DistributedState[CellWorld](updateSubscriber, onWorldUpdate) {
+case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
+                                    (implicit replicatorActor: ActorRef, cluster: Cluster) extends DistributedState[CellWorld](onWorldUpdate) {
 
   override def consistencyPolicy: Replicator.WriteConsistency = WriteLocal
 
