@@ -88,7 +88,6 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
   private object UserEventHandler {
 
     private var startDragPoint: Option[Point] = None
-    private implicit var viewActor: ActorRef = _
 
     /**
       * A method to initialize event handlers for GUI user actions
@@ -96,7 +95,6 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       * @param viewGroup the viewGroup on which to listen for events
       */
     def initializeEventHandlers(viewGroup: Group, viewManagerActor: ActorRef): Unit = {
-      viewActor = viewManagerActor
 
       // start of user dragging
       viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED,
@@ -106,7 +104,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       viewGroup.addEventHandler(MouseEvent.MOUSE_RELEASED, (event: MouseEvent) =>
         if (startDragPoint.isDefined) {
           val stopDragPoint: Point = event
-          sendAddAttackEvent(startDragPoint.get, stopDragPoint)
+          sendAddAttackEvent(startDragPoint.get, stopDragPoint, viewManagerActor)
         })
 
       // user click event
@@ -115,7 +113,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
         if (startDragPoint.isDefined) {
           startDragPoint = None // reset user dragging state
         } else {
-          sendRemoveAttackEvent(event)
+          sendRemoveAttackEvent(event, viewManagerActor)
         }
       )
     }
@@ -127,7 +125,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       * @param stop  the stop point of the attack
       * @param actor the actor responsible of this management
       */
-    private def sendAddAttackEvent(start: Point, stop: Point)(implicit actor: ActorRef): Unit =
+    private def sendAddAttackEvent(start: Point, stop: Point, actor: ActorRef): Unit =
       actor ! GameViewActor.AddAttack(start, stop)
 
     /**
@@ -136,7 +134,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       * @param onAttackPoint the point on the Attack View to remove
       * @param actor         the actor responsible of this management
       */
-    private def sendRemoveAttackEvent(onAttackPoint: Point)(implicit actor: ActorRef): Unit =
+    private def sendRemoveAttackEvent(onAttackPoint: Point, actor: ActorRef): Unit =
       actor ! GameViewActor.RemoveAttack(onAttackPoint)
 
     /**
