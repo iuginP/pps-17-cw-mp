@@ -114,11 +114,11 @@ trait VertxServer extends ScalaVerticle {
       * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
       */
     def checkAuthentication(implicit strategy: Validation[String, User],
-                            routingContext: RoutingContext): Future[User] = getAuthentication match {
+                            routingContext: RoutingContext): Future[User] = getAuthenticationHeader match {
       case None =>
         log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
         Future.failed(HTTPException(400, NO_AUTH_HEADER_IN_REQUEST_ERROR))
-      case Some(authentication) => strategy.validate(authentication)
+      case Some(authenticationHeader) => strategy.validate(authenticationHeader)
     }
 
     /**
@@ -140,11 +140,11 @@ trait VertxServer extends ScalaVerticle {
       }
 
     /**
-      * Reads the authorization token in the request.
+      * Reads the authorization header (with token) in the request.
       *
       * @return An optional containing the header, if present. Otherwise None
       */
-    def getAuthentication: Option[String] = request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)
+    def getAuthenticationHeader: Option[String] = request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)
   }
 
 }

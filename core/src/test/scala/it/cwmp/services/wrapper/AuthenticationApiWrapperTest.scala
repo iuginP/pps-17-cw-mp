@@ -2,7 +2,7 @@ package it.cwmp.services.wrapper
 
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
-import it.cwmp.utils.Utils
+import it.cwmp.utils.{HttpUtils, Utils}
 
 import scala.concurrent.Promise
 import scala.util.Failure
@@ -14,8 +14,8 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
 
   private val auth = AuthenticationApiWrapper()
 
-  override protected def singupTests(): Unit = {
-    it("when right should succed") {
+  override protected def singUpTests(): Unit = {
+    it("when right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -38,12 +38,12 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
     }
   }
 
-  override protected def signoutTests(): Unit = {
+  override protected def signOutTests(): Unit = {
     // TODO implementation
   }
 
   override protected def loginTests(): Unit = {
-    it("when right should succed") {
+    it("when right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -68,7 +68,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
     it("when password is wrong should fail") {
       val username = nextUsername
       val password = nextPassword
-      val passwordWrong = Utils.randomString(10)
+      val passwordWrong = nextPassword
 
       val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
@@ -82,12 +82,12 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
   }
 
   override protected def validationTests(): Unit = {
-    it("when right should succed") {
+    it("when right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
       auth.signUp(username, password)
-        .flatMap(token => auth.validate(token))
+        .flatMap(token => auth.validate(HttpUtils.buildJwtAuthentication(token).get))
         .map(user => assert(user.username == username))
     }
 
@@ -107,7 +107,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
       val myToken = nextToken
 
       val promiseResult: Promise[Unit] = Promise()
-      auth.validate(myToken)
+      auth.validate(HttpUtils.buildJwtAuthentication(myToken).get)
         .onComplete({
           case Failure(HTTPException(statusCode, _)) if statusCode == 401 => promiseResult.success(Unit)
           case _ => promiseResult.failure(new Exception)

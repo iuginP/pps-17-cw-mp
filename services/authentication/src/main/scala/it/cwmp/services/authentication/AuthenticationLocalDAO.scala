@@ -80,9 +80,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         _ <- connection.updateWithParamsFuture(
           insertNewUserSql, Seq(username, password, "SALT"))
-      ) yield {
-        log.debug("inizialized")
-      }).closeConnections
+      ) yield ()).closeConnections
     }).getOrElse(Future.failed(new IllegalArgumentException()))
   }
 

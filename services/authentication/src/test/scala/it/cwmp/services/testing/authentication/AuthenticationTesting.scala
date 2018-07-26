@@ -30,16 +30,16 @@ abstract class AuthenticationTesting extends VertxTest with Matchers {
   protected val invalidToken: String = "INVALID"
 
 
-  protected def singupTests()
+  protected def singUpTests()
 
   describe("Sign up") {
-    singupTests()
+    singUpTests()
   }
 
-  protected def signoutTests()
+  protected def signOutTests()
 
   describe("Sign out") {
-    signoutTests()
+    signOutTests()
   }
 
   protected def loginTests()

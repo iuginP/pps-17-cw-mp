@@ -17,7 +17,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     .setDefaultPort(DEFAULT_PORT)
     .setKeepAlive(false)
 
-  override protected def singupTests(): Unit = {
+  override protected def singUpTests(): Unit = {
     it("when right should succed") {
       val username = nextUsername
       val password = nextPassword
@@ -57,7 +57,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     }
   }
 
-  override protected def signoutTests(): Unit = {
+  override protected def signOutTests(): Unit = {
     // TODO implement
   }
 
