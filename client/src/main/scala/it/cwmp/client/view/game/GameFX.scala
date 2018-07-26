@@ -16,10 +16,11 @@ import scala.language.implicitConversions
 /**
   * This class shows the Game GUI
   *
+  * @param viewManagerActor the actor that manages view events
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX() extends CellWorldObjectDrawer {
+case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
 
   private var stage: Stage = _
   private var root: Group = _
@@ -38,7 +39,7 @@ case class GameFX() extends CellWorldObjectDrawer {
       root = new Group
       canvas = new Canvas(size, size)
 
-      UserEventHandler.initializeEventHandlers(root)
+      UserEventHandler.initializeEventHandlers(root, viewManagerActor)
 
       stage.setTitle(title)
       root.getChildren.add(canvas)
@@ -87,13 +88,15 @@ case class GameFX() extends CellWorldObjectDrawer {
   private object UserEventHandler {
 
     private var startDragPoint: Option[Point] = None
+    private implicit var viewActor: ActorRef = _
 
     /**
       * A method to initialize event handlers for GUI user actions
       *
       * @param viewGroup the viewGroup on which to listen for events
       */
-    def initializeEventHandlers(viewGroup: Group): Unit = {
+    def initializeEventHandlers(viewGroup: Group, viewManagerActor: ActorRef): Unit = {
+      viewActor = viewManagerActor
 
       // start of user dragging
       viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED,
@@ -103,7 +106,7 @@ case class GameFX() extends CellWorldObjectDrawer {
       viewGroup.addEventHandler(MouseEvent.MOUSE_RELEASED, (event: MouseEvent) =>
         if (startDragPoint.isDefined) {
           val stopDragPoint: Point = event
-          // TODO: send a message to GameViewActor
+          sendAddAttackEvent(startDragPoint.get, stopDragPoint)
         })
 
       // user click event
@@ -112,8 +115,7 @@ case class GameFX() extends CellWorldObjectDrawer {
         if (startDragPoint.isDefined) {
           startDragPoint = None // reset user dragging state
         } else {
-          val clickedPoint: Point = event
-          // TODO: send a message to GameViewActor
+          sendRemoveAttackEvent(event)
         }
       )
     }

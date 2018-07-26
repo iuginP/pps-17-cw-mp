@@ -18,7 +18,7 @@ import scala.concurrent.duration._
   */
 class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
 
-  private val gameFX: GameFX = GameFX()
+  private val gameFX: GameFX = GameFX(self)
   private val FRAME_RATE: FiniteDuration = 50.millis
 
   private var updatingSchedule: Cancellable = _
