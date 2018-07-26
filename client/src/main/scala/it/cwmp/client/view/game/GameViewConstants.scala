@@ -9,6 +9,11 @@ import javafx.scene.text.Font
   * @author Enrico Siboni
   */
 object GameViewConstants {
+  /**
+    * The constant value indicating the transparency of instant text in the GUI
+    */
+  val TRANSPARENCY_INSTANT: Double = 0.5
+
 
   /**
     * The constant value indicating the rgb range max value
