@@ -8,6 +8,8 @@ import org.scalatest.{BeforeAndAfterEach, FunSpec}
 
 /**
   * A test class for Tentacle
+  *
+  * @author Enrico Siboni
   */
 class TentacleTest extends FunSpec with BeforeAndAfterEach {
 

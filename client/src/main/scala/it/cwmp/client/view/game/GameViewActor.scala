@@ -21,29 +21,38 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   private val gameFX: GameFX = GameFX()
   private val FRAME_RATE: FiniteDuration = 50.millis
 
-  private var isHidden = true
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
 
-  override def receive: Receive = {
+  override def receive: Receive = showGUIBehaviour
+
+  /**
+    * The behaviour of opening the view
+    */
+  private def showGUIBehaviour: Receive = {
     case ShowGUI =>
-      if (isHidden) {
-        isHidden = false
-        gameFX.start("GIOCO", 512)
-      }
+      gameFX.start(VIEW_TITLE, VIEW_SIZE)
+      context.become(hideGUIBehaviour orElse worldModificationsBehaviour)
+  }
+
+  /**
+    * The behaviour of closing the view
+    */
+  private def hideGUIBehaviour: Receive = {
     case HideGUI =>
-      if (!isHidden) {
-        isHidden = true
-        gameFX.close()
-      }
+      gameFX.close()
+      context.become(showGUIBehaviour)
+  }
+
+  /**
+    * The behaviour of receiving and sending world modifications
+    */
+  private def worldModificationsBehaviour: Receive = {
     case NewWorld(world) =>
       if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
       updatingSchedule = context.system.scheduler
-        .schedule(0.millis,
-          FRAME_RATE,
-          self,
-          UpdateLocalWorld)(context.dispatcher)
+        .schedule(0.millis, FRAME_RATE, self, UpdateLocalWorld)(context.dispatcher)
 
     case UpdateLocalWorld =>
       //  log.info(s"World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}")
@@ -81,6 +90,16 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   */
 object GameViewActor {
   def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
+
+  /**
+    * The title of game view
+    */
+  val VIEW_TITLE = "CellWars"
+
+  /**
+    * The size of the squared view
+    */
+  val VIEW_SIZE = 512 // TODO: sarebbe buono forse fare una dimensione diversa in base alla dimensione dello schermo
 
   /**
     * Shows the GUI

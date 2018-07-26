@@ -12,18 +12,22 @@ import javafx.scene.text.Font
 import scala.language.implicitConversions
 
 /**
-  * Classe che rappresenta una cella
+  * A class representing the View counterpart of a Cell
   *
+  * @param center          the center point where the CellView will be placed
+  * @param radius          the radius of the cell
+  * @param color           the color of the cellView
+  * @param energy          the cell energy
+  * @param energyTextColor the color of the energyText
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
-  * @param center punto nel quale verrà disegnata la cella
-  * @param radius dimensione della cella
-  * @param energy energia della cella
   */
 case class CellView(center: Point, radius: Double, color: Color, energy: Double, energyTextColor: Color)
 
 /**
   * Companion object
+  *
+  * @author Enrico Siboni
   */
 object CellView {
 
@@ -41,7 +45,7 @@ object CellView {
   /**
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToViewCell(cell: Cell): CellView =
+  implicit def cellToView(cell: Cell): CellView =
     CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell), cell.energy, energyTextColoringStrategy(cell))
 
   /**

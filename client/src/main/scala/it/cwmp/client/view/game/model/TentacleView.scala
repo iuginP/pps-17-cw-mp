@@ -2,14 +2,25 @@ package it.cwmp.client.view.game.model
 
 import java.time.{Duration, Instant}
 
-import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.model.game.impl.{Point, Tentacle}
+import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 import it.cwmp.client.view.game.ColoringStrategy
 import javafx.scene.paint.Color
 
+import scala.language.implicitConversions
 
 /**
-  * Tentacle View utilities
+  * A class representing the View counterpart of Tentacle
+  *
+  * @param startPoint   the starting point for this tentacle View
+  * @param reachedPoint the arrive point for this tentacle View
+  * @param color        the color of this tetacle
+  * @author Enrico Siboni
+  */
+case class TentacleView(startPoint: Point, reachedPoint: Point, color: Color, thickness: Double)
+
+/**
+  * Companion Object
   *
   * @author Enrico Siboni
   */
@@ -18,7 +29,10 @@ object TentacleView {
   /**
     * Provides default value for tentacle thickness
     */
-  val DEFAULT_TENTACLE_THICKNESS = 3d
+  val TENTACLE_DEFAULT_THICKNESS = 3d
+
+  def tentacleToView(tentacle: Tentacle, actualInstant: Instant): TentacleView =
+    TentacleView(tentacle.from.position, reachedPoint(tentacle, actualInstant), coloringStrategy(tentacle), thicknessStrategy(tentacle))
 
   /**
     * Default coloring strategy for tentacles
@@ -33,8 +47,8 @@ object TentacleView {
     *
     * Returns always same thickness
     */
-  val thicknessStrategy: SizingStrategy[Tentacle, Double] = // TODO: make thickness vary with attackers cell energy
-    (_: Tentacle) => DEFAULT_TENTACLE_THICKNESS
+  val thicknessStrategy: SizingStrategy[Tentacle, Double] =
+    (_: Tentacle) => TENTACLE_DEFAULT_THICKNESS
 
   /**
     * A method returning the Point reached actually by the tentacle
