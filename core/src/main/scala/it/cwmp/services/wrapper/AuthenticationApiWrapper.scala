@@ -57,14 +57,14 @@ object AuthenticationApiWrapper {
         .expectStatus(200)
         .map(_.bodyAsString().getOrElse(""))
 
-    override def validate(authenticationHeader: String): Future[User] ={
+    override def validate(authenticationHeader: String): Future[User] =
       client.get(API_VALIDATE)
         .addAuthenticationHeader(authenticationHeader)
         .sendFuture()
         .expectStatus(200)
         .mapBody {
           case Some(body) => Future.successful(User(body))
-          case _ => Future.failed(HTTPException(400, "Empty body"))}
+          case _ => Future.failed(HTTPException(400, "Empty body"))
         }
   }
 
