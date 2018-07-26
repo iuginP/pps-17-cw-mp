@@ -90,7 +90,6 @@ trait CellWorldObjectDrawer {
         firstWorldInstantOption = Some(actualWorldInstant)
         Duration.ofSeconds(0)
     }
-    //val stringa =
     val instantText = new Text(f"${(elapsedTimeFromBeginning.getSeconds / 60)}%02d : ${(elapsedTimeFromBeginning.getSeconds % 60)}%02d")
     instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
     instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
