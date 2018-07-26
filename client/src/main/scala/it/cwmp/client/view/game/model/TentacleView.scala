@@ -65,8 +65,11 @@ object TentacleView {
     * @return the point that the tentacle has reached going towards enemy cell
     */
   def reachedPoint(tentacle: Tentacle, actualInstant: Instant): Point = {
-    if (tentacle.hasReachedDestinationFor(actualInstant) == Duration.ZERO) {
-      val tentacleActualLength = tentacle.length(actualInstant)
+    val tentacleActualLength = tentacle.length(actualInstant)
+
+    if (tentacleActualLength == 0) {
+      tentacle.from.position
+    } else if (tentacle.hasReachedDestinationFor(actualInstant) == Duration.ZERO) {
       val attackerPosition = tentacle.from.position
       val deltaXYFromAttackerPosition = GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength)
       Point(attackerPosition.x + deltaXYFromAttackerPosition._1.toInt,
