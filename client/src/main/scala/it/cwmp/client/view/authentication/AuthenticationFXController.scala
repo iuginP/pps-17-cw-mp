@@ -115,6 +115,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
           btnSignUpReset.setDisable(true)
         } else {
           showError("Warning", "Non-compliant passwords!")
+          hideLoadingDialog()
           btnSignUp.setDisable(false)
           btnSignUpReset.setDisable(false)
         }
