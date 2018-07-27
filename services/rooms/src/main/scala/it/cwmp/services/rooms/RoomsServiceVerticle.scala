@@ -270,7 +270,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     log.info(s"Information to send -> $players")
     Future.sequence {
       notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
-    } map (_ => Unit)
+    } map (_ => log.info("Information sent."))
   }
 
   /**
