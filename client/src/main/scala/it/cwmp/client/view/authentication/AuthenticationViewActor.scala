@@ -84,7 +84,7 @@ class AuthenticationViewActor extends Actor with AlertActor {
     case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
     case AuthenticationViewMessages.HideGUI => Platform runLater(() => {
       fxController hideGUI()
-      onAlertReceived()
+      fxController hideLoadingDialog()
     })
   }
 

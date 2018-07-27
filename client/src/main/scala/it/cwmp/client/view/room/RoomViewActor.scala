@@ -84,7 +84,7 @@ class RoomViewActor extends Actor with AlertActor {
     case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
     case RoomViewMessages.HideGUI => Platform runLater (() => {
       fxController.hideGUI()
-      onAlertReceived()
+      fxController hideLoadingDialog()
     })
   }
 
