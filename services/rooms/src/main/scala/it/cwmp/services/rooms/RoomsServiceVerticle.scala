@@ -6,6 +6,7 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Participant, Room, User}
+import it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Logging, Validation, VertxServer}
@@ -222,9 +223,13 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
 }
 
 /**
-  * Cmpanion object
+  * Companion object
   */
 object RoomsServiceVerticle {
-  def apply(implicit validationStrategy: Validation[String, User], clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+
+  def apply(implicit validationStrategy: Validation[String, User],
+            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
     new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+
+  private val INVALID_PARAMETER_ERROR: String = "Invalid parameters: "
 }

@@ -18,9 +18,6 @@ import scala.util.{Failure, Success}
 trait RoomsServiceUtils {
   this: VertxServer with Logging =>
 
-  private[rooms] val TOKEN_NOT_PROVIDED_OR_INVALID = "Token not provided or invalid"
-  private[rooms] val INVALID_PARAMETER_ERROR = "Invalid parameters: "
-
   /**
     * A method to retrieve the database configuration
     *
