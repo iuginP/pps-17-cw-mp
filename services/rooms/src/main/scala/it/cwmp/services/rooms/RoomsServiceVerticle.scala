@@ -13,7 +13,7 @@ import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Class that implements the Rooms micro-service
@@ -55,11 +55,9 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       request.checkAuthenticationOrReject.map(_ =>
         extractIncomingRoomFromBody(body) match {
           case Some((roomName, neededPlayers)) =>
-            daoFuture.map(_.createRoom(roomName, neededPlayers)
-              .onComplete {
-                case Success(generatedID) => sendResponse(201, generatedID)
-                case Failure(ex) => sendResponse(400, ex.getMessage)
-              })
+            daoFuture.map(_.createRoom(roomName, neededPlayers).onComplete {
+              failureHandler orElse successHandler(generatedID => sendResponse(201, generatedID))
+            })
           case None =>
             log.warn("Request body for room creation is required!")
             sendResponse(400, s"$INVALID_PARAMETER_ERROR no Room JSON in body")
@@ -87,9 +85,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
           case (Some(roomID), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-              case Success(_) => handlePrivateRoomFilling(roomID) map (_ => sendResponse(200))
-              case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-              case Failure(ex) => sendResponse(400, ex.getMessage)
+              failureHandler orElse successHandler(_ => handlePrivateRoomFilling(roomID) map (_ => sendResponse(200)))
             })
 
           case _ =>
@@ -108,9 +104,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
-            case Success(room) => sendResponse(200, room.toJson.encode())
-            case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-            case Failure(ex) => sendResponse(400, ex.getMessage)
+            failureHandler orElse successHandler(room => sendResponse(200, room.toJson.encode()))
           })
         case None => sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
       }
@@ -126,9 +120,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.exitRoom(roomId).onComplete {
-            case Success(_) => sendResponse(200)
-            case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-            case Failure(ex) => sendResponse(400, ex.getMessage)
+            failureHandler orElse successHandler(_ => sendResponse(200))
           })
         case None => sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
       }
@@ -140,14 +132,11 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     */
   private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("List Public Rooms Request received...")
-    request.checkAuthenticationOrReject.map(_ => {
+    request.checkAuthenticationOrReject.map(_ =>
       daoFuture.map(_.listPublicRooms().onComplete {
-        case Success(rooms) =>
-          val jsonArray = rooms.foldLeft(Json emptyArr())(_ add _.toJson)
-          sendResponse(200, jsonArray encode())
-        case Failure(ex) => sendResponse(400, ex.getMessage)
-      })
-    })
+        failureHandler orElse
+          successHandler(rooms => sendResponse(200, rooms.foldLeft(Json emptyArr())(_ add _.toJson) encode()))
+      }))
   }
 
   /**
@@ -163,11 +152,10 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         }
         (playersNumberOption, extractAddressesFromBody(body)) match {
           case (Some(playersNumber), Some(addresses)) =>
-            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-              case Success(_) => handlePublicRoomFilling(playersNumber) map (_ => sendResponse(200))
-              case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-              case Failure(ex) => sendResponse(400, ex.getMessage)
-            })
+            daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2)
+              .onComplete {
+                failureHandler orElse successHandler(_ => handlePublicRoomFilling(playersNumber) map (_ => sendResponse(200)))
+              })
 
           case _ =>
             log.warn("The number of players in url and player/notification address in body are required for public room entering")
@@ -188,9 +176,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }) match {
         case Some(playersNumber) =>
           daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
-            case Success(room) => sendResponse(200, room.toJson.encode())
-            case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-            case Failure(ex) => sendResponse(400, ex.getMessage)
+            failureHandler orElse { case Success(room) => sendResponse(200, room.toJson.encode()) }
           })
         case None =>
           log.warn("The number of players in url is required for public room info retrieval")
@@ -211,9 +197,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }) match {
         case Some(roomId) =>
           daoFuture.map(_.exitPublicRoom(roomId).onComplete {
-            case Success(_) => sendResponse(200)
-            case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-            case Failure(ex) => sendResponse(400, ex.getMessage)
+            failureHandler orElse successHandler(_ => sendResponse(200))
           })
         case None =>
           log.warn("The number of players in url is required for public room exiting")
@@ -287,6 +271,21 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     Future.sequence {
       notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
     } map (_ => Unit)
+  }
+
+  /**
+    * @return the common handler for failures in this service
+    */
+  private def failureHandler(implicit routingContext: RoutingContext): PartialFunction[Try[_], Unit] = {
+    case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
+    case Failure(ex) => sendResponse(400, ex.getMessage)
+  }
+
+  /**
+    * @return the common handler for success, that does the specified action with result
+    */
+  private def successHandler[T](action: T => Unit)(implicit routingContext: RoutingContext): PartialFunction[Try[T], Unit] = {
+    case Success(successResult) => action(successResult)
   }
 }
 
