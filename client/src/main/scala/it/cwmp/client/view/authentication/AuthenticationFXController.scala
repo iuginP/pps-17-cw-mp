@@ -55,7 +55,7 @@ object AuthenticationFXController {
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXLoadingDialog {
+class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXDialogs {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName

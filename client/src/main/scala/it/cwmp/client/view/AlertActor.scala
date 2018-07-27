@@ -7,7 +7,7 @@ object AlertMessages {
   /**
     * Questo messagio serve per mostrare un messaggio all'utente di tipo informativo.
     *
-    * @param title contiene il titolo del messaggio
+    * @param title   contiene il titolo del messaggio
     * @param message contiene il corpo del messaggio da visualizzare
     */
   case class Info(title: String, message: String, onClose: Option[() => Unit] = None)
@@ -15,10 +15,19 @@ object AlertMessages {
   /**
     * Questo messagio serve per mostrare un messaggio di errore all'utente.
     *
-    * @param title contiene il titolo del messaggio
+    * @param title   contiene il titolo del messaggio
     * @param message contiene il corpo del messaggio da visualizzare
     */
   case class Error(title: String, message: String, onClose: Option[() => Unit] = None)
+
+  /**
+    * Questo messagio serve per mostrare un messaggio di contenente il token della stanza privata appena creata all'utente.
+    *
+    * @param title   contiene il titolo del messaggio
+    * @param message contiene il corpo del messaggio da visualizzare
+    */
+  case class Token(title: String, message: String)
+
 }
 
 /**
@@ -35,7 +44,9 @@ trait AlertActor {
   /**
     * Il behaviour che si occupa di restare in ascolto per i messaggi specificati in [[AlertMessages]].
     */
+
   import AlertMessages._
+
   protected def alertBehaviour: Receive = {
     case Info(title, message, onClose) =>
       fxController showInfo(title, message, onClose)
@@ -49,4 +60,5 @@ trait AlertActor {
     * metodo per aggiungere un comportamento quando si riceve un alert
     */
   protected def onAlertReceived(): Unit = {}
+
 }
