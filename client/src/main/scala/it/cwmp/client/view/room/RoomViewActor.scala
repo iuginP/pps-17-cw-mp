@@ -96,7 +96,7 @@ class RoomViewActor extends Actor with AlertActor {
   }
 
   override protected def onTokenReceived(title: String, message: String): Unit = {
-    fxController hideLoadingDialog()
+    onAlertReceived()
     fxController showTokenDialog(title, message)
   }
 }
