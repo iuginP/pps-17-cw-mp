@@ -326,14 +326,6 @@ object RoomsLocalDAO {
 
   val publicPrefix: String = "public"
 
-  /**
-    * Utility method to check if DAO is initialized
-    */
-  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
-    if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
-    else Future.successful(Unit)
-  }
-
   private val ROOM_ID_LENGTH = 20
   private val userToRoomLinkField = "user_room"
   private val createRoomTableSql =
@@ -456,6 +448,14 @@ object RoomsLocalDAO {
   private def generateRandomRoomID() = Utils.randomString(ROOM_ID_LENGTH)
 
   /**
+    * Utility method to check if DAO is initialized
+    */
+  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
+    if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
+    else Future.successful(Unit)
+  }
+
+  /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
     */
   private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] =
@@ -483,19 +483,6 @@ object RoomsLocalDAO {
   }
 
   /**
-    * Internal method to create public rooms
-    *
-    * @return the future that completes when the room is created
-    */
-  private def createPublicRoom(connection: SQLConnection, playersNumber: Int)
-                              (implicit executionContext: ExecutionContext): Future[Unit] = {
-    getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}")
-      .flatMap(publicRoomID =>
-        connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString)))
-      .map(_ => Unit)
-  }
-
-  /**
     * @return a succeeded future if the room has available space for other users
     */
   private def checkRoomSpaceAvailable(roomID: String, connection: SQLConnection, errorMessage: String)
@@ -508,4 +495,16 @@ object RoomsLocalDAO {
         case _ => Future.failed(new IllegalStateException(errorMessage))
       })
   }
+
+  /**
+    * Internal method to create public rooms
+    *
+    * @return the future that completes when the room is created
+    */
+  private def createPublicRoom(connection: SQLConnection, playersNumber: Int)
+                              (implicit executionContext: ExecutionContext): Future[Unit] =
+    for (
+      publicRoomID <- getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}");
+      _ <- connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString))
+    ) yield ()
 }
