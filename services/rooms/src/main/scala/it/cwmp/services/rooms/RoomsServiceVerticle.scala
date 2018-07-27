@@ -232,7 +232,8 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
                                        communicationStrategy: RoomReceiverApiWrapper,
                                        executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
-      onRetrievedRoomAction = roomDAO deleteRoom roomID map (_ => sendResponse(200)))
+      onRetrievedRoomAction = (roomDAO deleteRoom roomID)
+        .map(_ => sendResponse(200)))(communicationStrategy, executionContext)
   }
 
   /**
@@ -244,7 +245,8 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
                                       communicationStrategy: RoomReceiverApiWrapper,
                                       executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
-      onRetrievedRoomAction = roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200)))
+      onRetrievedRoomAction = (roomDAO deleteAndRecreatePublicRoom playersNumber)
+        .map(_ => sendResponse(200)))(communicationStrategy, executionContext)
   }
 
   /**
@@ -261,7 +263,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       .filter(roomIsFull)
       .flatMap(_ => {
         onRetrievedRoomAction
-        sendParticipantAddresses(roomInformationFuture.value.get.get)
+        sendParticipantAddresses(roomInformationFuture.value.get.get)(communicationStrategy, executionContext)
       }).transform {
       case Success(_) => Failure(new Exception()) // if operation successful, outer response sending should block
       case Failure(_: NoSuchElementException) => Success(()) // if room wasn't full, let outer response sending happen
@@ -287,6 +289,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     } map (_ => Unit)
   }
 }
+
 
 /**
   * Companion object
