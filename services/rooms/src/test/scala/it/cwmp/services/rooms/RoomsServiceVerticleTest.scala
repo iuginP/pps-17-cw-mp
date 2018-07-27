@@ -277,12 +277,12 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
   /**
     * Cleans up the provided room, exiting the user with passed token
     */
-  private def cleanUpRoom(roomID: String)(implicit userToken: String) =
+  override protected def cleanUpRoom(roomID: String)(implicit userToken: String): Future[Unit] =
     for (_ <- exitPrivateRoomRequest(roomID)(client, userToken)) yield ()
 
   /**
     * Cleans up the provided public room, exiting player with passed token
     */
-  private def cleanUpRoom(playersNumber: Int)(implicit userToken: String) =
+  override protected def cleanUpRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
     for (_ <- exitPublicRoomRequest(playersNumber)(client, userToken)) yield ()
 }

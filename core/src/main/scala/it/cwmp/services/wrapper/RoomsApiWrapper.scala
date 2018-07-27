@@ -154,9 +154,8 @@ object RoomsApiWrapper {
     override def roomInfo(roomID: String)
                          (implicit userToken: String): Future[Room] =
       privateRoomInfoRequest(roomID)
-        .flatMap(implicit response => handleResponse({
-          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
-        }, 200))
+        .flatMap(implicit response =>
+          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))
 
     override def exitRoom(roomID: String)
                          (implicit userToken: String): Future[Unit] =
@@ -181,9 +180,8 @@ object RoomsApiWrapper {
     override def publicRoomInfo(playersNumber: Int)
                                (implicit userToken: String): Future[Room] =
       publicRoomInfoRequest(playersNumber)
-        .flatMap(implicit response => handleResponse({
-          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
-        }, 200))
+        .flatMap(implicit response =>
+          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))
 
     override def exitPublicRoom(playersNumber: Int)
                                (implicit userToken: String): Future[Unit] =
@@ -198,10 +196,8 @@ object RoomsApiWrapper {
       successHttpCodes find (_ == response.statusCode) match {
         case Some(_) => onSuccessFuture
         case None => response.bodyAsString match {
-          case Some(body) =>
-            Future.failed(HTTPException(response.statusCode, body))
-          case None =>
-            Future.failed(HTTPException(response.statusCode))
+          case Some(body) => Future.failed(HTTPException(response.statusCode, body))
+          case None => Future.failed(HTTPException(response.statusCode))
         }
       }
   }
