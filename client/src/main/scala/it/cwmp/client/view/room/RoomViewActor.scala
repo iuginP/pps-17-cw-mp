@@ -10,21 +10,25 @@ import javafx.embed.swing.JFXPanel
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object RoomViewMessages {
+
   /**
     * Questo messaggio rappresenta l'inizializzazione del controller che verrà poi utilizzato per le rispote che verrano inviate al mittente.
     * Quando ricevuto, inizializzo il controller.
     */
   case object InitController
+
   /**
     * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
     * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
     */
   case object ShowGUI
+
   /**
     * Questo messaggio rappresenta la chiusura dell'interfaccia grafica.
     * Quando ricevuto, viene nascosta all'utente l'interfaccia grafica di selezione delle stanze.
     */
   case object HideGUI
+
 }
 
 object RoomViewActor {
@@ -56,12 +60,14 @@ class RoomViewActor extends Actor with AlertActor {
     //inizializzo il toolkit
     new JFXPanel
     Platform setImplicitExit false
-    Platform runLater(() => {
+    Platform runLater (() => {
       fxController = RoomFXController(new RoomFXStrategy {
         override def onCreate(name: String, nPlayer: Int): Unit =
           controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
+
         override def onEnterPrivate(idRoom: String): Unit =
           controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+
         override def onEnterPublic(nPlayer: Int): Unit =
           controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
       })
@@ -75,7 +81,12 @@ class RoomViewActor extends Actor with AlertActor {
     */
   override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
-    case RoomViewMessages.ShowGUI => Platform runLater(() => fxController.showGUI())
-    case RoomViewMessages.HideGUI => Platform runLater(() => fxController.hideGUI())
+    case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
+    case RoomViewMessages.HideGUI => Platform runLater (() => fxController.hideGUI())
+  }
+
+  override protected def onAlertReceived(): Unit = {
+    fxController enableButtons()
+    fxController hideLoadingDialog()
   }
 }
