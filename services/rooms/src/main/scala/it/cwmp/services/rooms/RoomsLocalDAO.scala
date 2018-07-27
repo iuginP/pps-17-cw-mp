@@ -451,7 +451,7 @@ object RoomsLocalDAO {
     */
   private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
     if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
-    else Future.successful(Unit)
+    else Future.successful(())
   }
 
   /**
@@ -467,7 +467,7 @@ object RoomsLocalDAO {
     */
   private def playersNumberCheck(playersNumber: Int, errorMessage: String): Future[Unit] =
     if (playersNumber < 2) Future.failed(new IllegalArgumentException(errorMessage))
-    else Future.successful(Unit)
+    else Future.successful(())
 
   /**
     * @return a succeeded future if the room with given ID is present, a failed future otherwise
@@ -477,7 +477,7 @@ object RoomsLocalDAO {
     connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
       .flatMap(_.getResults.size match {
         case 0 => Future.failed(new NoSuchElementException(errorMessage))
-        case _ => Future.successful(Unit)
+        case _ => Future.successful(())
       })
   }
 
@@ -490,7 +490,7 @@ object RoomsLocalDAO {
       .map(resultOfJoinToRooms(_).map(_._1))
       .flatMap(_.head match {
         case Room(_, _, playersNumber, actualParticipants)
-          if playersNumber > actualParticipants.size => Future.successful(Unit)
+          if playersNumber > actualParticipants.size => Future.successful(())
         case _ => Future.failed(new IllegalStateException(errorMessage))
       })
   }

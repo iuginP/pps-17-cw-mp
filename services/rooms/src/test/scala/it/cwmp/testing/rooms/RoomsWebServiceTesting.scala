@@ -64,7 +64,7 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAn
     */
   private case class TestRoomReceiverApiWrapper() extends RoomReceiverApiWrapper {
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] =
-      Future.successful(Unit)
+      Future.successful(())
   }
 
 }
