@@ -10,6 +10,7 @@ import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Logging, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /**
   * A trait containing RoomsService utilities
@@ -79,11 +80,18 @@ trait RoomsServiceUtils {
     */
   private[this] def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])], onRetrievedRoomAction: => Future[Unit])
                                      (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
-    roomInformationFuture.map(tuple => tuple._1).filter(roomIsFull)
+    roomInformationFuture
+      .map(roomAndAddresses => roomAndAddresses._1)
+      .filter(roomIsFull)
       .flatMap(_ => {
         onRetrievedRoomAction
         sendParticipantAddresses(roomInformationFuture.value.get.get)
-      })
+      }).transform {
+      case Success(_) => Failure(new Exception()) // if operation successful, outer response sending should block
+      case Failure(_: NoSuchElementException) => Success(()) // if room wasn't full, let outer response sending happen
+      case Failure(ex) => log.error("Error handling Room Filling", ex); Success(())
+      // unexpected error, log and let outer response sending happen
+    }
   }
 
   /**

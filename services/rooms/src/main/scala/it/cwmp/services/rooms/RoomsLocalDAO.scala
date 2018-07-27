@@ -398,9 +398,9 @@ object RoomsLocalDAO {
   /**
     * Utility method to convert a result set to a room sequence and relative addresses
     */
-  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[(Room, Seq[Address])] = { // review maybe with for comprehension
+  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[(Room, Seq[Address])] = {
     val roomsUsers: mutable.Map[String, Seq[Participant]] = mutable.HashMap()
-    val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap() // TODO: refactor
+    val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap()
     val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
     val roomIDPos = 0
     val roomNamePos = 1
@@ -410,7 +410,6 @@ object RoomsLocalDAO {
     val userNotificationAddressPos = 5
 
     for (resultRow <- resultSet.getResults) {
-      //logger.debug(s"Database row: $resultRow")
       val roomID = resultRow getString roomIDPos
       val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
       val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)

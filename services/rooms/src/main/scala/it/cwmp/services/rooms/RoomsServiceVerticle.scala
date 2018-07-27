@@ -39,8 +39,8 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
   }
 
   override protected def initServer: Future[_] = {
-    val roomDao = RoomsLocalDAO()
-    daoFuture = roomDao.initialize().map(_ => roomDao)
+    val roomDAO = RoomsLocalDAO()
+    daoFuture = roomDAO.initialize().map(_ => roomDAO)
     daoFuture
   }
 
@@ -85,13 +85,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
           case (Some(roomID), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-              case Success(_) => handlePrivateRoomFilling(roomID)
-                .transform({
-                  case Success(_) => Failure(new Exception())
-                  case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => log.error("Error handling Private Room Filling", ex); Success(Unit)
-                })
-                .map(_ => sendResponse(200))
+              case Success(_) => handlePrivateRoomFilling(roomID) map (_ => sendResponse(200))
               case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
               case Failure(ex) => sendResponse(400, ex.getMessage)
             })
@@ -168,13 +162,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         (playersNumberOption, extractAddressesFromBody(body)) match {
           case (Some(playersNumber), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-              case Success(_) => handlePublicRoomFilling(playersNumber)
-                .transform({
-                  case Success(_) => Failure(new Exception())
-                  case Failure(_: NoSuchElementException) => Success(Unit)
-                  case Failure(ex) => log.error("Error handling Public Room Filling", ex); Success(Unit)
-                })
-                .map(_ => sendResponse(200))
+              case Success(_) => handlePublicRoomFilling(playersNumber) map (_ => sendResponse(200))
               case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
               case Failure(ex) => sendResponse(400, ex.getMessage)
             })
