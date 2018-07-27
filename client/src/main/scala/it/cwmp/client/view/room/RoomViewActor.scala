@@ -29,7 +29,12 @@ object RoomViewMessages {
     */
   case object HideGUI
 
-  case object ShowToken
+  /**
+    * Questo messaggio serve per visualizzare a schermo il token di creazione della stanza privata
+    * @param title il tiolo da visualizzare nel dialog
+    * @param message il token vero e proprio
+    */
+  case class ShowToken(title: String, message: String)
 
 }
 
@@ -88,15 +93,14 @@ class RoomViewActor extends Actor with AlertActor {
       fxController.hideGUI()
       fxController hideLoadingDialog()
     })
+    case RoomViewMessages.ShowToken(title, message) => Platform runLater(() => {
+      onAlertReceived()
+      fxController showTokenDialog(title, message)
+    })
   }
 
   override protected def onAlertReceived(): Unit = {
     fxController enableButtons()
     fxController hideLoadingDialog()
-  }
-
-  override protected def onTokenReceived(title: String, message: String): Unit = {
-    onAlertReceived()
-    fxController showTokenDialog(title, message)
   }
 }

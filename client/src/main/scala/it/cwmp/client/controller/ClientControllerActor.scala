@@ -195,7 +195,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
 
     case RoomCreatePrivateSuccessful(token) =>
-      roomViewActor ! AlertMessages.Token("Token", token)
+      roomViewActor ! RoomViewMessages.ShowToken("Token", token)
     case RoomCreatePrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case RoomEnterPrivateSuccessful =>

@@ -54,8 +54,6 @@ trait AlertActor {
     case Error(title, message, onClose) =>
       fxController showError(title, message, onClose)
       onAlertReceived()
-    case Token(title, message) =>
-      onTokenReceived(title, message)
   }
 
   /**
@@ -63,8 +61,4 @@ trait AlertActor {
     */
   protected def onAlertReceived(): Unit = {}
 
-  /**
-    * metodo per aggiungere un comportamento quando si riceve un token di creazione di una stanza privata
-    */
-  protected def onTokenReceived(title: String, message: String): Unit = {}
 }
