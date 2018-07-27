@@ -37,7 +37,16 @@ trait AlertActor {
     */
   import AlertMessages._
   protected def alertBehaviour: Receive = {
-    case Info(title, message, onClose) => fxController showInfo(title, message, onClose)
-    case Error(title, message, onClose) => fxController showError(title, message, onClose)
+    case Info(title, message, onClose) =>
+      fxController showInfo(title, message, onClose)
+      onAlertReceived()
+    case Error(title, message, onClose) =>
+      fxController showError(title, message, onClose)
+      onAlertReceived()
   }
+
+  /**
+    * metodo per aggiungere un comportamento quando si riceve un alert
+    */
+  protected def onAlertReceived(): Unit = {}
 }

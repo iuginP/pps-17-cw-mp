@@ -1,7 +1,7 @@
 package it.cwmp.client.view.room
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
-import it.cwmp.client.view.{FXAlerts, FXChecks, FXController, FXView}
+import it.cwmp.client.view._
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
@@ -20,7 +20,7 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
+class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXLoadingDialog{
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
@@ -28,22 +28,35 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   protected val controller: FXController = this
 
   @FXML
-  private var pr_cr_roomName: TextField = _
+  private var tfPrivateCreateRoomName: TextField = _
   @FXML
-  private var pr_cr_numPlayer: Spinner[Integer] = _
+  private var spPrivateCreateNumPlayer: Spinner[Integer] = _
   @FXML
-  private var pr_et_roomID: TextField = _
+  private var tfPrivateEnterRoomID: TextField = _
   @FXML
-  private var pub_et_numPlayer: Spinner[Integer] = _
+  private var spPublicEnterNumPlayer: Spinner[Integer] = _
+  @FXML
+  private var btnPrivateCreate: Button = _
+  @FXML
+  private var btnPrivateReset: Button = _
+  @FXML
+  private var btnPrivateEnter: Button = _
+  @FXML
+  private var btnPublicEnter: Button = _
 
   //creare una stanza privata
   @FXML
   private def onClickCreate(): Unit = {
     Platform.runLater(() => {
       for(
-        name <- getTextFieldValue(pr_cr_roomName, "Il nome non può essere vuoto"); // TODO parametrize input
-        nPlayer <- getSpinnerFieldValue(pr_cr_numPlayer, "Deve essere selezionato il numero di giocatori")
-      ) yield strategy.onCreate(name, nPlayer)
+        name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
+        nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
+      ) yield{
+        showLoadingDialog("Loading", "Stiamo creando la stanza privata")
+        strategy.onCreate(name, nPlayer)
+        btnPrivateCreate.setDisable(true)
+        btnPrivateReset.setDisable(true)
+      }
     })
   }
 
@@ -55,16 +68,20 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   }
 
   override def resetFields(): Unit = {
-    pr_cr_roomName setText ""
-    pr_cr_numPlayer getValueFactory() setValue 2
+    tfPrivateCreateRoomName setText ""
+    spPrivateCreateNumPlayer getValueFactory() setValue 2
   }
 
   @FXML
   private def onClickEnter(): Unit = {
     Platform.runLater(() => {
       for(
-        id_room <- getTextFieldValue(pr_et_roomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
-      ) yield strategy.onEnterPrivate(id_room)
+        id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
+      ) yield {
+        showLoadingDialog("Loading", "Stai per entrare nella stanza privata")
+        strategy.onEnterPrivate(id_room)
+        btnPrivateEnter.setDisable(true)
+      }
     })
   }
 
@@ -73,8 +90,19 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
   private def onClickRoomPublic(): Unit = {
     Platform.runLater(() => {
       for(
-        nPlayer <- getSpinnerFieldValue(pub_et_numPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
-      ) yield strategy.onEnterPublic(nPlayer)
+        nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
+      ) yield {
+        showLoadingDialog("Loading", "Stai per entrare in una stanza pubblica")
+        strategy.onEnterPublic(nPlayer)
+        btnPublicEnter.setDisable(true)
+      }
     })
+  }
+
+  override def enableButtons(): Unit = {
+    btnPrivateCreate.setDisable(false)
+    btnPrivateReset.setDisable(false)
+    btnPrivateEnter.setDisable(false)
+    btnPublicEnter.setDisable(false)
   }
 }
