@@ -82,7 +82,10 @@ class AuthenticationViewActor extends Actor with AlertActor {
   override def receive: Receive = alertBehaviour orElse {
     case AuthenticationViewMessages.InitController => controllerActor = sender()
     case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
-    case AuthenticationViewMessages.HideGUI => Platform runLater(() => fxController hideGUI())
+    case AuthenticationViewMessages.HideGUI => Platform runLater(() => {
+      fxController hideGUI()
+      onAlertReceived()
+    })
   }
 
   override protected def onAlertReceived(): Unit = {

@@ -82,7 +82,10 @@ class RoomViewActor extends Actor with AlertActor {
   override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
     case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
-    case RoomViewMessages.HideGUI => Platform runLater (() => fxController.hideGUI())
+    case RoomViewMessages.HideGUI => Platform runLater (() => {
+      fxController.hideGUI()
+      onAlertReceived()
+    })
   }
 
   override protected def onAlertReceived(): Unit = {
