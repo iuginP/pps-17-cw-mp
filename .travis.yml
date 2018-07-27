@@ -3,7 +3,7 @@ env:
   global:
     - secure: "dRKFshApyl4AUJFX35C3GfeYoV7jFjZirDj9YbNMSegvEMf6eIiapdBP/GfnCYKmOCO9cuZU3p2hUHGNNZYRdDcuP12SlrCVfxDnLkqPgwuZKGm0T0yAsACVJZRD/uNfy5HMiCPMDyT+h9pqMlBj+LsCov46AlaQdmwS9luIjPWNA+Ter17javVpLLzsRH+8Vsh1UtiEk4seIHkhOlxQLaAEvoTr2kRrI048C3aVYY8hDIMNrK/OPiVwF+83ZeXbZL0Q9E+QnmXimAB/lS7VleW4DD1g4JI9NL3HHAJbe3yDHdwRb/fYLX/ZpT0MA0qgYSlxwT2hrpFYQa/HgRUN2jREpSLWxnfKd1QQYXuxTGQaI9WUd+j+8ppvvJZHqdqc8QGMRHrodtdYcDJhYk5Z1nOlkVux+Axt/x4o63RJtZ7dX8JTsHyFW415FhnK56iGfRTLe7aipYuepZcxeydWrEis8+hy7eVuPwxH0qiCHugHRlzyTJZLR9z6peXg0IeDpCULm4Wy7LX/xHSagk4CFbqHghzdMtcaCSn9q7ooFv5RWqHYEq+szAAl/usYN5MuN2g1ZD7T4BooWJdUbntELiLh4yBpAkFaW0VTN1A5N+UK/QdCzFG0Sl6VXYGxU3/93fgbhf7Q1v+Q/H7wc5GrGQy+4R425WCYXilOksFJkWk="
 script:
-  - './gradlew'
+  - './gradlew clean build -x test javadoc scaladoc reportScoverage'
 after_success:
   - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/scala -d scala'
   - 'bash scripts/commit_and_upload.sh -r iuginP/pps-17-cw-mp -b master -s latest-docs/java -d java'
