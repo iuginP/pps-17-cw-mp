@@ -4,7 +4,7 @@ import it.cwmp.model.{Address, Participant, User}
 import it.cwmp.testing.FutureMatchers
 import it.cwmp.testing.rooms.RoomsTesting
 import it.cwmp.utils.Utils
-import org.scalatest.{Assertion, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.Future
 
@@ -33,41 +33,42 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed returning roomId, if parameters are correct") {
-      daoFuture.flatMap(_.createRoom(roomName, playersNumber))
-        .flatMap(_ should not be empty)
+      for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber)) yield roomID should not be empty
     }
     describe("should fail") {
       it("if roomName empty") {
-        daoFuture.flatMap(_.createRoom("", playersNumber)).shouldFailWith[IllegalArgumentException]
+        (for (dao <- daoFuture; future <- dao.createRoom("", playersNumber)) yield future)
+          .shouldFailWith[IllegalArgumentException]
       }
       it("if playersNumber less than 2") {
-        daoFuture.flatMap(_.createRoom(roomName, 0)).shouldFailWith[IllegalArgumentException]
+        (for (dao <- daoFuture; future <- dao.createRoom(roomName, 0)) yield future)
+          .shouldFailWith[IllegalArgumentException]
       }
     }
   }
 
   override protected def privateRoomEnteringTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomId is provided") {
-      daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-        .flatMap(roomID => dao.enterRoom(roomID)(user, notificationAddress)
-          .flatMap(_ => cleanUpRoom(roomID, succeed))))
+      for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+           _ <- dao.enterRoom(roomID)(user, notificationAddress);
+           _ <- cleanUpRoom(roomID)) yield succeed
     }
     it("user should be inside after it") {
-      daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-        .flatMap(roomID => (dao.enterRoom(roomID)(user, notificationAddress) flatMap (_ => dao.roomInfo(roomID)))
-          .flatMap(roomInfo => assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress)))
-          .flatMap(cleanUpRoom(roomID, _))))
+      for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+           _ <- dao.enterRoom(roomID)(user, notificationAddress); roomInfo <- dao.roomInfo(roomID);
+           assertion <- assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress));
+           _ <- cleanUpRoom(roomID)) yield assertion
     }
 
     describe("should fail") {
       onWrongRoomID(roomID => daoFuture.flatMap(_.enterRoom(roomID)(user, notificationAddress)))
 
       it("if user is already inside a room") {
-        daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-          .flatMap(roomID => dao.enterRoom(roomID)(user, notificationAddress)
-            .flatMap(_ => dao.enterRoom(roomID)(user, notificationAddress))
-            .shouldFailWith[IllegalStateException]
-            .flatMap(cleanUpRoom(roomID, _))))
+        for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+             _ <- dao.enterRoom(roomID)(user, notificationAddress);
+             future = dao.enterRoom(roomID)(user, notificationAddress);
+             assertion <- future.shouldFailWith[IllegalStateException];
+             _ <- cleanUpRoom(roomID)) yield assertion
       }
       it("if the room is full") {
         val playersNumber = 2
@@ -88,11 +89,11 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
     }
 
     it("should succeed and contain entered users") {
-      daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-        .flatMap(roomID => dao.enterRoom(roomID)(user, notificationAddress)
-          .flatMap(_ => dao.roomInfo(roomID))
-          .flatMap(roomInfo => assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress)))
-          .flatMap(cleanUpRoom(roomID, _))))
+      for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+           _ <- dao.enterRoom(roomID)(user, notificationAddress);
+           roomInfo <- dao.roomInfo(roomID);
+           assertion <- assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress));
+           _ <- cleanUpRoom(roomID)) yield assertion
     }
 
     describe("should fail") {
@@ -121,12 +122,12 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
           .shouldFailWith[IllegalStateException]
       }
       it("if user is inside another room") {
-        daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-          .flatMap(roomID => dao.createRoom(roomName, playersNumber)
-            .flatMap(otherRoomID => dao.enterRoom(roomID)(user, notificationAddress)
-              .flatMap(_ => dao.exitRoom(otherRoomID)))
-            .shouldFailWith[IllegalStateException]
-            .flatMap(cleanUpRoom(roomID, _))))
+        for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+             otherRoomID <- dao.createRoom(roomName, playersNumber);
+             _ <- dao.enterRoom(roomID)(user, notificationAddress);
+             future = dao.exitRoom(otherRoomID);
+             assertion <- future.shouldFailWith[IllegalStateException];
+             _ <- cleanUpRoom(roomID)) yield assertion
       }
     }
   }
@@ -134,13 +135,15 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
   override protected def publicRoomEnteringTests(playersNumber: Int): Unit = {
     describe("should succeed") {
       it("if room with such players number exists") {
-        daoFuture.flatMap(_.enterPublicRoom(playersNumber)(user, notificationAddress))
-          .flatMap(_ => cleanUpRoom(playersNumber, succeed))
+        for (dao <- daoFuture;
+             _ <- dao.enterPublicRoom(playersNumber)(user, notificationAddress);
+             _ <- cleanUpRoom(playersNumber)) yield succeed
       }
       it("and the user should be inside it") {
-        daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user, notificationAddress) flatMap (_ => dao.publicRoomInfo(playersNumber)))
-          .flatMap(roomInfo => assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress)))
-          .flatMap(cleanUpRoom(playersNumber, _))
+        for (dao <- daoFuture; _ <- dao.enterPublicRoom(playersNumber)(user, notificationAddress);
+             roomInfo <- dao.publicRoomInfo(playersNumber);
+             assertion <- assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress));
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
     }
 
@@ -148,20 +151,20 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
       onWrongPlayersNumber(playersNumber => daoFuture.flatMap(_.enterPublicRoom(playersNumber)(user, notificationAddress)))
 
       it("if user is already inside a room") {
-        daoFuture.flatMap(dao => dao.enterPublicRoom(2)(user, notificationAddress)
-          .flatMap(_ => dao.enterPublicRoom(3)(user, notificationAddress)))
-          .shouldFailWith[IllegalStateException]
-          .flatMap(cleanUpRoom(playersNumber, _))
+        for (dao <- daoFuture; _ <- dao.enterPublicRoom(2)(user, notificationAddress);
+             future = dao.enterPublicRoom(3)(user, notificationAddress);
+             assertion <- future.shouldFailWith[IllegalStateException];
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
       it("if room is full") {
         val firstParticipant = randomParticipant
         val secondParticipant = randomParticipant
-        daoFuture.flatMap(dao => dao.enterPublicRoom(2)(firstParticipant, notificationAddress)
-          .flatMap(_ => dao.enterPublicRoom(2)(secondParticipant, notificationAddress))
-          .flatMap(_ => dao.enterPublicRoom(2)(randomParticipant, notificationAddress)))
-          .shouldFailWith[IllegalStateException]
-          .flatMap(cleanUpRoom(playersNumber,_)(firstParticipant))
-          .flatMap(cleanUpRoom(playersNumber,_)(secondParticipant))
+        for (dao <- daoFuture; _ <- dao.enterPublicRoom(2)(firstParticipant, notificationAddress);
+             _ <- dao.enterPublicRoom(2)(secondParticipant, notificationAddress);
+             future = dao.enterPublicRoom(2)(randomParticipant, notificationAddress);
+             assertion <- future.shouldFailWith[IllegalStateException];
+             _ <- cleanUpRoom(playersNumber)(firstParticipant);
+             _ <- cleanUpRoom(playersNumber)(secondParticipant)) yield assertion
       }
     }
   }
@@ -182,9 +185,10 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
       daoFuture.flatMap(_.publicRoomInfo(playersNumber)) flatMap (_._1.participants shouldBe empty)
     }
     it("should show entered players") {
-      daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user, notificationAddress) flatMap (_ => dao.publicRoomInfo(playersNumber)))
-        .flatMap(roomInfo => assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress)))
-        .flatMap(cleanUpRoom(playersNumber, _))
+      for (dao <- daoFuture; _ <- dao.enterPublicRoom(playersNumber)(user, notificationAddress);
+           roomInfo <- dao.publicRoomInfo(playersNumber);
+           assertion <- assert(roomInfo._1.participants.contains(user) && roomInfo._2.contains(notificationAddress));
+           _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
     describe("should fail") {
@@ -209,9 +213,10 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
         daoFuture.flatMap(_.exitPublicRoom(playersNumber)).shouldFailWith[IllegalStateException]
       }
       it("if user is inside another room") {
-        daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user, notificationAddress) flatMap (_ => dao.exitPublicRoom(playersNumber + 1)))
-          .shouldFailWith[IllegalStateException]
-          .flatMap(cleanUpRoom(playersNumber, _))
+        for (dao <- daoFuture; _ <- dao.enterPublicRoom(playersNumber)(user, notificationAddress);
+             future = dao.exitPublicRoom(playersNumber + 1);
+             assertion <- future.shouldFailWith[IllegalStateException];
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
     }
   }
@@ -239,11 +244,11 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
         onWrongRoomID(roomID => daoFuture.flatMap(_.deleteRoom(roomID)))
 
         it("if room is not full") {
-          daoFuture.flatMap(dao => dao.createRoom(roomName, playersNumber)
-            .flatMap(roomID => dao.enterRoom(roomID)(user, notificationAddress)
-              .flatMap(_ => dao.deleteRoom(roomID))
-              .shouldFailWith[IllegalStateException]
-              .flatMap(cleanUpRoom(roomID, _))))
+          for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber);
+               _ <- dao.enterRoom(roomID)(user, notificationAddress);
+               future = dao.deleteRoom(roomID);
+               assertion <- future.shouldFailWith[IllegalStateException];
+               _ <- cleanUpRoom(roomID)) yield assertion
         }
       }
     }
@@ -262,9 +267,10 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
         onWrongPlayersNumber(playersNumber => daoFuture.flatMap(_.deleteAndRecreatePublicRoom(playersNumber)))
 
         it("if room is not full") {
-          daoFuture.flatMap(dao => dao.enterPublicRoom(playersNumber)(user, notificationAddress) flatMap (_ => dao.deleteAndRecreatePublicRoom(playersNumber)))
-            .shouldFailWith[IllegalStateException]
-            .flatMap(cleanUpRoom(playersNumber, _))
+          for (dao <- daoFuture; _ <- dao.enterPublicRoom(playersNumber)(user, notificationAddress);
+               future = dao.deleteAndRecreatePublicRoom(playersNumber);
+               assertion <- future.shouldFailWith[IllegalStateException];
+               _ <- cleanUpRoom(playersNumber)) yield assertion
         }
       }
     }
@@ -331,12 +337,12 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
   /**
     * Cleans up the provided private room, exiting provided player
     */
-  private def cleanUpRoom(roomID: String, assertion: Assertion)(implicit user: User) =
-    for (dao <- daoFuture; _ <- dao.exitRoom(roomID)(user)) yield assertion
+  private def cleanUpRoom(roomID: String)(implicit user: User) =
+    for (dao <- daoFuture; _ <- dao.exitRoom(roomID)(user)) yield ()
 
   /**
     * Cleans up the provided public room, exiting provided user
     */
-  private def cleanUpRoom(playersNumber: Int, assertion: Assertion)(implicit user: User) =
-    for (dao <- daoFuture; _ <- dao.exitPublicRoom(playersNumber)(user)) yield assertion
+  private def cleanUpRoom(playersNumber: Int)(implicit user: User) =
+    for (dao <- daoFuture; _ <- dao.exitPublicRoom(playersNumber)(user)) yield ()
 }

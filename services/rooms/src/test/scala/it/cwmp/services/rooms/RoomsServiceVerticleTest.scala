@@ -242,9 +242,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     }
   }
 
-  /**
-    * Describes the behaviour of private api when the roomID is wrong
-    */
   override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
     it("if roomID is empty") {
       apiCall("").mapTo[HttpResponse[Buffer]] shouldAnswerWith 400
@@ -254,9 +251,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     }
   }
 
-  /**
-    * Describes the behaviour of public api when called with wrong players number
-    */
   override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
     it("if players number provided less than 2") {
       apiCall(0).mapTo[HttpResponse[Buffer]] shouldAnswerWith 400
