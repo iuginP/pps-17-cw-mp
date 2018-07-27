@@ -10,7 +10,7 @@ import javafx.scene.layout.{BorderPane, GridPane}
   *
   * @author Davide Borficchia
   */
-trait FXLoadingDialog {
+trait FXDialogs {
 
   //this: FXController =>
 
