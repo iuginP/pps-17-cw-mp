@@ -4,14 +4,15 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.{Router, RoutingContext}
+import it.cwmp.model.Address.Converters._
 import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Participant, Room, User}
-import it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR
+import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.utils.{Logging, Validation, VertxServer}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 /**
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success}
   */
 class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
                            implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
-  extends VertxServer with RoomsServiceUtils with Logging {
+  extends VertxServer with Logging {
 
   private var daoFuture: Future[RoomDAO] = _
 
@@ -220,6 +221,71 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }
     })
   }
+
+
+  /**
+    * Method that manages the filling of private rooms, fails if the room is not full
+    */
+  private def handlePrivateRoomFilling(roomID: String)
+                                      (implicit roomDAO: RoomDAO,
+                                       routingContext: RoutingContext,
+                                       communicationStrategy: RoomReceiverApiWrapper,
+                                       executionContext: ExecutionContext): Future[Unit] = {
+    handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
+      onRetrievedRoomAction = roomDAO deleteRoom roomID map (_ => sendResponse(200)))
+  }
+
+  /**
+    * Method that manages the filling of public rooms, fails if the room is not full
+    */
+  private def handlePublicRoomFilling(playersNumber: Int)
+                                     (implicit roomDAO: RoomDAO,
+                                      routingContext: RoutingContext,
+                                      communicationStrategy: RoomReceiverApiWrapper,
+                                      executionContext: ExecutionContext): Future[Unit] = {
+    handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
+      onRetrievedRoomAction = roomDAO deleteAndRecreatePublicRoom playersNumber map (_ => sendResponse(200)))
+  }
+
+  /**
+    * Describes how to behave when a room is filled out
+    *
+    * @param roomInformationFuture the future that will contain the room and addresses of users to contact
+    * @param onRetrievedRoomAction the action to do if the room is full
+    * @return a future that completes when all players received addresses
+    */
+  private def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])], onRetrievedRoomAction: => Future[Unit])
+                               (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
+    roomInformationFuture
+      .map(roomAndAddresses => roomAndAddresses._1)
+      .filter(roomIsFull)
+      .flatMap(_ => {
+        onRetrievedRoomAction
+        sendParticipantAddresses(roomInformationFuture.value.get.get)
+      }).transform {
+      case Success(_) => Failure(new Exception()) // if operation successful, outer response sending should block
+      case Failure(_: NoSuchElementException) => Success(()) // if room wasn't full, let outer response sending happen
+      case Failure(ex) => log.error("Error handling Room Filling", ex); Success(())
+      // unexpected error, log and let outer response sending happen
+    }
+  }
+
+  /**
+    * Method to communicate to clients that the game can start because of reaching the specified number of players
+    *
+    * @param roomInformation the room where players are waiting in
+    */
+  private def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
+                                      (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
+    log.info(s"Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...")
+    val notificationAddresses = for (notificationAddress <- roomInformation._2) yield notificationAddress
+    val players = for (player <- roomInformation._1.participants) yield player
+    log.info(s"Participant notification addresses to contact: $notificationAddresses")
+    log.info(s"Information to send -> $players")
+    Future.sequence {
+      notificationAddresses map (notificationAddress => communicationStrategy.sendParticipants(notificationAddress.address, players))
+    } map (_ => Unit)
+  }
 }
 
 /**
@@ -232,4 +298,26 @@ object RoomsServiceVerticle {
     new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
 
   private val INVALID_PARAMETER_ERROR: String = "Invalid parameters: "
+
+  /**
+    * @param body the body where to extract
+    * @return the extracted Addresses
+    */
+  private def extractAddressesFromBody(body: Buffer): Option[(Address, Address)] = {
+    try {
+      val jsonArray = body.toJsonArray
+      val userAddressJson = jsonArray.getJsonObject(0)
+      val userNotificationAddressJson = jsonArray.getJsonObject(1)
+      if ((userAddressJson containsKey Address.FIELD_ADDRESS) && (userNotificationAddressJson containsKey Address.FIELD_ADDRESS)) {
+        Some((userAddressJson.toAddress, userNotificationAddressJson.toAddress))
+      } else None
+    } catch {
+      case _: Throwable => None
+    }
+  }
+
+  /**
+    * Describes when a room is full
+    */
+  private def roomIsFull(room: Room): Boolean = room.participants.size == room.neededPlayersNumber
 }
