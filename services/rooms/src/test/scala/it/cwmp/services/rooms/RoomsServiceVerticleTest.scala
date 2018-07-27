@@ -71,24 +71,22 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       }
       it("if the room was already filled") {
         val playersNumber = 2
-        createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(client, tokenList(1)))
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(client, tokenList(2)))) shouldAnswerWith 404
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+             _ <- enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(client, tokenList(1));
+             assertion <- enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(client, tokenList(2)) shouldAnswerWith 404)
+          yield assertion
       }
     }
   }
 
   override protected def privateRoomInfoRetrievalTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomId is correct") {
-      var roomJson = ""
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => privateRoomInfoRequest(roomID)
-          .map(response => {
-            roomJson = Room(roomID, roomName, playersNumber, Seq()).toJson.encode()
-            response
-          }))
-        .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get == roomJson))
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           response <- privateRoomInfoRequest(roomID);
+           roomJson = Room(roomID, roomName, playersNumber, Seq()).toJson.encode();
+           assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get == roomJson))
+        yield assertion
     }
 
     describe("should fail") {
@@ -98,23 +96,25 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitPrivateRoomRequest(roomID))) shouldAnswerWith 200
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+           assertion <- exitPrivateRoomRequest(roomID) shouldAnswerWith 200) yield assertion
     }
     it("user should not be inside after it") {
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitPrivateRoomRequest(roomID))
-          .flatMap(_ => privateRoomInfoRequest(roomID)))
-        .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(participantList.head.username)))
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+           _ <- exitPrivateRoomRequest(roomID);
+           response <- privateRoomInfoRequest(roomID);
+           assertion <- assert(response.statusCode() == 200 && !response.bodyAsString().get.contains(participantList.head.username)))
+        yield assertion
     }
 
     describe("should fail") {
       onWrongRoomID(exitPrivateRoomRequest)
 
       it("if user is not inside the room") {
-        createAPrivateRoomAndGetID(roomName, playersNumber) flatMap (roomID => exitPrivateRoomRequest(roomID)) shouldAnswerWith 400
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             assertion <- exitPrivateRoomRequest(roomID) shouldAnswerWith 400) yield assertion
       }
       it("if user is inside another room") {
         for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
@@ -170,7 +170,9 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def publicRoomListingTests(playersNumber: Int): Unit = {
     it("should be nonEmpty") {
-      listPublicRoomsRequest() flatMap (res => assert(res.statusCode() == 200 && res.bodyAsString().get.nonEmpty))
+      for (response <- listPublicRoomsRequest();
+           assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get.nonEmpty))
+        yield assertion
     }
   }
 
@@ -192,14 +194,15 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoomRequest(playersNumber)) shouldAnswerWith 200
+      for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+           assertion <- exitPublicRoomRequest(playersNumber) shouldAnswerWith 200) yield assertion
     }
     it("user should not be inside after it") {
-      enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoomRequest(playersNumber))
-        .flatMap(_ => publicRoomInfoRequest(playersNumber))
-        .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(participantList.head.username)))
+      for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+           _ <- exitPublicRoomRequest(playersNumber);
+           response <- publicRoomInfoRequest(playersNumber);
+           assertion <- assert(response.statusCode() == 200 && !response.bodyAsString().get.contains(participantList.head.username)))
+        yield assertion
     }
 
     describe("should fail") {
