@@ -1,8 +1,9 @@
 package it.cwmp.client.view
 
 import javafx.application.Platform
-import javafx.scene.control.{Dialog, ProgressBar}
-import javafx.scene.layout.BorderPane
+import javafx.event.ActionEvent
+import javafx.scene.control._
+import javafx.scene.layout.{BorderPane, GridPane}
 
 /**
   * Classe per gestire il dialog di attessa
@@ -11,7 +12,7 @@ import javafx.scene.layout.BorderPane
   */
 trait FXLoadingDialog {
 
-  this: FXController =>
+  //this: FXController =>
 
   private var dialog = new Dialog[Boolean]()
 
@@ -28,18 +29,46 @@ trait FXLoadingDialog {
       val infiniteProgress = new ProgressBar()
       pane.setCenter(infiniteProgress)
       dialog.getDialogPane.setContent(pane)
-      dialog.setOnCloseRequest(dialog.getOnCloseRequest)
       dialog.show()
     })
   }
 
   /**
-    * Metodo che chiude il dialog
+    * Metodo che chiude il dialog di loading
     */
   def hideLoadingDialog(): Unit = {
     Platform.runLater(() => {
       dialog.setResult(true)
       dialog.hide()
+    })
+  }
+
+  def showTokenDialog(title: String, message: String): Unit = {
+    Platform.runLater(() => {
+      val tokenDialog = new Dialog[Boolean]
+      tokenDialog.setTitle(title)
+
+      val grid = new GridPane()
+      grid.setHgap(10)
+      grid.setVgap(10)
+
+      val myToken = new TextField()
+      val dialogBody = new Label("Token: ")
+      val btnOk = new Button("OK")
+
+      myToken.setEditable(false)
+      myToken.setText(message)
+
+      btnOk.setOnAction((e: ActionEvent) => {
+        tokenDialog.setResult(true)
+        tokenDialog.hide()
+      })
+      grid.add(dialogBody,0,0)
+      grid.add(myToken,0,1)
+      grid.add(btnOk, 1,1)
+
+      tokenDialog.getDialogPane.setContent(grid)
+      tokenDialog.showAndWait()
     })
   }
 }

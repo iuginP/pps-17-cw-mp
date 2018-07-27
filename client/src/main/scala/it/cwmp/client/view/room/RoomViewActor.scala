@@ -29,6 +29,8 @@ object RoomViewMessages {
     */
   case object HideGUI
 
+  case object ShowToken
+
 }
 
 object RoomViewActor {
@@ -91,5 +93,9 @@ class RoomViewActor extends Actor with AlertActor {
   override protected def onAlertReceived(): Unit = {
     fxController enableButtons()
     fxController hideLoadingDialog()
+  }
+
+  override protected def onTokenReceived(title: String, message: String): Unit = {
+    fxController showTokenDialog(title, message)
   }
 }
