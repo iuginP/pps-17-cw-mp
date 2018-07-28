@@ -13,7 +13,7 @@ trait AuthenticationStrategy {
     * @param username identification chosen by the player to access the system
     * @param password password chosen during sign up
     */
-  def performSignIn(username: String, password: String): Unit
+  def performLogIn(username: String, password: String): Unit
 
   /**
     * Function invoked for checking the correctness of the passwords.

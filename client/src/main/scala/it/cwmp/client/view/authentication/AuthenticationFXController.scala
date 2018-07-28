@@ -5,7 +5,6 @@ import it.cwmp.client.view._
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
-import javafx.stage.Stage
 
 /**
   * Class that models the controller that manages the various authentication processes.
@@ -51,7 +50,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInp
         btnSignIn.setDisable(true)
         btnSignInReset.setDisable(true)
         showLoading("Attendere", "login in corso")
-        strategy.performSignIn(username, password)
+        strategy.performLogIn(username, password)
       }
     })
   }

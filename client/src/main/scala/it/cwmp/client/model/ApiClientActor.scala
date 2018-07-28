@@ -1,6 +1,8 @@
 package it.cwmp.client.model
 
 import akka.actor.Actor
+import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
+import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.model.Address
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
 
@@ -12,23 +14,6 @@ import scala.util.{Failure, Success}
   */
 object ApiClientIncomingMessages {
 
-  /**
-    * Message indicating the need to log into the system.
-    * When the system receives it, it sends the request to the online service.
-    *
-    * @param username identification chosen by the player to access the system
-    * @param password password chosen during sign up
-    */
-  case class AuthenticationPerformSignIn(username: String, password: String)
-
-  /**
-    * Message indicating the need to create a new account.
-    * When the system receives it, it sends the request to the online service.
-    *
-    * @param username identification chosen by the player to register in the system
-    * @param password password chosen to authenticate in the system
-    */
-  case class AuthenticationPerformSignUp(username: String, password: String)
 
   /**
     * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
@@ -65,34 +50,6 @@ object ApiClientIncomingMessages {
   * Questo oggetto contiene tutti i messaggi che questo attore può inviare.
   */
 object ApiClientOutgoingMessages {
-
-  /**
-    * Message that represents the successfully access to the system.
-    *
-    * @param token user identification token within the system
-    */
-  case class AuthenticationSignInSuccessful(token: String)
-
-  /**
-    * Message representing the failure of access to the system.
-    *
-    * @param reason reason that generated the failure
-    */
-  case class AuthenticationSignInFailure(reason: Option[String])
-
-  /**
-    * Message that represents the successfully registration in the system.
-    *
-    * @param token user identification token within the system
-    */
-  case class AuthenticationSignUpSuccessful(token: String)
-
-  /**
-    * Message representing the failure of registration in the system.
-    *
-    * @param reason reason that generated the failure
-    */
-  case class AuthenticationSignUpFailure(reason: Option[String])
 
   /**
     * Questo messaggio rappresenta il successo della crazione di una stanza privata.
@@ -182,26 +139,26 @@ class ApiClientActor() extends Actor {
       })
   }
 
-  /*
-    * Behavior that handles the calls to the authentication management service.
+  /**
+    * @return the behaviour of authenticating user online
     */
-  private val authenticationApiWrapper = AuthenticationApiWrapper()
-
-  import authenticationApiWrapper._
-
   private def authenticationBehaviour: Receive = {
-    case AuthenticationPerformSignIn(username, password) =>
-      val senderTmp = sender
-      login(username, password).onComplete({
-        case Success(token) => senderTmp ! AuthenticationSignInSuccessful(token)
-        case Failure(reason) => senderTmp ! AuthenticationSignInFailure(Option(reason.getMessage))
-      })
-    case AuthenticationPerformSignUp(username, password) =>
-      val senderTmp = sender
-      signUp(username, password).onComplete({
-        case Success(token) => senderTmp ! AuthenticationSignUpSuccessful(token)
-        case Failure(reason) => senderTmp ! AuthenticationSignUpFailure(Option(reason.getMessage))
-      })
-
+    val authenticationApiWrapper = AuthenticationApiWrapper()
+    //noinspection ScalaStyle
+    import authenticationApiWrapper._
+    {
+      case LogIn(username, password) =>
+        val senderTmp = sender
+        login(username, password).onComplete {
+          case Success(token) => senderTmp ! LogInSuccess(token)
+          case Failure(ex) => senderTmp ! LogInFailure(Option(ex.getMessage))
+        }
+      case SignUp(username, password) =>
+        val senderTmp = sender
+        signUp(username, password).onComplete({
+          case Success(token) => senderTmp ! SignUpSuccess(token)
+          case Failure(ex) => senderTmp ! SignUpFailure(Option(ex.getMessage))
+        })
+    }
   }
 }

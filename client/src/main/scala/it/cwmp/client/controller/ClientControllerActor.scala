@@ -2,6 +2,8 @@ package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.controller.ClientControllerMessages._
+import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
+import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.model.ApiClientOutgoingMessages._
 import it.cwmp.client.model.PlayerActor._
 import it.cwmp.client.model._
@@ -86,30 +88,22 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * @return the behaviour that manages authentication commands from GUI
     */
   private def authenticationGUIBehaviour: Receive = {
-    case AuthenticationPerformSignIn(username, password) =>
+    case message@LogIn(username, _) =>
       log.info(s"Signing in as $username")
-      apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
-    case AuthenticationPerformSignUp(username, password) =>
-      log.info(s"Signing up as $username") // TODO: group together same name messages
-      apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
+      apiClientActor ! message
+    case message@SignUp(username, _) =>
+      log.info(s"Signing up as $username")
+      apiClientActor ! message
   }
 
   /**
     * @return the behaviour that manages authentication API responses
     */
   private def authenticationApiReceiverBehaviour: Receive = {
-    case AuthenticationSignInSuccessful(token) =>
-      jwtToken = token
-      onSuccessfulLogin()
-      authenticationViewActor ! AuthenticationViewMessages.HideGUI
-    case AuthenticationSignInFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
-    case AuthenticationSignUpSuccessful(token) =>
-      jwtToken = token
-      onSuccessfulLogin()
-      authenticationViewActor ! AuthenticationViewMessages.HideGUI
-    case AuthenticationSignUpFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
+    case LogInSuccess(token) => onAuthenticationSuccess(token)
+    case SignUpSuccess(token) => onAuthenticationSuccess(token)
+    case LogInFailure(errorMessage) => onAuthenticationFailure(errorMessage)
+    case SignUpFailure(errorMessage) => onAuthenticationFailure(errorMessage)
   }
 
   /**
@@ -185,13 +179,21 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   }
 
   /**
-    * Action to do on successful login
+    * Action to do on successful authentication
     */
-  private def onSuccessfulLogin(): Unit = {
+  private def onAuthenticationSuccess(token: String): Unit = {
+    jwtToken = token
     log.info(s"Setting the behaviour 'room-manager'")
     context.become(roomsApiReceiverBehaviour orElse roomsGUIBehaviour)
     roomViewActor ! RoomViewMessages.ShowGUI
+    authenticationViewActor ! AuthenticationViewMessages.HideGUI
   }
+
+  /**
+    * Action to do on failed authentication
+    */
+  private def onAuthenticationFailure(errorMessage: Option[String]): Unit =
+    authenticationViewActor ! AlertMessages.Error("Warning", errorMessage.getOrElse(UNKNOWN_ERROR))
 
   /**
     * Action to execute when found opponents
@@ -210,24 +212,6 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
   */
 object ClientControllerMessages {
-
-  /**
-    * Message indicating the need to log into the system.
-    * When the system receives it, it sends the request to the authentication online service.
-    *
-    * @param username identification chosen by the player to access the system
-    * @param password password chosen during sign up
-    */
-  case class AuthenticationPerformSignIn(username: String, password: String)
-
-  /**
-    * Message indicating the need to create a new account.
-    * When the system receives it, it sends the request to the authentication online service.
-    *
-    * @param username identification chosen by the player to register in the system
-    * @param password password chosen to authenticate in the system
-    */
-  case class AuthenticationPerformSignUp(username: String, password: String)
 
 
   /**

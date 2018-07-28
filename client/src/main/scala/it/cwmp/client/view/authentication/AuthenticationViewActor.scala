@@ -2,6 +2,8 @@ package it.cwmp.client.view.authentication
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
+import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
+import it.cwmp.client.controller.messages.{AuthenticationRequests, AuthenticationResponses}
 import it.cwmp.client.view.ActorAlertManagement
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
@@ -64,14 +66,14 @@ class AuthenticationViewActor extends Actor with ActorAlertManagement {
     Platform setImplicitExit false
     Platform runLater (() => {
       fxAlertsController = AuthenticationFXController(new AuthenticationStrategy {
-        override def performSignIn(username: String, password: String): Unit =
-          controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
+        override def performLogIn(username: String, password: String): Unit =
+          controllerActor ! LogIn(username, password)
 
         override def performPasswordCheck(password: String, confirmPassword: String): Boolean =
           password == confirmPassword
 
         override def performSignUp(username: String, password: String): Unit =
-          controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password)
+          controllerActor ! SignUp(username, password)
       })
     })
   }
