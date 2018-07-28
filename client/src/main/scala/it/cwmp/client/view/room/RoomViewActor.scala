@@ -2,7 +2,7 @@ package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
-import it.cwmp.client.view.AlertActor
+import it.cwmp.client.view.ActorAlertManagement
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -49,11 +49,11 @@ object RoomViewActor {
   *
   * @author Davide Borficchia
   */
-class RoomViewActor extends Actor with AlertActor {
+class RoomViewActor extends Actor with ActorAlertManagement {
   /**
     * roomFXController il controller che gestisce la view della lobby delle stanze
     */
-  var fxController: RoomFXController = _
+  var fxAlertsController: RoomFXController = _
   /**
     * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
     */
@@ -69,7 +69,7 @@ class RoomViewActor extends Actor with AlertActor {
     new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
-      fxController = RoomFXController(new RoomFXStrategy {
+      fxAlertsController = RoomFXController(new RoomFXStrategy {
         override def onCreate(name: String, nPlayer: Int): Unit =
           controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
 
@@ -89,20 +89,20 @@ class RoomViewActor extends Actor with AlertActor {
     */
   override def receive: Receive = alertBehaviour orElse {
     case RoomViewMessages.InitController => controllerActor = sender()
-    case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
+    case RoomViewMessages.ShowGUI => Platform runLater (() => fxAlertsController.showGUI())
     case RoomViewMessages.HideGUI => Platform runLater (() => {
-      fxController.hideGUI()
-      fxController hideLoading()
+      fxAlertsController.hideGUI()
+      fxAlertsController hideLoading()
     })
     case RoomViewMessages.ShowToken(title, roomToken) => Platform runLater (() => {
       // TODO: remove "title" from this message, view should be able to decide what to write
       onAlertReceived()
-      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
+      fxAlertsController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
     })
   }
 
   override protected def onAlertReceived(): Unit = {
-    fxController enableViewComponents()
-    fxController hideLoading()
+    fxAlertsController enableViewComponents()
+    fxAlertsController hideLoading()
   }
 }

@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderPane
   *
   * @author Eugenio Pierfederici
   * @author contributor Davide Borficchia
+  * @author contributor Enrico Siboni
   */
 trait FXAlerts extends FXRunOnUIThread {
 

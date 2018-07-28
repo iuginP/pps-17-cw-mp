@@ -2,7 +2,7 @@ package it.cwmp.client.view.authentication
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.ClientControllerMessages
-import it.cwmp.client.view.{AlertActor, FXAlerts}
+import it.cwmp.client.view.ActorAlertManagement
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -10,6 +10,7 @@ import javafx.embed.swing.JFXPanel
   * Object that contains all the messages that this actor can receive.
   */
 object AuthenticationViewMessages {
+
   /**
     * Message that represents the initialization of the controller that will then be used for the answers that will
     * be sent to the sender.
@@ -28,6 +29,7 @@ object AuthenticationViewMessages {
     * When received, the GUI is hidden.
     */
   case object HideGUI
+
 }
 
 object AuthenticationViewActor {
@@ -40,12 +42,12 @@ object AuthenticationViewActor {
   *
   * @author Elia Di Pasquale
   */
-class AuthenticationViewActor extends Actor with AlertActor {
+class AuthenticationViewActor extends Actor with ActorAlertManagement {
 
   /**
     * Controller that deals with the graphic management of authentication components.
     */
-  var fxController: AuthenticationFXController = _
+  var fxAlertsController: AuthenticationFXController = _
   /**
     * Control actor through which messages for event management are received and sent.
     */
@@ -61,8 +63,8 @@ class AuthenticationViewActor extends Actor with AlertActor {
     //inizializzo il toolkit
     new JFXPanel
     Platform setImplicitExit false
-    Platform runLater(() => {
-      fxController = AuthenticationFXController(new AuthenticationFXStrategy {
+    Platform runLater (() => {
+      fxAlertsController = AuthenticationFXController(new AuthenticationFXStrategy {
         override def onSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
@@ -74,6 +76,7 @@ class AuthenticationViewActor extends Actor with AlertActor {
       })
     })
   }
+
   /**
     * Method that defines the behavior of the current actor, called from outside to convey messages to it
     * (N.B. Do not call directly).
@@ -81,15 +84,15 @@ class AuthenticationViewActor extends Actor with AlertActor {
     */
   override def receive: Receive = alertBehaviour orElse {
     case AuthenticationViewMessages.InitController => controllerActor = sender()
-    case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
-    case AuthenticationViewMessages.HideGUI => Platform runLater(() => {
-      fxController hideGUI()
-      fxController hideLoading()
+    case AuthenticationViewMessages.ShowGUI => Platform runLater (() => fxAlertsController showGUI())
+    case AuthenticationViewMessages.HideGUI => Platform runLater (() => {
+      fxAlertsController hideGUI()
+      fxAlertsController hideLoading()
     })
   }
 
   override protected def onAlertReceived(): Unit = {
-    fxController enableViewComponents()
-    fxController hideLoading()
+    fxAlertsController enableViewComponents()
+    fxAlertsController hideLoading()
   }
 }
