@@ -22,7 +22,8 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXDialogs{
+class RoomFXController(strategy: RoomFXStrategy) extends FXController
+  with FXView with FXChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
