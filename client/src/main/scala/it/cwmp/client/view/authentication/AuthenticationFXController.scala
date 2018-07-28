@@ -2,6 +2,7 @@ package it.cwmp.client.view.authentication
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
+import it.cwmp.client.view.authentication.AuthenticationFXController._
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
@@ -11,12 +12,11 @@ import javafx.scene.control._
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInputViewController
-  with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
+class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXView with FXInputViewController with FXInputChecks {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName
-  protected val controller: FXInputViewController = this
+  protected val controller: FXViewController = this
 
   @FXML
   private var tpMain: TabPane = _
@@ -40,68 +40,24 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInp
   private var btnSignUpReset: Button = _
 
 
-  @FXML
-  private def onClickSignIn(): Unit = {
-    Platform.runLater(() => {
-      for (
-        username <- getTextFieldValue(tfSignInUsername, "È necessario inserire lo username");
-        password <- getTextFieldValue(pfSignInPassword, "È necessario inserire la password")
-      ) yield {
-        btnSignIn.setDisable(true)
-        btnSignInReset.setDisable(true)
-        showLoading("Attendere", "login in corso")
-        strategy.performLogIn(username, password)
-      }
-    })
-  }
-
-  @FXML
-  private def onClickSignUp(): Unit = {
-    Platform.runLater(() => {
-      for (
-        username <- getTextFieldValue(tfSignUpUsername, "È necessario inserire lo username");
-        password <- getTextFieldValue(pfSignUpPassword, "È necessario inserire la password");
-        confirmPassword <- getTextFieldValue(pfSignUpConfirmPassword, "È necessario inserire nuovamente la password")
-      ) yield {
-        // TODO: rivedere questa logica per farne una più specifica
-        showLoading("Attendere", "Registrazione in corso")
-        if (strategy.performPasswordCheck(password, confirmPassword)) {
-          strategy.performSignUp(username, password)
-          btnSignUp.setDisable(true)
-          btnSignUpReset.setDisable(true)
-        } else {
-          showError("Warning", "Non-compliant passwords!")
-          hideLoading()
-          btnSignUp.setDisable(false)
-          btnSignUpReset.setDisable(false)
-        }
-      }
-    })
-  }
-
-  @FXML
-  private def onClickSignInReset(): Unit = {
-    Platform.runLater(() => {
-      resetFields()
-    })
-  }
-
-  @FXML
-  private def onClickSignUpReset(): Unit = {
-    Platform.runLater(() => {
-      resetFields()
-    })
+  override def showGUI(): Unit = {
+    super.showGUI()
+    tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 
   override def resetFields(): Unit = {
-    if (tpMain.getSelectionModel.getSelectedIndex == 0) {
-      tfSignInUsername setText ""
-      pfSignInPassword setText ""
-    } else {
-      tfSignUpUsername setText ""
-      pfSignUpPassword setText ""
-      pfSignUpConfirmPassword setText ""
-    }
+    tfSignInUsername setText ""
+    pfSignInPassword setText ""
+    tfSignUpUsername setText ""
+    pfSignUpPassword setText ""
+    pfSignUpConfirmPassword setText ""
+  }
+
+  override def disableViewComponents(): Unit = {
+    btnSignInReset.setDisable(true)
+    btnSignIn.setDisable(true)
+    btnSignUpReset.setDisable(true)
+    btnSignUp.setDisable(true)
   }
 
   override def enableViewComponents(): Unit = {
@@ -110,10 +66,58 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInp
     btnSignUpReset.setDisable(false)
     btnSignUp.setDisable(false)
   }
+
+  @FXML
+  private def onClickSignIn(): Unit =
+    runOnUIThread(() => {
+      for (
+        username <- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
+        password <- getTextFieldValue(pfSignInPassword, PASSWORD_EMPTY_ERROR)
+      ) yield {
+        disableViewComponents()
+        showLoading(LOGGING_IN_MESSAGE)
+        strategy.performLogIn(username, password)
+      }
+    })
+
+
+  @FXML
+  private def onClickSignUp(): Unit =
+    runOnUIThread(() => {
+      for (
+        username <- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
+        password <- getTextFieldValue(pfSignUpPassword, PASSWORD_EMPTY_ERROR);
+        confirmPassword <- getTextFieldValue(pfSignUpConfirmPassword, REPEAT_PASSWORD_EMPTY_ERROR)
+      ) yield {
+        disableViewComponents()
+        showLoading(SIGNING_UP_MESSAGE)
+        if (strategy.performPasswordCheck(password, confirmPassword)) {
+          strategy.performSignUp(username, password)
+        } else {
+          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOESNT_MATCH)
+          enableViewComponents()
+          hideLoading()
+        }
+      }
+    })
+
+  @FXML
+  private def onClickSignInReset(): Unit = { // TODO: remove
+    Platform.runLater(() => {
+      resetFields()
+    })
+  }
+
+  @FXML
+  private def onClickSignUpReset(): Unit = { // TODO: remove
+    Platform.runLater(() => {
+      resetFields()
+    })
+  }
 }
 
 /**
-  * [[AuthenticationFXController]] companion object
+  * Companion object
   *
   * @author Elia Di Pasquale
   */
@@ -122,4 +126,14 @@ object AuthenticationFXController {
     require(strategy != null, "The authentication strategy cannot be null")
     new AuthenticationFXController(strategy)
   }
+
+  private val USERNAME_EMPTY_ERROR = "È necessario inserire lo username"
+  private val PASSWORD_EMPTY_ERROR = "È necessario inserire la password"
+  private val REPEAT_PASSWORD_EMPTY_ERROR = "È necessario inserire nuovamente la password"
+  private val GIVEN_PASSWORD_DOESNT_MATCH = "Le password inserite non sono uguali!"
+
+  private val ATTENTION_MESSAGE = "Attenzione"
+
+  private val LOGGING_IN_MESSAGE = "Log-in in corso..."
+  private val SIGNING_UP_MESSAGE = "Registrazione in corso..."
 }

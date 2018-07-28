@@ -11,24 +11,9 @@ import javafx.stage.Stage
   * Implements the main measures for a basic management of the view, delegating to the class
   * that extends it the choice of which components to use in the creation of the interface.
   */
-trait FXView {
+trait FXView extends FXViewController {
 
   protected val stage: Stage = new Stage
-
-  /**
-    * Initialization of the view
-    */
-  private def initGUI(): Unit = {
-    // creates an instance of layout
-    val loader = new FXMLLoader(getClass.getResource(layout))
-    loader.setController(controller)
-    val pane: Pane = loader.load()
-
-    stage setTitle title
-    stage setResizable false
-    stage.setOnCloseRequest(_ => onCloseAction())
-    stage setScene new Scene(pane)
-  }
 
   /**
     * Method called to show the view
@@ -57,9 +42,9 @@ trait FXView {
   protected def title: String
 
   /**
-    * @return the FXInputViewController for this view
+    * @return the FXViewController for this view
     */
-  protected def controller: FXInputViewController
+  protected def controller: FXViewController
 
   /**
     * Tells which action to perform on window close
@@ -69,5 +54,20 @@ trait FXView {
   protected def onCloseAction(): Unit = {
     Platform.exit()
     System.exit(0)
+  }
+
+  /**
+    * Initialization of the view
+    */
+  private def initGUI(): Unit = {
+    // creates an instance of layout
+    val loader = new FXMLLoader(getClass.getResource(layout))
+    loader.setController(controller)
+    val pane: Pane = loader.load()
+
+    stage setTitle title
+    stage setResizable false
+    stage.setOnCloseRequest(_ => onCloseAction())
+    stage setScene new Scene(pane)
   }
 }

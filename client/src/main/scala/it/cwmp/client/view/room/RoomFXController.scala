@@ -7,7 +7,6 @@ import javafx.fxml.FXML
 import javafx.scene.Node
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
-import javafx.stage.Stage
 
 trait RoomFXStrategy {
   def onCreate(name: String, nPlayer: Int): Unit
@@ -29,7 +28,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
-  protected val controller: FXInputViewController = this
+  protected val controller: FXViewController = this
 
   @FXML
   private var tfPrivateCreateRoomName: TextField = _
@@ -56,7 +55,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
         name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
         nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
       ) yield {
-        showLoading("Loading", "Stiamo creando la stanza privata")
+        showLoading("Stiamo creando la stanza privata")
         strategy.onCreate(name, nPlayer)
         btnPrivateCreate.setDisable(true)
         btnPrivateReset.setDisable(true)
@@ -82,7 +81,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
       for (
         id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
       ) yield {
-        showLoading("Loading", "Stai per entrare nella stanza privata")
+        showLoading("Stai per entrare nella stanza privata")
         strategy.onEnterPrivate(id_room)
         btnPrivateEnter.setDisable(true)
       }
@@ -96,12 +95,14 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
       for (
         nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
       ) yield {
-        showLoading("Loading", "Stai per entrare in una stanza pubblica")
+        showLoading("Stai per entrare in una stanza pubblica")
         strategy.onEnterPublic(nPlayer)
         btnPublicEnter.setDisable(true)
       }
     })
   }
+
+  override def disableViewComponents(): Unit = ???
 
   override def enableViewComponents(): Unit = {
     btnPrivateCreate.setDisable(false)
@@ -137,7 +138,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
     tokenTextField.setEditable(false)
 
     val okButton = new Button("OK")
-//    okButton.setOnAction((_) => hideDialog())
+    //    okButton.setOnAction((_) => hideDialog())
 
     gridPane.add(tokenLabel, 0, 0)
     gridPane.add(tokenTextField, 0, 1)

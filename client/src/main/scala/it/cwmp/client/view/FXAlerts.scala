@@ -1,5 +1,6 @@
 package it.cwmp.client.view
 
+import it.cwmp.client.view.FXAlerts.WAIT_MESSAGE
 import javafx.scene.Node
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.{Alert, ButtonType, ProgressBar}
@@ -45,12 +46,12 @@ trait FXAlerts extends FXRunOnUIThread {
   /**
     * Shows a loading dialog that either can be closed or not
     *
-    * @param headerText               the header text to show
     * @param message                  the message to show
+    * @param headerText               the header text to show
     * @param canBeClosed              whether the dialog ca be closed or not
     * @param onPrematureClosureAction which action has to be executed if the loading is closed prematurely
     */
-  def showLoading(headerText: String, message: String,
+  def showLoading(message: String, headerText: String = WAIT_MESSAGE,
                   canBeClosed: Boolean = false,
                   onPrematureClosureAction: () => Unit = () => ()): Unit = runOnUIThread(() => {
     LoadingManagement
@@ -124,4 +125,11 @@ trait FXAlerts extends FXRunOnUIThread {
       })
   }
 
+}
+
+/**
+  * Companion object
+  */
+object FXAlerts {
+  val WAIT_MESSAGE = "Attendere prego..."
 }
