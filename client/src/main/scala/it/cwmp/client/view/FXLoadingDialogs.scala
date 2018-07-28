@@ -6,20 +6,19 @@ import javafx.scene.control._
 import javafx.scene.layout.{BorderPane, GridPane}
 
 /**
-  * Classe per gestire il dialog di attessa
+  * A trait to manage loading dialogs in view
   *
   * @author Davide Borficchia
   */
-trait FXDialogs {
+trait FXLoadingDialogs {
 
-  //this: FXController =>
-
-  private var dialog = new Dialog[Boolean]()
+  private val dialog = new Dialog[Boolean]()
 
   /**
-    * Mostra un dialog customizzato
-    * @param title titolo del dialog
-    * @param message messaggio del dialog
+    * Show a loading Dialog with specified title and message
+    *
+    * @param title   the tile of the dialog
+    * @param message the message in the dialog
     */
   def showLoadingDialog(title: String, message: String): Unit = {
     Platform.runLater(() => {
@@ -34,7 +33,7 @@ trait FXDialogs {
   }
 
   /**
-    * Metodo che chiude il dialog di loading
+    * A method to close the loading dialog
     */
   def hideLoadingDialog(): Unit = {
     Platform.runLater(() => {
@@ -63,9 +62,9 @@ trait FXDialogs {
         tokenDialog.setResult(true)
         tokenDialog.hide()
       })
-      grid.add(dialogBody,0,0)
-      grid.add(myToken,0,1)
-      grid.add(btnOk, 1,1)
+      grid.add(dialogBody, 0, 0)
+      grid.add(myToken, 0, 1)
+      grid.add(btnOk, 1, 1)
 
       tokenDialog.getDialogPane.setContent(grid)
       tokenDialog.showAndWait()
