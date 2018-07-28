@@ -11,6 +11,7 @@ import javafx.scene.control._
   * Class that models the controller that manages the various authentication processes.
   *
   * @param strategy strategy to be applied to resolve authentication requests.
+  * @author contributor Enrico Siboni
   */
 class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
 

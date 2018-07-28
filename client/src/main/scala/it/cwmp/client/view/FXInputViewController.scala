@@ -2,6 +2,8 @@ package it.cwmp.client.view
 
 /**
   * A trait that gives generic methods that all JavaFX input controllers should have
+  *
+  * @author contributor Enrico Siboni
   */
 trait FXInputViewController {
 

@@ -12,6 +12,7 @@ import javafx.scene.layout.GridPane
   * Class that manages the Rooms View
   *
   * @param strategy the strategy to use on user actions
+  * @author contributor Enrico Siboni
   */
 class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
 

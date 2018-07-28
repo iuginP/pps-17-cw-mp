@@ -8,6 +8,7 @@ import it.cwmp.client.view.room.RoomViewActor.ShowToken
   * This class represents the actor that manages the rooms
   *
   * @author Davide Borficchia
+  * @author contributor Enrico Siboni
   */
 case class RoomViewActor() extends FXViewActor {
 

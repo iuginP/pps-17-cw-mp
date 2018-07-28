@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
   * @param system the system of this actors
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
+  * @author contributor Enrico Siboni
   */
 case class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver with Logging {
 
@@ -132,9 +133,9 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def roomsApiReceiverBehaviour: Receive = {
     case CreateSuccess(token) => roomViewActor ! ShowToken(token)
     case CreateFailure(errorMessage) => roomViewActor ! Error(CREATE_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
-    case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato")
+    case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") todo review this behaviour (now to hide loading it leverages on rooms participant receiving
     case EnterPrivateFailure(errorMessage) => roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
-    case EnterPublicSuccess => //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato")
+    case EnterPublicSuccess => //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") todo review this behaviour
     case EnterPublicFailure(errorMessage) => roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
   }
 

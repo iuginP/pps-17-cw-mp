@@ -20,7 +20,7 @@ import it.cwmp.utils.Logging
   *
   * @author Eugenio Pierfederici
   */
-class PlayerActor(system: ActorSystem) extends Actor with Logging {
+class PlayerActor(system: ActorSystem) extends Actor with Logging { // TODO: review (and translate doc)
 
   // View actor
   private var gameViewActor: ActorRef = _
