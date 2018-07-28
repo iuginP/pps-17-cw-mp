@@ -20,52 +20,62 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
   protected val title: String = StringRes.roomManagerTitle
   protected val controller: FXViewController = this
 
-  @FXML
-  private var tfPrivateCreateRoomName: TextField = _
-  @FXML
-  private var spPrivateCreateNumPlayer: Spinner[Int] = _
-  @FXML
-  private var tfPrivateEnterRoomID: TextField = _
-  @FXML
-  private var spPublicEnterNumPlayer: Spinner[Int] = _
-  @FXML
-  private var btnPrivateCreate: Button = _
-  @FXML
-  private var btnPrivateReset: Button = _
-  @FXML
-  private var btnPrivateEnter: Button = _
-  @FXML
-  private var btnPublicEnter: Button = _
+  @FXML private var tabPane: TabPane = _
+  @FXML private var tfPrivateCreateRoomName: TextField = _
+  @FXML private var spPrivateCreateNumPlayer: Spinner[Int] = _
+  @FXML private var tfPrivateEnterRoomID: TextField = _
+  @FXML private var spPublicEnterNumPlayer: Spinner[Int] = _
+  @FXML private var btnPrivateCreate: Button = _
+  @FXML private var btnPrivateReset: Button = _
+  @FXML private var btnPrivateEnter: Button = _
+  @FXML private var btnPublicEnter: Button = _
 
-  @FXML
-  private def onClickCreate(): Unit = {
-    runOnUIThread(() => {
-      for (
-        name <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
-        nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
-      ) yield {
-        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
-        strategy.onCreate(name, nPlayer)
-        btnPrivateCreate.setDisable(true)
-        btnPrivateReset.setDisable(true)
-      }
-    })
-  }
-
-  @FXML
-  private def onClickReset(): Unit = {
-    Platform.runLater(() => {
-      resetFields()
-    })
+  override def showGUI(): Unit = {
+    super.showGUI()
+    tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 
   override def resetFields(): Unit = {
     tfPrivateCreateRoomName setText ""
     spPrivateCreateNumPlayer getValueFactory() setValue 2
+    tfPrivateEnterRoomID setText ""
+    spPublicEnterNumPlayer getValueFactory() setValue 2
   }
 
-  @FXML
-  private def onClickEnter(): Unit = {
+  override def disableViewComponents(): Unit = {
+    btnPrivateCreate.setDisable(true)
+    btnPrivateReset.setDisable(true)
+    btnPrivateEnter.setDisable(true)
+    btnPublicEnter.setDisable(true)
+  }
+
+  override def enableViewComponents(): Unit = {
+    btnPrivateCreate.setDisable(false)
+    btnPrivateReset.setDisable(false)
+    btnPrivateEnter.setDisable(false)
+    btnPublicEnter.setDisable(false)
+  }
+
+  @FXML private def onClickCreatePrivate(): Unit = {
+    runOnUIThread(() => {
+      for (
+        roomName <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
+        playersNumber <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
+      ) yield {
+        disableViewComponents()
+        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
+        strategy.onCreate(roomName, playersNumber)
+      }
+    })
+  }
+
+  @FXML private def onClickReset(): Unit = { // TODO: remove
+    Platform.runLater(() => {
+      resetFields()
+    })
+  }
+
+  @FXML private def onClickEnterPrivate(): Unit = {
     Platform.runLater(() => {
       for (
         id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
@@ -77,9 +87,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     })
   }
 
-  //Componenti tab stanze pubbliche
-  @FXML
-  private def onClickRoomPublic(): Unit = {
+  @FXML private def onClickEnterPublic(): Unit = {
     Platform.runLater(() => {
       for (
         nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
@@ -89,15 +97,6 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
         btnPublicEnter.setDisable(true)
       }
     })
-  }
-
-  override def disableViewComponents(): Unit = ???
-
-  override def enableViewComponents(): Unit = {
-    btnPrivateCreate.setDisable(false)
-    btnPrivateReset.setDisable(false)
-    btnPrivateEnter.setDisable(false)
-    btnPublicEnter.setDisable(false)
   }
 
   /**

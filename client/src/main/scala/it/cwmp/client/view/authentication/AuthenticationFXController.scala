@@ -18,27 +18,16 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
   protected val title: String = StringRes.appName
   protected val controller: FXViewController = this
 
-  @FXML
-  private var tpMain: TabPane = _
-  @FXML
-  private var tfSignInUsername: TextField = _
-  @FXML
-  private var pfSignInPassword: PasswordField = _
-  @FXML
-  private var tfSignUpUsername: TextField = _
-  @FXML
-  private var pfSignUpPassword: PasswordField = _
-  @FXML
-  private var pfSignUpConfirmPassword: PasswordField = _
-  @FXML
-  private var btnSignIn: Button = _
-  @FXML
-  private var btnSignInReset: Button = _
-  @FXML
-  private var btnSignUp: Button = _
-  @FXML
-  private var btnSignUpReset: Button = _
-
+  @FXML private var tpMain: TabPane = _
+  @FXML private var tfSignInUsername: TextField = _
+  @FXML private var pfSignInPassword: PasswordField = _
+  @FXML private var tfSignUpUsername: TextField = _
+  @FXML private var pfSignUpPassword: PasswordField = _
+  @FXML private var pfSignUpConfirmPassword: PasswordField = _
+  @FXML private var btnSignIn: Button = _
+  @FXML private var btnSignInReset: Button = _
+  @FXML private var btnSignUp: Button = _
+  @FXML private var btnSignUpReset: Button = _
 
   override def showGUI(): Unit = {
     super.showGUI()
@@ -67,8 +56,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
     btnSignUp.setDisable(false)
   }
 
-  @FXML
-  private def onClickSignIn(): Unit =
+  @FXML  private def onClickSignIn(): Unit =
     runOnUIThread(() => {
       for (
         username <- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
@@ -81,8 +69,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
     })
 
 
-  @FXML
-  private def onClickSignUp(): Unit =
+  @FXML  private def onClickSignUp(): Unit =
     runOnUIThread(() => {
       for (
         username <- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
@@ -101,15 +88,13 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
       }
     })
 
-  @FXML
-  private def onClickSignInReset(): Unit = { // TODO: remove
+  @FXML  private def onClickSignInReset(): Unit = { // TODO: remove
     Platform.runLater(() => {
       resetFields()
     })
   }
 
-  @FXML
-  private def onClickSignUpReset(): Unit = { // TODO: remove
+  @FXML  private def onClickSignUpReset(): Unit = { // TODO: remove
     Platform.runLater(() => {
       resetFields()
     })
