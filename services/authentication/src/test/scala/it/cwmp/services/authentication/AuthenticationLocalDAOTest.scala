@@ -13,8 +13,7 @@ import scala.concurrent.Future
   */
 class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatchers with BeforeAndAfterEach {
 
-  private var storageFuture: Future[AuthenticationDAO] = _
-  private var storageNotInitializedFuture: Future[AuthenticationDAO] = _
+  private var daoFuture: Future[AuthenticationDAO] = _
   private var username: String = _
   private var password: String = _
 
@@ -24,38 +23,31 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
   override def beforeEach(): Unit = {
     super.beforeEach()
     val storage = AuthenticationLocalDAO()
-    storageFuture = storage.initialize().map(_ => storage)
-    storageNotInitializedFuture = Future(storage)
+    daoFuture = storage.initialize().map(_ => storage)
     username = Utils.randomString(USERNAME_LENGTH)
     password = Utils.randomString(PASSWORD_LENGTH)
   }
 
-  describe("Storage manager") {
+  describe("AuthenticationLocalDAO") {
     describe("sign up") {
       describe("should fail with error") {
         it("when username empty") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture("", password))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.signUpFuture("", password).shouldFail) yield assertion
         }
         it("when password empty") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, ""))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.signUpFuture(username, "").shouldFail) yield assertion
         }
         it("when username already present") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signUpFuture(username, password))
-            .shouldFail
+          for (dao <- daoFuture;
+               _ <- dao.signUpFuture(username, password);
+               assertion <- dao.signUpFuture(username, password).shouldFail) yield assertion
         }
       }
       describe("should succeed") {
         it("when all right") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signOutFuture(username))
-            .shouldSucceed
+          for (dao <- daoFuture;
+               _ <- dao.signUpFuture(username, password);
+               assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
         }
       }
     }
@@ -63,22 +55,16 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
     describe("sign out") {
       describe("should fail with error") {
         it("when username empty") {
-          storageFuture
-            .flatMap(storage => storage.signOutFuture(""))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.signOutFuture("").shouldFail) yield assertion
         }
         it("when username doesn't exists") {
-          storageFuture
-            .flatMap(storage => storage.signOutFuture(username))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.signOutFuture(username).shouldFail) yield assertion
         }
       }
       describe("should succeed") {
         it("when all right") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signOutFuture(username))
-            .shouldSucceed
+          for (dao <- daoFuture; _ <- dao.signUpFuture(username, password);
+               assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
         }
       }
     }
@@ -86,52 +72,39 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
     describe("login") {
       describe("should fail with error") {
         it("when username empty") {
-          storageFuture
-            .flatMap(storage => storage.loginFuture("", password))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.loginFuture("", password).shouldFail) yield assertion
         }
         it("when username doesn't exists") {
-          storageFuture
-            .flatMap(storage => storage.loginFuture(username, ""))
-            .shouldFail
+          for (dao <- daoFuture; assertion <- dao.loginFuture(username, "").shouldFail) yield assertion
         }
         it("when password is wrong") {
           val passwordWrong = Utils.randomString(PASSWORD_LENGTH)
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.loginFuture(username, passwordWrong).map(_ => storage))
-            .flatMap(storage => storage.signOutFuture(username))
-            .shouldFail
+          for (dao <- daoFuture;
+               _ <- dao.signUpFuture(username, password);
+               assertion <- dao.loginFuture(username, passwordWrong).shouldFail) yield assertion
         }
       }
       describe("should succeed") {
         it("when all right") {
-          storageFuture
-            .flatMap(storage => storage.signUpFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.loginFuture(username, password).map(_ => storage))
-            .flatMap(storage => storage.signOutFuture(username))
-            .shouldSucceed
+          for (dao <- daoFuture; _ <- dao.signUpFuture(username, password);
+               _ <- dao.loginFuture(username, password);
+               assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
         }
       }
     }
   }
+
   describe("The Helper shouldn't work") {
     describe("if not initialized") {
 
       it("sign up") {
-        storageNotInitializedFuture
-          .flatMap(storage => storage.signUpFuture(username, password))
-          .shouldFailWith[IllegalStateException]
+        AuthenticationLocalDAO().signUpFuture(username, password).shouldFailWith[IllegalStateException]
       }
       it("sign out") {
-        storageNotInitializedFuture
-          .flatMap(storage => storage.signOutFuture(username))
-          .shouldFailWith[IllegalStateException]
+        AuthenticationLocalDAO().signOutFuture(username).shouldFailWith[IllegalStateException]
       }
       it("login") {
-        storageNotInitializedFuture
-          .flatMap(storage => storage.loginFuture(username, password))
-          .shouldFailWith[IllegalStateException]
+        AuthenticationLocalDAO().loginFuture(username, password).shouldFailWith[IllegalStateException]
       }
     }
   }

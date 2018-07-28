@@ -64,7 +64,17 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAn
     */
   private case class TestRoomReceiverApiWrapper() extends RoomReceiverApiWrapper {
     override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] =
-      Future.successful(Unit)
+      Future.successful(())
   }
+
+  /**
+    * Cleans up the provided room, exiting the user with passed token
+    */
+  protected def cleanUpRoom(roomID: String)(implicit userToken: String): Future[_]
+
+  /**
+    * Cleans up the provided public room, exiting player with passed token
+    */
+  protected def cleanUpRoom(playersNumber: Int)(implicit userToken: String): Future[_]
 
 }

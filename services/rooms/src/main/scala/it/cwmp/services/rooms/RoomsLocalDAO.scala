@@ -153,136 +153,154 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
              creationFuture = createPublicRoom(conn, playersNumber)) yield creationFuture
       }
 
-    openConnection()
-      .flatMap(conn => conn.executeFuture(createRoomTableSql)
-        .flatMap(_ => conn.executeFuture(createUserTableSql))
-        .map(_ => notInitialized = false)
-        .flatMap(_ => listPublicRooms())
-        .filter(_.isEmpty)
-        .flatMap(_ => {
-          log.info(s"No public rooms found, creating public ones with players from 2 to $PUBLIC_ROOM_MAX_SIZE.")
-          createDefaultPublicRooms(conn)
-        })
-        .recover { case _: NoSuchElementException => log.info("Room database already exists, skipping creation.") }
-        .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful(()))
+    (for (
+      conn <- openConnection();
+      _ <- conn.executeFuture(createRoomTableSql);
+      _ <- conn.executeFuture(createUserTableSql);
+      _ = notInitialized = false;
+      publicRooms <- listPublicRooms() if publicRooms.isEmpty;
+      _ = log.info(s"No public rooms found, creating public ones with players from 2 to $PUBLIC_ROOM_MAX_SIZE.");
+      _ <- createDefaultPublicRooms(conn)
+    ) yield ())
+      .recover { case _: NoSuchElementException => log.info("Room database already exists, skipping creation.") }
+      .closeConnections
   }
 
   override def createRoom(roomName: String, playersNumber: Int): Future[String] = {
     log.debug(s"createRoom() roomName:$roomName, playersNumber:$playersNumber")
-    checkInitialization(notInitialized)
-      .flatMap(_ => stringCheckFuture(roomName, EMPTY_ROOM_NAME_ERROR))
-      .flatMap(_ => playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber"))
-      .flatMap(_ => openConnection())
-      .flatMap(conn => getNotAlreadyPresentRoomID(conn, generateRandomRoomID())
-        .flatMap(roomID => conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
-          .map(_ => roomID))
-        .andThen { case _ => conn.close() }
-      )
+    (for (
+      _ <- checkInitialization(notInitialized);
+      _ <- stringCheckFuture(roomName, EMPTY_ROOM_NAME_ERROR);
+      _ <- playersNumberCheck(playersNumber, s"$INVALID_PLAYERS_NUMBER$playersNumber");
+      conn <- openConnection();
+      roomID <- getNotAlreadyPresentRoomID(conn, generateRandomRoomID());
+      _ <- conn.updateWithParamsFuture(insertNewRoomSql, Seq(roomID, roomName, playersNumber.toString))
+    ) yield roomID).closeLastConnection
   }
 
   override def enterRoom(roomID: String)
                         (implicit user: Participant, notificationAddress: Address): Future[Unit] = {
+
+    def giveErrorOnRoomPresent(roomOption: Option[Room]): Future[Unit] = roomOption match {
+      case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
+      case None => Future.successful(())
+    }
+
     log.debug(s"enterRoom() roomID:$roomID, user:$user, notificationAddress:$notificationAddress")
-    checkInitialization(notInitialized)
-      .flatMap(_ => roomInfo(roomID))
-      .flatMap(_ => openConnection())
-      .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR)
-        .flatMap(_ => getRoomOfUser(conn, user)) // check if user is inside any room
-        .flatMap {
-        case Some(room) => Future.failed(new IllegalStateException(s"$ALREADY_INSIDE_USER_ERROR${user.username} -> ${room.identifier}"))
-        case None => Future.successful(Unit)
-      }
-        .flatMap(_ => conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, notificationAddress.address, roomID)))
-        .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful(()))
+    (for (
+      _ <- checkInitialization(notInitialized);
+      _ <- roomInfo(roomID);
+      conn <- openConnection();
+      _ <- checkRoomSpaceAvailable(roomID, conn, ROOM_FULL_ERROR);
+      roomOption <- getRoomOfUser(conn, user); // check if user is inside any room
+      _ <- giveErrorOnRoomPresent(roomOption);
+      _ <- conn.updateWithParamsFuture(insertUserInRoomSql, Seq(user.username, user.address, notificationAddress.address, roomID))
+    ) yield ()).closeLastConnection
   }
 
   override def roomInfo(roomID: String): Future[(Room, Seq[Address])] = {
     log.debug(s"roomInfo() roomID:$roomID")
-    checkInitialization(notInitialized)
-      .flatMap(_ => stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR))
-      .flatMap(_ => openConnection())
-      .flatMap(conn => checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR)
-        .flatMap(_ => conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID)))
-        .map(resultOfJoinToRooms(_).head)
-        .andThen { case _ => conn.close() })
+    (for (
+      _ <- checkInitialization(notInitialized);
+      _ <- stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR);
+      conn <- openConnection();
+      _ <- checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR);
+      roomResult <- conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID));
+      roomAndAddresses = resultOfJoinToRooms(roomResult).head
+    ) yield roomAndAddresses).closeLastConnection
   }
 
   override def exitRoom(roomID: String)
                        (implicit user: User): Future[Unit] = {
+
+    def giveErrorOnWrongOrNotPresentRoom(roomOption: Option[Room], toCheckRoomID: String): Future[Unit] = roomOption match {
+      case Some(room) if room.identifier == toCheckRoomID => Future.successful(())
+      case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $toCheckRoomID"))
+    }
+
     log.debug(s"exitRoom() roomID:$roomID, user:$user")
-    checkInitialization(notInitialized)
-      .flatMap(_ => roomInfo(roomID))
-      .flatMap(_ => openConnection())
-      .flatMap(conn => getRoomOfUser(conn, user) // check user inside room
-        .flatMap {
-        case Some(room) if room.identifier == roomID => Future.successful(Unit)
-        case _ => Future.failed(new IllegalStateException(s"$NOT_INSIDE_USER_ERROR${user.username} -> $roomID"))
-      }
-        .flatMap(_ => conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username)))
-        .andThen { case _ => conn.close() })
-      .flatMap(_ => Future.successful(()))
+    (for (
+      _ <- checkInitialization(notInitialized);
+      _ <- roomInfo(roomID);
+      conn <- openConnection();
+      roomOption <- getRoomOfUser(conn, user); // check user inside room
+      _ <- giveErrorOnWrongOrNotPresentRoom(roomOption, roomID);
+      _ <- conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))
+    ) yield ()).closeLastConnection
   }
 
   override def listPublicRooms(): Future[Seq[Room]] = {
     log.debug("listPublicRooms()")
-    checkInitialization(notInitialized)
-      .flatMap(_ => openConnection())
-      .flatMap(conn => conn.queryFuture(selectAllPublicRoomsSql)
-        .andThen { case _ => conn.close() })
-      .map(resultOfJoinToRooms).map(_.map(_._1))
+    (for (
+      _ <- checkInitialization(notInitialized);
+      conn <- openConnection();
+      roomsResult <- conn.queryFuture(selectAllPublicRoomsSql);
+      roomsList = resultOfJoinToRooms(roomsResult).map(_._1)
+    ) yield roomsList).closeLastConnection
   }
 
   override def enterPublicRoom(playersNumber: Int)
                               (implicit user: Participant, address: Address): Future[Unit] = {
     log.debug(s"enterPublicRoom() playersNumber:$playersNumber, user:$user, address:$address")
-    checkInitialization(notInitialized)
-      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
-      .flatMap(enterRoom(_)(user, address))
+    for (
+      _ <- checkInitialization(notInitialized);
+      roomID <- publicRoomIdFromPlayersNumber(playersNumber);
+      _ <- enterRoom(roomID)(user, address)
+    ) yield ()
   }
 
   override def publicRoomInfo(playersNumber: Int): Future[(Room, Seq[Address])] = {
     log.debug(s"publicRoomInfo() playersNumber:$playersNumber")
-    checkInitialization(notInitialized)
-      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
-      .flatMap(roomInfo)
+    for (
+      _ <- checkInitialization(notInitialized);
+      roomID <- publicRoomIdFromPlayersNumber(playersNumber);
+      info <- roomInfo(roomID)
+    ) yield info
   }
 
   override def exitPublicRoom(playersNumber: Int)
                              (implicit user: User): Future[Unit] = {
     log.debug(s"exitPublicRoom() playersNumber:$playersNumber, user:$user")
-    checkInitialization(notInitialized)
-      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
-      .flatMap(exitRoom)
+    for (
+      _ <- checkInitialization(notInitialized);
+      roomID <- publicRoomIdFromPlayersNumber(playersNumber);
+      _ <- exitRoom(roomID)
+    ) yield ()
   }
 
   override def deleteRoom(roomID: String): Future[Unit] = {
-    log.debug(s"deleteRoom() roomID:$roomID")
-    checkInitialization(notInitialized)
-      .flatMap(_ => roomInfo(roomID)).map(_._1)
-      .flatMap(room => openConnection()
-        .flatMap(conn => checkRoomSpaceAvailable(roomID, conn, "")
-          .flatMap(_ => Future.failed(new IllegalStateException(DELETING_NON_FULL_ROOM_ERROR))) // checking room full
-          .recoverWith({ case ex: IllegalStateException if ex.getMessage.isEmpty => Future.successful(Unit) })
 
-          // deleting should consist of removing users from room and then delete room
-          .map(_ => for (user <- room.participants;
-                         deleteFuture = conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))) yield deleteFuture)
-          .flatMap(Future.sequence(_)) // waits for all to complete
-          .flatMap(_ => conn.updateWithParamsFuture(deleteRoomSql, Seq(roomID)))
-          .andThen { case _ => conn.close() }))
-      .flatMap(_ => Future.successful(()))
+    def giveErrorOnNonFullRoom(roomID: String, connection: SQLConnection): Future[Unit] =
+      checkRoomSpaceAvailable(roomID, connection, "") // if no room space available, will give empty error message
+        // if no error received, should fail -> because room non full
+        .flatMap(_ => Future.failed(new IllegalStateException(DELETING_NON_FULL_ROOM_ERROR)))
+        // if first error reaches this point, room is full and can be deleted
+        .recoverWith({ case ex: IllegalStateException if ex.getMessage.isEmpty => Future.successful(()) })
+
+    log.debug(s"deleteRoom() roomID:$roomID")
+    (for (
+      _ <- checkInitialization(notInitialized);
+      room <- roomInfo(roomID).map(_._1);
+      conn <- openConnection();
+      _ <- giveErrorOnNonFullRoom(roomID, conn);
+
+      // outer for will reach this point only if room is full (and can be deleted)
+      userDeletionFutures = for (user <- room.participants;
+                                 deletionFuture = conn.updateWithParamsFuture(deleteUserFormRoomSql, Seq(user.username))) yield deletionFuture;
+      _ <- Future.sequence(userDeletionFutures); // waits for all deletions to complete
+      _ <- conn.updateWithParamsFuture(deleteRoomSql, Seq(roomID))
+    ) yield ()).closeLastConnection
   }
 
   override def deleteAndRecreatePublicRoom(playersNumber: Int): Future[Unit] = {
     log.debug(s"deleteAndRecreatePublicRoom() playersNumber:$playersNumber")
-    checkInitialization(notInitialized)
-      .flatMap(_ => publicRoomIdFromPlayersNumber(playersNumber))
-      .flatMap(deleteRoom)
-      .flatMap(_ => openConnection())
-      .flatMap(conn => createPublicRoom(conn, playersNumber)
-        .andThen { case _ => conn.close() })
+    (for (
+      _ <- checkInitialization(notInitialized);
+      roomID <- publicRoomIdFromPlayersNumber(playersNumber);
+      _ <- deleteRoom(roomID);
+      conn <- openConnection();
+      _ <- createPublicRoom(conn, playersNumber)
+    ) yield ()).closeLastConnection
   }
 
   /**
@@ -307,14 +325,6 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
 object RoomsLocalDAO {
 
   val publicPrefix: String = "public"
-
-  /**
-    * Utility method to check if DAO is initialized
-    */
-  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
-    if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
-    else Future.successful(Unit)
-  }
 
   private val ROOM_ID_LENGTH = 20
   private val userToRoomLinkField = "user_room"
@@ -386,11 +396,11 @@ object RoomsLocalDAO {
   }
 
   /**
-    * Utility method to convert a result set to a room sequence
+    * Utility method to convert a result set to a room sequence and relative addresses
     */
-  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[(Room, Seq[Address])] = { // review maybe with for comprehension
+  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[(Room, Seq[Address])] = {
     val roomsUsers: mutable.Map[String, Seq[Participant]] = mutable.HashMap()
-    val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap() // TODO: refactor
+    val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap()
     val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
     val roomIDPos = 0
     val roomNamePos = 1
@@ -400,7 +410,6 @@ object RoomsLocalDAO {
     val userNotificationAddressPos = 5
 
     for (resultRow <- resultSet.getResults) {
-      //logger.debug(s"Database row: $resultRow")
       val roomID = resultRow getString roomIDPos
       val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
       val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
@@ -438,6 +447,14 @@ object RoomsLocalDAO {
   private def generateRandomRoomID() = Utils.randomString(ROOM_ID_LENGTH)
 
   /**
+    * Utility method to check if DAO is initialized
+    */
+  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
+    if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
+    else Future.successful(())
+  }
+
+  /**
     * @return a succeeded Future if string is ok, a failed Future otherwise
     */
   private def stringCheckFuture(toCheck: String, errorMessage: String): Future[Unit] =
@@ -450,7 +467,7 @@ object RoomsLocalDAO {
     */
   private def playersNumberCheck(playersNumber: Int, errorMessage: String): Future[Unit] =
     if (playersNumber < 2) Future.failed(new IllegalArgumentException(errorMessage))
-    else Future.successful(Unit)
+    else Future.successful(())
 
   /**
     * @return a succeeded future if the room with given ID is present, a failed future otherwise
@@ -460,21 +477,8 @@ object RoomsLocalDAO {
     connection.queryWithParamsFuture(selectARoomIDSql, Seq(roomID))
       .flatMap(_.getResults.size match {
         case 0 => Future.failed(new NoSuchElementException(errorMessage))
-        case _ => Future.successful(Unit)
+        case _ => Future.successful(())
       })
-  }
-
-  /**
-    * Internal method to create public rooms
-    *
-    * @return the future that completes when the room is created
-    */
-  private def createPublicRoom(connection: SQLConnection, playersNumber: Int)
-                              (implicit executionContext: ExecutionContext): Future[Unit] = {
-    getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}")
-      .flatMap(publicRoomID =>
-        connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString)))
-      .map(_ => Unit)
   }
 
   /**
@@ -486,8 +490,20 @@ object RoomsLocalDAO {
       .map(resultOfJoinToRooms(_).map(_._1))
       .flatMap(_.head match {
         case Room(_, _, playersNumber, actualParticipants)
-          if playersNumber > actualParticipants.size => Future.successful(Unit)
+          if playersNumber > actualParticipants.size => Future.successful(())
         case _ => Future.failed(new IllegalStateException(errorMessage))
       })
   }
+
+  /**
+    * Internal method to create public rooms
+    *
+    * @return the future that completes when the room is created
+    */
+  private def createPublicRoom(connection: SQLConnection, playersNumber: Int)
+                              (implicit executionContext: ExecutionContext): Future[Unit] =
+    for (
+      publicRoomID <- getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}");
+      _ <- connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString))
+    ) yield ()
 }

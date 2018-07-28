@@ -9,7 +9,6 @@ import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import it.cwmp.utils.VertxClient
-import org.scalatest.Assertion
 
 import scala.concurrent.Future
 
@@ -28,7 +27,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     val creationApi = API_CREATE_PRIVATE_ROOM_URL
 
     it("should succeed when the user is authenticated and input is valid") {
-      createPrivateRoomRequest(roomName, playersNumber) flatMap (res => assert(res.statusCode() == 201 && res.bodyAsString().isDefined))
+      for (response <- createPrivateRoomRequest(roomName, playersNumber);
+           assertion <- assert(response.statusCode() == 201 && response.bodyAsString().isDefined)) yield assertion
     }
 
     describe("should fail") {
@@ -49,9 +49,9 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def privateRoomEnteringTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed when the user is authenticated, input is valid and room non full") {
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => (enterPrivateRoomRequest(roomID, participantList.head, notificationAddress) shouldAnswerWith 200)
-          .flatMap(cleanUpRoomRequest(roomID, _)))
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           assertion <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress) shouldAnswerWith 200;
+           _ <- cleanUpRoom(roomID)) yield assertion
     }
 
     describe("should fail") {
@@ -64,31 +64,29 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith 400
       }
       it("if user is already inside a room") {
-        createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress) shouldAnswerWith 400)
-            .flatMap(cleanUpRoomRequest(roomID, _)))
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+             assertion <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress) shouldAnswerWith 400;
+             _ <- cleanUpRoom(roomID)) yield assertion
       }
       it("if the room was already filled") {
         val playersNumber = 2
-        createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(client, tokenList(1)))
-            .flatMap(_ => enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(client, tokenList(2)))) shouldAnswerWith 404
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+             _ <- enterPrivateRoomRequest(roomID, participantList(1), notificationAddress)(client, tokenList(1));
+             assertion <- enterPrivateRoomRequest(roomID, participantList(2), notificationAddress)(client, tokenList(2)) shouldAnswerWith 404)
+          yield assertion
       }
     }
   }
 
   override protected def privateRoomInfoRetrievalTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomId is correct") {
-      var roomJson = ""
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => privateRoomInfoRequest(roomID)
-          .map(response => {
-            roomJson = Room(roomID, roomName, playersNumber, Seq()).toJson.encode()
-            response
-          }))
-        .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get == roomJson))
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           response <- privateRoomInfoRequest(roomID);
+           roomJson = Room(roomID, roomName, playersNumber, Seq()).toJson.encode();
+           assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get == roomJson))
+        yield assertion
     }
 
     describe("should fail") {
@@ -98,30 +96,32 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitPrivateRoomRequest(roomID))) shouldAnswerWith 200
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+           assertion <- exitPrivateRoomRequest(roomID) shouldAnswerWith 200) yield assertion
     }
     it("user should not be inside after it") {
-      createAPrivateRoomAndGetID(roomName, playersNumber)
-        .flatMap(roomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitPrivateRoomRequest(roomID))
-          .flatMap(_ => privateRoomInfoRequest(roomID)))
-        .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(participantList.head.username)))
+      for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+           _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+           _ <- exitPrivateRoomRequest(roomID);
+           response <- privateRoomInfoRequest(roomID);
+           assertion <- assert(response.statusCode() == 200 && !response.bodyAsString().get.contains(participantList.head.username)))
+        yield assertion
     }
 
     describe("should fail") {
       onWrongRoomID(exitPrivateRoomRequest)
 
       it("if user is not inside the room") {
-        createAPrivateRoomAndGetID(roomName, playersNumber) flatMap (roomID => exitPrivateRoomRequest(roomID)) shouldAnswerWith 400
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             assertion <- exitPrivateRoomRequest(roomID) shouldAnswerWith 400) yield assertion
       }
       it("if user is inside another room") {
-        createAPrivateRoomAndGetID(roomName, playersNumber)
-          .flatMap(roomID => createAPrivateRoomAndGetID(roomName, playersNumber)
-            .flatMap(otherRoomID => enterPrivateRoomRequest(roomID, participantList.head, notificationAddress)
-              .flatMap(_ => exitPrivateRoomRequest(otherRoomID) shouldAnswerWith 400))
-            .flatMap(cleanUpRoomRequest(roomID, _)))
+        for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             otherRoomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
+             _ <- enterPrivateRoomRequest(roomID, participantList.head, notificationAddress);
+             assertion <- exitPrivateRoomRequest(otherRoomID) shouldAnswerWith 400;
+             _ <- cleanUpRoom(roomID)) yield assertion
       }
     }
   }
@@ -129,23 +129,25 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
   override protected def publicRoomEnteringTests(playersNumber: Int): Unit = {
     describe("should succeed") {
       it("if room with such players number exists") {
-        enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress) shouldAnswerWith 200 flatMap (cleanUpRoomRequest(playersNumber, _))
+        for (assertion <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress) shouldAnswerWith 200;
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
       it("and the user should be inside it") {
-        (enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfoRequest(playersNumber)))
-          .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get.contains(participantList.head.username)))
-          .flatMap(cleanUpRoomRequest(playersNumber, _))
+        for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+             response <- publicRoomInfoRequest(playersNumber);
+             assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get.contains(participantList.head.username));
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
       it("even when the room was filled in past") {
-        enterPublicRoomRequest(2, participantList.head, notificationAddress)
-          .flatMap(_ => enterPublicRoomRequest(2, participantList(1), notificationAddress)(client, tokenList(1)))
-          .flatMap(_ => enterPublicRoomRequest(2, participantList(2), notificationAddress)(client, tokenList(2)))
-          .flatMap(_ => publicRoomInfoRequest(2))
-          .flatMap(res => assert(res.statusCode() == 200 &&
-            !res.bodyAsString().get.contains(participantList.head.username) &&
-            !res.bodyAsString().get.contains(participantList(1).username) &&
-            res.bodyAsString().get.contains(participantList(2).username)))
-          .flatMap(cleanUpRoomRequest(playersNumber, _)(tokenList(2)))
+        for (_ <- enterPublicRoomRequest(2, participantList.head, notificationAddress);
+             _ <- enterPublicRoomRequest(2, participantList(1), notificationAddress)(client, tokenList(1));
+             _ <- enterPublicRoomRequest(2, participantList(2), notificationAddress)(client, tokenList(2));
+             response <- publicRoomInfoRequest(2);
+             assertion <- assert(response.statusCode() == 200 &&
+               !response.bodyAsString().get.contains(participantList.head.username) &&
+               !response.bodyAsString().get.contains(participantList(1).username) &&
+               response.bodyAsString().get.contains(participantList(2).username));
+             _ <- cleanUpRoom(playersNumber)(tokenList(2))) yield assertion
       }
     }
 
@@ -159,16 +161,18 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith 400
       }
       it("if same user is already inside a room") {
-        enterPublicRoomRequest(2, participantList.head, notificationAddress)
-          .flatMap(_ => enterPublicRoomRequest(3, participantList.head, notificationAddress))
-          .shouldAnswerWith(400) flatMap (cleanUpRoomRequest(playersNumber, _))
+        for (_ <- enterPublicRoomRequest(2, participantList.head, notificationAddress);
+             assertion <- enterPublicRoomRequest(3, participantList.head, notificationAddress) shouldAnswerWith 400;
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
     }
   }
 
   override protected def publicRoomListingTests(playersNumber: Int): Unit = {
     it("should be nonEmpty") {
-      listPublicRoomsRequest() flatMap (res => assert(res.statusCode() == 200 && res.bodyAsString().get.nonEmpty))
+      for (response <- listPublicRoomsRequest();
+           assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get.nonEmpty))
+        yield assertion
     }
   }
 
@@ -177,9 +181,10 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       publicRoomInfoRequest(playersNumber) shouldAnswerWith 200
     }
     it("should show entered players") {
-      (enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfoRequest(playersNumber)))
-        .flatMap(res => assert(res.statusCode() == 200 && res.bodyAsString().get.contains(participantList.head.username)))
-        .flatMap(cleanUpRoomRequest(playersNumber, _))
+      for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+           response <- publicRoomInfoRequest(playersNumber);
+           assertion <- assert(response.statusCode() == 200 && response.bodyAsString().get.contains(participantList.head.username));
+           _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
     describe("should fail") {
@@ -189,14 +194,15 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoomRequest(playersNumber)) shouldAnswerWith 200
+      for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+           assertion <- exitPublicRoomRequest(playersNumber) shouldAnswerWith 200) yield assertion
     }
     it("user should not be inside after it") {
-      enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoomRequest(playersNumber))
-        .flatMap(_ => publicRoomInfoRequest(playersNumber))
-        .flatMap(res => assert(res.statusCode() == 200 && !res.bodyAsString().get.contains(participantList.head.username)))
+      for (_ <- enterPublicRoomRequest(playersNumber, participantList.head, notificationAddress);
+           _ <- exitPublicRoomRequest(playersNumber);
+           response <- publicRoomInfoRequest(playersNumber);
+           assertion <- assert(response.statusCode() == 200 && !response.bodyAsString().get.contains(participantList.head.username)))
+        yield assertion
     }
 
     describe("should fail") {
@@ -206,8 +212,9 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         exitPublicRoomRequest(playersNumber) shouldAnswerWith 400
       }
       it("if user is inside another room") {
-        (enterPublicRoomRequest(2, participantList.head, notificationAddress) flatMap (_ => exitPublicRoomRequest(3)))
-          .shouldAnswerWith(400) flatMap (cleanUpRoomRequest(playersNumber, _))
+        for (_ <- enterPublicRoomRequest(2, participantList.head, notificationAddress);
+             assertion <- exitPublicRoomRequest(3) shouldAnswerWith 400;
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
     }
   }
@@ -242,9 +249,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     }
   }
 
-  /**
-    * Describes the behaviour of private api when the roomID is wrong
-    */
   override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
     it("if roomID is empty") {
       apiCall("").mapTo[HttpResponse[Buffer]] shouldAnswerWith 400
@@ -254,9 +258,6 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     }
   }
 
-  /**
-    * Describes the behaviour of public api when called with wrong players number
-    */
   override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
     it("if players number provided less than 2") {
       apiCall(0).mapTo[HttpResponse[Buffer]] shouldAnswerWith 400
@@ -270,18 +271,18 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     * Shorthand to create a room and get it's id from response
     */
   private def createAPrivateRoomAndGetID(roomName: String, playersNumber: Int) = {
-    createPrivateRoomRequest(roomName, playersNumber) map (_.bodyAsString().get)
+    for (response <- createPrivateRoomRequest(roomName, playersNumber)) yield response.bodyAsString().get
   }
 
   /**
     * Cleans up the provided room, exiting the user with passed token
     */
-  private def cleanUpRoomRequest(roomID: String, assertion: Assertion)(implicit userToken: String) =
-    exitPrivateRoomRequest(roomID)(client, userToken) map (_ => assertion)
+  override protected def cleanUpRoom(roomID: String)(implicit userToken: String): Future[Unit] =
+    for (_ <- exitPrivateRoomRequest(roomID)(client, userToken)) yield ()
 
   /**
     * Cleans up the provided public room, exiting player with passed token
     */
-  private def cleanUpRoomRequest(playersNumber: Int, assertion: Assertion)(implicit userToken: String) =
-    exitPublicRoomRequest(playersNumber)(client, userToken) map (_ => assertion)
+  override protected def cleanUpRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
+    for (_ <- exitPublicRoomRequest(playersNumber)(client, userToken)) yield ()
 }

@@ -145,7 +145,7 @@ object AuthenticationLocalDAO {
     */
   private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
     if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))
-    else Future.successful(Unit)
+    else Future.successful(())
   }
 
   private val createStorageTableSql =
