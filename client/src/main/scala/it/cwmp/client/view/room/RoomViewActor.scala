@@ -1,81 +1,37 @@
 package it.cwmp.client.view.room
 
-import akka.actor.{Actor, ActorRef}
-import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests.{GUICreate, GUIEnterPrivate, GUIEnterPublic}
-import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement}
+import it.cwmp.client.view.FXViewActor
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
 
 /**
   * This class represents the actor that manages the rooms
   *
   * @author Davide Borficchia
   */
-case class RoomViewActor() extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+case class RoomViewActor() extends FXViewActor {
 
-  /**
-    * roomFXController il controller che gestisce la view della lobby delle stanze
-    */
-  var fxController: RoomFXController = _
-  /**
-    * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
-    */
-  var controllerActor: ActorRef = _
+  override protected var fxController: RoomFXController = _
 
-  /**
-    * Questo metodo viene invocato alla creazione dell'attore. Non va mai chiamato direttamente!
-    * Si occupa di creare il controller/view di javaFX per gestire il layout grafico delle stanze.
-    */
   override def preStart(): Unit = {
     super.preStart()
+    fxController = RoomFXController(new RoomFXStrategy {
+      override def onCreate(roomName: String, playersNumber: Int): Unit =
+        controllerActor ! GUICreate(roomName, playersNumber)
 
-    new JFXPanel // initializes JavaFX
-    Platform setImplicitExit false
-    Platform runLater (() => {
-      fxController = RoomFXController(new RoomFXStrategy {
-        override def onCreate(roomName: String, playersNumber: Int): Unit =
-          controllerActor ! GUICreate(roomName, playersNumber)
+      override def onEnterPrivate(roomID: String): Unit =
+        controllerActor ! GUIEnterPrivate(roomID)
 
-        override def onEnterPrivate(roomID: String): Unit =
-          controllerActor ! GUIEnterPrivate(roomID)
-
-        override def onEnterPublic(playersNumber: Int): Unit =
-          controllerActor ! GUIEnterPublic(playersNumber)
-      })
+      override def onEnterPublic(playersNumber: Int): Unit =
+        controllerActor ! GUIEnterPublic(playersNumber)
     })
   }
 
-  override def receive: Receive = alertBehaviour orElse visibilityBehaviour orElse {
-    case Initialize => controllerActor = sender()
-    case ShowToken(roomToken) => Platform runLater (() => {
-      onAlertReceived()
+  override def receive: Receive = super.receive orElse {
+    case ShowToken(roomToken) => runOnUIThread(() => {
+      //      onAlertReceived() was called before moving all to super class
       fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
     })
-  }
-
-  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
-    super.onErrorAlertReceived(title, message)
-    onAlertReceived() // TODO: duplicated code in AuthenticationActor
-  }
-
-  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
-    super.onInfoAlertReceived(title, message)
-    onAlertReceived()
-  }
-
-  /**
-    * When receiving an alert should enable buttons and hide loading
-    */
-  private def onAlertReceived(): Unit = {
-    fxController enableViewComponents()
-    fxController hideLoading()
-  }
-
-  override protected def onHideGUI(): Unit = {
-    super.onHideGUI()
-    fxController hideLoading()
   }
 }
 

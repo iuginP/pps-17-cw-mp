@@ -16,7 +16,7 @@ trait ActorViewVisibilityManagement extends FXRunOnUIThread {
   /**
     * @return the visibility controller
     */
-  def fxController: FXViewController
+  protected def fxController: FXViewController
 
   /**
     * @return the behaviour that manages alert messages

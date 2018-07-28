@@ -17,7 +17,7 @@ trait ActorAlertManagement {
   /**
     * @return the alerts controller
     */
-  def fxController: FXAlertsController
+  protected def fxController: FXAlertsController
 
   /**
     * @return the behaviour that manages alert messages
