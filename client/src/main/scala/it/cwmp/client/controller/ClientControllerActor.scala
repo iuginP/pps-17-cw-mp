@@ -7,9 +7,11 @@ import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.RoomsRequests.{Create, EnterPrivate, EnterPublic}
 import it.cwmp.client.controller.messages.RoomsResponses._
+import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
 import it.cwmp.client.view.AlertMessages
-import it.cwmp.client.view.authentication.{AuthenticationViewActor, AuthenticationViewMessages}
-import it.cwmp.client.view.room.{RoomViewActor, RoomViewMessages}
+import it.cwmp.client.view.authentication.AuthenticationViewActor
+import it.cwmp.client.view.room.RoomViewActor
+import it.cwmp.client.view.room.RoomViewActor.ShowToken
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.utils.Logging
 
@@ -63,14 +65,14 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
 
     log.info(s"Initializing the authentication view actor...")
     authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
-    authenticationViewActor ! AuthenticationViewMessages.InitController
+    authenticationViewActor ! Initialize
 
     log.info(s"Displaying the view...")
-    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
+    authenticationViewActor ! Show
 
     log.info(s"Initializing the room view actor...")
     roomViewActor = system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
-    roomViewActor ! RoomViewMessages.InitController
+    roomViewActor ! Initialize
   }
 
   override def receive: Receive = playerAddressRetrievalBehaviour
@@ -120,15 +122,14 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     case RoomEnterPublic(nPlayer) =>
       log.info(s"Entering the public room with $nPlayer players")
       openOneTimeServerAndGetAddress()
-        .map(url => apiClientActor ! EnterPublic(nPlayer, Address(playerAddress), url, jwtToken)
-        )
+        .map(url => apiClientActor ! EnterPublic(nPlayer, Address(playerAddress), url, jwtToken))
   }
 
   /**
     * @return the behaviour that manages room API responses
     */
   private def roomsApiReceiverBehaviour: Receive = {
-    case CreateSuccess(token) => roomViewActor ! RoomViewMessages.ShowToken("Token", token)
+    case CreateSuccess(token) => roomViewActor ! ShowToken("Token", token)
     case CreateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case EnterPrivateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
@@ -166,7 +167,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def onLogOut(): Unit = {
     log.info(s"Setting the behaviour 'authentication-manager'")
     context.become(authenticationApiReceiverBehaviour orElse authenticationGUIBehaviour)
-    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
+    authenticationViewActor ! Show
   }
 
   /**
@@ -176,8 +177,8 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     jwtToken = token
     log.info(s"Setting the behaviour 'room-manager'")
     context.become(roomsApiReceiverBehaviour orElse roomsGUIBehaviour)
-    roomViewActor ! RoomViewMessages.ShowGUI
-    authenticationViewActor ! AuthenticationViewMessages.HideGUI
+    roomViewActor ! Show
+    authenticationViewActor ! Hide
   }
 
   /**
@@ -194,7 +195,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
-    roomViewActor ! RoomViewMessages.HideGUI // TODO: why here hideGUI and in auth no?
+    roomViewActor ! Hide // TODO: why here hideGUI and in auth no?
     playerActor ! StartGame(participants)
   }
 }
