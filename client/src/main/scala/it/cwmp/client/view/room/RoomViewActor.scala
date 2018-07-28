@@ -2,14 +2,14 @@ package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement, ClientControllerMessages}
+import it.cwmp.client.controller.messages.RoomsRequests.{GUICreate, GUIEnterPrivate, GUIEnterPublic}
+import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement}
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
 /**
-  * Questa classe rappresenta l'attore incaricato di visualizzare
-  * l'interfaccia grafica della lobby di selezione delle stanze.
+  * This class represents the actor that manages the rooms
   *
   * @author Davide Borficchia
   */
@@ -35,14 +35,14 @@ case class RoomViewActor() extends Actor with ActorAlertManagement with ActorVie
     Platform setImplicitExit false
     Platform runLater (() => {
       fxController = RoomFXController(new RoomFXStrategy {
-        override def onCreate(name: String, nPlayer: Int): Unit =
-          controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
+        override def onCreate(roomName: String, playersNumber: Int): Unit =
+          controllerActor ! GUICreate(roomName, playersNumber)
 
-        override def onEnterPrivate(idRoom: String): Unit =
-          controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+        override def onEnterPrivate(roomID: String): Unit =
+          controllerActor ! GUIEnterPrivate(roomID)
 
-        override def onEnterPublic(nPlayer: Int): Unit =
-          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
+        override def onEnterPublic(playersNumber: Int): Unit =
+          controllerActor ! GUIEnterPublic(playersNumber)
       })
     })
   }

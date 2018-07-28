@@ -3,13 +3,12 @@ package it.cwmp.client.controller
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.controller.AlertMessages.Error
 import it.cwmp.client.controller.ClientControllerActor.{AUTHENTICATION_ERROR_TITLE, CREATE_ERROR_TITLE, ENTERING_ERROR_TITLE, RECEIVING_PARTICIPANT_LIST_ERROR_TITLE}
-import it.cwmp.client.controller.ClientControllerMessages._
 import it.cwmp.client.controller.PlayerActor.{RetrieveAddress, RetrieveAddressResponse, StartGame}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.controller.messages.RoomsRequests.{Create, EnterPrivate, EnterPublic}
+import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.view.authentication.AuthenticationViewActor
 import it.cwmp.client.view.room.RoomViewActor
@@ -114,17 +113,17 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * @return the behaviour that manages rooms commands from GUI
     */
   private def roomsGUIBehaviour: Receive = {
-    case RoomCreatePrivate(name, nPlayer) =>
-      log.info(s"Creating the room $name")
-      apiClientActor ! Create(name, nPlayer, jwtToken)
-    case RoomEnterPrivate(idRoom) =>
-      log.info(s"Entering the private room $idRoom")
+    case GUICreate(roomName, playersNumber) =>
+      log.info(s"Creating the room $roomName")
+      apiClientActor ! ServiceCreate(roomName, playersNumber, jwtToken)
+    case GUIEnterPrivate(roomID) =>
+      log.info(s"Entering the private room $roomID")
       openOneTimeServerAndGetAddress()
-        .map(url => apiClientActor ! EnterPrivate(idRoom, Address(playerAddress), url, jwtToken))
-    case RoomEnterPublic(nPlayer) =>
-      log.info(s"Entering the public room with $nPlayer players")
+        .map(url => apiClientActor ! ServiceEnterPrivate(roomID, Address(playerAddress), url, jwtToken))
+    case GUIEnterPublic(playersNumber) =>
+      log.info(s"Entering the public room with $playersNumber players")
       openOneTimeServerAndGetAddress()
-        .map(url => apiClientActor ! EnterPublic(nPlayer, Address(playerAddress), url, jwtToken))
+        .map(url => apiClientActor ! ServiceEnterPublic(playersNumber, Address(playerAddress), url, jwtToken))
   }
 
   /**
@@ -210,37 +209,4 @@ object ClientControllerActor {
   private val ENTERING_ERROR_TITLE = "Errore nell'entrata nella stanza"
   private val RECEIVING_PARTICIPANT_LIST_ERROR_TITLE = "Errore durante la ricezione degli altri partecipanti"
   private val AUTHENTICATION_ERROR_TITLE = "Errore durante l'autenticazione"
-}
-
-/**
-  * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
-  */
-object ClientControllerMessages {
-
-
-  /**
-    * Questo messaggio gestisce la volontà di creare una nuova stanza privata.
-    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
-    *
-    * @param name    è il nome della stanza da creare
-    * @param nPlayer è il numero dei giocatori che potranno entrare nella stanza
-    */
-  case class RoomCreatePrivate(name: String, nPlayer: Int)
-
-  /**
-    * Questo messaggio gestisce la volontà di entrare in una stanza privata.
-    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
-    *
-    * @param idRoom è l'id che identifica la stanza privata
-    */
-  case class RoomEnterPrivate(idRoom: String)
-
-  /**
-    * Questo messaggio gestisce la volontà di entrare in una stanza pubblica.
-    * Quando lo ricevo, invio la richiesta all'attore che gestisce i servizi online delle stanze.
-    *
-    * @param nPlayer è il numero dei partecipanti con i quali si vuole giocare
-    */
-  case class RoomEnterPublic(nPlayer: Int)
-
 }

@@ -3,7 +3,7 @@ package it.cwmp.client.controller
 import akka.actor.Actor
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
-import it.cwmp.client.controller.messages.RoomsRequests.{Create, EnterPrivate, EnterPublic}
+import it.cwmp.client.controller.messages.RoomsRequests.{ServiceCreate, ServiceEnterPrivate, ServiceEnterPublic}
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
 import it.cwmp.utils.Utils.stringToOption
@@ -50,19 +50,19 @@ case class ApiClientActor() extends Actor {
     //noinspection ScalaStyle
     import roomApiWrapper._
     {
-      case Create(roomName, playersNumber, token) =>
+      case ServiceCreate(roomName, playersNumber, token) =>
         val senderTmp = sender
         createRoom(roomName, playersNumber)(token).onComplete(replyWith(
           token => senderTmp ! CreateSuccess(token),
           exception => senderTmp ! CreateFailure(exception.getMessage)
         ))
-      case EnterPrivate(idRoom, address, webAddress, token) =>
+      case ServiceEnterPrivate(idRoom, address, webAddress, token) =>
         val senderTmp = sender
         enterRoom(idRoom, address, webAddress)(token).onComplete(replyWith(
           _ => senderTmp ! EnterPrivateSuccess,
           exception => senderTmp ! EnterPrivateFailure(exception.getMessage)
         ))
-      case EnterPublic(nPlayer, address, webAddress, token) =>
+      case ServiceEnterPublic(nPlayer, address, webAddress, token) =>
         val senderTmp = sender
         enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
           _ => senderTmp ! EnterPublicSuccess,
