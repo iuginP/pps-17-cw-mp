@@ -23,7 +23,7 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXInputView
+class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewManagement
   with FXViewController with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.roomManagerLayout
