@@ -1,6 +1,8 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import it.cwmp.client.controller.AlertMessages.Error
+import it.cwmp.client.controller.ClientControllerActor.{AUTHENTICATION_ERROR_TITLE, CREATE_ERROR_TITLE, ENTERING_ERROR_TITLE, RECEIVING_PARTICIPANT_LIST_ERROR_TITLE}
 import it.cwmp.client.controller.ClientControllerMessages._
 import it.cwmp.client.controller.PlayerActor.{RetrieveAddress, RetrieveAddressResponse, StartGame}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
@@ -129,12 +131,12 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * @return the behaviour that manages room API responses
     */
   private def roomsApiReceiverBehaviour: Receive = {
-    case CreateSuccess(token) => roomViewActor ! ShowToken("Token", token)
-    case CreateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
-    case EnterPrivateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case EnterPublicSuccess => //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
-    case EnterPublicFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case CreateSuccess(token) => roomViewActor ! ShowToken(token)
+    case CreateFailure(errorMessage) => roomViewActor ! Error(CREATE_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
+    case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato")
+    case EnterPrivateFailure(errorMessage) => roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
+    case EnterPublicSuccess => //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato")
+    case EnterPublicFailure(errorMessage) => roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
   }
 
   private def inGameBehaviour: Receive = {
@@ -157,7 +159,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
           log.debug(s"Server started and listening at the address: $address")
         case Failure(error) =>
           log.error(s"Problem starting the server: ${error.getMessage}")
-          roomViewActor ! AlertMessages.Error("Error", error.getMessage)
+          roomViewActor ! Error(RECEIVING_PARTICIPANT_LIST_ERROR_TITLE, error.getMessage)
       })
   }
 
@@ -185,7 +187,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * Action to do on failed authentication
     */
   private def onAuthenticationFailure(errorMessage: Option[String]): Unit =
-    authenticationViewActor ! AlertMessages.Error("Warning", errorMessage.getOrElse(UNKNOWN_ERROR))
+    authenticationViewActor ! Error(AUTHENTICATION_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
 
   /**
     * Action to execute when found opponents
@@ -195,9 +197,19 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
-    roomViewActor ! Hide // TODO: why here hideGUI and in auth no?
+    roomViewActor ! Hide
     playerActor ! StartGame(participants)
   }
+}
+
+/**
+  * Companion object
+  */
+object ClientControllerActor {
+  private val CREATE_ERROR_TITLE = "Errore nella creazione della stanza"
+  private val ENTERING_ERROR_TITLE = "Errore nell'entrata nella stanza"
+  private val RECEIVING_PARTICIPANT_LIST_ERROR_TITLE = "Errore durante la ricezione degli altri partecipanti"
+  private val AUTHENTICATION_ERROR_TITLE = "Errore durante l'autenticazione"
 }
 
 /**

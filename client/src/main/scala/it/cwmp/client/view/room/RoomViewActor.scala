@@ -49,8 +49,7 @@ case class RoomViewActor() extends Actor with ActorAlertManagement with ActorVie
 
   override def receive: Receive = alertBehaviour orElse visibilityBehaviour orElse {
     case Initialize => controllerActor = sender()
-    case ShowToken(title, roomToken) => Platform runLater (() => {
-      // TODO: remove "title" from this message, view should be able to decide what to write
+    case ShowToken(roomToken) => Platform runLater (() => {
       onAlertReceived()
       fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
     })
@@ -86,11 +85,10 @@ case class RoomViewActor() extends Actor with ActorAlertManagement with ActorVie
 object RoomViewActor {
 
   /**
-    * Questo messaggio serve per visualizzare a schermo il token di creazione della stanza privata
+    * Shows the room token on screen
     *
-    * @param title   il tiolo da visualizzare nel dialog
-    * @param message il token vero e proprio
+    * @param roomToken the private room token to spread among friends
     */
-  case class ShowToken(title: String, message: String)
+  case class ShowToken(roomToken: String)
 
 }
