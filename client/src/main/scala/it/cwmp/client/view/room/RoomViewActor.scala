@@ -91,7 +91,7 @@ class RoomViewActor extends Actor with AlertActor {
     case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
     case RoomViewMessages.HideGUI => Platform runLater (() => {
       fxController.hideGUI()
-      fxController hideLoadingDialog()
+      fxController hideDialog()
     })
     case RoomViewMessages.ShowToken(title, message) => Platform runLater(() => {
       onAlertReceived()
@@ -101,6 +101,6 @@ class RoomViewActor extends Actor with AlertActor {
 
   override protected def onAlertReceived(): Unit = {
     fxController enableButtons()
-    fxController hideLoadingDialog()
+    fxController hideDialog()
   }
 }
