@@ -22,6 +22,13 @@ trait FXAlerts extends FXRunOnUIThread {
   def showInfo(headerText: String, message: String): Unit =
     showAlertWithButtons(AlertType.INFORMATION, headerText, message, ButtonType.OK)
 
+  /**
+    * An info alert with custom content
+    *
+    * @param headerText   the header text to show
+    * @param message      the message to show
+    * @param alertContent the custom content to show
+    */
   def showInfoWithContent(headerText: String, message: String, alertContent: Node): Unit =
     showAlertWithButtons(AlertType.INFORMATION, headerText, message, ButtonType.OK, Some(alertContent))
 
@@ -34,21 +41,26 @@ trait FXAlerts extends FXRunOnUIThread {
   def showError(headerText: String, message: String): Unit =
     showAlertWithButtons(AlertType.ERROR, headerText, message, ButtonType.OK)
 
-  def showLoading(headerText: String, message: String): Unit = createAndShowLoadingAlert(headerText, message)
+  /**
+    * Shows a loading dialog that either can be closed or not
+    *
+    * @param headerText               the header text to show
+    * @param message                  the message to show
+    * @param canBeClosed              whether the dialog ca be closed or not
+    * @param onPrematureClosureAction which action has to be executed if the loading is closed prematurely
+    */
+  def showLoading(headerText: String, message: String,
+                  canBeClosed: Boolean = false,
+                  onPrematureClosureAction: () => Unit = () => ()): Unit = runOnUIThread(() => {
+    LoadingManagement
+      .createLoadingAlert(headerText, message, canBeClosed, onPrematureClosureAction)
+      .show()
+  })
 
-  def hideLoading(): Unit = closeDialogAlert()
-
-  //
-  //  private def genericAlert(alertType: AlertType, title: String, headerTitle: String, message: String, onClose: Option[() => Unit]): Unit = {
-  //    Platform runLater (() => {
-  //      alert setTitle title
-  //      alert setHeaderText headerTitle
-  //      val result: Optional[ButtonType] = alert.showAndWait
-  //      if (result.get.eq(ButtonType.OK) && onClose.isDefined) {
-  //        onClose.get()
-  //      }
-  //    })
-  //  }
+  /**
+    * Hides the loading dialog
+    */
+  def hideLoading(): Unit = LoadingManagement.closeLoadingAlert()
 
   /**
     * Shows an alert with specified parameters
@@ -70,31 +82,45 @@ trait FXAlerts extends FXRunOnUIThread {
       alert.showAndWait
     })
 
-  private var loadingAlert: Alert = _
 
   /**
-    * Creates and shows a non blocking loading alert
-    *
-    * @param title   the title of the loading alert
-    * @param message the message to show in the loading alert
+    * An object that wraps Loading alert management
     */
-  private def createAndShowLoadingAlert(title: String, message: String): Unit =
-    runOnUIThread(() => {
+  private object LoadingManagement {
+    var loadingAlert: Alert = _
+
+    /**
+      * Creates and shows a non blocking loading alert
+      *
+      * @param title   the title of the loading alert
+      * @param message the message to show in the loading alert
+      */
+    def createLoadingAlert(title: String, message: String,
+                           canBeClosed: Boolean, onPrematureCloseAction: () => Unit): Alert = {
       loadingAlert = new Alert(AlertType.NONE)
       loadingAlert setTitle title
       loadingAlert setHeaderText message
       val pane = new BorderPane()
       pane.setCenter(new ProgressBar())
       loadingAlert.getDialogPane.setContent(pane)
-      loadingAlert.show()
-    })
 
-  /**
-    * Closes the loading alert
-    */
-  private def closeDialogAlert(): Unit =
-    runOnUIThread(() => {
-      loadingAlert.setResult(ButtonType.OK)
-      loadingAlert.hide()
-    })
+      if (canBeClosed) {
+        loadingAlert.getButtonTypes.add(ButtonType.CANCEL)
+        loadingAlert.setOnCloseRequest(_ => onPrematureCloseAction())
+      }
+
+      loadingAlert
+    }
+
+    /**
+      * Closes the loading alert
+      */
+    def closeLoadingAlert(): Unit =
+      runOnUIThread(() => {
+        //noinspection ScalaStyle
+        loadingAlert.setOnCloseRequest(null)
+        loadingAlert.setResult(ButtonType.OK) // setting a result of right type, seems the only way to have dialog to close
+      })
+  }
+
 }
