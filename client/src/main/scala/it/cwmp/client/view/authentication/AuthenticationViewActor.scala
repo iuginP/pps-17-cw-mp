@@ -10,19 +10,20 @@ import it.cwmp.client.view.FXViewActor
   */
 case class AuthenticationViewActor() extends FXViewActor {
 
-  override protected var fxController: AuthenticationFXController = _
+  protected var fxController: AuthenticationFXController = _
 
   override def preStart(): Unit = {
     super.preStart()
-    fxController = AuthenticationFXController(new AuthenticationStrategy {
-      override def performLogIn(username: String, password: String): Unit =
-        controllerActor ! LogIn(username, password)
+    runOnUIThread(() =>
+      fxController = AuthenticationFXController(new AuthenticationStrategy {
+        override def performLogIn(username: String, password: String): Unit =
+          controllerActor ! LogIn(username, password)
 
-      override def performPasswordCheck(password: String, confirmPassword: String): Boolean =
-        password == confirmPassword
+        override def performPasswordCheck(password: String, confirmPassword: String): Boolean =
+          password == confirmPassword
 
-      override def performSignUp(username: String, password: String): Unit =
-        controllerActor ! SignUp(username, password)
-    })
+        override def performSignUp(username: String, password: String): Unit =
+          controllerActor ! SignUp(username, password)
+      }))
   }
 }

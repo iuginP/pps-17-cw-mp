@@ -13,7 +13,7 @@ import javafx.embed.swing.JFXPanel
   */
 abstract class FXViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
 
-  protected var fxController: FXViewController with FXAlertsController with FXInputViewController = _
+  protected def fxController: FXViewController with FXAlertsController with FXInputViewController
 
   protected var controllerActor: ActorRef = _
 

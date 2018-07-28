@@ -11,20 +11,21 @@ import it.cwmp.client.view.room.RoomViewActor.ShowToken
   */
 case class RoomViewActor() extends FXViewActor {
 
-  override protected var fxController: RoomFXController = _
+  protected var fxController: RoomFXController = _
 
   override def preStart(): Unit = {
     super.preStart()
-    fxController = RoomFXController(new RoomFXStrategy {
-      override def onCreate(roomName: String, playersNumber: Int): Unit =
-        controllerActor ! GUICreate(roomName, playersNumber)
+    runOnUIThread(() =>
+      fxController = RoomFXController(new RoomFXStrategy {
+        override def onCreate(roomName: String, playersNumber: Int): Unit =
+          controllerActor ! GUICreate(roomName, playersNumber)
 
-      override def onEnterPrivate(roomID: String): Unit =
-        controllerActor ! GUIEnterPrivate(roomID)
+        override def onEnterPrivate(roomID: String): Unit =
+          controllerActor ! GUIEnterPrivate(roomID)
 
-      override def onEnterPublic(playersNumber: Int): Unit =
-        controllerActor ! GUIEnterPublic(playersNumber)
-    })
+        override def onEnterPublic(playersNumber: Int): Unit =
+          controllerActor ! GUIEnterPublic(playersNumber)
+      }))
   }
 
   override def receive: Receive = super.receive orElse {
