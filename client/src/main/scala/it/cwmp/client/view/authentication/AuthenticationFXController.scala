@@ -55,12 +55,12 @@ object AuthenticationFXController {
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
+class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController with FXView with FXInputChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName
   protected val stage: Stage = new Stage
-  protected val controller: FXController = this
+  protected val controller: FXInputController = this
 
   @FXML
   private var tpMain: TabPane = _
@@ -148,7 +148,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXC
     }
   }
 
-  override def enableButtons(): Unit = {
+  override def enableViewComponents(): Unit = {
     btnSignInReset.setDisable(false)
     btnSignIn.setDisable(false)
     btnSignUpReset.setDisable(false)

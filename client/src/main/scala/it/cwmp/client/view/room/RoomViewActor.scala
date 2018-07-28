@@ -65,8 +65,8 @@ class RoomViewActor extends Actor with AlertActor {
     */
   override def preStart(): Unit = {
     super.preStart()
-    //inizializzo il toolkit
-    new JFXPanel
+
+    new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
       fxController = RoomFXController(new RoomFXStrategy {
@@ -102,7 +102,7 @@ class RoomViewActor extends Actor with AlertActor {
   }
 
   override protected def onAlertReceived(): Unit = {
-    fxController enableButtons()
+    fxController enableViewComponents()
     fxController hideDialog()
   }
 }

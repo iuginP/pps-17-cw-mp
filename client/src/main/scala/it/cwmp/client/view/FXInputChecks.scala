@@ -2,7 +2,7 @@ package it.cwmp.client.view
 
 import javafx.scene.control.{CheckBox, Spinner, TextField}
 
-trait FXChecks extends FXController with FXAlerts {
+trait FXInputChecks extends FXInputController with FXAlerts {
 
   private val alertTitle = "Wrong input!" // TODO parametrize
 

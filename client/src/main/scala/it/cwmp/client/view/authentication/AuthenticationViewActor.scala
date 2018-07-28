@@ -89,7 +89,7 @@ class AuthenticationViewActor extends Actor with AlertActor {
   }
 
   override protected def onAlertReceived(): Unit = {
-    fxController enableButtons()
+    fxController enableViewComponents()
     fxController hideDialog()
   }
 }

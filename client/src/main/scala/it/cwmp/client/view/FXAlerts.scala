@@ -7,7 +7,7 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.{Alert, ButtonType}
 
 trait FXAlerts {
-  this: FXController =>
+  this: FXInputController =>
 
   def showInfo(title: String, message: String, onClose: Option[() => Unit] = None): Unit =
     genericAlert(AlertType.INFORMATION, title, s"$title", message, onClose)

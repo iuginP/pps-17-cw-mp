@@ -1,6 +1,7 @@
 package it.cwmp.client.view
 
 import akka.actor.Actor.Receive
+import it.cwmp.client.view.AlertMessages._
 
 object AlertMessages {
 
@@ -31,9 +32,9 @@ object AlertMessages {
 }
 
 /**
+  * A trait that gives autonomous management of alert messages;
   *
-  * Trait da estendere ogni volta che si vuole avere in automatico la gestione di dei messaggi informativi o di errore.
-  * Per usarlo va aggiunto il behaviour: alertBehaviour al comportamento della receive.
+  * To use it you need to add "alertBehaviour" to your Actor receive
   *
   * @author Eugenio Pierfederici
   */
@@ -44,8 +45,6 @@ trait AlertActor {
   /**
     * Il behaviour che si occupa di restare in ascolto per i messaggi specificati in [[AlertMessages]].
     */
-
-  import AlertMessages._
 
   protected def alertBehaviour: Receive = {
     case Info(title, message, onClose) =>

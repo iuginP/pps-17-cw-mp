@@ -24,13 +24,13 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXController
-  with FXView with FXChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
+class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
+  with FXView with FXInputChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
   protected val stage: Stage = new Stage
-  protected val controller: FXController = this
+  protected val controller: FXInputController = this
 
   @FXML
   private var tfPrivateCreateRoomName: TextField = _
@@ -104,7 +104,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController
     })
   }
 
-  override def enableButtons(): Unit = {
+  override def enableViewComponents(): Unit = {
     btnPrivateCreate.setDisable(false)
     btnPrivateReset.setDisable(false)
     btnPrivateEnter.setDisable(false)
