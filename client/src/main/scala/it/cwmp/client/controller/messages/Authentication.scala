@@ -40,27 +40,27 @@ object AuthenticationResponses {
     *
     * @param token the user identifying token
     */
-  case class LogInSuccess(token: String)
+  sealed case class LogInSuccess(token: String)
 
   /**
     * Log-in failure
     *
     * @param errorMessage optionally an error message
     */
-  case class LogInFailure(errorMessage: Option[String])
+  sealed case class LogInFailure(errorMessage: Option[String])
 
   /**
     * Sign-up succeeded
     *
     * @param token the user identifying token
     */
-  case class SignUpSuccess(token: String)
+  sealed case class SignUpSuccess(token: String)
 
   /**
     * Sign-up failure
     *
     * @param errorMessage optionally an error message
     */
-  case class SignUpFailure(errorMessage: Option[String])
+  sealed case class SignUpFailure(errorMessage: Option[String])
 
 }

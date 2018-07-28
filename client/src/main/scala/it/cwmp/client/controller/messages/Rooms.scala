@@ -14,7 +14,7 @@ object RoomsRequests {
     * @param playersNumber the players number
     * @param token         the user token
     */
-  case class Create(name: String, playersNumber: Int, token: String)
+  sealed case class Create(name: String, playersNumber: Int, token: String)
 
   /**
     * Enter a private room
@@ -24,7 +24,7 @@ object RoomsRequests {
     * @param webAddress    the address where tha player wants to receive other participants addresses
     * @param token         the user token
     */
-  case class EnterPrivate(roomID: String, playerAddress: Address, webAddress: Address, token: String)
+  sealed case class EnterPrivate(roomID: String, playerAddress: Address, webAddress: Address, token: String)
 
   /**
     * Enter a public room
@@ -34,7 +34,7 @@ object RoomsRequests {
     * @param webAddress    the address where the player wants to receive tha other participants addresses
     * @param token         the user token
     */
-  case class EnterPublic(playersNumber: Int, playerAddress: Address, webAddress: Address, token: String)
+  sealed case class EnterPublic(playersNumber: Int, playerAddress: Address, webAddress: Address, token: String)
 
 }
 
@@ -48,37 +48,37 @@ object RoomsResponses {
     *
     * @param roomID the room identifier to use entering the room
     */
-  case class CreateSuccess(roomID: String)
+  sealed case class CreateSuccess(roomID: String)
 
   /**
     * Creation failed
     *
     * @param errorMessage optionally an error message
     */
-  case class CreateFailure(errorMessage: Option[String])
+  sealed case class CreateFailure(errorMessage: Option[String])
 
   /**
     * Enter private room succeeded
     */
-  case object EnterPrivateSuccess
+  sealed case object EnterPrivateSuccess
 
   /**
     * Enter private room failed
     *
     * @param errorMessage optionally an error message
     */
-  case class EnterPrivateFailure(errorMessage: Option[String])
+  sealed case class EnterPrivateFailure(errorMessage: Option[String])
 
   /**
     * Enter public room succeeded
     */
-  case object EnterPublicSuccess
+  sealed case object EnterPublicSuccess
 
   /**
     * Enter public room failed
     *
     * @param errorMessage optionally an error message
     */
-  case class EnterPublicFailure(errorMessage: Option[String])
+  sealed case class EnterPublicFailure(errorMessage: Option[String])
 
 }
