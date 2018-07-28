@@ -64,13 +64,13 @@ class AuthenticationViewActor extends Actor with ActorAlertManagement {
     Platform setImplicitExit false
     Platform runLater (() => {
       fxAlertsController = AuthenticationFXController(new AuthenticationFXStrategy {
-        override def onSignIn(username: String, password: String): Unit =
+        override def performSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
-        override def onCheckPassword(password: String, confirmPassword: String): Boolean =
+        override def performPasswordCheck(password: String, confirmPassword: String): Boolean =
           password == confirmPassword
 
-        override def onSignUp(username: String, password: String): Unit =
+        override def performSignUp(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignUp(username, password)
       })
     })

@@ -8,54 +8,12 @@ import javafx.scene.control._
 import javafx.stage.Stage
 
 /**
-  * Trait that models the strategy to be applied to resolve authentication requests.
-  */
-trait AuthenticationFXStrategy {
-  /**
-    * Function invoked for a system access request.
-    *
-    * @param username identification chosen by the player to access the system
-    * @param password password chosen during sign up
-    */
-  def onSignIn(username: String, password: String): Unit
-
-  /**
-    * Function invoked for checking the correctness of the passwords.
-    *
-    * @param password        password chosen
-    * @param confirmPassword confirmation password
-    * @return true, if the passwords respect the correctness policies
-    *         false, otherwise
-    */
-  def onCheckPassword(password: String, confirmPassword: String): Boolean
-
-  /**
-    * Function invoked for a system registration request.
-    *
-    * @param username identification chosen by the player to register in the system
-    * @param password password chosen to authenticate in the system
-    */
-  def onSignUp(username: String, password: String): Unit
-}
-
-/**
-  * [[AuthenticationFXController]] companion object
-  *
-  * @author Elia Di Pasquale
-  */
-object AuthenticationFXController {
-  def apply(strategy: AuthenticationFXStrategy): AuthenticationFXController = {
-    require(strategy != null)
-    new AuthenticationFXController(strategy)
-  }
-}
-
-/**
   * Class that models the controller that manages the various authentication processes.
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
+class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController
+  with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName
@@ -94,7 +52,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
         btnSignIn.setDisable(true)
         btnSignInReset.setDisable(true)
         showLoading("Attendere", "login in corso")
-        strategy.onSignIn(username, password)
+        strategy.performSignIn(username, password)
       }
     })
   }
@@ -109,8 +67,8 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
       ) yield {
         // TODO: rivedere questa logica per farne una più specifica
         showLoading("Attendere", "Registrazione in corso")
-        if (strategy.onCheckPassword(password, confirmPassword)) {
-          strategy.onSignUp(username, password)
+        if (strategy.performPasswordCheck(password, confirmPassword)) {
+          strategy.performSignUp(username, password)
           btnSignUp.setDisable(true)
           btnSignUpReset.setDisable(true)
         } else {
@@ -153,5 +111,17 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
     btnSignIn.setDisable(false)
     btnSignUpReset.setDisable(false)
     btnSignUp.setDisable(false)
+  }
+}
+
+/**
+  * [[AuthenticationFXController]] companion object
+  *
+  * @author Elia Di Pasquale
+  */
+object AuthenticationFXController {
+  def apply(strategy: AuthenticationFXStrategy): AuthenticationFXController = {
+    require(strategy != null, "The authentication strategy cannot be null")
+    new AuthenticationFXController(strategy)
   }
 }
