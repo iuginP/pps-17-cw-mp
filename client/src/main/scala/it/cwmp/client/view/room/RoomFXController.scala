@@ -3,15 +3,17 @@ package it.cwmp.client.view.room
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
 import javafx.application.Platform
-import javafx.event.ActionEvent
 import javafx.fxml.FXML
+import javafx.scene.Node
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 
 trait RoomFXStrategy {
   def onCreate(name: String, nPlayer: Int): Unit
+
   def onEnterPrivate(idRoom: String): Unit
+
   def onEnterPublic(nPlayer: Int): Unit
 }
 
@@ -51,10 +53,10 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController
   @FXML
   private def onClickCreate(): Unit = {
     Platform.runLater(() => {
-      for(
+      for (
         name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
         nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
-      ) yield{
+      ) yield {
         showLoadingDialog("Loading", "Stiamo creando la stanza privata")
         strategy.onCreate(name, nPlayer)
         btnPrivateCreate.setDisable(true)
@@ -78,7 +80,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController
   @FXML
   private def onClickEnter(): Unit = {
     Platform.runLater(() => {
-      for(
+      for (
         id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
       ) yield {
         showLoadingDialog("Loading", "Stai per entrare nella stanza privata")
@@ -92,7 +94,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController
   @FXML
   private def onClickRoomPublic(): Unit = {
     Platform.runLater(() => {
-      for(
+      for (
         nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
       ) yield {
         showLoadingDialog("Loading", "Stai per entrare in una stanza pubblica")
@@ -109,32 +111,38 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController
     btnPublicEnter.setDisable(false)
   }
 
-  def showTokenDialog(title: String, message: String): Unit = {
-    Platform.runLater(() => {
-      val tokenDialog = new Dialog[Boolean]
-      tokenDialog.setTitle(title)
+  /**
+    * A method to show the token dialog to user
+    *
+    * @param roomToken the token that user should be able to copy
+    */
+  def showTokenDialog(roomToken: String): Unit =
+    runOnUIThread(() =>
+      showDialogWithContent("Private Room Token", "Questo è il token da usare per entrare nella stanza che hai creato",
+        createRoomTokenDialogContent(roomToken)))
 
-      val grid = new GridPane()
-      grid.setHgap(10)
-      grid.setVgap(10)
+  /**
+    * Creates the dialog content whit selectable token
+    *
+    * @param roomToken the token to show
+    * @return the content of the dialog to show
+    */
+  private def createRoomTokenDialogContent(roomToken: String): Node = {
+    val gridPane = new GridPane()
+    gridPane.setHgap(10)
+    gridPane.setVgap(10)
 
-      val myToken = new TextField()
-      val dialogBody = new Label("Token: ")
-      val btnOk = new Button("OK")
+    val tokenLabel = new Label("Token: ")
 
-      myToken.setEditable(false)
-      myToken.setText(message)
+    val tokenTextField = new TextField(roomToken)
+    tokenTextField.setEditable(false)
 
-      btnOk.setOnAction((e: ActionEvent) => {
-        tokenDialog.setResult(true)
-        tokenDialog.hide()
-      })
-      grid.add(dialogBody, 0, 0)
-      grid.add(myToken, 0, 1)
-      grid.add(btnOk, 1, 1)
+    val okButton = new Button("OK")
+    okButton.setOnAction((_) => hideDialog())
 
-      tokenDialog.getDialogPane.setContent(grid)
-      tokenDialog.showAndWait()
-    })
+    gridPane.add(tokenLabel, 0, 0)
+    gridPane.add(tokenTextField, 0, 1)
+    gridPane.add(okButton, 1, 1)
+    gridPane
   }
 }

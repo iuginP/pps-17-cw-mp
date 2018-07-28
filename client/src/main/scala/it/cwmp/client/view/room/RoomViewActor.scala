@@ -31,7 +31,8 @@ object RoomViewMessages {
 
   /**
     * Questo messaggio serve per visualizzare a schermo il token di creazione della stanza privata
-    * @param title il tiolo da visualizzare nel dialog
+    *
+    * @param title   il tiolo da visualizzare nel dialog
     * @param message il token vero e proprio
     */
   case class ShowToken(title: String, message: String)
@@ -93,9 +94,10 @@ class RoomViewActor extends Actor with AlertActor {
       fxController.hideGUI()
       fxController hideDialog()
     })
-    case RoomViewMessages.ShowToken(title, message) => Platform runLater(() => {
+    case RoomViewMessages.ShowToken(title, roomToken) => Platform runLater (() => {
+      // TODO: remove "title" from this message, view should be able to decide what to write
       onAlertReceived()
-      fxController showTokenDialog(title, message)
+      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
     })
   }
 
