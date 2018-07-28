@@ -60,8 +60,7 @@ class AuthenticationViewActor extends Actor with ActorAlertManagement {
   override def preStart(): Unit = {
     super.preStart()
 
-    //inizializzo il toolkit
-    new JFXPanel
+    new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
       fxAlertsController = AuthenticationFXController(new AuthenticationFXStrategy {
@@ -91,8 +90,22 @@ class AuthenticationViewActor extends Actor with ActorAlertManagement {
     })
   }
 
-  override protected def onAlertReceived(): Unit = {
+  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
+    super.onErrorAlertReceived(title, message)
+    onAlertReceived()
+  }
+
+  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
+    super.onInfoAlertReceived(title, message)
+    onAlertReceived()
+  }
+
+  /**
+    * When receiving an alert should enable buttons and hide loading
+    */
+  private def onAlertReceived(): Unit = {
     fxAlertsController enableViewComponents()
     fxAlertsController hideLoading()
   }
+
 }

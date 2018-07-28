@@ -101,7 +101,20 @@ class RoomViewActor extends Actor with ActorAlertManagement {
     })
   }
 
-  override protected def onAlertReceived(): Unit = {
+  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
+    super.onErrorAlertReceived(title, message)
+    onAlertReceived() // TODO: duplicated code in AuthenticationActor
+  }
+
+  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
+    super.onInfoAlertReceived(title, message)
+    onAlertReceived()
+  }
+
+  /**
+    * When receiving an alert should enable buttons and hide loading
+    */
+  private def onAlertReceived(): Unit = {
     fxAlertsController enableViewComponents()
     fxAlertsController hideLoading()
   }

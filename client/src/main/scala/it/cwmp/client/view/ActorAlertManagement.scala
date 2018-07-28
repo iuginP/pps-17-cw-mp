@@ -9,6 +9,7 @@ import it.cwmp.client.view.AlertMessages._
   * To use it you need to add "alertBehaviour" to your Actor receive
   *
   * @author Eugenio Pierfederici
+  * @author contributor Enrico Siboni
   */
 trait ActorAlertManagement {
 
@@ -21,19 +22,27 @@ trait ActorAlertManagement {
     * @return the behaviour that manages alert messages
     */
   protected def alertBehaviour: Receive = {
-    case Info(title, message) =>
-      fxAlertsController showInfo(title, message)
-      onAlertReceived()
-    case Error(title, message) =>
-      fxAlertsController showError(title, message)
-      onAlertReceived()
+    case Info(title, message) => onInfoAlertReceived(title, message)
+    case Error(title, message) => onErrorAlertReceived(title, message)
   }
 
   /**
-    * It's called after receiving and showing the alert message
+    * Callback when a info alert is received
+    *
+    * @param title   the title of the info
+    * @param message the message of the info
     */
-  protected def onAlertReceived(): Unit = {}
+  protected def onInfoAlertReceived(title: String, message: String): Unit =
+    fxAlertsController showInfo(title, message)
 
+  /**
+    * Callback when an error alert is received
+    *
+    * @param title   the title of the error
+    * @param message the message of the error
+    */
+  protected def onErrorAlertReceived(title: String, message: String): Unit =
+    fxAlertsController showError(title, message)
 }
 
 /**
