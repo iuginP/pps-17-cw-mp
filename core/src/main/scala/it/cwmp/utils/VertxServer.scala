@@ -6,6 +6,7 @@ import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerRespon
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
+import it.cwmp.utils.Utils.stringToOption
 import it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
 
 import scala.concurrent.Future
@@ -63,10 +64,10 @@ trait VertxServer extends ScalaVerticle {
     * @param message        the message to send back
     */
   protected def sendResponse(httpCode: Int,
-                             message: String = null)
+                             message: Option[String] = None)
                             (implicit routingContext: RoutingContext): Unit = {
     response.setStatusCode(httpCode)
-    Option(message) match {
+    message match {
       case Some(messageString) =>
         log.info(s"Sending $httpCode response to client with message: $messageString")
         response.end(messageString)

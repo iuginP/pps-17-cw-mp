@@ -7,6 +7,7 @@ import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
 import it.cwmp.services.roomreceiver.ServerParameters._
+import it.cwmp.utils.Utils.stringToOption
 import it.cwmp.utils.{Logging, VertxServer}
 
 /**
