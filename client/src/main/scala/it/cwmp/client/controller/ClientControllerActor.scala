@@ -76,36 +76,6 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   }
 
   /**
-    * Action to execute when logout occurs
-    */
-  private def onLogOut(): Unit = {
-    log.info(s"Setting the behaviour 'authentication-manager'")
-    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
-    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
-  }
-
-  /**
-    * Action to do on successful login
-    */
-  private def onSuccessfulLogin(): Unit = {
-    log.info(s"Setting the behaviour 'room-manager'")
-    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
-    roomViewActor ! RoomViewMessages.ShowGUI
-  }
-
-  /**
-    * Action to execute when found opponents
-    *
-    * @param participants the participants to game
-    */
-  private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
-    log.info(s"Setting the behaviour 'in-game'")
-    context.become(inGameBehaviour)
-    roomViewActor ! RoomViewMessages.HideGUI // TODO: why here hideGUI and in auth no?
-    playerActor ! StartGame(participants)
-  }
-
-  /**
     * Behavior to be applied to manage authentication processes.
     * Messages that can be processed in this behavior are shown in [[ClientControllerMessages]]
     *
@@ -202,6 +172,36 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+  }
+
+  /**
+    * Action to execute when logout occurs
+    */
+  private def onLogOut(): Unit = {
+    log.info(s"Setting the behaviour 'authentication-manager'")
+    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
+    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
+  }
+
+  /**
+    * Action to do on successful login
+    */
+  private def onSuccessfulLogin(): Unit = {
+    log.info(s"Setting the behaviour 'room-manager'")
+    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
+    roomViewActor ! RoomViewMessages.ShowGUI
+  }
+
+  /**
+    * Action to execute when found opponents
+    *
+    * @param participants the participants to game
+    */
+  private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
+    log.info(s"Setting the behaviour 'in-game'")
+    context.become(inGameBehaviour)
+    roomViewActor ! RoomViewMessages.HideGUI // TODO: why here hideGUI and in auth no?
+    playerActor ! StartGame(participants)
   }
 }
 
