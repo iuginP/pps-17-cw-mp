@@ -13,10 +13,9 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 /**
-  * Questa classe rappresenta l'attore del controller del client che ha il compito
-  * di fare da tramite tra le view e i model.
+  * This class is client controller actor, that will manage interactions between client parts
   *
-  * @param system è l'[[ActorSystem]] che ospita gli attori che dovranno comunicare tra di loro
+  * @param system the system of this actors
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   */
@@ -182,15 +181,15 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   // TODO: qui lasciamo il behaviuor misto?
   private def apiClientReceiverBehaviour: Receive = {
     case AuthenticationSignInSuccessful(token) =>
-        this.jwtToken = token
-        becomeRoomsManager()
-        authenticationViewActor ! AuthenticationViewMessages.HideGUI
+      this.jwtToken = token
+      becomeRoomsManager()
+      authenticationViewActor ! AuthenticationViewMessages.HideGUI
     case AuthenticationSignInFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
     case AuthenticationSignUpSuccessful(token) =>
-        this.jwtToken = token
-        becomeRoomsManager()
-        authenticationViewActor ! AuthenticationViewMessages.HideGUI
+      this.jwtToken = token
+      becomeRoomsManager()
+      authenticationViewActor ! AuthenticationViewMessages.HideGUI
     case AuthenticationSignUpFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
 
@@ -199,11 +198,11 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     case RoomCreatePrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case RoomEnterPrivateSuccessful =>
-      //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
+    //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPrivateFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
     case RoomEnterPublicSuccessful =>
-      //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
+    //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
     case RoomEnterPublicFailure(reason) =>
       roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
   }
