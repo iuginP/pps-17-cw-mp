@@ -28,7 +28,7 @@ trait ActorAlertManagement {
   }
 
   /**
-    * Callback when a info alert is received
+    * Called when a info alert is received
     *
     * @param title   the title of the info
     * @param message the message of the info
@@ -37,7 +37,7 @@ trait ActorAlertManagement {
     fxController showInfo(title, message)
 
   /**
-    * Callback when an error alert is received
+    * Called when an error alert is received
     *
     * @param title   the title of the error
     * @param message the message of the error

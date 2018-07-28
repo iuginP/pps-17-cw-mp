@@ -131,5 +131,5 @@ trait FXAlertsController extends FXRunOnUIThread {
   * Companion object
   */
 object FXAlertsController {
-  val WAIT_MESSAGE = "Attendere prego..."
+  val WAIT_MESSAGE = "Attendere..."
 }

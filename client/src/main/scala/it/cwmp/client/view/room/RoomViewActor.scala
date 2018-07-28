@@ -1,8 +1,8 @@
 package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
-import it.cwmp.client.controller.{ActorAlertManagement, ClientControllerMessages}
-import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
+import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement, ClientControllerMessages}
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
@@ -13,7 +13,8 @@ import javafx.embed.swing.JFXPanel
   *
   * @author Davide Borficchia
   */
-case class RoomViewActor() extends Actor with ActorAlertManagement {
+case class RoomViewActor() extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+
   /**
     * roomFXController il controller che gestisce la view della lobby delle stanze
     */
@@ -46,13 +47,8 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
     })
   }
 
-  override def receive: Receive = alertBehaviour orElse {
+  override def receive: Receive = alertBehaviour orElse visibilityBehaviour orElse {
     case Initialize => controllerActor = sender()
-    case Show => Platform runLater (() => fxController.showGUI())
-    case Hide => Platform runLater (() => {
-      fxController.hideGUI()
-      fxController hideLoading()
-    })
     case ShowToken(title, roomToken) => Platform runLater (() => {
       // TODO: remove "title" from this message, view should be able to decide what to write
       onAlertReceived()
@@ -75,6 +71,11 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
     */
   private def onAlertReceived(): Unit = {
     fxController enableViewComponents()
+    fxController hideLoading()
+  }
+
+  override protected def onHideGUI(): Unit = {
+    super.onHideGUI()
     fxController hideLoading()
   }
 }

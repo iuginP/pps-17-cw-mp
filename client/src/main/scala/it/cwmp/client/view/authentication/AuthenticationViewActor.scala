@@ -1,9 +1,9 @@
 package it.cwmp.client.view.authentication
 
 import akka.actor.{Actor, ActorRef}
-import it.cwmp.client.controller.ActorAlertManagement
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
-import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
+import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement}
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
@@ -12,7 +12,8 @@ import javafx.embed.swing.JFXPanel
   *
   * @author Elia Di Pasquale
   */
-case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
+case class AuthenticationViewActor() extends Actor
+  with ActorAlertManagement with ActorViewVisibilityManagement {
 
   var fxController: AuthenticationFXController = _
 
@@ -23,7 +24,7 @@ case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
 
     new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
-    Platform runLater (() => {
+    runOnUIThread(() => {
       fxController = AuthenticationFXController(new AuthenticationStrategy {
         override def performLogIn(username: String, password: String): Unit =
           controllerActor ! LogIn(username, password)
@@ -37,13 +38,8 @@ case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
     })
   }
 
-  override def receive: Receive = alertBehaviour orElse {
+  override def receive: Receive = alertBehaviour orElse visibilityBehaviour orElse {
     case Initialize => controllerActor = sender()
-    case Show => Platform runLater (() => fxController showGUI())
-    case Hide => Platform runLater (() => {
-      fxController hideGUI()
-      fxController hideLoading()
-    })
   }
 
   override protected def onErrorAlertReceived(title: String, message: String): Unit = {
@@ -61,6 +57,11 @@ case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
     */
   private def onAlertReceived(): Unit = {
     fxController enableViewComponents()
+    fxController hideLoading()
+  }
+
+  override protected def onHideGUI(): Unit = {
+    super.onHideGUI()
     fxController hideLoading()
   }
 
