@@ -12,13 +12,12 @@ import javafx.stage.Stage
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInputController
+class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInputViewController
   with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName
-  protected val stage: Stage = new Stage
-  protected val controller: FXInputController = this
+  protected val controller: FXInputViewController = this
 
   @FXML
   private var tpMain: TabPane = _

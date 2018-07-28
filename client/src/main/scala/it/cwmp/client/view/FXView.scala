@@ -13,30 +13,20 @@ import javafx.stage.Stage
   */
 trait FXView {
 
-  protected def layout: String
-  protected def title: String
-  protected def stage: Stage
-  protected def controller: FXInputController
+  protected val stage: Stage = new Stage
 
   /**
     * Initialization of the view
     */
   private def initGUI(): Unit = {
-    //creo un'istanza del file di layout
+    // creates an instance of layout
     val loader = new FXMLLoader(getClass.getResource(layout))
     loader.setController(controller)
     val pane: Pane = loader.load()
 
-    //setto il titolo della finestra
     stage setTitle title
     stage setResizable false
-
-    //stabilisco cosa fare alla chiusura della finestra
-    stage.setOnCloseRequest( _ => {
-      Platform.exit()
-      System.exit(0)
-    })
-    //carico il layout nella scena e imposto la scena creata nello stage
+    stage.setOnCloseRequest(_ => onCloseAction())
     stage setScene new Scene(pane)
   }
 
@@ -54,5 +44,30 @@ trait FXView {
   def hideGUI(): Unit = {
     // TODO: vedere se è un comportamento adatto a tutti o va astratto
     stage close()
+  }
+
+  /**
+    * @return the path to layout resource
+    */
+  protected def layout: String
+
+  /**
+    * @return the view title string
+    */
+  protected def title: String
+
+  /**
+    * @return the FXInputViewController for this view
+    */
+  protected def controller: FXInputViewController
+
+  /**
+    * Tells which action to perform on window close
+    *
+    * @return the default close action (exits JVM)
+    */
+  protected def onCloseAction(): Unit = {
+    Platform.exit()
+    System.exit(0)
   }
 }

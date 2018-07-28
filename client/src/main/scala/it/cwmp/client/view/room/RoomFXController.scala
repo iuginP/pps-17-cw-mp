@@ -24,13 +24,12 @@ object RoomFXController {
   }
 }
 
-class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
+class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
   with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
-  protected val stage: Stage = new Stage
-  protected val controller: FXInputController = this
+  protected val controller: FXInputViewController = this
 
   @FXML
   private var tfPrivateCreateRoomName: TextField = _
