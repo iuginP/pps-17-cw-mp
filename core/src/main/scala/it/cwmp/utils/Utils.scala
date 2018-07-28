@@ -21,7 +21,7 @@ object Utils {
     * @param string the string to test
     * @return true if string is empty, false otherwise
     */
-  def emptyString(string: String): Boolean = string == null || string.isEmpty
+  def emptyString(string: String): Boolean = string == null || string.trim.isEmpty
 
   /**
     * @return the ParseException filled with error string
