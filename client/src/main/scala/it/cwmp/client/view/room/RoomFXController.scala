@@ -2,8 +2,7 @@ package it.cwmp.client.view.room
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
-import it.cwmp.client.view.room.RoomFXController.{CREATING_PRIVATE_ROOM_MESSAGE, ROOM_NAME_EMPTY_ERROR, ROOM_PLAYERS_NUMBER_ERROR}
-import javafx.application.Platform
+import it.cwmp.client.view.room.RoomFXController._
 import javafx.fxml.FXML
 import javafx.scene.Node
 import javafx.scene.control._
@@ -56,7 +55,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     btnPublicEnter.setDisable(false)
   }
 
-  @FXML private def onClickCreatePrivate(): Unit = {
+  @FXML private def onClickCreatePrivate(): Unit =
     runOnUIThread(() => {
       for (
         roomName <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
@@ -67,37 +66,32 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
         strategy.onCreate(roomName, playersNumber)
       }
     })
-  }
 
-  @FXML private def onClickReset(): Unit = { // TODO: remove
-    Platform.runLater(() => {
-      resetFields()
-    })
-  }
+  @FXML private def onClickResetPrivate(): Unit = runOnUIThread { () => resetFields() }
 
-  @FXML private def onClickEnterPrivate(): Unit = {
-    Platform.runLater(() => {
+  @FXML private def onClickEnterPrivate(): Unit =
+    runOnUIThread(() => {
       for (
-        id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
+        roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR)
       ) yield {
-        showLoading("Stai per entrare nella stanza privata")
-        strategy.onEnterPrivate(id_room)
-        btnPrivateEnter.setDisable(true)
+        disableViewComponents()
+        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
+        strategy.onEnterPrivate(roomID)
       }
     })
-  }
 
-  @FXML private def onClickEnterPublic(): Unit = {
-    Platform.runLater(() => {
+
+  @FXML private def onClickEnterPublic(): Unit =
+    runOnUIThread(() => {
       for (
-        nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
+        playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER)
       ) yield {
-        showLoading("Stai per entrare in una stanza pubblica")
-        strategy.onEnterPublic(nPlayer)
-        btnPublicEnter.setDisable(true)
+        disableViewComponents()
+        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
+        strategy.onEnterPublic(playersNumber)
       }
     })
-  }
+
 
   /**
     * A method to show the token dialog to user
@@ -106,7 +100,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     */
   def showTokenDialog(roomToken: String): Unit =
     runOnUIThread(() =>
-      showInfoWithContent("Private Room Token", "Questo è il token da usare per entrare nella stanza che hai creato",
+      showInfoWithContent(PRIVATE_ROOM_TOKEN_TITLE, PRIVATE_ROOM_TOKEN_MESSAGE,
         createRoomTokenDialogContent(roomToken)))
 
   /**
@@ -115,7 +109,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     * @param roomToken the token to show
     * @return the content of the dialog to show
     */
-  private def createRoomTokenDialogContent(roomToken: String): Node = {
+  private def createRoomTokenDialogContent(roomToken: String): Node = { // TODO: review this
     val gridPane = new GridPane()
     gridPane.setHgap(10)
     gridPane.setVgap(10)
@@ -146,6 +140,13 @@ object RoomFXController {
 
   private val ROOM_NAME_EMPTY_ERROR = "Il nome della stanza non può essere vuoto"
   private val ROOM_PLAYERS_NUMBER_ERROR = "Deve essere selezionato il numero di giocatori"
+  private val EMPTY_ROOM_ID_ERROR = "L'ID della stanza non può essere vuoto"
+  private val NOT_SELECTED_PLAYERS_NUMBER = "Deve essere selezionato il numero di giocatori"
+
+  private val ENTERING_ROOM_TITLE = "In attesa di giocatori"
+  private val PRIVATE_ROOM_TOKEN_TITLE = "Private Room Token"
 
   private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
+  private val ENTERING_THE_ROOM = "Stai per entrare nella stanza scelta"
+  private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
 }

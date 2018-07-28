@@ -56,7 +56,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
     btnSignUp.setDisable(false)
   }
 
-  @FXML  private def onClickSignIn(): Unit =
+  @FXML private def onClickSignIn(): Unit =
     runOnUIThread(() => {
       for (
         username <- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
@@ -69,7 +69,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
     })
 
 
-  @FXML  private def onClickSignUp(): Unit =
+  @FXML private def onClickSignUp(): Unit =
     runOnUIThread(() => {
       for (
         username <- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
@@ -88,17 +88,9 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
       }
     })
 
-  @FXML  private def onClickSignInReset(): Unit = { // TODO: remove
-    Platform.runLater(() => {
-      resetFields()
-    })
-  }
+  @FXML private def onClickSignInReset(): Unit = Platform.runLater { () => resetFields() }
 
-  @FXML  private def onClickSignUpReset(): Unit = { // TODO: remove
-    Platform.runLater(() => {
-      resetFields()
-    })
-  }
+  @FXML private def onClickSignUpReset(): Unit = Platform.runLater { () => resetFields() }
 }
 
 /**

@@ -30,8 +30,8 @@ case class RoomViewActor() extends FXViewActor {
 
   override def receive: Receive = super.receive orElse {
     case ShowToken(roomToken) => runOnUIThread(() => {
-      //      onAlertReceived() was called before moving all to super class
-      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
+      //      onAlertReceived() TODO check because was called before moving all to super class
+      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X (already done... but check)
     })
   }
 }

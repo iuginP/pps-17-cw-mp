@@ -40,7 +40,7 @@ abstract class FXViewActor extends Actor with ActorAlertManagement with ActorVie
   /**
     * When receiving an alert should enable buttons and hide loading
     */
-  private def onAlertReceived(): Unit = {
+  private def onAlertReceived(): Unit = { // TODO: check if those behaviours can be somehow made more clear
     fxController enableViewComponents()
     fxController hideLoading()
   }
