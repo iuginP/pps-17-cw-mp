@@ -2,6 +2,8 @@ package it.cwmp.utils
 
 import java.text.ParseException
 
+import scala.language.implicitConversions
+
 /**
   * Generic utilities that can be used anywhere
   */
@@ -28,4 +30,12 @@ object Utils {
     */
   def parseException(context: String, errorMessage: String): ParseException =
     new ParseException(s"$context: $errorMessage", 0)
+
+  /**
+    * Implicit conversion of strings to String options
+    *
+    * @param string the string to convert
+    * @return the option of that string
+    */
+  implicit def stringToOption(string: String): Option[String] = Option(string)
 }

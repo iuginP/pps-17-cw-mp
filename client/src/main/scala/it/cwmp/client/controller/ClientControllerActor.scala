@@ -4,7 +4,8 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.controller.ClientControllerMessages._
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
-import it.cwmp.client.model.ApiClientOutgoingMessages._
+import it.cwmp.client.controller.messages.RoomsRequests.{Create, EnterPrivate, EnterPublic}
+import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.model.PlayerActor._
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
@@ -112,37 +113,28 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def roomsGUIBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
       log.info(s"Creating the room $name")
-      apiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
+      apiClientActor ! Create(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
       log.info(s"Entering the private room $idRoom")
-      openOneTimeServerAndGetAddress().map(url =>
-        apiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
-          idRoom, Address(playerAddress), url, jwtToken)
-      )
+      openOneTimeServerAndGetAddress()
+        .map(url => apiClientActor ! EnterPrivate(idRoom, Address(playerAddress), url, jwtToken))
     case RoomEnterPublic(nPlayer) =>
       log.info(s"Entering the public room with $nPlayer players")
-      openOneTimeServerAndGetAddress().map(url =>
-        apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
-          nPlayer, Address(playerAddress), url, jwtToken)
-      )
+      openOneTimeServerAndGetAddress()
+        .map(url => apiClientActor ! EnterPublic(nPlayer, Address(playerAddress), url, jwtToken)
+        )
   }
 
   /**
     * @return the behaviour that manages room API responses
     */
   private def roomsApiReceiverBehaviour: Receive = {
-    case RoomCreatePrivateSuccessful(token) =>
-      roomViewActor ! RoomViewMessages.ShowToken("Token", token)
-    case RoomCreatePrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccessful =>
-    //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
-    case RoomEnterPrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case RoomEnterPublicSuccessful =>
-    //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
-    case RoomEnterPublicFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case CreateSuccess(token) => roomViewActor ! RoomViewMessages.ShowToken("Token", token)
+    case CreateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case EnterPrivateSuccess => //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
+    case EnterPrivateFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case EnterPublicSuccess => //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
+    case EnterPublicFailure(reason) => roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
   }
 
   private def inGameBehaviour: Receive = {
