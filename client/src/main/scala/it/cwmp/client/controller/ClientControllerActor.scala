@@ -2,6 +2,7 @@ package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import it.cwmp.client.controller.ClientControllerMessages._
+import it.cwmp.client.model.ApiClientOutgoingMessages._
 import it.cwmp.client.model.PlayerActor._
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
@@ -70,34 +71,51 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     roomViewActor ! RoomViewMessages.InitController
   }
 
-  override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse {
+  override def receive: Receive = playerAddressRetrievalBehaviour
+
+  /**
+    * @return the behaviour of retrieving address of player actor
+    */
+  private def playerAddressRetrievalBehaviour: Receive = {
     case RetrieveAddressResponse(address) =>
       playerAddress = address
+      context.become(authenticationApiReceiverBehaviour orElse authenticationGUIBehaviour)
   }
 
   /**
-    * Behavior to be applied to manage authentication processes.
-    * Messages that can be processed in this behavior are shown in [[ClientControllerMessages]]
-    *
+    * @return the behaviour that manages authentication commands from GUI
     */
-  def authenticationManagerBehaviour: Receive = {
+  private def authenticationGUIBehaviour: Receive = {
     case AuthenticationPerformSignIn(username, password) =>
       log.info(s"Signing in as $username")
       apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignIn(username, password)
     case AuthenticationPerformSignUp(username, password) =>
-      log.info(s"Signing up as $username")
+      log.info(s"Signing up as $username") // TODO: group together same name messages
       apiClientActor ! ApiClientIncomingMessages.AuthenticationPerformSignUp(username, password)
   }
 
   /**
-    * Questo metodo rappresenta il behavior che si ha quando si sta gestendo la lobby delle stanze.
-    * I messaggi che questo attore, in questo behavoir, è ingrado di ricevere sono raggruppati in [[ClientControllerMessages]]
-    *
+    * @return the behaviour that manages authentication API responses
     */
+  private def authenticationApiReceiverBehaviour: Receive = {
+    case AuthenticationSignInSuccessful(token) =>
+      jwtToken = token
+      onSuccessfulLogin()
+      authenticationViewActor ! AuthenticationViewMessages.HideGUI
+    case AuthenticationSignInFailure(reason) =>
+      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
+    case AuthenticationSignUpSuccessful(token) =>
+      jwtToken = token
+      onSuccessfulLogin()
+      authenticationViewActor ! AuthenticationViewMessages.HideGUI
+    case AuthenticationSignUpFailure(reason) =>
+      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
+  }
 
-  import it.cwmp.client.controller.ClientControllerMessages._
-
-  private def roomManagerBehaviour: Receive = {
+  /**
+    * @return the behaviour that manages rooms commands from GUI
+    */
+  private def roomsGUIBehaviour: Receive = {
     case RoomCreatePrivate(name, nPlayer) =>
       log.info(s"Creating the room $name")
       apiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
@@ -113,6 +131,24 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
         apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
           nPlayer, Address(playerAddress), url, jwtToken)
       )
+  }
+
+  /**
+    * @return the behaviour that manages room API responses
+    */
+  private def roomsApiReceiverBehaviour: Receive = {
+    case RoomCreatePrivateSuccessful(token) =>
+      roomViewActor ! RoomViewMessages.ShowToken("Token", token)
+    case RoomCreatePrivateFailure(reason) =>
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case RoomEnterPrivateSuccessful =>
+    //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
+    case RoomEnterPrivateFailure(reason) =>
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
+    case RoomEnterPublicSuccessful =>
+    //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
+    case RoomEnterPublicFailure(reason) =>
+      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
   }
 
   private def inGameBehaviour: Receive = {
@@ -138,48 +174,11 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   }
 
   /**
-    * Questo è il behavior che sta in ascolto del successo o meno di una chiamata fatta ad un servizio online tramite l'ApiClientActor.
-    * I messaggi che questo attore, in questo behavoir, è in grado di ricevere sono raggruppati in [[ApiClientOutgoingMessages]]
-    *
-    */
-
-  import ApiClientOutgoingMessages._
-
-  // TODO: qui lasciamo il behaviuor misto?
-  private def apiClientReceiverBehaviour: Receive = {
-    case AuthenticationSignInSuccessful(token) =>
-      this.jwtToken = token
-      onSuccessfulLogin()
-      authenticationViewActor ! AuthenticationViewMessages.HideGUI
-    case AuthenticationSignInFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
-    case AuthenticationSignUpSuccessful(token) =>
-      this.jwtToken = token
-      onSuccessfulLogin()
-      authenticationViewActor ! AuthenticationViewMessages.HideGUI
-    case AuthenticationSignUpFailure(reason) =>
-      authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
-
-    case RoomCreatePrivateSuccessful(token) =>
-      roomViewActor ! RoomViewMessages.ShowToken("Token", token)
-    case RoomCreatePrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case RoomEnterPrivateSuccessful =>
-    //roomViewActor ! AlertMessages.Info("Stanza privata", "Sei entrato") // TODO parametrizzazione stringhe
-    case RoomEnterPrivateFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-    case RoomEnterPublicSuccessful =>
-    //roomViewActor ! AlertMessages.Info("Stanza pubblica", "Sei entrato") // TODO parametrizzazione stringhe
-    case RoomEnterPublicFailure(reason) =>
-      roomViewActor ! AlertMessages.Error("Problem", reason.getOrElse(UNKNOWN_ERROR)) // TODO parametrizzazione stringhe
-  }
-
-  /**
     * Action to execute when logout occurs
     */
   private def onLogOut(): Unit = {
     log.info(s"Setting the behaviour 'authentication-manager'")
-    context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
+    context.become(authenticationApiReceiverBehaviour orElse authenticationGUIBehaviour)
     authenticationViewActor ! AuthenticationViewMessages.ShowGUI
   }
 
@@ -188,7 +187,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     */
   private def onSuccessfulLogin(): Unit = {
     log.info(s"Setting the behaviour 'room-manager'")
-    context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
+    context.become(roomsApiReceiverBehaviour orElse roomsGUIBehaviour)
     roomViewActor ! RoomViewMessages.ShowGUI
   }
 
