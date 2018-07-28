@@ -92,7 +92,7 @@ class RoomViewActor extends Actor with AlertActor {
     case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
     case RoomViewMessages.HideGUI => Platform runLater (() => {
       fxController.hideGUI()
-      fxController hideDialog()
+      fxController hideLoading()
     })
     case RoomViewMessages.ShowToken(title, roomToken) => Platform runLater (() => {
       // TODO: remove "title" from this message, view should be able to decide what to write
@@ -103,6 +103,6 @@ class RoomViewActor extends Actor with AlertActor {
 
   override protected def onAlertReceived(): Unit = {
     fxController enableViewComponents()
-    fxController hideDialog()
+    fxController hideLoading()
   }
 }

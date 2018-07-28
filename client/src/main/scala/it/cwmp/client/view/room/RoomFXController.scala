@@ -25,7 +25,7 @@ object RoomFXController {
 }
 
 class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
-  with FXView with FXInputChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
+  with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
@@ -57,7 +57,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
         name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
         nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
       ) yield {
-        showLoadingDialog("Loading", "Stiamo creando la stanza privata")
+        showLoading("Loading", "Stiamo creando la stanza privata")
         strategy.onCreate(name, nPlayer)
         btnPrivateCreate.setDisable(true)
         btnPrivateReset.setDisable(true)
@@ -83,7 +83,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
       for (
         id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
       ) yield {
-        showLoadingDialog("Loading", "Stai per entrare nella stanza privata")
+        showLoading("Loading", "Stai per entrare nella stanza privata")
         strategy.onEnterPrivate(id_room)
         btnPrivateEnter.setDisable(true)
       }
@@ -97,7 +97,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
       for (
         nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
       ) yield {
-        showLoadingDialog("Loading", "Stai per entrare in una stanza pubblica")
+        showLoading("Loading", "Stai per entrare in una stanza pubblica")
         strategy.onEnterPublic(nPlayer)
         btnPublicEnter.setDisable(true)
       }
@@ -118,7 +118,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
     */
   def showTokenDialog(roomToken: String): Unit =
     runOnUIThread(() =>
-      showDialogWithContent("Private Room Token", "Questo è il token da usare per entrare nella stanza che hai creato",
+      showInfoWithContent("Private Room Token", "Questo è il token da usare per entrare nella stanza che hai creato",
         createRoomTokenDialogContent(roomToken)))
 
   /**
@@ -138,7 +138,7 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputController
     tokenTextField.setEditable(false)
 
     val okButton = new Button("OK")
-    okButton.setOnAction((_) => hideDialog())
+//    okButton.setOnAction((_) => hideDialog())
 
     gridPane.add(tokenLabel, 0, 0)
     gridPane.add(tokenTextField, 0, 1)

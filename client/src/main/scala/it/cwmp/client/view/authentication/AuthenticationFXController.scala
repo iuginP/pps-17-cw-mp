@@ -55,7 +55,7 @@ object AuthenticationFXController {
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController with FXView with FXInputChecks with FXAlerts with FXDialogs with FXRunOnUIThread {
+class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName
@@ -93,7 +93,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
       ) yield {
         btnSignIn.setDisable(true)
         btnSignInReset.setDisable(true)
-        showLoadingDialog("Attendere", "login in corso")
+        showLoading("Attendere", "login in corso")
         strategy.onSignIn(username, password)
       }
     })
@@ -108,14 +108,14 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
         confirmPassword <- getTextFieldValue(pfSignUpConfirmPassword, "È necessario inserire nuovamente la password")
       ) yield {
         // TODO: rivedere questa logica per farne una più specifica
-        showLoadingDialog("Attendere", "Registrazione in corso")
+        showLoading("Attendere", "Registrazione in corso")
         if (strategy.onCheckPassword(password, confirmPassword)) {
           strategy.onSignUp(username, password)
           btnSignUp.setDisable(true)
           btnSignUpReset.setDisable(true)
         } else {
           showError("Warning", "Non-compliant passwords!")
-          hideDialog()
+          hideLoading()
           btnSignUp.setDisable(false)
           btnSignUpReset.setDisable(false)
         }

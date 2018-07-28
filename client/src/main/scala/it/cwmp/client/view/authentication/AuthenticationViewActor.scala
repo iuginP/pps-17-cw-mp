@@ -84,12 +84,12 @@ class AuthenticationViewActor extends Actor with AlertActor {
     case AuthenticationViewMessages.ShowGUI => Platform runLater(() => fxController showGUI())
     case AuthenticationViewMessages.HideGUI => Platform runLater(() => {
       fxController hideGUI()
-      fxController hideDialog()
+      fxController hideLoading()
     })
   }
 
   override protected def onAlertReceived(): Unit = {
     fxController enableViewComponents()
-    fxController hideDialog()
+    fxController hideLoading()
   }
 }

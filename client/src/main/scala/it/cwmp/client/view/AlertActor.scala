@@ -48,10 +48,10 @@ trait AlertActor {
 
   protected def alertBehaviour: Receive = {
     case Info(title, message, onClose) =>
-      fxController showInfo(title, message, onClose)
+      fxController showInfo(title, message)
       onAlertReceived()
     case Error(title, message, onClose) =>
-      fxController showError(title, message, onClose)
+      fxController showError(title, message)
       onAlertReceived()
   }
 
