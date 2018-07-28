@@ -5,7 +5,7 @@ package it.cwmp.client.view.authentication
   *
   * @author Elia Di Pasquale
   */
-trait AuthenticationFXStrategy {
+trait AuthenticationStrategy {
 
   /**
     * Function invoked for a system access request.

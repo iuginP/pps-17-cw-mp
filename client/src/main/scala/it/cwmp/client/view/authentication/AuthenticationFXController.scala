@@ -12,7 +12,7 @@ import javafx.stage.Stage
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXInputController
+class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXInputController
   with FXView with FXInputChecks with FXAlerts with FXRunOnUIThread {
 
   protected val layout: String = LayoutRes.authenticationLayout
@@ -120,7 +120,7 @@ class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXI
   * @author Elia Di Pasquale
   */
 object AuthenticationFXController {
-  def apply(strategy: AuthenticationFXStrategy): AuthenticationFXController = {
+  def apply(strategy: AuthenticationStrategy): AuthenticationFXController = {
     require(strategy != null, "The authentication strategy cannot be null")
     new AuthenticationFXController(strategy)
   }

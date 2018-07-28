@@ -63,7 +63,7 @@ class AuthenticationViewActor extends Actor with ActorAlertManagement {
     new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
-      fxAlertsController = AuthenticationFXController(new AuthenticationFXStrategy {
+      fxAlertsController = AuthenticationFXController(new AuthenticationStrategy {
         override def performSignIn(username: String, password: String): Unit =
           controllerActor ! ClientControllerMessages.AuthenticationPerformSignIn(username, password)
 
