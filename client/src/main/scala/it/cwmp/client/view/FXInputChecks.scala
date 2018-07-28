@@ -6,7 +6,7 @@ import javafx.scene.control.{CheckBox, Spinner, TextField}
 /**
   * A trait describing common checks over view input
   */
-trait FXInputChecks extends FXAlerts {
+trait FXInputChecks extends FXAlertsController {
 
   private val WRONG_INPUT_ERROR = "Wrong input!" // TODO parametrize
 

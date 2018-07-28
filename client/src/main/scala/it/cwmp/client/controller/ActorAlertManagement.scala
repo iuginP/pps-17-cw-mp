@@ -2,7 +2,7 @@ package it.cwmp.client.controller
 
 import akka.actor.Actor.Receive
 import it.cwmp.client.controller.AlertMessages._
-import it.cwmp.client.view.FXAlerts
+import it.cwmp.client.view.FXAlertsController
 
 /**
   * A trait that gives autonomous management of alert messages;
@@ -17,7 +17,7 @@ trait ActorAlertManagement {
   /**
     * @return the alerts controller
     */
-  def fxController: FXAlerts
+  def fxController: FXAlertsController
 
   /**
     * @return the behaviour that manages alert messages

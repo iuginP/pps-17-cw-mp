@@ -1,6 +1,6 @@
 package it.cwmp.client.view
 
-import it.cwmp.client.view.FXAlerts.WAIT_MESSAGE
+import it.cwmp.client.view.FXAlertsController.WAIT_MESSAGE
 import javafx.scene.Node
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.{Alert, ButtonType, ProgressBar}
@@ -13,7 +13,7 @@ import javafx.scene.layout.BorderPane
   * @author contributor Davide Borficchia
   * @author contributor Enrico Siboni
   */
-trait FXAlerts extends FXRunOnUIThread {
+trait FXAlertsController extends FXRunOnUIThread {
 
   /**
     * A method to show an info message
@@ -130,6 +130,6 @@ trait FXAlerts extends FXRunOnUIThread {
 /**
   * Companion object
   */
-object FXAlerts {
+object FXAlertsController {
   val WAIT_MESSAGE = "Attendere prego..."
 }
