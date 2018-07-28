@@ -2,8 +2,8 @@ package it.cwmp.client.controller.messages
 
 object View {
 
-  sealed case object Show
+  case object Show
 
-  sealed case object Hide
+  case object Hide
 
 }

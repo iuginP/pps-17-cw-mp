@@ -60,7 +60,7 @@ object RoomsResponses {
   /**
     * Enter private room succeeded
     */
-  sealed case object EnterPrivateSuccess
+  case object EnterPrivateSuccess
 
   /**
     * Enter private room failed
@@ -72,7 +72,7 @@ object RoomsResponses {
   /**
     * Enter public room succeeded
     */
-  sealed case object EnterPublicSuccess
+  case object EnterPublicSuccess
 
   /**
     * Enter public room failed

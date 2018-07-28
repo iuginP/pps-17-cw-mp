@@ -1,11 +1,12 @@
-package it.cwmp.client.model
+package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, AddressFromURIString, Props}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.GameMain
-import it.cwmp.client.model.PlayerActor._
+import it.cwmp.client.controller.PlayerActor.{EndGame, RetrieveAddress, RetrieveAddressResponse, StartGame}
+import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._

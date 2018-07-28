@@ -1,4 +1,4 @@
-package it.cwmp.client.model
+package it.cwmp.client.controller
 
 import akka.actor.Actor
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
