@@ -1,6 +1,7 @@
 package it.cwmp.client.controller
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import it.cwmp.client.controller.ClientControllerMessages._
 import it.cwmp.client.model.PlayerActor._
 import it.cwmp.client.model._
 import it.cwmp.client.view.AlertMessages
@@ -23,90 +24,86 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
 
   private val UNKNOWN_ERROR = "Unknown Error"
 
-  var jwtToken: String = _
+  /**
+    * This actor manages the game.
+    * Those actors for each client connect together in a cluster and manage game developing
+    */
+  private var playerActor: ActorRef = _
+  private var playerAddress: String = _
 
   /**
-    * Questo attore è quello che si occupa di gestire la partita di gioco.
-    * Sono questi attori, per ciascun client, a connettersi nel cluster e gestire lo svolgimento del gioco.
+    * This actor manages all requests to web services
     */
-  var playerActor: ActorRef = _
-  var playerAddress: String = _
-
-  /**
-    * Questo attore si occupa di effettuare tutte le richieste ai servizi web e attendere le risposte.
-    */
-  var apiClientActor: ActorRef = _
-
-  /**
-    * Questo è l'attore che gestisce la view della lebboy delle stanze al quale invieremo i messaggi
-    */
-  var roomViewActor: ActorRef = _
+  private var apiClientActor: ActorRef = _
 
   /**
     * Actor for the management of authentication processes to which the relative messages will be sent.
     */
-  var authenticationViewActor: ActorRef = _
+  private var authenticationViewActor: ActorRef = _
 
   /**
-    * Questa metodo non va richiamato manualmente ma viene chiamato in automatico
-    * quando viene creato l'attore [[ClientControllerActor]].
-    * Il suo compito è quello di creare l'attore [[RoomViewActor]].
-    * Una volta creato inizializza e mostra la GUI
+    * This actor manages the view of rooms
     */
+  private var roomViewActor: ActorRef = _
+
+  private var jwtToken: String = _
+
   override def preStart(): Unit = {
     super.preStart()
-    // Initialize all actors
+
     log.info(s"Initializing the player actor...")
-    playerActor = system.actorOf(Props(classOf[PlayerActor], system), "player")
+    playerActor = system.actorOf(Props(classOf[PlayerActor], system), PlayerActor.getClass.getName)
     playerActor ! RetrieveAddress
+
     log.info(s"Initializing the API client actor...")
-    apiClientActor = system.actorOf(Props[ApiClientActor], "roomAPIClient") //todo parametrizzare le stringhe
+    apiClientActor = system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
+
     log.info(s"Initializing the authentication view actor...")
-    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], "authenticationView")
+    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
     authenticationViewActor ! AuthenticationViewMessages.InitController
-    log.info(s"Initializing the room view actor...")
-    roomViewActor = system.actorOf(Props[RoomViewActor], "roomView")
-    roomViewActor ! RoomViewMessages.InitController
 
     log.info(s"Displaying the view...")
     authenticationViewActor ! AuthenticationViewMessages.ShowGUI
+
+    log.info(s"Initializing the room view actor...")
+    roomViewActor = system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
+    roomViewActor ! RoomViewMessages.InitController
   }
 
-  /**
-    * Questa metodo gestisce tutti i possibili behavior che può assumero l'attore [[ClientControllerActor]].
-    * Un behavior è un subset di azioni che il controller può eseguire in un determianto momento .
-    */
   override def receive: Receive = apiClientReceiverBehaviour orElse authenticationManagerBehaviour orElse {
     case RetrieveAddressResponse(address) =>
       playerAddress = address
   }
 
   /**
-    * Set the behavior of the [[ClientControllerActor]] in order to handle authentication processes
+    * Action to execute when logout occurs
     */
-  def becomeAuthenticationManager(): Unit = {
+  private def onLogOut(): Unit = {
     log.info(s"Setting the behaviour 'authentication-manager'")
     context.become(apiClientReceiverBehaviour orElse authenticationManagerBehaviour)
+    authenticationViewActor ! AuthenticationViewMessages.ShowGUI
   }
 
   /**
-    * Imposta il behavior del [[ClientControllerActor]] in modo da gestire solo la lobby delle stanze
+    * Action to do on successful login
     */
-  private def becomeRoomsManager(): Unit = {
+  private def onSuccessfulLogin(): Unit = {
     log.info(s"Setting the behaviour 'room-manager'")
     context.become(apiClientReceiverBehaviour orElse roomManagerBehaviour)
     roomViewActor ! RoomViewMessages.ShowGUI
   }
 
-  private def becomeInGame(participants: List[Participant]): Unit = {
+  /**
+    * Action to execute when found opponents
+    *
+    * @param participants the participants to game
+    */
+  private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
-    roomViewActor ! RoomViewMessages.HideGUI
+    roomViewActor ! RoomViewMessages.HideGUI // TODO: why here hideGUI and in auth no?
     playerActor ! StartGame(participants)
   }
-
-
-  import it.cwmp.client.controller.ClientControllerMessages._
 
   /**
     * Behavior to be applied to manage authentication processes.
@@ -159,7 +156,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       // Quando ha ricevuto la lista dei partecipanti dal server
       participants => {
         log.info(s"Participants list received!")
-        becomeInGame(participants)
+        onSuccessFindingOpponents(participants)
       }
     ).andThen({ // Una volta creato
       case Success(address) =>
@@ -182,13 +179,13 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def apiClientReceiverBehaviour: Receive = {
     case AuthenticationSignInSuccessful(token) =>
       this.jwtToken = token
-      becomeRoomsManager()
+      onSuccessfulLogin()
       authenticationViewActor ! AuthenticationViewMessages.HideGUI
     case AuthenticationSignInFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
     case AuthenticationSignUpSuccessful(token) =>
       this.jwtToken = token
-      becomeRoomsManager()
+      onSuccessfulLogin()
       authenticationViewActor ! AuthenticationViewMessages.HideGUI
     case AuthenticationSignUpFailure(reason) =>
       authenticationViewActor ! AlertMessages.Error("Warning", reason.getOrElse(UNKNOWN_ERROR))
