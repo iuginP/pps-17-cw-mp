@@ -16,7 +16,7 @@ case class RoomViewActor() extends FXViewActor {
   override def preStart(): Unit = {
     super.preStart()
     runOnUIThread(() =>
-      fxController = RoomFXController(new RoomFXStrategy {
+      fxController = RoomFXController(new RoomStrategy {
         override def onCreate(roomName: String, playersNumber: Int): Unit =
           controllerActor ! GUICreate(roomName, playersNumber)
 

@@ -2,29 +2,19 @@ package it.cwmp.client.view.room
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
+import it.cwmp.client.view.room.RoomFXController.{CREATING_PRIVATE_ROOM_MESSAGE, ROOM_NAME_EMPTY_ERROR, ROOM_PLAYERS_NUMBER_ERROR}
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.Node
 import javafx.scene.control._
 import javafx.scene.layout.GridPane
 
-trait RoomFXStrategy {
-  def onCreate(name: String, nPlayer: Int): Unit
-
-  def onEnterPrivate(idRoom: String): Unit
-
-  def onEnterPublic(nPlayer: Int): Unit
-}
-
-object RoomFXController {
-  def apply(strategy: RoomFXStrategy): RoomFXController = {
-    require(strategy != null)
-    new RoomFXController(strategy)
-  }
-}
-
-class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
-  with FXViewController with FXInputChecks with FXAlertsController with FXRunOnUIThread {
+/**
+  * Class that manages the Rooms View
+  *
+  * @param strategy the strategy to use on user actions
+  */
+class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
@@ -33,11 +23,11 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
   @FXML
   private var tfPrivateCreateRoomName: TextField = _
   @FXML
-  private var spPrivateCreateNumPlayer: Spinner[Integer] = _
+  private var spPrivateCreateNumPlayer: Spinner[Int] = _
   @FXML
   private var tfPrivateEnterRoomID: TextField = _
   @FXML
-  private var spPublicEnterNumPlayer: Spinner[Integer] = _
+  private var spPublicEnterNumPlayer: Spinner[Int] = _
   @FXML
   private var btnPrivateCreate: Button = _
   @FXML
@@ -47,15 +37,14 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
   @FXML
   private var btnPublicEnter: Button = _
 
-  //creare una stanza privata
   @FXML
   private def onClickCreate(): Unit = {
-    Platform.runLater(() => {
+    runOnUIThread(() => {
       for (
-        name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
-        nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
+        name <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
+        nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
       ) yield {
-        showLoading("Stiamo creando la stanza privata")
+        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
         strategy.onCreate(name, nPlayer)
         btnPrivateCreate.setDisable(true)
         btnPrivateReset.setDisable(true)
@@ -145,4 +134,19 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXInputViewController
     gridPane.add(okButton, 1, 1)
     gridPane
   }
+}
+
+/**
+  * Companion object
+  */
+object RoomFXController {
+  def apply(strategy: RoomStrategy): RoomFXController = {
+    require(strategy != null, "The room strategy cannot be null")
+    new RoomFXController(strategy)
+  }
+
+  private val ROOM_NAME_EMPTY_ERROR = "Il nome della stanza non può essere vuoto"
+  private val ROOM_PLAYERS_NUMBER_ERROR = "Deve essere selezionato il numero di giocatori"
+
+  private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
 }
