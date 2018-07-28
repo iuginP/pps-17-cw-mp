@@ -121,13 +121,13 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       apiClientActor ! ApiClientIncomingMessages.RoomCreatePrivate(name, nPlayer, jwtToken)
     case RoomEnterPrivate(idRoom) =>
       log.info(s"Entering the private room $idRoom")
-      enterRoom().map(url =>
+      openOneTimeServerAndGetAddress().map(url =>
         apiClientActor ! ApiClientIncomingMessages.RoomEnterPrivate(
           idRoom, Address(playerAddress), url, jwtToken)
       )
     case RoomEnterPublic(nPlayer) =>
       log.info(s"Entering the public room with $nPlayer players")
-      enterRoom().map(url =>
+      openOneTimeServerAndGetAddress().map(url =>
         apiClientActor ! ApiClientIncomingMessages.RoomEnterPublic(
           nPlayer, Address(playerAddress), url, jwtToken)
       )
@@ -155,22 +155,24 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     case _ => // TODO
   }
 
-  private def enterRoom(): Future[Address] = {
-    log.debug(s"Starting the local one-time reception server...")
-    // Apre il server in ricezione per la lista dei partecipanti
-    listenForParticipantListFuture(
-      // Quando ha ricevuto la lista dei partecipanti dal server
-      participants => {
-        log.info(s"Participants list received!")
-        onSuccessFindingOpponents(participants)
-      }
-    ).andThen({ // Una volta creato
-      case Success(address) =>
-        log.debug(s"Server completely started listening at the address: $address")
-      case Failure(error) => // Invia un messaggio di errore alla GUI
-        log.error(s"Problem starting the server: ${error.getMessage}")
-        roomViewActor ! AlertMessages.Error("Error", error.getMessage)
-    })
+  /**
+    * @return the Future containing the address of one-time server that will receive the participants
+    */
+  private def openOneTimeServerAndGetAddress(): Future[Address] = {
+    val onListReceived: List[Participant] => Unit = participants => {
+      log.info(s"Participants list received!")
+      onSuccessFindingOpponents(participants)
+    }
+
+    log.debug(s"Starting the local one-time receiver server...")
+    listenForParticipantListFuture(onListReceived)
+      .andThen({
+        case Success(address) =>
+          log.debug(s"Server started and listening at the address: $address")
+        case Failure(error) =>
+          log.error(s"Problem starting the server: ${error.getMessage}")
+          roomViewActor ! AlertMessages.Error("Error", error.getMessage)
+      })
   }
 
   /**
