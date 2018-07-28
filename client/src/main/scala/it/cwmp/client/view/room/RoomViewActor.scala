@@ -17,7 +17,7 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
   /**
     * roomFXController il controller che gestisce la view della lobby delle stanze
     */
-  var fxAlertsController: RoomFXController = _
+  var fxController: RoomFXController = _
   /**
     * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
     */
@@ -33,7 +33,7 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
     new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
-      fxAlertsController = RoomFXController(new RoomFXStrategy {
+      fxController = RoomFXController(new RoomFXStrategy {
         override def onCreate(name: String, nPlayer: Int): Unit =
           controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
 
@@ -48,15 +48,15 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
 
   override def receive: Receive = alertBehaviour orElse {
     case Initialize => controllerActor = sender()
-    case Show => Platform runLater (() => fxAlertsController.showGUI())
+    case Show => Platform runLater (() => fxController.showGUI())
     case Hide => Platform runLater (() => {
-      fxAlertsController.hideGUI()
-      fxAlertsController hideLoading()
+      fxController.hideGUI()
+      fxController hideLoading()
     })
     case ShowToken(title, roomToken) => Platform runLater (() => {
       // TODO: remove "title" from this message, view should be able to decide what to write
       onAlertReceived()
-      fxAlertsController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
+      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X
     })
   }
 
@@ -74,8 +74,8 @@ case class RoomViewActor() extends Actor with ActorAlertManagement {
     * When receiving an alert should enable buttons and hide loading
     */
   private def onAlertReceived(): Unit = {
-    fxAlertsController enableViewComponents()
-    fxAlertsController hideLoading()
+    fxController enableViewComponents()
+    fxController hideLoading()
   }
 }
 

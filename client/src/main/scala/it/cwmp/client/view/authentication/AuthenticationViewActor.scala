@@ -14,26 +14,17 @@ import javafx.embed.swing.JFXPanel
   */
 case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
 
-  /**
-    * Controller that deals with the graphic management of authentication components.
-    */
-  var fxAlertsController: AuthenticationFXController = _
-  /**
-    * Control actor through which messages for event management are received and sent.
-    */
+  var fxController: AuthenticationFXController = _
+
   var controllerActor: ActorRef = _
 
-  /**
-    * Method invoked at the start of the actor (N.B. Do not call directly).
-    * Initializes and manages the controller to manage the graphic layout of the authentication section.
-    */
   override def preStart(): Unit = {
     super.preStart()
 
     new JFXPanel // initializes JavaFX
     Platform setImplicitExit false
     Platform runLater (() => {
-      fxAlertsController = AuthenticationFXController(new AuthenticationStrategy {
+      fxController = AuthenticationFXController(new AuthenticationStrategy {
         override def performLogIn(username: String, password: String): Unit =
           controllerActor ! LogIn(username, password)
 
@@ -48,10 +39,10 @@ case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
 
   override def receive: Receive = alertBehaviour orElse {
     case Initialize => controllerActor = sender()
-    case Show => Platform runLater (() => fxAlertsController showGUI())
+    case Show => Platform runLater (() => fxController showGUI())
     case Hide => Platform runLater (() => {
-      fxAlertsController hideGUI()
-      fxAlertsController hideLoading()
+      fxController hideGUI()
+      fxController hideLoading()
     })
   }
 
@@ -69,8 +60,8 @@ case class AuthenticationViewActor() extends Actor with ActorAlertManagement {
     * When receiving an alert should enable buttons and hide loading
     */
   private def onAlertReceived(): Unit = {
-    fxAlertsController enableViewComponents()
-    fxAlertsController hideLoading()
+    fxController enableViewComponents()
+    fxController hideLoading()
   }
 
 }

@@ -12,7 +12,7 @@ import javafx.scene.control._
   *
   * @param strategy strategy to be applied to resolve authentication requests.
   */
-class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXView with FXInputViewController with FXInputChecks {
+class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXViewController with FXInputView with FXInputChecks {
 
   protected val layout: String = LayoutRes.authenticationLayout
   protected val title: String = StringRes.appName

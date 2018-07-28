@@ -17,7 +17,7 @@ trait ActorAlertManagement {
   /**
     * @return the alerts controller
     */
-  def fxAlertsController: FXAlerts
+  def fxController: FXAlerts
 
   /**
     * @return the behaviour that manages alert messages
@@ -34,7 +34,7 @@ trait ActorAlertManagement {
     * @param message the message of the info
     */
   protected def onInfoAlertReceived(title: String, message: String): Unit =
-    fxAlertsController showInfo(title, message)
+    fxController showInfo(title, message)
 
   /**
     * Callback when an error alert is received
@@ -43,7 +43,7 @@ trait ActorAlertManagement {
     * @param message the message of the error
     */
   protected def onErrorAlertReceived(title: String, message: String): Unit =
-    fxAlertsController showError(title, message)
+    fxController showError(title, message)
 }
 
 /**
