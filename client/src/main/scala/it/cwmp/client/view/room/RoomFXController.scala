@@ -3,8 +3,10 @@ package it.cwmp.client.view.room
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
 import javafx.application.Platform
+import javafx.event.ActionEvent
 import javafx.fxml.FXML
 import javafx.scene.control._
+import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 
 trait RoomFXStrategy {
@@ -104,5 +106,34 @@ class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXVie
     btnPrivateReset.setDisable(false)
     btnPrivateEnter.setDisable(false)
     btnPublicEnter.setDisable(false)
+  }
+
+  def showTokenDialog(title: String, message: String): Unit = {
+    Platform.runLater(() => {
+      val tokenDialog = new Dialog[Boolean]
+      tokenDialog.setTitle(title)
+
+      val grid = new GridPane()
+      grid.setHgap(10)
+      grid.setVgap(10)
+
+      val myToken = new TextField()
+      val dialogBody = new Label("Token: ")
+      val btnOk = new Button("OK")
+
+      myToken.setEditable(false)
+      myToken.setText(message)
+
+      btnOk.setOnAction((e: ActionEvent) => {
+        tokenDialog.setResult(true)
+        tokenDialog.hide()
+      })
+      grid.add(dialogBody, 0, 0)
+      grid.add(myToken, 0, 1)
+      grid.add(btnOk, 1, 1)
+
+      tokenDialog.getDialogPane.setContent(grid)
+      tokenDialog.showAndWait()
+    })
   }
 }

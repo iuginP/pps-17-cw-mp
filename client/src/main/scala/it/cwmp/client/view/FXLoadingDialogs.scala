@@ -1,9 +1,8 @@
 package it.cwmp.client.view
 
 import javafx.application.Platform
-import javafx.event.ActionEvent
 import javafx.scene.control._
-import javafx.scene.layout.{BorderPane, GridPane}
+import javafx.scene.layout.BorderPane
 
 /**
   * A trait to manage loading dialogs in view
@@ -39,35 +38,6 @@ trait FXLoadingDialogs {
     Platform.runLater(() => {
       dialog.setResult(true)
       dialog.hide()
-    })
-  }
-
-  def showTokenDialog(title: String, message: String): Unit = {
-    Platform.runLater(() => {
-      val tokenDialog = new Dialog[Boolean]
-      tokenDialog.setTitle(title)
-
-      val grid = new GridPane()
-      grid.setHgap(10)
-      grid.setVgap(10)
-
-      val myToken = new TextField()
-      val dialogBody = new Label("Token: ")
-      val btnOk = new Button("OK")
-
-      myToken.setEditable(false)
-      myToken.setText(message)
-
-      btnOk.setOnAction((e: ActionEvent) => {
-        tokenDialog.setResult(true)
-        tokenDialog.hide()
-      })
-      grid.add(dialogBody, 0, 0)
-      grid.add(myToken, 0, 1)
-      grid.add(btnOk, 1, 1)
-
-      tokenDialog.getDialogPane.setContent(grid)
-      tokenDialog.showAndWait()
     })
   }
 }
