@@ -1,7 +1,8 @@
-package it.cwmp.client.view
+package it.cwmp.client.controller
 
 import akka.actor.Actor.Receive
-import it.cwmp.client.view.AlertMessages._
+import it.cwmp.client.controller.AlertMessages._
+import it.cwmp.client.view.FXAlerts
 
 /**
   * A trait that gives autonomous management of alert messages;

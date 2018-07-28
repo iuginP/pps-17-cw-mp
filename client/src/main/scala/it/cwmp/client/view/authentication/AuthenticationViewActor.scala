@@ -1,9 +1,9 @@
 package it.cwmp.client.view.authentication
 
 import akka.actor.{Actor, ActorRef}
+import it.cwmp.client.controller.ActorAlertManagement
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
-import it.cwmp.client.view.ActorAlertManagement
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 

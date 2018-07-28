@@ -1,9 +1,8 @@
 package it.cwmp.client.view.room
 
 import akka.actor.{Actor, ActorRef}
-import it.cwmp.client.controller.ClientControllerMessages
+import it.cwmp.client.controller.{ActorAlertManagement, ClientControllerMessages}
 import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
-import it.cwmp.client.view.ActorAlertManagement
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel

@@ -8,7 +8,6 @@ import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure,
 import it.cwmp.client.controller.messages.RoomsRequests.{Create, EnterPrivate, EnterPublic}
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.controller.messages.ViewCommon.{Hide, Initialize, Show}
-import it.cwmp.client.view.AlertMessages
 import it.cwmp.client.view.authentication.AuthenticationViewActor
 import it.cwmp.client.view.room.RoomViewActor
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
