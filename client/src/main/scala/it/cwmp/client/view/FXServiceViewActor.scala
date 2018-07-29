@@ -11,7 +11,7 @@ import javafx.embed.swing.JFXPanel
   *
   * @author Enrico Siboni
   */
-abstract class FXViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+abstract class FXServiceViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
 
   protected def fxController: FXViewController with FXAlertsController with FXInputViewController
 

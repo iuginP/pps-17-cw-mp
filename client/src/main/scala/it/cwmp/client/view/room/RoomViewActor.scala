@@ -1,7 +1,7 @@
 package it.cwmp.client.view.room
 
 import it.cwmp.client.controller.messages.RoomsRequests.{GUICreate, GUIEnterPrivate, GUIEnterPublic}
-import it.cwmp.client.view.FXViewActor
+import it.cwmp.client.view.FXServiceViewActor
 import it.cwmp.client.view.room.RoomViewActor.ShowToken
 
 /**
@@ -10,7 +10,7 @@ import it.cwmp.client.view.room.RoomViewActor.ShowToken
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class RoomViewActor() extends FXViewActor {
+case class RoomViewActor() extends FXServiceViewActor {
 
   protected var fxController: RoomFXController = _
 
