@@ -21,7 +21,6 @@ case class AuthenticationViewActor() extends FXServiceViewActor {
         override def performLogIn(username: String, password: String): Unit = {
           fxController disableViewComponents()
           fxController showLoading LOGGING_IN_MESSAGE
-
           controllerActor ! LogIn(username, password)
         }
 
@@ -31,7 +30,6 @@ case class AuthenticationViewActor() extends FXServiceViewActor {
         override def performSignUp(username: String, password: String): Unit = {
           fxController disableViewComponents()
           fxController showLoading SIGNING_UP_MESSAGE
-
           controllerActor ! SignUp(username, password)
         }
       }))

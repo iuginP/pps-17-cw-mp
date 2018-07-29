@@ -62,36 +62,23 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
       for (
         roomName <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
         playersNumber <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
+      ) yield
         strategy.onCreate(roomName, playersNumber)
-      }
     })
 
   @FXML private def onClickResetPrivate(): Unit = runOnUIThread { () => resetFields() }
 
   @FXML private def onClickEnterPrivate(): Unit =
     runOnUIThread(() => {
-      for (
-        roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-        strategy.onEnterPrivate(roomID)
-      }
+      for (roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR))
+        yield strategy.onEnterPrivate(roomID)
     })
 
 
   @FXML private def onClickEnterPublic(): Unit =
     runOnUIThread(() => {
-      for (
-        playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER)
-      ) yield {
-        disableViewComponents()
-        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-        strategy.onEnterPublic(playersNumber)
-      }
+      for (playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER))
+        yield strategy.onEnterPublic(playersNumber)
     })
 
 
@@ -121,12 +108,10 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     val tokenTextField = new TextField(roomToken)
     tokenTextField.setEditable(false)
 
-    val okButton = new Button("OK")
     //    okButton.setOnAction((_) => hideDialog())
 
     gridPane.add(tokenLabel, 0, 0)
     gridPane.add(tokenTextField, 0, 1)
-    gridPane.add(okButton, 1, 1)
     gridPane
   }
 }
@@ -145,10 +130,7 @@ object RoomFXController {
   private val EMPTY_ROOM_ID_ERROR = "L'ID della stanza non può essere vuoto"
   private val NOT_SELECTED_PLAYERS_NUMBER = "Deve essere selezionato il numero di giocatori"
 
-  private val ENTERING_ROOM_TITLE = "In attesa di giocatori"
   private val PRIVATE_ROOM_TOKEN_TITLE = "Private Room Token"
 
-  private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
-  private val ENTERING_THE_ROOM = "Stai per entrare nella stanza scelta"
   private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
 }
