@@ -173,6 +173,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     */
   private def onRoomEnteringSuccess(): Unit = {
     roomViewActor ! Info(ROOM_ENTERING_SUCCEEDED_TITLE, ROOM_ENTERING_SUCCEEDED_MESSAGE)
+    roomViewActor ! WaitingForOthers
   }
 
   /**
@@ -215,7 +216,6 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       .andThen({
         case Success(address) =>
           log.debug(s"Server started and listening at the address: $address")
-          roomViewActor ! WaitingForOthers
         case Failure(error) =>
           log.error(s"Problem starting the server: ${error.getMessage}")
           roomViewActor ! Error(RECEIVING_PARTICIPANT_LIST_ERROR_TITLE, error.getMessage)
