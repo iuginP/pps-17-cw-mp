@@ -26,10 +26,7 @@ trait FXViewController {
   /**
     * Method called to hide the view
     */
-  def hideGUI(): Unit = {
-    // TODO: vedere se è un comportamento adatto a tutti o va astratto
-    stage close()
-  }
+  def hideGUI(): Unit = stage close()
 
   /**
     * @return the path to layout resource

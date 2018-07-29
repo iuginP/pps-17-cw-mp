@@ -7,7 +7,7 @@ import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
 /**
-  * A base class representing a View actor with JavaFX underlying
+  * A base class representing a Service View actor with JavaFX underlying
   *
   * @author Enrico Siboni
   */
