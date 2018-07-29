@@ -46,6 +46,20 @@ object RoomsRequests {
   sealed case class GUIEnterPublic(playersNumber: Int) extends RoomPublicEnteringRequest
 
   /**
+    * Exits a private room; request from GUI
+    *
+    * @param roomID the room id of room to exit
+    */
+  sealed case class GUIExitPrivate(roomID: String) extends RoomPrivateExitingRequest
+
+  /**
+    * Exits a public room; request from GUI
+    *
+    * @param playersNumber the players number of public room to exit
+    */
+  sealed case class GUIExitPublic(playersNumber: Int) extends RoomPublicExitingRequest
+
+  /**
     * Create a new private room; request for online service
     *
     * @param name          the name of the room
@@ -74,6 +88,21 @@ object RoomsRequests {
     */
   sealed case class ServiceEnterPublic(playersNumber: Int, playerAddress: Address, webAddress: Address, token: String) extends RoomPublicEnteringRequest
 
+  /**
+    * Exits a private room; request from GUI
+    *
+    * @param roomID the room id of room to exit
+    * @param token  the user token
+    */
+  sealed case class ServiceExitPrivate(roomID: String, token: String) extends RoomPrivateExitingRequest
+
+  /**
+    * Exits a public room; request from GUI
+    *
+    * @param playersNumber the players number of public room to exit
+    * @param token         the user token
+    */
+  sealed case class ServiceExitPublic(playersNumber: Int, token: String) extends RoomPublicExitingRequest
 
 }
 
