@@ -181,6 +181,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * @param errorMessage optionally the error message
     */
   private def onRoomEnteringFailure(errorMessage: Option[String]): Unit = {
+    stopListeningForParticipants()
     roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
   }
 
