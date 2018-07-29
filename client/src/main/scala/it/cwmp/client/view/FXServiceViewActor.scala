@@ -28,25 +28,19 @@ abstract class FXServiceViewActor extends Actor with ActorAlertManagement with A
   }
 
   override protected def onErrorAlertReceived(title: String, message: String): Unit = {
-    super.onErrorAlertReceived(title, message)
     onAlertReceived()
+    super.onErrorAlertReceived(title, message)
   }
 
   override protected def onInfoAlertReceived(title: String, message: String): Unit = {
-    super.onInfoAlertReceived(title, message)
     onAlertReceived()
   }
 
   /**
     * When receiving an alert should enable buttons and hide loading
     */
-  private def onAlertReceived(): Unit = { // TODO: check if those behaviours can be somehow made more clear
+  private def onAlertReceived(): Unit = {
     fxController enableViewComponents()
-    fxController hideLoading()
-  }
-
-  override protected def onHideGUI(): Unit = {
-    super.onHideGUI()
     fxController hideLoading()
   }
 
