@@ -68,7 +68,7 @@ object RoomViewActor {
   private val ENTERING_ROOM_MESSAGE = "Stai per entrare nella stanza scelta"
 
   private val WAITING_FOR_PARTICIPANTS_TITLE = "In attesa di giocatori"
-  private val WAITING_FOR_PARTICIPANTS_MESSAGE = "Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiuungere il numero stabilito"
+  private val WAITING_FOR_PARTICIPANTS_MESSAGE = "Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiungere il numero stabilito"
 
   /**
     * Shows the room token on screen
