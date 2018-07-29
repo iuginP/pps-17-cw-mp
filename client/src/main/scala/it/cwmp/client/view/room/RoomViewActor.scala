@@ -1,8 +1,8 @@
 package it.cwmp.client.view.room
 
-import it.cwmp.client.controller.messages.RoomsRequests.{GUICreate, GUIEnterPrivate, GUIEnterPublic}
+import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.view.FXServiceViewActor
-import it.cwmp.client.view.room.RoomViewActor.{CREATING_PRIVATE_ROOM_MESSAGE, ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE, ShowToken}
+import it.cwmp.client.view.room.RoomViewActor._
 
 /**
   * This class represents the actor that manages the rooms
@@ -13,6 +13,8 @@ import it.cwmp.client.view.room.RoomViewActor.{CREATING_PRIVATE_ROOM_MESSAGE, EN
 case class RoomViewActor() extends FXServiceViewActor {
 
   protected var fxController: RoomFXController = _
+
+  private var roomEnteringMessage: RoomEnteringRequest = _
 
   override def preStart(): Unit = {
     super.preStart()
@@ -26,14 +28,16 @@ case class RoomViewActor() extends FXServiceViewActor {
 
         override def onEnterPrivate(roomID: String): Unit = {
           fxController disableViewComponents()
-          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-          controllerActor ! GUIEnterPrivate(roomID)
+          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+          roomEnteringMessage = GUIEnterPrivate(roomID)
+          controllerActor ! roomEnteringMessage
         }
 
         override def onEnterPublic(playersNumber: Int): Unit = {
           fxController disableViewComponents()
-          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-          controllerActor ! GUIEnterPublic(playersNumber)
+          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+          roomEnteringMessage = GUIEnterPublic(playersNumber)
+          controllerActor ! roomEnteringMessage
         }
       }))
   }
@@ -41,8 +45,15 @@ case class RoomViewActor() extends FXServiceViewActor {
   override def receive: Receive = super.receive orElse {
     case ShowToken(roomToken) => runOnUIThread(() => {
       onServiceResponseReceived()
-      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X (already done... but check)
+      fxController showTokenDialog roomToken
     })
+    case WaitingForOthers =>
+      fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () => {
+        controllerActor ! (roomEnteringMessage match {
+          case GUIEnterPrivate(roomID) => GUIExitPrivate(roomID)
+          case GUIEnterPublic(playersNumber) => GUIExitPublic(playersNumber)
+        })
+      })
   }
 }
 
@@ -53,8 +64,11 @@ object RoomViewActor {
 
   private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
 
-  private val ENTERING_ROOM_TITLE = "In attesa di giocatori"
+  private val ENTERING_ROOM_TITLE = "Entrata in stanza"
   private val ENTERING_ROOM_MESSAGE = "Stai per entrare nella stanza scelta"
+
+  private val WAITING_FOR_PARTICIPANTS_TITLE = "In attesa di giocatori"
+  private val WAITING_FOR_PARTICIPANTS_MESSAGE = "Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiuungere il numero stabilito"
 
   /**
     * Shows the room token on screen
@@ -62,5 +76,10 @@ object RoomViewActor {
     * @param roomToken the private room token to spread among friends
     */
   case class ShowToken(roomToken: String)
+
+  /**
+    * Shows a loading while waiting for others participants
+    */
+  case object WaitingForOthers
 
 }
