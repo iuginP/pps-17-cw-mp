@@ -14,7 +14,7 @@ case class RoomViewActor() extends FXServiceViewActor {
 
   protected var fxController: RoomFXController = _
 
-  private var roomEnteringMessage: RoomEnteringRequest = _
+  private var roomEnteringMessage: RoomEnteringRequest with GUIRequest = _
 
   override def preStart(): Unit = {
     super.preStart()

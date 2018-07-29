@@ -28,6 +28,13 @@ trait ParticipantListReceiver extends VertxInstance {
       .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}"
         + API_RECEIVE_PARTICIPANTS_URL(token)))
   }
+
+  /**
+    * A method that stops the server that would have received participants to entered room
+    */
+  def stopListeningForParticipants(): Unit = ???
+
+  // TODO: implement a method to un-deploy this verticle
 }
 
 /**

@@ -145,11 +145,16 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       log.info(s"Entering the public room with $playersNumber players")
       openOneTimeServerAndGetAddress()
         .map(url => apiClientActor ! ServiceEnterPublic(playersNumber, Address(playerAddress), url, jwtToken))
+    case GUIExitPrivate(roomID) => // TODO: exiting behaviour
+      log.info(s"Exiting room $roomID")
+    case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
+      log.info(s"Exiting public room with $playersNumber")
   }
 
   /**
     * @return the behaviour that manages room API responses
     */
+  //noinspection ScalaStyle
   private def roomsApiReceiverBehaviour: Receive = {
     case CreateSuccess(token) => roomViewActor ! ShowToken(token)
     case CreateFailure(errorMessage) => roomViewActor ! Error(CREATE_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
@@ -157,6 +162,10 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     case EnterPublicSuccess => onRoomEnteringSuccess()
     case EnterPrivateFailure(errorMessage) => onRoomEnteringFailure(errorMessage)
     case EnterPublicFailure(errorMessage) => onRoomEnteringFailure(errorMessage)
+    case ExitPrivateSuccess => onRoomExitingSuccess()
+    case ExitPublicSuccess => onRoomExitingSuccess()
+    case ExitPrivateFailure(errorMessage) => onRoomExitingFailure(errorMessage)
+    case ExitPublicFailure(errorMessage) => onRoomExitingFailure(errorMessage)
   }
 
   /**
@@ -174,6 +183,18 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def onRoomEnteringFailure(errorMessage: Option[String]): Unit = {
     roomViewActor ! Error(ENTERING_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
   }
+
+  /**
+    * Action to do on room exiting success
+    */
+  private def onRoomExitingSuccess(): Unit = ??? // TODO:
+
+  /**
+    * Action to do on room exiting failure
+    *
+    * @param errorMessage optionally an error message
+    */
+  private def onRoomExitingFailure(errorMessage: Option[String]): Unit = ??? // TODO:
 
   private def inGameBehaviour: Receive = {
     case _ => // TODO
