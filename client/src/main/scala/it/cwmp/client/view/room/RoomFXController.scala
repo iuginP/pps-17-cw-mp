@@ -32,6 +32,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
 
   override def showGUI(): Unit = {
     super.showGUI()
+    // adds a listener to reset fields on tab change
     tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 

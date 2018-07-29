@@ -3,7 +3,6 @@ package it.cwmp.client.view.authentication
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
 import it.cwmp.client.view.authentication.AuthenticationFXController._
-import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control._
 
@@ -32,6 +31,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
 
   override def showGUI(): Unit = {
     super.showGUI()
+    // adds a listener to reset fields on tab change
     tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 
@@ -62,11 +62,8 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
       for (
         username <- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
         password <- getTextFieldValue(pfSignInPassword, PASSWORD_EMPTY_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(LOGGING_IN_MESSAGE)
+      ) yield
         strategy.performLogIn(username, password)
-      }
     })
 
 
@@ -76,22 +73,17 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
         username <- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
         password <- getTextFieldValue(pfSignUpPassword, PASSWORD_EMPTY_ERROR);
         confirmPassword <- getTextFieldValue(pfSignUpConfirmPassword, REPEAT_PASSWORD_EMPTY_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(SIGNING_UP_MESSAGE)
+      ) yield
         if (strategy.performPasswordCheck(password, confirmPassword)) {
           strategy.performSignUp(username, password)
         } else {
-          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOESNT_MATCH)
-          enableViewComponents()
-          hideLoading()
+          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOES_NOT_MATCH)
         }
-      }
     })
 
-  @FXML private def onClickSignInReset(): Unit = Platform.runLater { () => resetFields() }
+  @FXML private def onClickSignInReset(): Unit = runOnUIThread { () => resetFields() }
 
-  @FXML private def onClickSignUpReset(): Unit = Platform.runLater { () => resetFields() }
+  @FXML private def onClickSignUpReset(): Unit = runOnUIThread { () => resetFields() }
 }
 
 /**
@@ -108,10 +100,7 @@ object AuthenticationFXController {
   private val USERNAME_EMPTY_ERROR = "È necessario inserire lo username"
   private val PASSWORD_EMPTY_ERROR = "È necessario inserire la password"
   private val REPEAT_PASSWORD_EMPTY_ERROR = "È necessario inserire nuovamente la password"
-  private val GIVEN_PASSWORD_DOESNT_MATCH = "Le password inserite non sono uguali!"
+  private val GIVEN_PASSWORD_DOES_NOT_MATCH = "Le password inserite non sono uguali!"
 
   private val ATTENTION_MESSAGE = "Attenzione"
-
-  private val LOGGING_IN_MESSAGE = "Log-in in corso..."
-  private val SIGNING_UP_MESSAGE = "Registrazione in corso..."
 }
