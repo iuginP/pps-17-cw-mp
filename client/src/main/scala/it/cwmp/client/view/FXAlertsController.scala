@@ -97,7 +97,7 @@ trait FXAlertsController extends FXRunOnUIThread {
     runOnUIThread(() => {
       val alert = new Alert(alertType, message, buttonType)
       alert setTitle alertType.toString
-      alert setHeaderText headerText
+      alert setHeaderText (if (dialogContent.isDefined) s"$headerText\n\n$message" else headerText)
       dialogContent foreach (alert.getDialogPane.setContent(_))
       alert.showAndWait
       onCloseAction() // because of showAndWait runs after dialog closing

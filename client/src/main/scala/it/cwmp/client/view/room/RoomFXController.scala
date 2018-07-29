@@ -130,7 +130,7 @@ object RoomFXController {
   private val EMPTY_ROOM_ID_ERROR = "L'ID della stanza non può essere vuoto"
   private val NOT_SELECTED_PLAYERS_NUMBER = "Deve essere selezionato il numero di giocatori"
 
-  private val PRIVATE_ROOM_TOKEN_TITLE = "Private Room Token"
+  private val PRIVATE_ROOM_TOKEN_TITLE = "Token per la stanza privata"
 
   private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
 }
