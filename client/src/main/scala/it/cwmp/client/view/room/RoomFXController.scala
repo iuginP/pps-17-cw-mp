@@ -6,6 +6,7 @@ import it.cwmp.client.view.room.RoomFXController._
 import javafx.fxml.FXML
 import javafx.scene.Node
 import javafx.scene.control._
+import javafx.scene.input.{Clipboard, ClipboardContent}
 import javafx.scene.layout.GridPane
 
 /**
@@ -98,20 +99,21 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     * @param roomToken the token to show
     * @return the content of the dialog to show
     */
-  private def createRoomTokenDialogContent(roomToken: String): Node = { // TODO: review this
+  private def createRoomTokenDialogContent(roomToken: String): Node = {
     val gridPane = new GridPane()
-    gridPane.setHgap(10)
-    gridPane.setVgap(10)
-
-    val tokenLabel = new Label("Token: ")
 
     val tokenTextField = new TextField(roomToken)
     tokenTextField.setEditable(false)
 
-    //    okButton.setOnAction((_) => hideDialog())
+    val copyButton = new Button(COPY_BUTTON_TEXT)
+    copyButton.setOnAction(_ => {
+      val content = new ClipboardContent
+      content.putString(roomToken)
+      Clipboard.getSystemClipboard.setContent(content)
+    })
 
-    gridPane.add(tokenLabel, 0, 0)
     gridPane.add(tokenTextField, 0, 1)
+    gridPane.add(copyButton, 1, 1)
     gridPane
   }
 }
@@ -133,4 +135,6 @@ object RoomFXController {
   private val PRIVATE_ROOM_TOKEN_TITLE = "Token per la stanza privata"
 
   private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
+
+  private val COPY_BUTTON_TEXT = "Copy to clipboard"
 }
