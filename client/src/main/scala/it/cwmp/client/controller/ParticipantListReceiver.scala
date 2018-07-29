@@ -1,8 +1,8 @@
-package it.cwmp.client.model
+package it.cwmp.client.controller
 
 import java.net.InetAddress
 
-import it.cwmp.client.model.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
+import it.cwmp.client.controller.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
 import it.cwmp.services.roomreceiver.ServerParameters._

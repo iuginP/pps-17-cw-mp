@@ -2,107 +2,152 @@ package it.cwmp.client.view.room
 
 import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
-import javafx.application.Platform
+import it.cwmp.client.view.room.RoomFXController._
 import javafx.fxml.FXML
+import javafx.scene.Node
 import javafx.scene.control._
-import javafx.stage.Stage
+import javafx.scene.layout.GridPane
 
-trait RoomFXStrategy {
-  def onCreate(name: String, nPlayer: Int): Unit
-  def onEnterPrivate(idRoom: String): Unit
-  def onEnterPublic(nPlayer: Int): Unit
-}
-
-object RoomFXController {
-  def apply(strategy: RoomFXStrategy): RoomFXController = {
-    require(strategy != null)
-    new RoomFXController(strategy)
-  }
-}
-
-class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts with FXDialogs{
+/**
+  * Class that manages the Rooms View
+  *
+  * @param strategy the strategy to use on user actions
+  * @author contributor Enrico Siboni
+  */
+class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
 
   protected val layout: String = LayoutRes.roomManagerLayout
   protected val title: String = StringRes.roomManagerTitle
-  protected val stage: Stage = new Stage
-  protected val controller: FXController = this
+  protected val controller: FXViewController = this
 
-  @FXML
-  private var tfPrivateCreateRoomName: TextField = _
-  @FXML
-  private var spPrivateCreateNumPlayer: Spinner[Integer] = _
-  @FXML
-  private var tfPrivateEnterRoomID: TextField = _
-  @FXML
-  private var spPublicEnterNumPlayer: Spinner[Integer] = _
-  @FXML
-  private var btnPrivateCreate: Button = _
-  @FXML
-  private var btnPrivateReset: Button = _
-  @FXML
-  private var btnPrivateEnter: Button = _
-  @FXML
-  private var btnPublicEnter: Button = _
+  @FXML private var tabPane: TabPane = _
+  @FXML private var tfPrivateCreateRoomName: TextField = _
+  @FXML private var spPrivateCreateNumPlayer: Spinner[Int] = _
+  @FXML private var tfPrivateEnterRoomID: TextField = _
+  @FXML private var spPublicEnterNumPlayer: Spinner[Int] = _
+  @FXML private var btnPrivateCreate: Button = _
+  @FXML private var btnPrivateReset: Button = _
+  @FXML private var btnPrivateEnter: Button = _
+  @FXML private var btnPublicEnter: Button = _
 
-  //creare una stanza privata
-  @FXML
-  private def onClickCreate(): Unit = {
-    Platform.runLater(() => {
-      for(
-        name <- getTextFieldValue(tfPrivateCreateRoomName, "Il nome non può essere vuoto"); // TODO parametrize input
-        nPlayer <- getSpinnerFieldValue(spPrivateCreateNumPlayer, "Deve essere selezionato il numero di giocatori")
-      ) yield{
-        showLoadingDialog("Loading", "Stiamo creando la stanza privata")
-        strategy.onCreate(name, nPlayer)
-        btnPrivateCreate.setDisable(true)
-        btnPrivateReset.setDisable(true)
-      }
-    })
-  }
-
-  @FXML
-  private def onClickReset(): Unit = {
-    Platform.runLater(() => {
-      resetFields()
-    })
+  override def showGUI(): Unit = {
+    super.showGUI()
+    tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 
   override def resetFields(): Unit = {
     tfPrivateCreateRoomName setText ""
     spPrivateCreateNumPlayer getValueFactory() setValue 2
+    tfPrivateEnterRoomID setText ""
+    spPublicEnterNumPlayer getValueFactory() setValue 2
   }
 
-  @FXML
-  private def onClickEnter(): Unit = {
-    Platform.runLater(() => {
-      for(
-        id_room <- getTextFieldValue(tfPrivateEnterRoomID, "L'ID della stanza non può essere vuoto") // TODO parametrize input
-      ) yield {
-        showLoadingDialog("Loading", "Stai per entrare nella stanza privata")
-        strategy.onEnterPrivate(id_room)
-        btnPrivateEnter.setDisable(true)
-      }
-    })
+  override def disableViewComponents(): Unit = {
+    btnPrivateCreate.setDisable(true)
+    btnPrivateReset.setDisable(true)
+    btnPrivateEnter.setDisable(true)
+    btnPublicEnter.setDisable(true)
   }
 
-  //Componenti tab stanze pubbliche
-  @FXML
-  private def onClickRoomPublic(): Unit = {
-    Platform.runLater(() => {
-      for(
-        nPlayer <- getSpinnerFieldValue(spPublicEnterNumPlayer, "Deve essere selezionato il numero di giocatori") // TODO parametrize input
-      ) yield {
-        showLoadingDialog("Loading", "Stai per entrare in una stanza pubblica")
-        strategy.onEnterPublic(nPlayer)
-        btnPublicEnter.setDisable(true)
-      }
-    })
-  }
-
-  override def enableButtons(): Unit = {
+  override def enableViewComponents(): Unit = {
     btnPrivateCreate.setDisable(false)
     btnPrivateReset.setDisable(false)
     btnPrivateEnter.setDisable(false)
     btnPublicEnter.setDisable(false)
   }
+
+  @FXML private def onClickCreatePrivate(): Unit =
+    runOnUIThread(() => {
+      for (
+        roomName <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
+        playersNumber <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
+      ) yield {
+        disableViewComponents()
+        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
+        strategy.onCreate(roomName, playersNumber)
+      }
+    })
+
+  @FXML private def onClickResetPrivate(): Unit = runOnUIThread { () => resetFields() }
+
+  @FXML private def onClickEnterPrivate(): Unit =
+    runOnUIThread(() => {
+      for (
+        roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR)
+      ) yield {
+        disableViewComponents()
+        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
+        strategy.onEnterPrivate(roomID)
+      }
+    })
+
+
+  @FXML private def onClickEnterPublic(): Unit =
+    runOnUIThread(() => {
+      for (
+        playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER)
+      ) yield {
+        disableViewComponents()
+        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
+        strategy.onEnterPublic(playersNumber)
+      }
+    })
+
+
+  /**
+    * A method to show the token dialog to user
+    *
+    * @param roomToken the token that user should be able to copy
+    */
+  def showTokenDialog(roomToken: String): Unit =
+    runOnUIThread(() =>
+      showInfoWithContent(PRIVATE_ROOM_TOKEN_TITLE, PRIVATE_ROOM_TOKEN_MESSAGE,
+        createRoomTokenDialogContent(roomToken)))
+
+  /**
+    * Creates the dialog content whit selectable token
+    *
+    * @param roomToken the token to show
+    * @return the content of the dialog to show
+    */
+  private def createRoomTokenDialogContent(roomToken: String): Node = { // TODO: review this
+    val gridPane = new GridPane()
+    gridPane.setHgap(10)
+    gridPane.setVgap(10)
+
+    val tokenLabel = new Label("Token: ")
+
+    val tokenTextField = new TextField(roomToken)
+    tokenTextField.setEditable(false)
+
+    val okButton = new Button("OK")
+    //    okButton.setOnAction((_) => hideDialog())
+
+    gridPane.add(tokenLabel, 0, 0)
+    gridPane.add(tokenTextField, 0, 1)
+    gridPane.add(okButton, 1, 1)
+    gridPane
+  }
+}
+
+/**
+  * Companion object
+  */
+object RoomFXController {
+  def apply(strategy: RoomStrategy): RoomFXController = {
+    require(strategy != null, "The room strategy cannot be null")
+    new RoomFXController(strategy)
+  }
+
+  private val ROOM_NAME_EMPTY_ERROR = "Il nome della stanza non può essere vuoto"
+  private val ROOM_PLAYERS_NUMBER_ERROR = "Deve essere selezionato il numero di giocatori"
+  private val EMPTY_ROOM_ID_ERROR = "L'ID della stanza non può essere vuoto"
+  private val NOT_SELECTED_PLAYERS_NUMBER = "Deve essere selezionato il numero di giocatori"
+
+  private val ENTERING_ROOM_TITLE = "In attesa di giocatori"
+  private val PRIVATE_ROOM_TOKEN_TITLE = "Private Room Token"
+
+  private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
+  private val ENTERING_THE_ROOM = "Stai per entrare nella stanza scelta"
+  private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
 }

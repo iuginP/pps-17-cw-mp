@@ -3,6 +3,7 @@ package it.cwmp.services.authentication
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.utils.Utils.stringToOption
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future

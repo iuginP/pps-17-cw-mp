@@ -1,106 +1,52 @@
 package it.cwmp.client.view.room
 
-import akka.actor.{Actor, ActorRef}
-import it.cwmp.client.controller.ClientControllerMessages
-import it.cwmp.client.view.AlertActor
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
+import it.cwmp.client.controller.messages.RoomsRequests.{GUICreate, GUIEnterPrivate, GUIEnterPublic}
+import it.cwmp.client.view.FXViewActor
+import it.cwmp.client.view.room.RoomViewActor.ShowToken
 
 /**
-  * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
-  */
-object RoomViewMessages {
-
-  /**
-    * Questo messaggio rappresenta l'inizializzazione del controller che verrà poi utilizzato per le rispote che verrano inviate al mittente.
-    * Quando ricevuto, inizializzo il controller.
-    */
-  case object InitController
-
-  /**
-    * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
-    * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
-    */
-  case object ShowGUI
-
-  /**
-    * Questo messaggio rappresenta la chiusura dell'interfaccia grafica.
-    * Quando ricevuto, viene nascosta all'utente l'interfaccia grafica di selezione delle stanze.
-    */
-  case object HideGUI
-
-  /**
-    * Questo messaggio serve per visualizzare a schermo il token di creazione della stanza privata
-    * @param title il tiolo da visualizzare nel dialog
-    * @param message il token vero e proprio
-    */
-  case class ShowToken(title: String, message: String)
-
-}
-
-object RoomViewActor {
-  def apply(): RoomViewActor = new RoomViewActor()
-}
-
-/**
-  * Questa classe rappresenta l'attore incaricato di visualizzare
-  * l'interfaccia grafica della lobby di selezione delle stanze.
+  * This class represents the actor that manages the rooms
   *
   * @author Davide Borficchia
+  * @author contributor Enrico Siboni
   */
-class RoomViewActor extends Actor with AlertActor {
-  /**
-    * roomFXController il controller che gestisce la view della lobby delle stanze
-    */
-  var fxController: RoomFXController = _
-  /**
-    * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
-    */
-  var controllerActor: ActorRef = _
+case class RoomViewActor() extends FXViewActor {
 
-  /**
-    * Questo metodo viene invocato alla creazione dell'attore. Non va mai chiamato direttamente!
-    * Si occupa di creare il controller/view di javaFX per gestire il layout grafico delle stanze.
-    */
+  protected var fxController: RoomFXController = _
+
   override def preStart(): Unit = {
     super.preStart()
-    //inizializzo il toolkit
-    new JFXPanel
-    Platform setImplicitExit false
-    Platform runLater (() => {
-      fxController = RoomFXController(new RoomFXStrategy {
-        override def onCreate(name: String, nPlayer: Int): Unit =
-          controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
+    runOnUIThread(() =>
+      fxController = RoomFXController(new RoomStrategy {
+        override def onCreate(roomName: String, playersNumber: Int): Unit =
+          controllerActor ! GUICreate(roomName, playersNumber)
 
-        override def onEnterPrivate(idRoom: String): Unit =
-          controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
+        override def onEnterPrivate(roomID: String): Unit =
+          controllerActor ! GUIEnterPrivate(roomID)
 
-        override def onEnterPublic(nPlayer: Int): Unit =
-          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
-      })
+        override def onEnterPublic(playersNumber: Int): Unit =
+          controllerActor ! GUIEnterPublic(playersNumber)
+      }))
+  }
+
+  override def receive: Receive = super.receive orElse {
+    case ShowToken(roomToken) => runOnUIThread(() => {
+      //      onAlertReceived() TODO check because was called before moving all to super class
+      fxController showTokenDialog roomToken // TODO: make possible to close dialogs whit X (already done... but check)
     })
   }
+}
+
+/**
+  * Companion object, with actor messages
+  */
+object RoomViewActor {
 
   /**
-    * Questo metodo viene chiamato in automatico dall'esterno ogni volta che viene ricevuto un messaggio.
-    * Non va mai chiamato direttamente!
-    * I messaggi che questo attore è ingrado di ricevere sono raggruppati in [[RoomViewMessages]]
+    * Shows the room token on screen
+    *
+    * @param roomToken the private room token to spread among friends
     */
-  override def receive: Receive = alertBehaviour orElse {
-    case RoomViewMessages.InitController => controllerActor = sender()
-    case RoomViewMessages.ShowGUI => Platform runLater (() => fxController.showGUI())
-    case RoomViewMessages.HideGUI => Platform runLater (() => {
-      fxController.hideGUI()
-      fxController hideLoadingDialog()
-    })
-    case RoomViewMessages.ShowToken(title, message) => Platform runLater(() => {
-      onAlertReceived()
-      fxController showTokenDialog(title, message)
-    })
-  }
+  case class ShowToken(roomToken: String)
 
-  override protected def onAlertReceived(): Unit = {
-    fxController enableButtons()
-    fxController hideLoadingDialog()
-  }
 }
