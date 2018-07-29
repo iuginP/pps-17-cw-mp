@@ -5,9 +5,6 @@ package it.cwmp.client.controller.messages
   */
 object AuthenticationRequests {
 
-  /**
-    * A trait representing an authentication request
-    */
   sealed trait AuthenticationRequest
 
   /**
@@ -40,19 +37,10 @@ object AuthenticationRequests {
   */
 object AuthenticationResponses {
 
-  /**
-    * A trait representing an authentication response
-    */
   sealed trait AuthenticationResponse
 
-  /**
-    * A trait representing LogInResponses
-    */
   sealed trait LogInResponse extends AuthenticationResponse
 
-  /**
-    * A trait representing SignUpResponses
-    */
   sealed trait SignUpResponse extends AuthenticationResponse
 
   /**
