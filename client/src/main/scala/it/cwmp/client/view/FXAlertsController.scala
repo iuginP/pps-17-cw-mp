@@ -18,44 +18,61 @@ trait FXAlertsController extends FXRunOnUIThread {
   /**
     * A method to show an info message
     *
-    * @param headerText the text to show as header
-    * @param message    the specific message
+    * @param headerText    the text to show as header
+    * @param message       the specific message
+    * @param onCloseAction the action that should be executed on alert close
     */
-  def showInfo(headerText: String, message: String): Unit =
-    showAlertWithButtons(AlertType.INFORMATION, headerText, message, ButtonType.OK)
+  def showInfo(headerText: String, message: String,
+               onCloseAction: () => Unit = () => ()): Unit =
+    showAlertWithButton(AlertType.INFORMATION, headerText, message, ButtonType.OK, onCloseAction)
 
   /**
     * An info alert with custom content
     *
-    * @param headerText   the header text to show
-    * @param message      the message to show
-    * @param alertContent the custom content to show
+    * @param headerText    the header text to show
+    * @param message       the message to show
+    * @param alertContent  the custom content to show
+    * @param onCloseAction the action that should be executed on alert close
     */
-  def showInfoWithContent(headerText: String, message: String, alertContent: Node): Unit =
-    showAlertWithButtons(AlertType.INFORMATION, headerText, message, ButtonType.OK, Some(alertContent))
+  def showInfoWithContent(headerText: String, message: String,
+                          alertContent: Node, onCloseAction: () => Unit = () => ()): Unit =
+    showAlertWithButton(AlertType.INFORMATION, headerText, message, ButtonType.OK, onCloseAction, Some(alertContent))
 
   /**
     * A method to show an error message
     *
-    * @param headerText the text to show as header
-    * @param message    the specific message
+    * @param headerText    the text to show as header
+    * @param message       the specific message
+    * @param onCloseAction the action that should be executed on alert close
     */
-  def showError(headerText: String, message: String): Unit =
-    showAlertWithButtons(AlertType.ERROR, headerText, message, ButtonType.OK)
+  def showError(headerText: String, message: String,
+                onCloseAction: () => Unit = () => ()): Unit =
+    showAlertWithButton(AlertType.ERROR, headerText, message, ButtonType.OK, onCloseAction)
 
   /**
-    * Shows a loading dialog that either can be closed or not
+    * Shows a loading dialog that can not be closed
+    *
+    * @param message    the message to show
+    * @param headerText the header text to show
+    */
+  def showLoading(message: String, headerText: String = WAIT_MESSAGE): Unit = runOnUIThread(() => {
+    LoadingManagement
+      .createLoadingAlert(headerText, message, canBeClosed = false)
+      .show()
+  })
+
+
+  /**
+    * Shows a loading dialog that can be closed
     *
     * @param message                  the message to show
     * @param headerText               the header text to show
-    * @param canBeClosed              whether the dialog ca be closed or not
     * @param onPrematureClosureAction which action has to be executed if the loading is closed prematurely
     */
-  def showLoading(message: String, headerText: String = WAIT_MESSAGE,
-                  canBeClosed: Boolean = false,
-                  onPrematureClosureAction: () => Unit = () => ()): Unit = runOnUIThread(() => {
+  def showCloseableLoading(message: String, headerText: String = WAIT_MESSAGE,
+                           onPrematureClosureAction: () => Unit = () => ()): Unit = runOnUIThread(() => {
     LoadingManagement
-      .createLoadingAlert(headerText, message, canBeClosed, onPrematureClosureAction)
+      .createLoadingAlert(headerText, message, canBeClosed = true, onPrematureClosureAction)
       .show()
   })
 
@@ -73,15 +90,17 @@ trait FXAlertsController extends FXRunOnUIThread {
     * @param buttonType    the buttonType
     * @param dialogContent the content on the dialog
     */
-  private def showAlertWithButtons(alertType: AlertType, headerText: String,
-                                   message: String, buttonType: ButtonType,
-                                   dialogContent: Option[Node] = None): Unit =
+  private def showAlertWithButton(alertType: AlertType, headerText: String,
+                                  message: String, buttonType: ButtonType,
+                                  onCloseAction: () => Unit,
+                                  dialogContent: Option[Node] = None): Unit =
     runOnUIThread(() => {
       val alert = new Alert(alertType, message, buttonType)
       alert setTitle alertType.toString
-      alert setHeaderText headerText
+      alert setHeaderText (if (dialogContent.isDefined) s"$headerText\n\n$message" else headerText)
       dialogContent foreach (alert.getDialogPane.setContent(_))
       alert.showAndWait
+      onCloseAction() // because of showAndWait runs after dialog closing
     })
 
 
@@ -98,7 +117,8 @@ trait FXAlertsController extends FXRunOnUIThread {
       * @param message the message to show in the loading alert
       */
     def createLoadingAlert(title: String, message: String,
-                           canBeClosed: Boolean, onPrematureCloseAction: () => Unit): Alert = {
+                           canBeClosed: Boolean,
+                           onPrematureCloseAction: () => Unit = () => ()): Alert = {
       loadingAlert = new Alert(AlertType.NONE)
       loadingAlert setTitle title
       loadingAlert setHeaderText message

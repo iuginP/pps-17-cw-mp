@@ -7,11 +7,11 @@ import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 
 /**
-  * A base class representing a View actor with JavaFX underlying
+  * A base class representing a Service View actor with JavaFX underlying
   *
   * @author Enrico Siboni
   */
-abstract class FXViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+abstract class FXServiceViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
 
   protected def fxController: FXViewController with FXAlertsController with FXInputViewController
 
@@ -28,25 +28,19 @@ abstract class FXViewActor extends Actor with ActorAlertManagement with ActorVie
   }
 
   override protected def onErrorAlertReceived(title: String, message: String): Unit = {
+    onServiceResponseReceived()
     super.onErrorAlertReceived(title, message)
-    onAlertReceived()
   }
 
   override protected def onInfoAlertReceived(title: String, message: String): Unit = {
-    super.onInfoAlertReceived(title, message)
-    onAlertReceived()
+    onServiceResponseReceived()
   }
 
   /**
-    * When receiving an alert should enable buttons and hide loading
+    * When receiving a response from contacted service should enable buttons and hide loading
     */
-  private def onAlertReceived(): Unit = { // TODO: check if those behaviours can be somehow made more clear
+  protected def onServiceResponseReceived(): Unit = {
     fxController enableViewComponents()
-    fxController hideLoading()
-  }
-
-  override protected def onHideGUI(): Unit = {
-    super.onHideGUI()
     fxController hideLoading()
   }
 

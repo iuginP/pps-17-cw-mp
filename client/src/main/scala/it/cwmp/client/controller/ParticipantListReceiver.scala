@@ -6,14 +6,18 @@ import it.cwmp.client.controller.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
 import it.cwmp.services.roomreceiver.ServerParameters._
-import it.cwmp.utils.{Utils, VertxInstance}
+import it.cwmp.utils.Utils.stringToOption
+import it.cwmp.utils.{Logging, Utils, VertxInstance}
 
 import scala.concurrent.Future
+import scala.util.Success
 
 /**
   * A trait implementing a one time server to receive a participant list to the game room
   */
-trait ParticipantListReceiver extends VertxInstance {
+trait ParticipantListReceiver extends VertxInstance with Logging {
+
+  private var deploymentID: Option[String] = None
 
   /**
     * Listens for a list of participants
@@ -25,8 +29,17 @@ trait ParticipantListReceiver extends VertxInstance {
     val token = Utils.randomString(ADDRESS_TOKEN_LENGTH)
     val verticle = RoomReceiverServiceVerticle(token, participants => onListReceived(participants))
     vertx.deployVerticleFuture(verticle)
+      .andThen { case Success(id) => deploymentID = id }
       .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}"
         + API_RECEIVE_PARTICIPANTS_URL(token)))
+  }
+
+  /**
+    * A method that stops the server that would have received participants to entered room
+    */
+  def stopListeningForParticipants(): Unit = {
+    log.info("Stopping one-time participants receiver server")
+    deploymentID.foreach(vertx.undeploy)
   }
 }
 

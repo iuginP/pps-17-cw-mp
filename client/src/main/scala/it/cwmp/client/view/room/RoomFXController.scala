@@ -6,6 +6,7 @@ import it.cwmp.client.view.room.RoomFXController._
 import javafx.fxml.FXML
 import javafx.scene.Node
 import javafx.scene.control._
+import javafx.scene.input.{Clipboard, ClipboardContent}
 import javafx.scene.layout.GridPane
 
 /**
@@ -32,6 +33,7 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
 
   override def showGUI(): Unit = {
     super.showGUI()
+    // adds a listener to reset fields on tab change
     tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
   }
 
@@ -61,36 +63,23 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
       for (
         roomName <- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
         playersNumber <- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(CREATING_PRIVATE_ROOM_MESSAGE)
+      ) yield
         strategy.onCreate(roomName, playersNumber)
-      }
     })
 
   @FXML private def onClickResetPrivate(): Unit = runOnUIThread { () => resetFields() }
 
   @FXML private def onClickEnterPrivate(): Unit =
     runOnUIThread(() => {
-      for (
-        roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR)
-      ) yield {
-        disableViewComponents()
-        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-        strategy.onEnterPrivate(roomID)
-      }
+      for (roomID <- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR))
+        yield strategy.onEnterPrivate(roomID)
     })
 
 
   @FXML private def onClickEnterPublic(): Unit =
     runOnUIThread(() => {
-      for (
-        playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER)
-      ) yield {
-        disableViewComponents()
-        showLoading(ENTERING_THE_ROOM, ENTERING_ROOM_TITLE) // TODO: use cancellable loading, and test
-        strategy.onEnterPublic(playersNumber)
-      }
+      for (playersNumber <- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER))
+        yield strategy.onEnterPublic(playersNumber)
     })
 
 
@@ -110,22 +99,21 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     * @param roomToken the token to show
     * @return the content of the dialog to show
     */
-  private def createRoomTokenDialogContent(roomToken: String): Node = { // TODO: review this
+  private def createRoomTokenDialogContent(roomToken: String): Node = {
     val gridPane = new GridPane()
-    gridPane.setHgap(10)
-    gridPane.setVgap(10)
-
-    val tokenLabel = new Label("Token: ")
 
     val tokenTextField = new TextField(roomToken)
     tokenTextField.setEditable(false)
 
-    val okButton = new Button("OK")
-    //    okButton.setOnAction((_) => hideDialog())
+    val copyButton = new Button(COPY_BUTTON_TEXT)
+    copyButton.setOnAction(_ => {
+      val content = new ClipboardContent
+      content.putString(roomToken)
+      Clipboard.getSystemClipboard.setContent(content)
+    })
 
-    gridPane.add(tokenLabel, 0, 0)
     gridPane.add(tokenTextField, 0, 1)
-    gridPane.add(okButton, 1, 1)
+    gridPane.add(copyButton, 1, 1)
     gridPane
   }
 }
@@ -144,10 +132,9 @@ object RoomFXController {
   private val EMPTY_ROOM_ID_ERROR = "L'ID della stanza non può essere vuoto"
   private val NOT_SELECTED_PLAYERS_NUMBER = "Deve essere selezionato il numero di giocatori"
 
-  private val ENTERING_ROOM_TITLE = "In attesa di giocatori"
-  private val PRIVATE_ROOM_TOKEN_TITLE = "Private Room Token"
+  private val PRIVATE_ROOM_TOKEN_TITLE = "Token per la stanza privata"
 
-  private val CREATING_PRIVATE_ROOM_MESSAGE = "Stiamo creando la stanza privata"
-  private val ENTERING_THE_ROOM = "Stai per entrare nella stanza scelta"
   private val PRIVATE_ROOM_TOKEN_MESSAGE = "Questo è il token da usare per entrare nella stanza che hai creato"
+
+  private val COPY_BUTTON_TEXT = "Copy to clipboard"
 }

@@ -7,27 +7,60 @@ import it.cwmp.model.Address
   */
 object RoomsRequests {
 
+  sealed trait RoomRequest
+
+
+  sealed trait GUIRequest
+
+  sealed trait ServiceRequest
+
+
+  sealed trait RoomPrivateRequest
+
+  sealed trait RoomPublicRequest
+
+
+  sealed trait RoomCreationRequest extends RoomRequest
+
+  sealed trait RoomEnteringRequest extends RoomRequest
+
+  sealed trait RoomExitingRequest extends RoomRequest
+
   /**
     * Create a new private room; request from GUI
     *
     * @param name          the room name
     * @param playersNumber the players number
     */
-  sealed case class GUICreate(name: String, playersNumber: Int)
+  sealed case class GUICreate(name: String, playersNumber: Int) extends RoomCreationRequest with GUIRequest
 
   /**
     * Enter a private room; request from GUI
     *
     * @param roomID the roomID to enter
     */
-  sealed case class GUIEnterPrivate(roomID: String)
+  sealed case class GUIEnterPrivate(roomID: String) extends RoomEnteringRequest with RoomPrivateRequest with GUIRequest
 
   /**
     * Enter a public room; request from GUI
     *
     * @param playersNumber the players number of the public room to enter
     */
-  sealed case class GUIEnterPublic(playersNumber: Int)
+  sealed case class GUIEnterPublic(playersNumber: Int) extends RoomEnteringRequest with RoomPublicRequest with GUIRequest
+
+  /**
+    * Exits a private room; request from GUI
+    *
+    * @param roomID the room id of room to exit
+    */
+  sealed case class GUIExitPrivate(roomID: String) extends RoomExitingRequest with RoomPrivateRequest with GUIRequest
+
+  /**
+    * Exits a public room; request from GUI
+    *
+    * @param playersNumber the players number of public room to exit
+    */
+  sealed case class GUIExitPublic(playersNumber: Int) extends RoomExitingRequest with RoomPublicRequest with GUIRequest
 
   /**
     * Create a new private room; request for online service
@@ -36,7 +69,7 @@ object RoomsRequests {
     * @param playersNumber the players number
     * @param token         the user token
     */
-  sealed case class ServiceCreate(name: String, playersNumber: Int, token: String)
+  sealed case class ServiceCreate(name: String, playersNumber: Int, token: String) extends RoomCreationRequest with ServiceRequest
 
   /**
     * Enter a private room; request for online service
@@ -47,6 +80,7 @@ object RoomsRequests {
     * @param token         the user token
     */
   sealed case class ServiceEnterPrivate(roomID: String, playerAddress: Address, webAddress: Address, token: String)
+    extends RoomEnteringRequest with RoomPrivateRequest with ServiceRequest
 
   /**
     * Enter a public room; request for online service
@@ -57,7 +91,23 @@ object RoomsRequests {
     * @param token         the user token
     */
   sealed case class ServiceEnterPublic(playersNumber: Int, playerAddress: Address, webAddress: Address, token: String)
+    extends RoomEnteringRequest with RoomPublicRequest with ServiceRequest
 
+  /**
+    * Exits a private room; request from GUI
+    *
+    * @param roomID the room id of room to exit
+    * @param token  the user token
+    */
+  sealed case class ServiceExitPrivate(roomID: String, token: String) extends RoomExitingRequest with RoomPrivateRequest with ServiceRequest
+
+  /**
+    * Exits a public room; request from GUI
+    *
+    * @param playersNumber the players number of public room to exit
+    * @param token         the user token
+    */
+  sealed case class ServiceExitPublic(playersNumber: Int, token: String) extends RoomExitingRequest with RoomPublicRequest with ServiceRequest
 
 }
 
@@ -66,42 +116,77 @@ object RoomsRequests {
   */
 object RoomsResponses {
 
+  sealed trait RoomPrivateResponse
+
+  sealed trait RoomPublicResponse
+
+
+  sealed trait RoomCreationResponse
+
+  sealed trait RoomEnteringResponse
+
+  sealed trait RoomExitingResponse
+
   /**
     * Creation successful
     *
     * @param roomID the room identifier to use entering the room
     */
-  sealed case class CreateSuccess(roomID: String)
+  sealed case class CreateSuccess(roomID: String) extends RoomCreationResponse
 
   /**
     * Creation failed
     *
     * @param errorMessage optionally an error message
     */
-  sealed case class CreateFailure(errorMessage: Option[String])
+  sealed case class CreateFailure(errorMessage: Option[String]) extends RoomCreationResponse
 
   /**
     * Enter private room succeeded
     */
-  case object EnterPrivateSuccess
+  case object EnterPrivateSuccess extends RoomEnteringResponse with RoomPrivateResponse
 
   /**
     * Enter private room failed
     *
     * @param errorMessage optionally an error message
     */
-  sealed case class EnterPrivateFailure(errorMessage: Option[String])
+  sealed case class EnterPrivateFailure(errorMessage: Option[String]) extends RoomEnteringResponse with RoomPrivateResponse
 
   /**
     * Enter public room succeeded
     */
-  case object EnterPublicSuccess
+  case object EnterPublicSuccess extends RoomEnteringResponse with RoomPublicResponse
 
   /**
     * Enter public room failed
     *
     * @param errorMessage optionally an error message
     */
-  sealed case class EnterPublicFailure(errorMessage: Option[String])
+  sealed case class EnterPublicFailure(errorMessage: Option[String]) extends RoomEnteringResponse with RoomPublicResponse
+
+  /**
+    * Exit private room succeeded
+    */
+  case object ExitPrivateSuccess extends RoomExitingResponse with RoomPrivateResponse
+
+  /**
+    * Exit private room failed
+    *
+    * @param errorMessage optionally an error message
+    */
+  sealed case class ExitPrivateFailure(errorMessage: Option[String]) extends RoomExitingResponse with RoomPrivateResponse
+
+  /**
+    * Exit public room succeeded
+    */
+  case object ExitPublicSuccess extends RoomExitingResponse with RoomPublicResponse
+
+  /**
+    * Exit public room failed
+    *
+    * @param errorMessage optionally an error message
+    */
+  sealed case class ExitPublicFailure(errorMessage: Option[String]) extends RoomExitingResponse with RoomPublicResponse
 
 }
