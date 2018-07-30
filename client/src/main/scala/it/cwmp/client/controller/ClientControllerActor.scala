@@ -5,7 +5,7 @@ import it.cwmp.client.controller.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.ClientControllerActor._
 import it.cwmp.client.controller.PlayerActor.{RetrieveAddress, RetrieveAddressResponse, StartGame}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
-import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
+import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests._
@@ -149,11 +149,9 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       log.info(s"Exiting room $roomID")
     case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
       log.info(s"Exiting public room with $playersNumber")
-    case GUIReturnToSignIn() =>
+    case GUILogOut() =>
       log.info("Return to authentication view")
-      context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
-      roomViewActor ! Hide
-      authenticationViewActor ! Show
+      onLogOut()
   }
 
   /**
@@ -246,6 +244,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
   private def onLogOut(): Unit = {
     log.info(s"Setting the behaviour 'authentication-manager'")
     context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
+    roomViewActor ! Hide
     authenticationViewActor ! Show
   }
 }

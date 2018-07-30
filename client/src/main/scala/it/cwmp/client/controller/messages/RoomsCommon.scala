@@ -63,11 +63,6 @@ object RoomsRequests {
   sealed case class GUIExitPublic(playersNumber: Int) extends RoomExitingRequest with RoomPublicRequest with GUIRequest
 
   /**
-    * Exits from room view to return a signin view
-    */
-  sealed case class GUIReturnToSignIn() extends GUIRequest
-
-  /**
     * Create a new private room; request for online service
     *
     * @param name          the name of the room
