@@ -17,7 +17,7 @@ import scala.concurrent.duration._
   *
   * @author contributor Enrico Siboni
   */
-class GameViewActor extends Actor with Logging {
+case class GameViewActor() extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
@@ -99,7 +99,6 @@ class GameViewActor extends Actor with Logging {
   * Companion object, containing actor messages
   */
 object GameViewActor {
-  def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
 
   /**
     * The title of game view
