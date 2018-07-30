@@ -12,7 +12,7 @@ import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.view.authentication.AuthenticationViewActor
 import it.cwmp.client.view.room.RoomViewActor
-import it.cwmp.client.view.room.RoomViewActor.{ShowToken, WaitingForOthers}
+import it.cwmp.client.view.room.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.utils.Logging
 
@@ -228,6 +228,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     * @param participants the participants to game
     */
   private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
+    roomViewActor ! FoundOpponents
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
     roomViewActor ! Hide
