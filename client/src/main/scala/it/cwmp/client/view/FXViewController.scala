@@ -66,5 +66,6 @@ trait FXViewController {
     stage setResizable false
     stage.setOnCloseRequest(_ => onCloseAction())
     stage setScene new Scene(pane)
+    stage.setResizable(false)
   }
 }

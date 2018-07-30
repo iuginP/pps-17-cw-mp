@@ -42,6 +42,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       UserEventHandler.initializeEventHandlers(root, viewManagerActor)
 
       stage.setTitle(title)
+      stage.setResizable(false)
       root.getChildren.add(canvas)
       stage.setScene(new Scene(root))
 
