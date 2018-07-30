@@ -31,7 +31,7 @@ trait RoomStrategy {
   def onEnterPublic(playersNumber: Int): Unit
 
   /**
-    * invoked when the user wants to return to signin view
+    * Invoked when the user wants to return to logIn view
     */
   def onClosingRoomView(): Unit
 }
