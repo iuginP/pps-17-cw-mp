@@ -173,6 +173,16 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
   }
 
   /**
+    * Action to execute when logout occurs
+    */
+  private def onLogOut(): Unit = {
+    log.info(s"Setting the behaviour 'authentication-manager'")
+    context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
+    roomViewActor ! Hide
+    authenticationViewActor ! Show
+  }
+
+  /**
     * Action to do on successful room entering
     */
   private def onRoomEnteringSuccess(): Unit = {
@@ -238,16 +248,6 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     roomViewActor ! Hide
     playerActor ! PrepareForGame(participants,
       CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE))
-  }
-
-  /**
-    * Action to execute when logout occurs
-    */
-  private def onLogOut(): Unit = {
-    log.info(s"Setting the behaviour 'authentication-manager'")
-    context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
-    roomViewActor ! Hide
-    authenticationViewActor ! Show
   }
 }
 

@@ -33,6 +33,7 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
     super.showGUI()
     // adds a listener to reset fields on tab change
     tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
+    btnSignIn.setDefaultButton(true)
   }
 
   override def resetFields(): Unit = {
