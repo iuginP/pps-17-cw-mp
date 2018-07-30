@@ -146,11 +146,7 @@
                         <a class="object" href="" title="Object that implements the Rooms micro-service entry-point"></a>
                         <a href="" title="Object that implements the Rooms micro-service entry-point">RoomsServiceMain</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="trait" href="RoomsServiceUtils.html" title=""></a>
-                        <a href="RoomsServiceUtils.html" title="">RoomsServiceUtils</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="RoomsServiceVerticle$.html" title=""></a>
+                        <a class="object" href="RoomsServiceVerticle$.html" title="Companion object"></a>
                         <a class="class" href="RoomsServiceVerticle.html" title="Class that implements the Rooms micro-service"></a>
                         <a href="RoomsServiceVerticle.html" title="Class that implements the Rooms micro-service">RoomsServiceVerticle</a>
                       </li>
@@ -176,7 +172,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsServiceMain</span><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
+        <span class="name">RoomsServiceMain</span><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       </h4>
 
@@ -186,7 +182,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="scala.App">App</span>, <span class="extype" name="scala.DelayedInit">DelayedInit</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span>, <span class="extype" name="scala.App">App</span>, <span class="extype" name="scala.DelayedInit">DelayedInit</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -212,7 +208,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.services.rooms.RoomsServiceMain"><span>RoomsServiceMain</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="scala.App"><span>App</span></li><li class="in" name="scala.DelayedInit"><span>DelayedInit</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.services.rooms.RoomsServiceMain"><span>RoomsServiceMain</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="it.cwmp.utils.VertxInstance"><span>VertxInstance</span></li><li class="in" name="scala.App"><span>App</span></li><li class="in" name="scala.DelayedInit"><span>DelayedInit</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -612,6 +608,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="it.cwmp.utils.VertxInstance#vertx" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="vertx:io.vertx.scala.core.Vertx"></a><a id="vertx:Vertx"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsServiceMain$.html#vertx:io.vertx.scala.core.Vertx" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">vertx</span><span class="result">: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>VertxInstance</dd></dl></div>
+    </li><li name="it.cwmp.utils.VertxInstance#vertxExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext"></a><a id="vertxExecutionContext:VertxExecutionContext"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsServiceMain$.html#vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">vertxExecutionContext</span><span class="result">: <span class="extype" name="io.vertx.lang.scala.VertxExecutionContext">VertxExecutionContext</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>VertxInstance</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -714,6 +742,8 @@
         <div id="inheritedMembers">
         <div class="parent" name="it.cwmp.utils.Logging">
               <h3>Inherited from <span class="extype" name="it.cwmp.utils.Logging">Logging</span></h3>
+            </div><div class="parent" name="it.cwmp.utils.VertxInstance">
+              <h3>Inherited from <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span></h3>
             </div><div class="parent" name="scala.App">
               <h3>Inherited from <span class="extype" name="scala.App">App</span></h3>
             </div><div class="parent" name="scala.DelayedInit">

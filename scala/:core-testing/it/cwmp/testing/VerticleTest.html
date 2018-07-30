@@ -127,12 +127,12 @@
                         <a href="HttpMatchers.html" title="A trait that collects Http Custom Matchers for scalaTest">HttpMatchers</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="VerticleBeforeAndAfterAll.html" title=""></a>
-                        <a href="VerticleBeforeAndAfterAll.html" title="">VerticleBeforeAndAfterAll</a>
+                        <a class="trait" href="VerticleBeforeAndAfterAll.html" title="A trait that makes possible to deploy a bunch of verticles before all tests and un-deploy after all"></a>
+                        <a href="VerticleBeforeAndAfterAll.html" title="A trait that makes possible to deploy a bunch of verticles before all tests and un-deploy after all">VerticleBeforeAndAfterAll</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="VerticleBeforeAndAfterEach.html" title=""></a>
-                        <a href="VerticleBeforeAndAfterEach.html" title="">VerticleBeforeAndAfterEach</a>
+                        <a class="trait" href="VerticleBeforeAndAfterEach.html" title="A trait that makes possible to deploy a bunch of verticles before each test and un-deploy after each"></a>
+                        <a href="VerticleBeforeAndAfterEach.html" title="A trait that makes possible to deploy a bunch of verticles before each test and un-deploy after each">VerticleBeforeAndAfterEach</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="" title="This class is automatically extended when using VerticleBeforeAndAfterEach or VerticleBeforeAndAfterAll."></a>
@@ -170,7 +170,7 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class is automatically extended when using <a href="VerticleBeforeAndAfterEach.html" class="extype" name="it.cwmp.testing.VerticleBeforeAndAfterEach">VerticleBeforeAndAfterEach</a> or <a href="VerticleBeforeAndAfterAll.html" class="extype" name="it.cwmp.testing.VerticleBeforeAndAfterAll">VerticleBeforeAndAfterAll</a>.
-Here it is provided the structure for managing the deployment of the verticles and their undeploy at the end.
+Here it is provided the structure for managing the deployment of the verticles and their un-deploy at the end.
 </p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="it.cwmp.testing.VerticleTest">VerticleTest</a> with <a href="VertxTest.html" class="extype" name="it.cwmp.testing.VertxTest">VertxTest</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
@@ -337,7 +337,8 @@ Here it is provided the structure for managing the deployment of the verticles a
       </span>
       
       <p class="shortcomment cmt">Deploys all the verticles passed as parameter.</p><div class="fullcomment"><div class="comment cmt"><p>Deploys all the verticles passed as parameter. If any deploy fails or isn't deployed withing the
-requested time, it throws a <span class="extype" name="RuntimeException">RuntimeException</span></p></div><dl class="paramcmts block"><dt class="param">verticles</dt><dd class="cmt"><p>the list of verticle to deploy</p></dd><dt class="param">atMost</dt><dd class="cmt"><p>the maximum amount of time we can wait for the verticle to start. By default: 10000 milliseconds</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Exceptions thrown</dt><dd><span class="cmt"><p><span class="extype" name="RuntimeException"><code>RuntimeException</code></span> if any verticle can't be deployed</p></span></dd></dl></div>
+requested time, it throws a <span class="extype" name="RuntimeException">RuntimeException</span>
+</p></div><dl class="paramcmts block"><dt class="param">verticles</dt><dd class="cmt"><p>the list of verticle to deploy</p></dd><dt class="param">atMost</dt><dd class="cmt"><p>the maximum amount of time we can wait for the verticle to start. By default: 10000 milliseconds</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Exceptions thrown</dt><dd><span class="cmt"><p><span class="extype" name="RuntimeException"><code>RuntimeException</code></span> if any verticle can't be deployed</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -548,7 +549,8 @@ requested time, it throws a <span class="extype" name="RuntimeException">Runtime
       </span>
       
       <p class="shortcomment cmt">Un-deploys all the verticles previously deployed.</p><div class="fullcomment"><div class="comment cmt"><p>Un-deploys all the verticles previously deployed. If any un-deploy fails or it isn't un-deployed withing the
-requested time, it throws a <span class="extype" name="RuntimeException">RuntimeException</span></p></div><dl class="paramcmts block"><dt class="param">atMost</dt><dd class="cmt"><p>the maximum amount of time we can wait for the verticle to stop. By default: 10000 milliseconds</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Exceptions thrown</dt><dd><span class="cmt"><p><span class="extype" name="RuntimeException"><code>RuntimeException</code></span> if any verticle can't be un-deployed</p></span></dd></dl></div>
+requested time, it throws a <span class="extype" name="RuntimeException">RuntimeException</span>
+</p></div><dl class="paramcmts block"><dt class="param">atMost</dt><dd class="cmt"><p>the maximum amount of time we can wait for the verticle to stop. By default: 10000 milliseconds</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Exceptions thrown</dt><dd><span class="cmt"><p><span class="extype" name="RuntimeException"><code>RuntimeException</code></span> if any verticle can't be un-deployed</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">

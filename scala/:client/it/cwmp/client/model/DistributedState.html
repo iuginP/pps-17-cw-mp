@@ -150,33 +150,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="it.cwmp.client.model">model</a></dd></dl></div>
     </li><li class="current-entities indented4">
-                        <a class="object" href="ApiClientActor$.html" title=""></a>
-                        <a class="class" href="ApiClientActor.html" title=""></a>
-                        <a href="ApiClientActor.html" title="">ApiClientActor</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="ApiClientIncomingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere."></a>
-                        <a href="ApiClientIncomingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere.">ApiClientIncomingMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="ApiClientOutgoingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può inviare."></a>
-                        <a href="ApiClientOutgoingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può inviare.">ApiClientOutgoingMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="class" href="" title="Distributed representation of the world and of his behaviours."></a>
-                        <a href="" title="Distributed representation of the world and of his behaviours.">DistributedState</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="DistributedStateMessages$.html" title=""></a>
-                        <a href="DistributedStateMessages$.html" title="">DistributedStateMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="trait" href="ParticipantListReceiver.html" title=""></a>
-                        <a href="ParticipantListReceiver.html" title="">ParticipantListReceiver</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="PlayerActor$.html" title=""></a>
-                        <a class="class" href="PlayerActor.html" title=""></a>
-                        <a href="PlayerActor.html" title="">PlayerActor</a>
+                        <a class="object" href="DistributedState$.html" title="Companion Object, containing actor messages"></a>
+                        <a class="class" href="" title="Distributed representation of data and attached behaviours."></a>
+                        <a href="" title="Distributed representation of data and attached behaviours.">DistributedState</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="ReplicatedCache$.html" title=""></a>
                         <a class="class" href="ReplicatedCache.html" title=""></a>
@@ -188,34 +164,41 @@
           <div id="content">
             <body class="class type">
       <div id="definition">
-        <div class="big-circle class">c</div>
+        <a href="DistributedState$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
         <p id="owner"><a href="../../../index.html" class="extype" name="it">it</a>.<a href="../../index.html" class="extype" name="it.cwmp">cwmp</a>.<a href="../index.html" class="extype" name="it.cwmp.client">client</a>.<a href="index.html" class="extype" name="it.cwmp.client.model">model</a></p>
-        <h1>DistributedState<span class="permalink">
+        <h1><a href="DistributedState$.html" title="See companion object">DistributedState</a><span class="permalink">
       <a href="../../../../it/cwmp/client/model/DistributedState.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="DistributedState$.html" title="See companion object">object DistributedState</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">DistributedState</span><span class="tparams">[<span name="WD">WD &lt;: <a href="game/World.html" class="extype" name="it.cwmp.client.model.game.World">World</a>[_, _, _]</span>]</span><span class="params">(<span name="actor">actor: <span class="extype" name="akka.actor.Actor">Actor</span></span>, <span name="onWorldUpdate">onWorldUpdate: (<span class="extype" name="it.cwmp.client.model.DistributedState.WD">WD</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="replicator">replicator: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="cluster">cluster: <span class="extype" name="akka.cluster.Cluster">Cluster</span></span>)</span><span class="result"> extends <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">DistributedState</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Distributed representation of the world and of his behaviours.
-</p></div><dl class="paramcmts block"><dt class="param">onWorldUpdate</dt><dd class="cmt"><p>the update strategy when the world is changed</p></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Distributed representation of data and attached behaviours.
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">
+              Known Subclasses
+            </span>
+            <div class="subClasses hiddenContent"><a href="game/impl/CellWorldDistributedState.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorldDistributedState">CellWorldDistributedState</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -240,7 +223,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.client.model.DistributedState"><span>DistributedState</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.client.model.DistributedState"><span>DistributedState</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -261,9 +244,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="it.cwmp.client.model.DistributedState#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(actor:akka.actor.Actor,onWorldUpdate:WD=&gt;Unit)(implicitreplicator:akka.actor.ActorRef,implicitcluster:akka.cluster.Cluster):it.cwmp.client.model.DistributedState[WD]"></a><a id="&lt;init&gt;:DistributedState[WD]"></a>
+      <a id="&lt;init&gt;(onDistributedStateUpdate:T=&gt;Unit)(implicitreplicatorActor:akka.actor.ActorRef,implicitcluster:akka.cluster.Cluster):it.cwmp.client.model.DistributedState[T]"></a><a id="&lt;init&gt;:DistributedState[T]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/DistributedState.html#&lt;init&gt;(actor:akka.actor.Actor,onWorldUpdate:WD=&gt;Unit)(implicitreplicator:akka.actor.ActorRef,implicitcluster:akka.cluster.Cluster):it.cwmp.client.model.DistributedState[WD]" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#&lt;init&gt;(onDistributedStateUpdate:T=&gt;Unit)(implicitreplicatorActor:akka.actor.ActorRef,implicitcluster:akka.cluster.Cluster):it.cwmp.client.model.DistributedState[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -272,19 +255,54 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">DistributedState</span><span class="params">(<span name="actor">actor: <span class="extype" name="akka.actor.Actor">Actor</span></span>, <span name="onWorldUpdate">onWorldUpdate: (<span class="extype" name="it.cwmp.client.model.DistributedState.WD">WD</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="replicator">replicator: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="cluster">cluster: <span class="extype" name="akka.cluster.Cluster">Cluster</span></span>)</span>
+        <span class="name">DistributedState</span><span class="params">(<span name="onDistributedStateUpdate">onDistributedStateUpdate: (<span class="extype" name="it.cwmp.client.model.DistributedState.T">T</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="replicatorActor">replicatorActor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="cluster">cluster: <span class="extype" name="akka.cluster.Cluster">Cluster</span></span>)</span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">onWorldUpdate</dt><dd class="cmt"><p>the update strategy when the world is changed</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">onDistributedStateUpdate</dt><dd class="cmt"><p>the update strategy when the world is changed</p></dd></dl></div>
     </li></ol>
             </div>
 
         
 
-        
+        <div class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="it.cwmp.client.model.DistributedState#activeBehaviour" visbl="prt" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="activeBehaviour:akka.actor.Actor.Receive"></a><a id="activeBehaviour:Receive"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#activeBehaviour:akka.actor.Actor.Receive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">activeBehaviour</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the behaviour enabling to modify distributed state</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="it.cwmp.client.model.DistributedState#consistencyPolicy" visbl="prt" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="consistencyPolicy:akka.cluster.ddata.Replicator.WriteConsistency"></a><a id="consistencyPolicy:WriteConsistency"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#consistencyPolicy:akka.cluster.ddata.Replicator.WriteConsistency" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">consistencyPolicy</span><span class="result">: <span class="extype" name="akka.cluster.ddata.Replicator.WriteConsistency">WriteConsistency</span></span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the consistency policy to adopt when writing updates in distributed state</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li></ol>
+            </div>
 
         <div class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
@@ -334,10 +352,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="it.cwmp.client.model.DistributedState#actor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="actor:akka.actor.Actor"></a><a id="actor:Actor"></a>
+    </li><li name="it.cwmp.client.model.DistributedState#DistributedKey" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DistributedKey:akka.cluster.ddata.LWWRegisterKey[T]"></a><a id="DistributedKey:LWWRegisterKey[T]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/DistributedState.html#actor:akka.actor.Actor" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#DistributedKey:akka.cluster.ddata.LWWRegisterKey[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -346,10 +364,10 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">actor</span><span class="result">: <span class="extype" name="akka.actor.Actor">Actor</span></span>
+        <span class="name">DistributedKey</span><span class="result">: <span class="extype" name="akka.cluster.ddata.LWWRegisterKey">LWWRegisterKey</span>[<span class="extype" name="it.cwmp.client.model.DistributedState.T">T</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -390,6 +408,24 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="it.cwmp.client.model.DistributedState#distributedStateBehaviour" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="distributedStateBehaviour:akka.actor.Actor.Receive"></a><a id="distributedStateBehaviour:Receive"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#distributedStateBehaviour:akka.actor.Actor.Receive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">distributedStateBehaviour</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">This behaviour provides an easy way to make the interested actor,
+able to receive updates and make changes in this distributed state
+</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -406,6 +442,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#equals(x$1:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -447,10 +499,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="it.cwmp.client.model.DistributedState#initState" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="initState():Unit"></a>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/DistributedState.html#initState():Unit" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -459,10 +511,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">initState</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
+                <span class="name">@native</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -549,26 +604,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="it.cwmp.client.model.DistributedState#onWorldUpdate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="onWorldUpdate:WD=&gt;Unit"></a><a id="onWorldUpdate:(WD)⇒Unit"></a>
+    </li><li name="it.cwmp.client.model.DistributedState#passiveBehaviour" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="passiveBehaviour:akka.actor.Actor.Receive"></a><a id="passiveBehaviour:Receive"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/DistributedState.html#onWorldUpdate:WD=&gt;Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">onWorldUpdate</span><span class="result">: (<span class="extype" name="it.cwmp.client.model.DistributedState.WD">WD</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      
-      
-    </li><li name="it.cwmp.client.model.DistributedState#stateBehaviour" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="stateBehaviour:akka.actor.Actor.Receive"></a><a id="stateBehaviour:Receive"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/DistributedState.html#stateBehaviour:akka.actor.Actor.Receive" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#passiveBehaviour:akka.actor.Actor.Receive" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -577,10 +616,28 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stateBehaviour</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
+        <span class="name">passiveBehaviour</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
       </span>
       
-      <p class="shortcomment cmt">This behaviour provides an easy way to integrate the distributed state in the player actor.</p>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the behaviour enabling to listen for modification in the distributed state</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="it.cwmp.client.model.DistributedState#subscribe" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="subscribe(subscriber:akka.actor.ActorRef):Unit"></a><a id="subscribe(ActorRef):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#subscribe(subscriber:akka.actor.ActorRef):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">subscribe</span><span class="params">(<span name="subscriber">subscriber: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Subscribes the provided actor to receive changes in this distributed state
+</p><div class="fullcomment"><div class="comment cmt"><p>Subscribes the provided actor to receive changes in this distributed state
+</p></div><dl class="paramcmts block"><dt class="param">subscriber</dt><dd class="cmt"><p>the actor to subscribe</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -597,6 +654,40 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#toString():String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="it.cwmp.client.model.DistributedState#unsubscribe" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unsubscribe(subscriber:akka.actor.ActorRef):Unit"></a><a id="unsubscribe(ActorRef):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/model/DistributedState.html#unsubscribe(subscriber:akka.actor.ActorRef):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unsubscribe</span><span class="params">(<span name="subscriber">subscriber: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Un-subscribes the provided actor from updates of this distributed state
+</p><div class="fullcomment"><div class="comment cmt"><p>Un-subscribes the provided actor from updates of this distributed state
+</p></div><dl class="paramcmts block"><dt class="param">subscriber</dt><dd class="cmt"><p>the exiting subscriber</p></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -675,15 +766,7 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
-            </div><div class="parent" name="it.cwmp.utils.Logging">
+        <div class="parent" name="it.cwmp.utils.Logging">
               <h3>Inherited from <span class="extype" name="it.cwmp.utils.Logging">Logging</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>

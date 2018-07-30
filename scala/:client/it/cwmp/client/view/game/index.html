@@ -183,24 +183,24 @@
       
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
+                        <a class="trait" href="CellWorldObjectDrawer.html" title="A trait that makes possible to draw View items"></a>
+                        <a href="CellWorldObjectDrawer.html" title="A trait that makes possible to draw View items">CellWorldObjectDrawer</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
                         <a class="trait" href="ColoringStrategy.html" title="A trait that describes how to color things"></a>
                         <a href="ColoringStrategy.html" title="A trait that describes how to color things">ColoringStrategy</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="GameFX.html" title="Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco"></a>
-                        <a href="GameFX.html" title="Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco">GameFX</a>
+                        <a class="class" href="GameFX.html" title="This class shows the Game GUI"></a>
+                        <a href="GameFX.html" title="This class shows the Game GUI">GameFX</a>
                       </li><li class="current-entities indented5">
-                        <a class="object" href="GameViewActor$.html" title=""></a>
-                        <a class="class" href="GameViewActor.html" title=""></a>
-                        <a href="GameViewActor.html" title="">GameViewActor</a>
+                        <a class="object" href="GameViewActor$.html" title="Companion object, containing actor messages"></a>
+                        <a class="class" href="GameViewActor.html" title="The actor that deals with Game View"></a>
+                        <a href="GameViewActor.html" title="The actor that deals with Game View">GameViewActor</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
                         <a class="object" href="GameViewConstants$.html" title="An object where to put constants about the game visual"></a>
                         <a href="GameViewConstants$.html" title="An object where to put constants about the game visual">GameViewConstants</a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
-                        <a class="trait" href="ObjectDrawer.html" title=""></a>
-                        <a href="ObjectDrawer.html" title="">ObjectDrawer</a>
                       </li><li name="it.cwmp.client.view.room" visbl="pub" class="indented5 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="room"></a><a id="room:room"></a>
       <span class="permalink">
@@ -280,7 +280,24 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.client.view.game.ColoringStrategy" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="it.cwmp.client.view.game.CellWorldObjectDrawer" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CellWorldObjectDrawerextendsAnyRef"></a><a id="CellWorldObjectDrawer:CellWorldObjectDrawer"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/index.html#CellWorldObjectDrawerextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="A trait that makes possible to draw View items" href="CellWorldObjectDrawer.html"><span class="name">CellWorldObjectDrawer</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A trait that makes possible to draw View items
+</p>
+    </li><li name="it.cwmp.client.view.game.ColoringStrategy" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ColoringStrategy[-Thing,+Color]extendsThing=&gt;Color"></a><a id="ColoringStrategy[-Thing,+Color]:ColoringStrategy[Thing,Color]"></a>
       <span class="permalink">
       <a href="../../../../../it/cwmp/client/view/game/index.html#ColoringStrategy[-Thing,+Color]extendsThing=&gt;Color" title="Permalink">
@@ -297,10 +314,10 @@
       
       <p class="shortcomment cmt">A trait that describes how to color things
 </p>
-    </li><li name="it.cwmp.client.view.game.GameFX" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GameFXextendsObjectDrawerwithProductwithSerializable"></a><a id="GameFX:GameFX"></a>
+    </li><li name="it.cwmp.client.view.game.GameFX" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="GameFXextendsCellWorldObjectDrawerwithProductwithSerializable"></a><a id="GameFX:GameFX"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/view/game/index.html#GameFXextendsObjectDrawerwithProductwithSerializable" title="Permalink">
+      <a href="../../../../../it/cwmp/client/view/game/index.html#GameFXextendsCellWorldObjectDrawerwithProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -309,15 +326,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco" href="GameFX.html"><span class="name">GameFX</span></a><span class="params">()</span><span class="result"> extends <a href="ObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.ObjectDrawer">ObjectDrawer</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="This class shows the Game GUI" href="GameFX.html"><span class="name">GameFX</span></a><span class="params">(<span name="viewManagerActor">viewManagerActor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result"> extends <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt">Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco
-</p>
+      <p class="shortcomment cmt">This class shows the Game GUI
+</p><div class="fullcomment"><div class="comment cmt"><p>This class shows the Game GUI
+</p></div><dl class="paramcmts block"><dt class="param">viewManagerActor</dt><dd class="cmt"><p>the actor that manages view events</p></dd></dl></div>
     </li><li name="it.cwmp.client.view.game.GameViewActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GameViewActorextendsActorwithActorLogging"></a><a id="GameViewActor:GameViewActor"></a>
+      <a id="GameViewActorextendsActorwithLogging"></a><a id="GameViewActor:GameViewActor"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/view/game/index.html#GameViewActorextendsActorwithActorLogging" title="Permalink">
+      <a href="../../../../../it/cwmp/client/view/game/index.html#GameViewActorextendsActorwithLogging" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -326,26 +344,11 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor.html"><span class="name">GameViewActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+        <a title="The actor that deals with Game View" href="GameViewActor.html"><span class="name">GameViewActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       
-      <p class="shortcomment cmt"></p>
-    </li><li name="it.cwmp.client.view.game.ObjectDrawer" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ObjectDrawerextendsAnyRef"></a><a id="ObjectDrawer:ObjectDrawer"></a>
-      <span class="permalink">
-      <a href="../../../../../it/cwmp/client/view/game/index.html#ObjectDrawerextendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="ObjectDrawer.html"><span class="name">ObjectDrawer</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      <p class="shortcomment cmt"></p>
+      <p class="shortcomment cmt">The actor that deals with Game View
+</p>
     </li></ol>
             </div>
 
@@ -366,10 +369,11 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor$.html"><span class="name">GameViewActor</span></a>
+        <a title="Companion object, containing actor messages" href="GameViewActor$.html"><span class="name">GameViewActor</span></a>
       </span>
       
-      
+      <p class="shortcomment cmt">Companion object, containing actor messages
+</p>
     </li><li name="it.cwmp.client.view.game.GameViewConstants" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GameViewConstants"></a><a id="GameViewConstants:GameViewConstants"></a>
       <span class="permalink">

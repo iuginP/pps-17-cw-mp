@@ -167,12 +167,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.client.view.game">game</a></dd></dl></div>
     </li><li class="current-entities indented6">
                         <a class="object" href="CellView$.html" title="Companion object"></a>
-                        <a class="class" href="" title="Classe che rappresenta una cella"></a>
-                        <a href="" title="Classe che rappresenta una cella">CellView</a>
+                        <a class="class" href="" title="A class representing the View counterpart of a Cell"></a>
+                        <a href="" title="A class representing the View counterpart of a Cell">CellView</a>
                       </li><li class="current-entities indented6">
-                        <span class="separator"></span>
-                        <a class="object" href="TentacleView$.html" title="Tentacle View utilities"></a>
-                        <a href="TentacleView$.html" title="Tentacle View utilities">TentacleView</a>
+                        <a class="object" href="TentacleView$.html" title="Companion Object"></a>
+                        <a class="class" href="TentacleView.html" title="A class representing the View counterpart of Tentacle"></a>
+                        <a href="TentacleView.html" title="A class representing the View counterpart of Tentacle">TentacleView</a>
                       </li>
               </ul>
             </div>
@@ -198,13 +198,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">CellView</span><span class="params">(<span name="center">center: <a href="../../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>, <span name="color">color: <span class="extype" name="java.awt.Color">Color</span></span>, <span name="size">size: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">CellView</span><span class="params">(<span name="center">center: <a href="../../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>, <span name="radius">radius: <span class="extype" name="scala.Double">Double</span></span>, <span name="color">color: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>, <span name="energy">energy: <span class="extype" name="scala.Double">Double</span></span>, <span name="energyTextColor">energyTextColor: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>, <span name="border">border: <span class="extype" name="javafx.scene.layout.Border">Border</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Classe che rappresenta una cella
-</p></div><dl class="paramcmts block"><dt class="param">center</dt><dd class="cmt"><p>punto nel quale verrà disegnata la cella</p></dd><dt class="param">size</dt><dd class="cmt"><p>dimensione della cella</p></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A class representing the View counterpart of a Cell
+</p></div><dl class="paramcmts block"><dt class="param">center</dt><dd class="cmt"><p>the center point where the CellView will be placed</p></dd><dt class="param">radius</dt><dd class="cmt"><p>the radius of the cell</p></dd><dt class="param">color</dt><dd class="cmt"><p>the color of the cellView</p></dd><dt class="param">energy</dt><dd class="cmt"><p>the cell energy</p></dd><dt class="param">energyTextColor</dt><dd class="cmt"><p>the color of the energyText</p></dd><dt class="param">border</dt><dd class="cmt"><p>the cell border</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -255,9 +255,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="it.cwmp.client.view.game.model.CellView#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(center:it.cwmp.client.model.game.impl.Point,color:java.awt.Color,size:Int):it.cwmp.client.view.game.model.CellView"></a><a id="&lt;init&gt;:CellView"></a>
+      <a id="&lt;init&gt;(center:it.cwmp.client.model.game.impl.Point,radius:Double,color:javafx.scene.paint.Color,energy:Double,energyTextColor:javafx.scene.paint.Color,border:javafx.scene.layout.Border):it.cwmp.client.view.game.model.CellView"></a><a id="&lt;init&gt;:CellView"></a>
       <span class="permalink">
-      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#&lt;init&gt;(center:it.cwmp.client.model.game.impl.Point,color:java.awt.Color,size:Int):it.cwmp.client.view.game.model.CellView" title="Permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#&lt;init&gt;(center:it.cwmp.client.model.game.impl.Point,radius:Double,color:javafx.scene.paint.Color,energy:Double,energyTextColor:javafx.scene.paint.Color,border:javafx.scene.layout.Border):it.cwmp.client.view.game.model.CellView" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -266,10 +266,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">CellView</span><span class="params">(<span name="center">center: <a href="../../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>, <span name="color">color: <span class="extype" name="java.awt.Color">Color</span></span>, <span name="size">size: <span class="extype" name="scala.Int">Int</span></span>)</span>
+        <span class="name">CellView</span><span class="params">(<span name="center">center: <a href="../../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>, <span name="radius">radius: <span class="extype" name="scala.Double">Double</span></span>, <span name="color">color: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>, <span name="energy">energy: <span class="extype" name="scala.Double">Double</span></span>, <span name="energyTextColor">energyTextColor: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>, <span name="border">border: <span class="extype" name="javafx.scene.layout.Border">Border</span></span>)</span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">center</dt><dd class="cmt"><p>punto nel quale verrà disegnata la cella</p></dd><dt class="param">size</dt><dd class="cmt"><p>dimensione della cella</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">center</dt><dd class="cmt"><p>the center point where the CellView will be placed</p></dd><dt class="param">radius</dt><dd class="cmt"><p>the radius of the cell</p></dd><dt class="param">color</dt><dd class="cmt"><p>the color of the cellView</p></dd><dt class="param">energy</dt><dd class="cmt"><p>the cell energy</p></dd><dt class="param">energyTextColor</dt><dd class="cmt"><p>the color of the energyText</p></dd><dt class="param">border</dt><dd class="cmt"><p>the cell border</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -344,6 +344,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="it.cwmp.client.view.game.model.CellView#border" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="border:javafx.scene.layout.Border"></a><a id="border:Border"></a>
+      <span class="permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#border:javafx.scene.layout.Border" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">border</span><span class="result">: <span class="extype" name="javafx.scene.layout.Border">Border</span></span>
+      </span>
+      
+      
     </li><li name="it.cwmp.client.view.game.model.CellView#center" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="center:it.cwmp.client.model.game.impl.Point"></a><a id="center:Point"></a>
       <span class="permalink">
@@ -385,9 +401,9 @@
               
         </dd></dl></div>
     </li><li name="it.cwmp.client.view.game.model.CellView#color" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="color:java.awt.Color"></a><a id="color:Color"></a>
+      <a id="color:javafx.scene.paint.Color"></a><a id="color:Color"></a>
       <span class="permalink">
-      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#color:java.awt.Color" title="Permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#color:javafx.scene.paint.Color" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -396,7 +412,39 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">color</span><span class="result">: <span class="extype" name="java.awt.Color">Color</span></span>
+        <span class="name">color</span><span class="result">: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>
+      </span>
+      
+      
+    </li><li name="it.cwmp.client.view.game.model.CellView#energy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="energy:Double"></a>
+      <span class="permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#energy:Double" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">energy</span><span class="result">: <span class="extype" name="scala.Double">Double</span></span>
+      </span>
+      
+      
+    </li><li name="it.cwmp.client.view.game.model.CellView#energyTextColor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="energyTextColor:javafx.scene.paint.Color"></a><a id="energyTextColor:Color"></a>
+      <span class="permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#energyTextColor:javafx.scene.paint.Color" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">energyTextColor</span><span class="result">: <span class="extype" name="javafx.scene.paint.Color">Color</span></span>
       </span>
       
       
@@ -527,10 +575,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="it.cwmp.client.view.game.model.CellView#size" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="size:Int"></a>
+    </li><li name="it.cwmp.client.view.game.model.CellView#radius" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="radius:Double"></a>
       <span class="permalink">
-      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#size:Int" title="Permalink">
+      <a href="../../../../../../it/cwmp/client/view/game/model/CellView.html#radius:Double" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -539,7 +587,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">size</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">radius</span><span class="result">: <span class="extype" name="scala.Double">Double</span></span>
       </span>
       
       

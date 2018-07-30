@@ -150,21 +150,17 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.client.view">view</a></dd></dl></div>
     </li><li class="current-entities indented5">
-                        <a class="object" href="RoomFXController$.html" title=""></a>
-                        <a class="class" href="RoomFXController.html" title=""></a>
-                        <a href="RoomFXController.html" title="">RoomFXController</a>
+                        <a class="object" href="RoomFXController$.html" title="Companion object"></a>
+                        <a class="class" href="RoomFXController.html" title="Class that manages the Rooms View"></a>
+                        <a href="RoomFXController.html" title="Class that manages the Rooms View">RoomFXController</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="trait" href="RoomFXStrategy.html" title=""></a>
-                        <a href="RoomFXStrategy.html" title="">RoomFXStrategy</a>
+                        <a class="trait" href="RoomStrategy.html" title="A strategy to know what to do when requested to create or enter a room"></a>
+                        <a href="RoomStrategy.html" title="A strategy to know what to do when requested to create or enter a room">RoomStrategy</a>
                       </li><li class="current-entities indented5">
-                        <a class="object" href="" title=""></a>
-                        <a class="class" href="RoomViewActor.html" title="Questa classe rappresenta l'attore incaricato di visualizzare l'interfaccia grafica della lobby di selezione delle stanze."></a>
-                        <a href="RoomViewActor.html" title="Questa classe rappresenta l'attore incaricato di visualizzare l'interfaccia grafica della lobby di selezione delle stanze.">RoomViewActor</a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
-                        <a class="object" href="RoomViewMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere."></a>
-                        <a href="RoomViewMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere.">RoomViewMessages</a>
+                        <a class="object" href="" title="Companion object, with actor messages"></a>
+                        <a class="class" href="RoomViewActor.html" title="This class represents the actor that manages the rooms"></a>
+                        <a href="RoomViewActor.html" title="This class represents the actor that manages the rooms">RoomViewActor</a>
                       </li>
               </ul>
             </div>
@@ -190,16 +186,17 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomViewActor</span>
+        <span class="name">RoomViewActor</span><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Companion object, with actor messages
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -225,7 +222,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.client.view.room.RoomViewActor"><span>RoomViewActor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.client.view.room.RoomViewActor"><span>RoomViewActor</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -245,7 +242,28 @@
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="it.cwmp.client.view.room.RoomViewActor.ShowToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ShowTokenextendsProductwithSerializable"></a><a id="ShowToken:ShowToken"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/room/RoomViewActor$.html#ShowTokenextendsProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="Shows the room token on screen" href="RoomViewActor$$ShowToken.html"><span class="name">ShowToken</span></a><span class="params">(<span name="roomToken">roomToken: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Shows the room token on screen
+</p><div class="fullcomment"><div class="comment cmt"><p>Shows the room token on screen
+</p></div><dl class="paramcmts block"><dt class="param">roomToken</dt><dd class="cmt"><p>the private room token to spread among friends</p></dd></dl></div>
+    </li></ol>
+            </div>
 
         
 
@@ -300,22 +318,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="it.cwmp.client.view.room.RoomViewActor#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply():it.cwmp.client.view.room.RoomViewActor"></a><a id="apply():RoomViewActor"></a>
-      <span class="permalink">
-      <a href="../../../../../it/cwmp/client/view/room/RoomViewActor$.html#apply():it.cwmp.client.view.room.RoomViewActor" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">()</span><span class="result">: <a href="RoomViewActor.html" class="extype" name="it.cwmp.client.view.room.RoomViewActor">RoomViewActor</a></span>
-      </span>
-      
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -618,6 +620,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="it.cwmp.client.view.room.RoomViewActor.WaitingForOthers" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WaitingForOthers"></a><a id="WaitingForOthers:WaitingForOthers"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/room/RoomViewActor$.html#WaitingForOthers" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Shows a loading while waiting for others participants" href="RoomViewActor$$WaitingForOthers$.html"><span class="name">WaitingForOthers</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Shows a loading while waiting for others participants
+</p>
     </li>
               </ol>
             </div>
@@ -628,7 +647,11 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

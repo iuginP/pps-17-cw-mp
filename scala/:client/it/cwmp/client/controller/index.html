@@ -149,14 +149,54 @@
       </span>
       
       
+    </li><li name="it.cwmp.client.controller.messages" visbl="pub" class="indented5 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="messages"></a><a id="messages:messages"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#messages" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="messages/index.html"><span class="name">messages</span></a>
+      </span>
+      
+      
     </li><li class="current-entities indented4">
-                        <a class="object" href="ClientControllerActor$.html" title=""></a>
-                        <a class="class" href="ClientControllerActor.html" title="Questa classe rappresenta l'attore del controller del client che ha il compito di fare da tramite tra le view e i model."></a>
-                        <a href="ClientControllerActor.html" title="Questa classe rappresenta l'attore del controller del client che ha il compito di fare da tramite tra le view e i model.">ClientControllerActor</a>
+                        <span class="separator"></span>
+                        <a class="trait" href="ActorAlertManagement.html" title="A trait that gives autonomous management of alert messages;"></a>
+                        <a href="ActorAlertManagement.html" title="A trait that gives autonomous management of alert messages;">ActorAlertManagement</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="ClientControllerMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere."></a>
-                        <a href="ClientControllerMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere.">ClientControllerMessages</a>
+                        <a class="trait" href="ActorViewVisibilityManagement.html" title="A trait that give autonomous management to view visibility"></a>
+                        <a href="ActorViewVisibilityManagement.html" title="A trait that give autonomous management to view visibility">ActorViewVisibilityManagement</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="AlertMessages$.html" title="A collection of AlertMessages"></a>
+                        <a href="AlertMessages$.html" title="A collection of AlertMessages">AlertMessages</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="ApiClientActor.html" title="A class that implements the actor that will manage communications with services APIs"></a>
+                        <a href="ApiClientActor.html" title="A class that implements the actor that will manage communications with services APIs">ApiClientActor</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="ClientControllerActor$.html" title="Companion object"></a>
+                        <a class="class" href="ClientControllerActor.html" title="This class is client controller actor, that will manage interactions between client parts"></a>
+                        <a href="ClientControllerActor.html" title="This class is client controller actor, that will manage interactions between client parts">ClientControllerActor</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="ParticipantListReceiver$.html" title="Companion object"></a>
+                        <a class="trait" href="ParticipantListReceiver.html" title="A trait implementing a one time server to receive a participant list to the game room"></a>
+                        <a href="ParticipantListReceiver.html" title="A trait implementing a one time server to receive a participant list to the game room">ParticipantListReceiver</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="PlayerActor$.html" title="Companion object, containing actor messages"></a>
+                        <a class="class" href="PlayerActor.html" title="Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito."></a>
+                        <a href="PlayerActor.html" title="Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.">PlayerActor</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="ViewVisibilityMessages$.html" title="A collection of view visibility messages"></a>
+                        <a href="ViewVisibilityMessages$.html" title="A collection of view visibility messages">ViewVisibilityMessages</a>
                       </li><li name="it.cwmp.client.model" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="model"></a><a id="model:model"></a>
       <span class="permalink">
@@ -268,10 +308,96 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.client.controller.ClientControllerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ClientControllerActorextendsActorwithParticipantListReceiver"></a><a id="ClientControllerActor:ClientControllerActor"></a>
+              <ol><li name="it.cwmp.client.controller.ActorAlertManagement" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ActorAlertManagementextendsAnyRef"></a><a id="ActorAlertManagement:ActorAlertManagement"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/controller/index.html#ClientControllerActorextendsActorwithParticipantListReceiver" title="Permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ActorAlertManagementextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="A trait that gives autonomous management of alert messages;" href="ActorAlertManagement.html"><span class="name">ActorAlertManagement</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A trait that gives autonomous management of alert messages;</p><div class="fullcomment"><div class="comment cmt"><p>A trait that gives autonomous management of alert messages;</p><p>To use it you need to add &quot;alertBehaviour&quot; to your Actor receive
+</p></div></div>
+    </li><li name="it.cwmp.client.controller.ActorViewVisibilityManagement" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ActorViewVisibilityManagementextendsFXRunOnUIThread"></a><a id="ActorViewVisibilityManagement:ActorViewVisibilityManagement"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ActorViewVisibilityManagementextendsFXRunOnUIThread" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="A trait that give autonomous management to view visibility" href="ActorViewVisibilityManagement.html"><span class="name">ActorViewVisibilityManagement</span></a><span class="result"> extends <a href="../view/FXRunOnUIThread.html" class="extype" name="it.cwmp.client.view.FXRunOnUIThread">FXRunOnUIThread</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A trait that give autonomous management to view visibility</p><div class="fullcomment"><div class="comment cmt"><p>A trait that give autonomous management to view visibility</p><p>To use it you need to add &quot;visibilityBehaviour&quot; to your Actor receive
+</p></div></div>
+    </li><li name="it.cwmp.client.controller.ApiClientActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ApiClientActorextendsActorwithProductwithSerializable"></a><a id="ApiClientActor:ApiClientActor"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ApiClientActorextendsActorwithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="A class that implements the actor that will manage communications with services APIs" href="ApiClientActor.html"><span class="name">ApiClientActor</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A class that implements the actor that will manage communications with services APIs
+</p>
+    </li><li name="it.cwmp.client.controller.ClientControllerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ClientControllerActorextendsActorwithParticipantListReceiverwithLoggingwithProductwithSerializable"></a><a id="ClientControllerActor:ClientControllerActor"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ClientControllerActorextendsActorwithParticipantListReceiverwithLoggingwithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="This class is client controller actor, that will manage interactions between client parts" href="ClientControllerActor.html"><span class="name">ClientControllerActor</span></a><span class="params">(<span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <a href="ParticipantListReceiver.html" class="extype" name="it.cwmp.client.controller.ParticipantListReceiver">ParticipantListReceiver</a> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">This class is client controller actor, that will manage interactions between client parts
+</p><div class="fullcomment"><div class="comment cmt"><p>This class is client controller actor, that will manage interactions between client parts
+</p></div><dl class="paramcmts block"><dt class="param">system</dt><dd class="cmt"><p>the system of this actors</p></dd></dl></div>
+    </li><li name="it.cwmp.client.controller.ParticipantListReceiver" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ParticipantListReceiverextendsVertxInstancewithLogging"></a><a id="ParticipantListReceiver:ParticipantListReceiver"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ParticipantListReceiverextendsVertxInstancewithLogging" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="A trait implementing a one time server to receive a participant list to the game room" href="ParticipantListReceiver.html"><span class="name">ParticipantListReceiver</span></a><span class="result"> extends <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A trait implementing a one time server to receive a participant list to the game room
+</p>
+    </li><li name="it.cwmp.client.controller.PlayerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PlayerActorextendsActorwithLogging"></a><a id="PlayerActor:PlayerActor"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#PlayerActorextendsActorwithLogging" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -280,11 +406,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Questa classe rappresenta l'attore del controller del client che ha il compito di fare da tramite tra le view e i model." href="ClientControllerActor.html"><span class="name">ClientControllerActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <a href="../model/ParticipantListReceiver.html" class="extype" name="it.cwmp.client.model.ParticipantListReceiver">ParticipantListReceiver</a></span>
+        <a title="Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito." href="PlayerActor.html"><span class="name">PlayerActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       
-      <p class="shortcomment cmt">Questa classe rappresenta l'attore del controller del client che ha il compito
-di fare da tramite tra le view e i model.</p>
+      <p class="shortcomment cmt">Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.</p><div class="fullcomment"><div class="comment cmt"><p>Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.
+Innanzi tutto all'avvio della partita crea un cluster con gli altri partecipanti; poi
+mantiene attivo uno stato condiviso per fare in modo che la partita sia coerente per tutti i partecipanti.
+</p></div></div>
     </li></ol>
             </div>
 
@@ -293,7 +421,24 @@ di fare da tramite tra le view e i model.</p>
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="it.cwmp.client.controller.ClientControllerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="it.cwmp.client.controller.AlertMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AlertMessages"></a><a id="AlertMessages:AlertMessages"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#AlertMessages" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="A collection of AlertMessages" href="AlertMessages$.html"><span class="name">AlertMessages</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">A collection of AlertMessages
+</p>
+    </li><li name="it.cwmp.client.controller.ClientControllerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ClientControllerActor"></a><a id="ClientControllerActor:ClientControllerActor"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/client/controller/index.html#ClientControllerActor" title="Permalink">
@@ -305,14 +450,15 @@ di fare da tramite tra le view e i model.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ClientControllerActor$.html"><span class="name">ClientControllerActor</span></a>
+        <a title="Companion object" href="ClientControllerActor$.html"><span class="name">ClientControllerActor</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
-    </li><li name="it.cwmp.client.controller.ClientControllerMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ClientControllerMessages"></a><a id="ClientControllerMessages:ClientControllerMessages"></a>
+      <p class="shortcomment cmt">Companion object
+</p>
+    </li><li name="it.cwmp.client.controller.ParticipantListReceiver" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParticipantListReceiver"></a><a id="ParticipantListReceiver:ParticipantListReceiver"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/controller/index.html#ClientControllerMessages" title="Permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ParticipantListReceiver" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -321,10 +467,45 @@ di fare da tramite tra le view e i model.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere." href="ClientControllerMessages$.html"><span class="name">ClientControllerMessages</span></a>
+        <a title="Companion object" href="ParticipantListReceiver$.html"><span class="name">ParticipantListReceiver</span></a>
       </span>
       
-      <p class="shortcomment cmt">Questo oggetto contiene tutti i messaggi che questo attore può ricevere.</p>
+      <p class="shortcomment cmt">Companion object
+</p>
+    </li><li name="it.cwmp.client.controller.PlayerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PlayerActor"></a><a id="PlayerActor:PlayerActor"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#PlayerActor" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Companion object, containing actor messages" href="PlayerActor$.html"><span class="name">PlayerActor</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Companion object, containing actor messages
+</p>
+    </li><li name="it.cwmp.client.controller.ViewVisibilityMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ViewVisibilityMessages"></a><a id="ViewVisibilityMessages:ViewVisibilityMessages"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/client/controller/index.html#ViewVisibilityMessages" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="A collection of view visibility messages" href="ViewVisibilityMessages$.html"><span class="name">ViewVisibilityMessages</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">A collection of view visibility messages
+</p>
     </li>
               </ol>
             </div>

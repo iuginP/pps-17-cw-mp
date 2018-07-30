@@ -167,24 +167,24 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="it.cwmp.client.view.game">game</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
+                        <a class="trait" href="CellWorldObjectDrawer.html" title="A trait that makes possible to draw View items"></a>
+                        <a href="CellWorldObjectDrawer.html" title="A trait that makes possible to draw View items">CellWorldObjectDrawer</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
                         <a class="trait" href="ColoringStrategy.html" title="A trait that describes how to color things"></a>
                         <a href="ColoringStrategy.html" title="A trait that describes how to color things">ColoringStrategy</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="GameFX.html" title="Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco"></a>
-                        <a href="GameFX.html" title="Questa classe permette di visualizzare una GUI statica che rappresenta uno stato del gioco">GameFX</a>
+                        <a class="class" href="GameFX.html" title="This class shows the Game GUI"></a>
+                        <a href="GameFX.html" title="This class shows the Game GUI">GameFX</a>
                       </li><li class="current-entities indented5">
-                        <a class="object" href="" title=""></a>
-                        <a class="class" href="GameViewActor.html" title=""></a>
-                        <a href="GameViewActor.html" title="">GameViewActor</a>
+                        <a class="object" href="" title="Companion object, containing actor messages"></a>
+                        <a class="class" href="GameViewActor.html" title="The actor that deals with Game View"></a>
+                        <a href="GameViewActor.html" title="The actor that deals with Game View">GameViewActor</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
                         <a class="object" href="GameViewConstants$.html" title="An object where to put constants about the game visual"></a>
                         <a href="GameViewConstants$.html" title="An object where to put constants about the game visual">GameViewConstants</a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
-                        <a class="trait" href="ObjectDrawer.html" title=""></a>
-                        <a href="ObjectDrawer.html" title="">ObjectDrawer</a>
                       </li>
               </ul>
             </div>
@@ -215,7 +215,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Companion object, containing actor messages
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -267,7 +268,25 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.client.view.game.GameViewActor.NewWorld" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="it.cwmp.client.view.game.GameViewActor.AddAttack" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AddAttackextendsProductwithSerializable"></a><a id="AddAttack:AddAttack"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#AddAttackextendsProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="A message stating that an attack has been launched from one point to another" href="GameViewActor$$AddAttack.html"><span class="name">AddAttack</span></a><span class="params">(<span name="from">from: <a href="../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>, <span name="to">to: <a href="../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A message stating that an attack has been launched from one point to another
+</p><div class="fullcomment"><div class="comment cmt"><p>A message stating that an attack has been launched from one point to another
+</p></div><dl class="paramcmts block"><dt class="param">from</dt><dd class="cmt"><p>the point from which attack is starting</p></dd><dt class="param">to</dt><dd class="cmt"><p>the point to which the attack is going</p></dd></dl></div>
+    </li><li name="it.cwmp.client.view.game.GameViewActor.NewWorld" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NewWorldextendsProductwithSerializable"></a><a id="NewWorld:NewWorld"></a>
       <span class="permalink">
       <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#NewWorldextendsProductwithSerializable" title="Permalink">
@@ -279,10 +298,30 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor$$NewWorld.html"><span class="name">NewWorld</span></a><span class="params">(<span name="world">world: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Sets a new world to display" href="GameViewActor$$NewWorld.html"><span class="name">NewWorld</span></a><span class="params">(<span name="world">world: <a href="../../model/game/impl/CellWorld.html" class="extype" name="it.cwmp.client.model.game.impl.CellWorld">CellWorld</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
+      <p class="shortcomment cmt">Sets a new world to display
+</p><div class="fullcomment"><div class="comment cmt"><p>Sets a new world to display
+</p></div><dl class="paramcmts block"><dt class="param">world</dt><dd class="cmt"><p>the newWorld from which to compute new evolution</p></dd></dl></div>
+    </li><li name="it.cwmp.client.view.game.GameViewActor.RemoveAttack" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RemoveAttackextendsProductwithSerializable"></a><a id="RemoveAttack:RemoveAttack"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#RemoveAttackextendsProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="A message stating that an attack has been removed" href="GameViewActor$$RemoveAttack.html"><span class="name">RemoveAttack</span></a><span class="params">(<span name="pointOnAttackView">pointOnAttackView: <a href="../../model/game/impl/Point.html" class="extype" name="it.cwmp.client.model.game.impl.Point">Point</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
       
+      <p class="shortcomment cmt">A message stating that an attack has been removed
+</p><div class="fullcomment"><div class="comment cmt"><p>A message stating that an attack has been removed
+</p></div><dl class="paramcmts block"><dt class="param">pointOnAttackView</dt><dd class="cmt"><p>the point clicked by the player to remove the attack</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -339,10 +378,44 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="it.cwmp.client.view.game.GameViewActor#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply():it.cwmp.client.view.game.GameViewActor"></a><a id="apply():GameViewActor"></a>
+    </li><li name="it.cwmp.client.view.game.GameViewActor#VIEW_SIZE" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="VIEW_SIZE:Int"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#apply():it.cwmp.client.view.game.GameViewActor" title="Permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#VIEW_SIZE:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">VIEW_SIZE</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">The size of the squared view
+</p>
+    </li><li name="it.cwmp.client.view.game.GameViewActor#VIEW_TITLE" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="VIEW_TITLE:String"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#VIEW_TITLE:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">VIEW_TITLE</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">The title of game view
+</p>
+    </li><li name="it.cwmp.client.view.game.GameViewActor#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(parentActor:akka.actor.ActorRef):it.cwmp.client.view.game.GameViewActor"></a><a id="apply(ActorRef):GameViewActor"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameViewActor$.html#apply(parentActor:akka.actor.ActorRef):it.cwmp.client.view.game.GameViewActor" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -351,7 +424,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">()</span><span class="result">: <a href="GameViewActor.html" class="extype" name="it.cwmp.client.view.game.GameViewActor">GameViewActor</a></span>
+        <span class="name">apply</span><span class="params">(<span name="parentActor">parentActor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <a href="GameViewActor.html" class="extype" name="it.cwmp.client.view.game.GameViewActor">GameViewActor</a></span>
       </span>
       
       
@@ -669,10 +742,11 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor$$HideGUI$.html"><span class="name">HideGUI</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Hides the GUI" href="GameViewActor$$HideGUI$.html"><span class="name">HideGUI</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Hides the GUI
+</p>
     </li><li name="it.cwmp.client.view.game.GameViewActor.ShowGUI" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ShowGUI"></a><a id="ShowGUI:ShowGUI"></a>
       <span class="permalink">
@@ -685,10 +759,11 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor$$ShowGUI$.html"><span class="name">ShowGUI</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Shows the GUI" href="GameViewActor$$ShowGUI$.html"><span class="name">ShowGUI</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Shows the GUI
+</p>
     </li><li name="it.cwmp.client.view.game.GameViewActor.UpdateLocalWorld" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="UpdateLocalWorld"></a><a id="UpdateLocalWorld:UpdateLocalWorld"></a>
       <span class="permalink">
@@ -701,10 +776,11 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="GameViewActor$$UpdateLocalWorld$.html"><span class="name">UpdateLocalWorld</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Updates local version of the world making it &quot;move&quot;" href="GameViewActor$$UpdateLocalWorld$.html"><span class="name">UpdateLocalWorld</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Updates local version of the world making it &quot;move&quot;
+</p>
     </li>
               </ol>
             </div>

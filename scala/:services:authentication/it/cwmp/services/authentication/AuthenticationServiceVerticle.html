@@ -133,30 +133,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.services">services</a></dd></dl></div>
-    </li><li name="it.cwmp.services.authentication.storage" visbl="pub" class="indented5 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="storage"></a><a id="storage:storage"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/index.html#storage" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="storage/index.html"><span class="name">storage</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="it.cwmp.services.authentication">authentication</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="AuthenticationServiceMain$.html" title="Hello class for server"></a>
-                        <a href="AuthenticationServiceMain$.html" title="Hello class for server">AuthenticationServiceMain</a>
+                        <a class="trait" href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object"></a>
+                        <a href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object">AuthenticationDAO</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="AuthenticationLocalDAO$.html" title="Companion Object"></a>
+                        <a class="class" href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione"></a>
+                        <a href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione">AuthenticationLocalDAO</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">AuthenticationServiceVerticle</a>
+                        <a class="object" href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point"></a>
+                        <a href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point">AuthenticationServiceMain</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="" title="Class that implements the Authentication micro-service"></a>
+                        <a href="" title="Class that implements the Authentication micro-service">AuthenticationServiceVerticle</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="JwtUtils$.html" title=""></a>
@@ -189,7 +181,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Class that implements the Authentication micro-service
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -260,10 +253,10 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.utils.VertxServer.richHttpRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="richHttpRequestextendsAnyRef"></a><a id="richHttpRequest:(VertxServer.this)#richHttpRequest"></a>
+              <ol><li name="it.cwmp.utils.VertxServer.RichHttpRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RichHttpRequestextendsAnyRef"></a><a id="RichHttpRequest:(VertxServer.this)#RichHttpRequest"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceVerticle.html#richHttpRequestextendsAnyRef" title="Permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceVerticle.html#RichHttpRequestextendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -272,7 +265,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">richHttpRequest</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">RichHttpRequest</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>VertxServer</dd></dl></div>
@@ -708,9 +701,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxServer</dd></dl></div>
     </li><li name="it.cwmp.utils.VertxServer#sendResponse" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="sendResponse(httpCode:Int,message:String)(implicitroutingContext:io.vertx.scala.ext.web.RoutingContext):Unit"></a><a id="sendResponse(Int,String)(RoutingContext):Unit"></a>
+      <a id="sendResponse(httpCode:Int,message:Option[String])(implicitroutingContext:io.vertx.scala.ext.web.RoutingContext):Unit"></a><a id="sendResponse(Int,Option[String])(RoutingContext):Unit"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceVerticle.html#sendResponse(httpCode:Int,message:String)(implicitroutingContext:io.vertx.scala.ext.web.RoutingContext):Unit" title="Permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceVerticle.html#sendResponse(httpCode:Int,message:Option[String])(implicitroutingContext:io.vertx.scala.ext.web.RoutingContext):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -719,7 +712,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sendResponse</span><span class="params">(<span name="httpCode">httpCode: <span class="extype" name="scala.Int">Int</span></span>, <span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="routingContext">routingContext: <span class="extype" name="io.vertx.scala.ext.web.RoutingContext">RoutingContext</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">sendResponse</span><span class="params">(<span name="httpCode">httpCode: <span class="extype" name="scala.Int">Int</span></span>, <span name="message">message: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="routingContext">routingContext: <span class="extype" name="io.vertx.scala.ext.web.RoutingContext">RoutingContext</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxServer</dd></dl></div>

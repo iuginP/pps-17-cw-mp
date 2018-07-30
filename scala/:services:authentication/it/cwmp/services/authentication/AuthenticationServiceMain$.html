@@ -133,30 +133,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.services">services</a></dd></dl></div>
-    </li><li name="it.cwmp.services.authentication.storage" visbl="pub" class="indented5 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="storage"></a><a id="storage:storage"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/index.html#storage" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="storage/index.html"><span class="name">storage</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="it.cwmp.services.authentication">authentication</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title="Hello class for server"></a>
-                        <a href="" title="Hello class for server">AuthenticationServiceMain</a>
+                        <a class="trait" href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object"></a>
+                        <a href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object">AuthenticationDAO</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="AuthenticationLocalDAO$.html" title="Companion Object"></a>
+                        <a class="class" href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione"></a>
+                        <a href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione">AuthenticationLocalDAO</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AuthenticationServiceVerticle.html" title=""></a>
-                        <a href="AuthenticationServiceVerticle.html" title="">AuthenticationServiceVerticle</a>
+                        <a class="object" href="" title="AuthenticationService entry-point"></a>
+                        <a href="" title="AuthenticationService entry-point">AuthenticationServiceMain</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="AuthenticationServiceVerticle.html" title="Class that implements the Authentication micro-service"></a>
+                        <a href="AuthenticationServiceVerticle.html" title="Class that implements the Authentication micro-service">AuthenticationServiceVerticle</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="JwtUtils$.html" title=""></a>
@@ -184,17 +176,17 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthenticationServiceMain</span><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
+        <span class="name">AuthenticationServiceMain</span><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Hello class for server
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>AuthenticationService entry-point
 </p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="scala.App">App</span>, <span class="extype" name="scala.DelayedInit">DelayedInit</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span>, <span class="extype" name="scala.App">App</span>, <span class="extype" name="scala.DelayedInit">DelayedInit</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -220,7 +212,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.services.authentication.AuthenticationServiceMain"><span>AuthenticationServiceMain</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="scala.App"><span>App</span></li><li class="in" name="scala.DelayedInit"><span>DelayedInit</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.services.authentication.AuthenticationServiceMain"><span>AuthenticationServiceMain</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="it.cwmp.utils.VertxInstance"><span>VertxInstance</span></li><li class="in" name="scala.App"><span>App</span></li><li class="in" name="scala.DelayedInit"><span>DelayedInit</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -620,6 +612,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="it.cwmp.utils.VertxInstance#vertx" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="vertx:io.vertx.scala.core.Vertx"></a><a id="vertx:Vertx"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceMain$.html#vertx:io.vertx.scala.core.Vertx" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">vertx</span><span class="result">: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>VertxInstance</dd></dl></div>
+    </li><li name="it.cwmp.utils.VertxInstance#vertxExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext"></a><a id="vertxExecutionContext:VertxExecutionContext"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationServiceMain$.html#vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">vertxExecutionContext</span><span class="result">: <span class="extype" name="io.vertx.lang.scala.VertxExecutionContext">VertxExecutionContext</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>VertxInstance</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -722,6 +746,8 @@
         <div id="inheritedMembers">
         <div class="parent" name="it.cwmp.utils.Logging">
               <h3>Inherited from <span class="extype" name="it.cwmp.utils.Logging">Logging</span></h3>
+            </div><div class="parent" name="it.cwmp.utils.VertxInstance">
+              <h3>Inherited from <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span></h3>
             </div><div class="parent" name="scala.App">
               <h3>Inherited from <span class="extype" name="scala.App">App</span></h3>
             </div><div class="parent" name="scala.DelayedInit">

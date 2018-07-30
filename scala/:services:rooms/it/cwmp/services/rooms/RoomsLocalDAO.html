@@ -146,11 +146,7 @@
                         <a class="object" href="RoomsServiceMain$.html" title="Object that implements the Rooms micro-service entry-point"></a>
                         <a href="RoomsServiceMain$.html" title="Object that implements the Rooms micro-service entry-point">RoomsServiceMain</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="trait" href="RoomsServiceUtils.html" title=""></a>
-                        <a href="RoomsServiceUtils.html" title="">RoomsServiceUtils</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="RoomsServiceVerticle$.html" title=""></a>
+                        <a class="object" href="RoomsServiceVerticle$.html" title="Companion object"></a>
                         <a class="class" href="RoomsServiceVerticle.html" title="Class that implements the Rooms micro-service"></a>
                         <a href="RoomsServiceVerticle.html" title="Class that implements the Rooms micro-service">RoomsServiceVerticle</a>
                       </li>
@@ -178,7 +174,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;rooms/database.json&quot;</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;rooms/database.json&quot;</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -188,7 +184,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span>, <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span>, <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="it.cwmp.utils.Logging">Logging</span>, <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span>, <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span>, <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -214,7 +210,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.services.rooms.RoomsLocalDAO"><span>RoomsLocalDAO</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.utils.VertxJDBC"><span>VertxJDBC</span></li><li class="in" name="it.cwmp.utils.VertxInstance"><span>VertxInstance</span></li><li class="in" name="it.cwmp.services.rooms.RoomDAO"><span>RoomDAO</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.services.rooms.RoomsLocalDAO"><span>RoomsLocalDAO</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.utils.Logging"><span>Logging</span></li><li class="in" name="it.cwmp.utils.VertxJDBC"><span>VertxJDBC</span></li><li class="in" name="it.cwmp.utils.VertxInstance"><span>VertxInstance</span></li><li class="in" name="it.cwmp.services.rooms.RoomDAO"><span>RoomDAO</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -396,6 +392,22 @@
       </span>
       <span class="symbol">
         <span class="name">closeConnection</span><span class="params">(<span class="implicit">implicit </span><span name="connection">connection: <span class="extype" name="io.vertx.scala.ext.sql.SQLConnection">SQLConnection</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxJDBC</dd></dl></div>
+    </li><li name="it.cwmp.utils.VertxJDBC#closeLastOpenedConnection" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="closeLastOpenedConnection():Unit"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#closeLastOpenedConnection():Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">closeLastOpenedConnection</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxJDBC</dd></dl></div>
@@ -661,6 +673,22 @@
       <p class="shortcomment cmt">retrieves a list of available public rooms
 </p><div class="fullcomment"><div class="comment cmt"><p>retrieves a list of available public rooms
 </p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a future that completes when such list is available</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
+    </li><li name="it.cwmp.utils.Logging#log" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="log:com.typesafe.scalalogging.Logger"></a><a id="log:Logger"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#log:com.typesafe.scalalogging.Logger" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">log</span><span class="result">: <span class="extype" name="com.typesafe.scalalogging.Logger">Logger</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Logging</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -903,6 +931,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="it.cwmp.utils.Logging">
+              <h3>Inherited from <span class="extype" name="it.cwmp.utils.Logging">Logging</span></h3>
             </div><div class="parent" name="it.cwmp.utils.VertxJDBC">
               <h3>Inherited from <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span></h3>
             </div><div class="parent" name="it.cwmp.utils.VertxInstance">

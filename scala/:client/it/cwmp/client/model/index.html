@@ -166,33 +166,9 @@
       
       
     </li><li class="current-entities indented4">
-                        <a class="object" href="ApiClientActor$.html" title=""></a>
-                        <a class="class" href="ApiClientActor.html" title=""></a>
-                        <a href="ApiClientActor.html" title="">ApiClientActor</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="ApiClientIncomingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere."></a>
-                        <a href="ApiClientIncomingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere.">ApiClientIncomingMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="ApiClientOutgoingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può inviare."></a>
-                        <a href="ApiClientOutgoingMessages$.html" title="Questo oggetto contiene tutti i messaggi che questo attore può inviare.">ApiClientOutgoingMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="class" href="DistributedState.html" title="Distributed representation of the world and of his behaviours."></a>
-                        <a href="DistributedState.html" title="Distributed representation of the world and of his behaviours.">DistributedState</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="DistributedStateMessages$.html" title=""></a>
-                        <a href="DistributedStateMessages$.html" title="">DistributedStateMessages</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="trait" href="ParticipantListReceiver.html" title=""></a>
-                        <a href="ParticipantListReceiver.html" title="">ParticipantListReceiver</a>
-                      </li><li class="current-entities indented4">
-                        <a class="object" href="PlayerActor$.html" title=""></a>
-                        <a class="class" href="PlayerActor.html" title=""></a>
-                        <a href="PlayerActor.html" title="">PlayerActor</a>
+                        <a class="object" href="DistributedState$.html" title="Companion Object, containing actor messages"></a>
+                        <a class="class" href="DistributedState.html" title="Distributed representation of data and attached behaviours."></a>
+                        <a href="DistributedState.html" title="Distributed representation of data and attached behaviours.">DistributedState</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="ReplicatedCache$.html" title=""></a>
                         <a class="class" href="ReplicatedCache.html" title=""></a>
@@ -292,71 +268,22 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.client.model.ApiClientActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ApiClientActorextendsActor"></a><a id="ApiClientActor:ApiClientActor"></a>
+              <ol><li name="it.cwmp.client.model.DistributedState" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DistributedState[T]extendsLogging"></a><a id="DistributedState[T]:DistributedState[T]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#ApiClientActorextendsActor" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/index.html#DistributedState[T]extendsLogging" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">abstract </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApiClientActor.html"><span class="name">ApiClientActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span></span>
+        <a title="Distributed representation of data and attached behaviours." href="DistributedState.html"><span class="name">DistributedState</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       
-      
-    </li><li name="it.cwmp.client.model.DistributedState" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DistributedState[WD&lt;:it.cwmp.client.model.game.World[_,_,_]]extendsLoggingwithProductwithSerializable"></a><a id="DistributedState[WD&lt;:World[_,_,_]]:DistributedState[WD]"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#DistributedState[WD&lt;:it.cwmp.client.model.game.World[_,_,_]]extendsLoggingwithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Distributed representation of the world and of his behaviours." href="DistributedState.html"><span class="name">DistributedState</span></a><span class="tparams">[<span name="WD">WD &lt;: <a href="game/World.html" class="extype" name="it.cwmp.client.model.game.World">World</a>[_, _, _]</span>]</span><span class="params">(<span name="actor">actor: <span class="extype" name="akka.actor.Actor">Actor</span></span>, <span name="onWorldUpdate">onWorldUpdate: (<span class="extype" name="it.cwmp.client.model.DistributedState.WD">WD</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="replicator">replicator: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="cluster">cluster: <span class="extype" name="akka.cluster.Cluster">Cluster</span></span>)</span><span class="result"> extends <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Distributed representation of the world and of his behaviours.</p><div class="fullcomment"><div class="comment cmt"><p>Distributed representation of the world and of his behaviours.
-</p></div><dl class="paramcmts block"><dt class="param">onWorldUpdate</dt><dd class="cmt"><p>the update strategy when the world is changed</p></dd></dl></div>
-    </li><li name="it.cwmp.client.model.ParticipantListReceiver" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ParticipantListReceiverextendsVertxInstance"></a><a id="ParticipantListReceiver:ParticipantListReceiver"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#ParticipantListReceiverextendsVertxInstance" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="ParticipantListReceiver.html"><span class="name">ParticipantListReceiver</span></a><span class="result"> extends <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span></span>
-      </span>
-      
-      
-    </li><li name="it.cwmp.client.model.PlayerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PlayerActorextendsActorwithLogging"></a><a id="PlayerActor:PlayerActor"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#PlayerActorextendsActorwithLogging" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="PlayerActor.html"><span class="name">PlayerActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
-      </span>
-      
-      
+      <p class="shortcomment cmt">Distributed representation of data and attached behaviours.</p>
     </li><li name="it.cwmp.client.model.ReplicatedCache" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ReplicatedCacheextendsActor"></a><a id="ReplicatedCache:ReplicatedCache"></a>
       <span class="permalink">
@@ -381,10 +308,10 @@
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="it.cwmp.client.model.ApiClientActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ApiClientActor"></a><a id="ApiClientActor:ApiClientActor"></a>
+                <li name="it.cwmp.client.model.DistributedState" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DistributedState"></a><a id="DistributedState:DistributedState"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#ApiClientActor" title="Permalink">
+      <a href="../../../../it/cwmp/client/model/index.html#DistributedState" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -393,74 +320,11 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ApiClientActor$.html"><span class="name">ApiClientActor</span></a>
+        <a title="Companion Object, containing actor messages" href="DistributedState$.html"><span class="name">DistributedState</span></a>
       </span>
       
-      
-    </li><li name="it.cwmp.client.model.ApiClientIncomingMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ApiClientIncomingMessages"></a><a id="ApiClientIncomingMessages:ApiClientIncomingMessages"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#ApiClientIncomingMessages" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="Questo oggetto contiene tutti i messaggi che questo attore può ricevere." href="ApiClientIncomingMessages$.html"><span class="name">ApiClientIncomingMessages</span></a>
-      </span>
-      
-      <p class="shortcomment cmt">Questo oggetto contiene tutti i messaggi che questo attore può ricevere.</p>
-    </li><li name="it.cwmp.client.model.ApiClientOutgoingMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ApiClientOutgoingMessages"></a><a id="ApiClientOutgoingMessages:ApiClientOutgoingMessages"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#ApiClientOutgoingMessages" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="Questo oggetto contiene tutti i messaggi che questo attore può inviare." href="ApiClientOutgoingMessages$.html"><span class="name">ApiClientOutgoingMessages</span></a>
-      </span>
-      
-      <p class="shortcomment cmt">Questo oggetto contiene tutti i messaggi che questo attore può inviare.</p>
-    </li><li name="it.cwmp.client.model.DistributedStateMessages" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DistributedStateMessages"></a><a id="DistributedStateMessages:DistributedStateMessages"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#DistributedStateMessages" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="DistributedStateMessages$.html"><span class="name">DistributedStateMessages</span></a>
-      </span>
-      
-      
-    </li><li name="it.cwmp.client.model.PlayerActor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PlayerActor"></a><a id="PlayerActor:PlayerActor"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/client/model/index.html#PlayerActor" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="PlayerActor$.html"><span class="name">PlayerActor</span></a>
-      </span>
-      
-      
+      <p class="shortcomment cmt">Companion Object, containing actor messages
+</p>
     </li><li name="it.cwmp.client.model.ReplicatedCache" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ReplicatedCache"></a><a id="ReplicatedCache:ReplicatedCache"></a>
       <span class="permalink">

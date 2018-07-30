@@ -133,30 +133,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.services">services</a></dd></dl></div>
-    </li><li name="it.cwmp.services.authentication.storage" visbl="pub" class="indented5 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="storage"></a><a id="storage:storage"></a>
-      <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/index.html#storage" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="storage/index.html"><span class="name">storage</span></a>
-      </span>
-      
-      
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="AuthenticationServiceMain$.html" title="Hello class for server"></a>
-                        <a href="AuthenticationServiceMain$.html" title="Hello class for server">AuthenticationServiceMain</a>
+                        <a class="trait" href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object"></a>
+                        <a href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object">AuthenticationDAO</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="AuthenticationLocalDAO$.html" title="Companion Object"></a>
+                        <a class="class" href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione"></a>
+                        <a href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione">AuthenticationLocalDAO</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AuthenticationServiceVerticle.html" title=""></a>
-                        <a href="AuthenticationServiceVerticle.html" title="">AuthenticationServiceVerticle</a>
+                        <a class="object" href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point"></a>
+                        <a href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point">AuthenticationServiceMain</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="AuthenticationServiceVerticle.html" title="Class that implements the Authentication micro-service"></a>
+                        <a href="AuthenticationServiceVerticle.html" title="Class that implements the Authentication micro-service">AuthenticationServiceVerticle</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="JwtUtils$.html" title=""></a>
@@ -224,7 +216,41 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="it.cwmp.services.authentication.AuthenticationServiceVerticle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="it.cwmp.services.authentication.AuthenticationDAO" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="AuthenticationDAOextendsAnyRef"></a><a id="AuthenticationDAO:AuthenticationDAO"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/authentication/index.html#AuthenticationDAOextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Trait che descrive l' Authentication Data Access Object" href="AuthenticationDAO.html"><span class="name">AuthenticationDAO</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Trait che descrive l' Authentication Data Access Object
+</p>
+    </li><li name="it.cwmp.services.authentication.AuthenticationLocalDAO" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthenticationLocalDAOextendsAuthenticationDAOwithVertxInstancewithVertxJDBCwithLoggingwithProductwithSerializable"></a><a id="AuthenticationLocalDAO:AuthenticationLocalDAO"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/authentication/index.html#AuthenticationLocalDAOextendsAuthenticationDAOwithVertxInstancewithVertxJDBCwithLoggingwithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="Wrapper per accedere allo storage Vertex locale per l'autenticazione" href="AuthenticationLocalDAO.html"><span class="name">AuthenticationLocalDAO</span></a><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;authentication/database.json&quot;</span></span>)</span><span class="result"> extends <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Wrapper per accedere allo storage Vertex locale per l'autenticazione
+</p>
+    </li><li name="it.cwmp.services.authentication.AuthenticationServiceVerticle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AuthenticationServiceVerticleextendsScalaVerticlewithVertxServerwithLoggingwithProductwithSerializable"></a><a id="AuthenticationServiceVerticle:AuthenticationServiceVerticle"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/authentication/index.html#AuthenticationServiceVerticleextendsScalaVerticlewithVertxServerwithLoggingwithProductwithSerializable" title="Permalink">
@@ -236,10 +262,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="AuthenticationServiceVerticle.html"><span class="name">AuthenticationServiceVerticle</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="it.cwmp.utils.VertxServer">VertxServer</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Class that implements the Authentication micro-service" href="AuthenticationServiceVerticle.html"><span class="name">AuthenticationServiceVerticle</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="io.vertx.lang.scala.ScalaVerticle">ScalaVerticle</span> with <span class="extype" name="it.cwmp.utils.VertxServer">VertxServer</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Class that implements the Authentication micro-service
+</p>
     </li></ol>
             </div>
 
@@ -248,7 +275,24 @@
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="it.cwmp.services.authentication.AuthenticationServiceMain" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="it.cwmp.services.authentication.AuthenticationLocalDAO" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthenticationLocalDAO"></a><a id="AuthenticationLocalDAO:AuthenticationLocalDAO"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/authentication/index.html#AuthenticationLocalDAO" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Companion Object" href="AuthenticationLocalDAO$.html"><span class="name">AuthenticationLocalDAO</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Companion Object
+</p>
+    </li><li name="it.cwmp.services.authentication.AuthenticationServiceMain" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AuthenticationServiceMain"></a><a id="AuthenticationServiceMain:AuthenticationServiceMain"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/authentication/index.html#AuthenticationServiceMain" title="Permalink">
@@ -260,10 +304,10 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Hello class for server" href="AuthenticationServiceMain$.html"><span class="name">AuthenticationServiceMain</span></a><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
+        <a title="AuthenticationService entry-point" href="AuthenticationServiceMain$.html"><span class="name">AuthenticationServiceMain</span></a><span class="result"> extends <span class="extype" name="scala.App">App</span> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span></span>
       </span>
       
-      <p class="shortcomment cmt">Hello class for server
+      <p class="shortcomment cmt">AuthenticationService entry-point
 </p>
     </li><li name="it.cwmp.services.authentication.JwtUtils" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="JwtUtils"></a><a id="JwtUtils:JwtUtils"></a>
