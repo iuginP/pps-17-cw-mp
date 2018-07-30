@@ -22,12 +22,11 @@ import scala.util.{Failure, Success}
 /**
   * This class is client controller actor, that will manage interactions between client parts
   *
-  * @param system the system of this actors
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver with Logging {
+case class ClientControllerActor() extends Actor with ParticipantListReceiver with Logging {
 
   private val UNKNOWN_ERROR = "Unknown Error"
 
@@ -59,21 +58,21 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     super.preStart()
 
     log.info(s"Initializing the player actor...")
-    playerActor = system.actorOf(Props(classOf[PlayerActor], system), PlayerActor.getClass.getName)
+    playerActor = context.system.actorOf(Props[PlayerActor], PlayerActor.getClass.getName)
     playerActor ! RetrieveAddress
 
     log.info(s"Initializing the API client actor...")
-    apiClientActor = system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
+    apiClientActor = context.system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
 
     log.info(s"Initializing the authentication view actor...")
-    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
+    authenticationViewActor = context.system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
     authenticationViewActor ! Initialize
 
     log.info(s"Displaying the view...")
     authenticationViewActor ! Show
 
     log.info(s"Initializing the room view actor...")
-    roomViewActor = system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
+    roomViewActor = context.system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
     roomViewActor ! Initialize
   }
 

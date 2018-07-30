@@ -12,5 +12,5 @@ object ClientMain extends App {
 
   private val config = ConfigFactory.parseString("akka.remote.netty.tcp.port=0").withFallback(ConfigFactory.load())
   val system = ActorSystem(APP_NAME, config)
-  val clientControllerActor = system.actorOf(Props(classOf[ClientControllerActor], system), ClientControllerActor.getClass.getName)
+  val clientControllerActor = system.actorOf(Props[ClientControllerActor], ClientControllerActor.getClass.getName)
 }

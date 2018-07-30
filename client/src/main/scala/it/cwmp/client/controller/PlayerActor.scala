@@ -1,6 +1,6 @@
 package it.cwmp.client.controller
 
-import akka.actor.{Actor, ActorRef, ActorSystem, AddressFromURIString, Props}
+import akka.actor.{Actor, ActorRef, AddressFromURIString, Props}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
@@ -14,13 +14,13 @@ import it.cwmp.model.Address
 import it.cwmp.utils.Logging
 
 /**
-  * Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.
-  * Innanzi tutto all'avvio della partita crea un cluster con gli altri partecipanti; poi
-  * mantiene attivo uno stato condiviso per fare in modo che la partita sia coerente per tutti i partecipanti.
+  * This actor manages execution of distributed game.
+  *
+  * It creates a cluster with other participants and maintains a distributed game state
   *
   * @author Eugenio Pierfederici
   */
-class PlayerActor(system: ActorSystem) extends Actor with Logging { // TODO: review (and translate doc)
+case class PlayerActor() extends Actor with Logging {
 
   // View actor
   private var gameViewActor: ActorRef = _
@@ -38,7 +38,7 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging { // TODO: rev
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
-    gameViewActor = system.actorOf(Props(classOf[GameViewActor], self), "game-view")
+    gameViewActor = context.system.actorOf(Props(classOf[GameViewActor], self), "game-view")
     log.info(s"Subscribing to cluster changes...")
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])
@@ -111,8 +111,6 @@ class PlayerActor(system: ActorSystem) extends Actor with Logging { // TODO: rev
   * Companion object, containing actor messages
   */
 object PlayerActor {
-
-  def apply(system: ActorSystem): PlayerActor = new PlayerActor(system)
 
   // Incoming messages
   case object RetrieveAddress
