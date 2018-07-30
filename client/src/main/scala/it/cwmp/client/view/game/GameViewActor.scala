@@ -1,9 +1,9 @@
 package it.cwmp.client.view.game
 
 import akka.actor.{Actor, ActorRef, Cancellable}
+import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.DistributedState.UpdateState
 import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl._
@@ -35,8 +35,8 @@ case class GameViewActor() extends Actor with Logging {
     * The behaviour of opening the view
     */
   private def showGUIBehaviour: Receive = {
-    case ShowGUI =>
-      gameFX.start(VIEW_TITLE, VIEW_SIZE) // TODO: show player name in title
+    case ShowGUIWithName(playerName) =>
+      gameFX.start(s"$VIEW_TITLE_PREFIX$playerName", VIEW_SIZE)
       context.become(hideGUIBehaviour orElse
         newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
@@ -45,7 +45,7 @@ case class GameViewActor() extends Actor with Logging {
     * The behaviour of closing the view
     */
   private def hideGUIBehaviour: Receive = {
-    case HideGUI =>
+    case Hide =>
       gameFX.close()
       context.become(showGUIBehaviour)
   }
@@ -104,7 +104,7 @@ object GameViewActor {
   /**
     * The title of game view
     */
-  val VIEW_TITLE = "CellWars"
+  val VIEW_TITLE_PREFIX = "CellWars: "
 
   /**
     * The size of the squared view
@@ -114,12 +114,7 @@ object GameViewActor {
   /**
     * Shows the GUI
     */
-  case object ShowGUI // TODO: use view commons
-
-  /**
-    * Hides the GUI
-    */
-  case object HideGUI
+  case class ShowGUIWithName(playerName: String)
 
   /**
     * Sets a new world to display

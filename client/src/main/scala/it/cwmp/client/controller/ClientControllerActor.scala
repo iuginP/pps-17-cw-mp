@@ -150,7 +150,7 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
       log.info(s"Exiting room $roomID")
     case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
       log.info(s"Exiting public room with $playersNumber")
-    case GUILogOut() =>
+    case GUILogOut =>
       log.info("Return to authentication view")
       onLogOut()
   }

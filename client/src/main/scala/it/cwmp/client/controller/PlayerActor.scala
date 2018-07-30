@@ -25,6 +25,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
 
   // View actor
   private var gameViewActor: ActorRef = _
+  private var playerName: String = _
 
   // Cluster info
   private var roomSize: Int = _
@@ -70,6 +71,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
       if (getAddress == participants.head.address) { // first player injects start world
         distributedState.initialize(worldGenerationStrategy(participants))
       }
+      playerName = participants.find(participant => participant.address == getAddress).get.username
 
     case _ => stash() // stash distributed change until all players enter the room
   }
@@ -94,7 +96,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
     */
   private def startGame(): Unit = {
     context.become(inGameBehaviour)
-    gameViewActor ! ShowGUI
+    gameViewActor ! ShowGUIWithName(playerName)
     unstashAll() // un-stash distributed change messages
   }
 

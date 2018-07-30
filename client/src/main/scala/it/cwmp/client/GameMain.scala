@@ -21,7 +21,7 @@ object GameMain extends App {
   import GameViewActor._
 
   gameActor ! Initialize
-  gameActor ! ShowGUI
+  gameActor ! ShowGUIWithName("Test Player")
   gameActor ! NewWorld(debugWorld)
 
   def debugWorld: CellWorld = {
