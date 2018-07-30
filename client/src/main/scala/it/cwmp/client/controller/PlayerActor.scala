@@ -6,12 +6,13 @@ import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.GameMain
 import it.cwmp.client.controller.PlayerActor.{EndGame, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
-import it.cwmp.model.Address
+import it.cwmp.model.{Address, Participant}
 import it.cwmp.utils.Logging
 
 /**
@@ -63,10 +64,12 @@ case class PlayerActor() extends Actor with Logging {
   private def beforeInGameBehaviour: Receive = {
     case RetrieveAddress =>
       sender() ! RetrieveAddressResponse(getAddress)
-    case PrepareForGame(participants) =>
-      join(participants)
+    case PrepareForGame(participants, worldGenerationStrategy) =>
       roomSize = participants.size
-    // TODO: generate world according to participants
+
+      cluster.join(AddressFromURIString(participants.head.address)) // join first player cluster
+
+    // TODO: first player generate world according to participants
   }
 
   /**
@@ -82,15 +85,6 @@ case class PlayerActor() extends Actor with Logging {
     case MemberRemoved(member, previousStatus) =>
       log.info("Member is Removed: {} after {}", member.address, previousStatus)
     case _: MemberEvent => // ignore
-  }
-
-  /**
-    * Join participants to first participant cluster
-    *
-    * @param participants the participants list
-    */
-  private def join(participants: List[Address]): Unit = {
-    cluster.join(AddressFromURIString(participants.head.address))
   }
 
   /**
@@ -141,9 +135,11 @@ object PlayerActor {
   /**
     * Message to prepare to game with provided participants
     *
-    * @param participantList the participants to game
+    * @param participantList         the participants to game
+    * @param worldGenerationStrategy the strategy to use generating the game world
     */
-  case class PrepareForGame(participantList: List[Address])
+  case class PrepareForGame(participantList: List[Address],
+                            worldGenerationStrategy: GenerationStrategy[Seq[Participant], CellWorld])
 
   /**
     * Message to end game
