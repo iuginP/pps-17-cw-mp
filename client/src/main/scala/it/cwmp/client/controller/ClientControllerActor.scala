@@ -1,6 +1,6 @@
 package it.cwmp.client.controller
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import it.cwmp.client.controller.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.ClientControllerActor._
 import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
@@ -12,6 +12,7 @@ import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.view.authentication.AuthenticationViewActor
+import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.room.RoomViewActor
 import it.cwmp.client.view.room.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.model.{Address, Participant}
@@ -232,7 +233,8 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
     roomViewActor ! Hide
-    playerActor ! PrepareForGame(participants, CellWorldGenerationStrategy())
+    playerActor ! PrepareForGame(participants,
+      CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE))
   }
 
   /**
