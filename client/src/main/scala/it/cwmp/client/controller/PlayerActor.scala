@@ -85,32 +85,6 @@ case class PlayerActor() extends Actor with Logging {
   }
 
   /**
-    * Starts the game
-    */
-  private def startGame(): Unit = {
-    context.become(inGameBehaviour)
-    gameViewActor ! ShowGUI
-    gameViewActor ! NewWorld(GameMain.debugWorld)
-  }
-
-  /**
-    * @return the behaviour of the actor when it's in game
-    */
-  private def inGameBehaviour: Receive =
-    distributedState.distributedStateBehaviour orElse {
-      case EndGame => backToLobbyAction()
-    }
-
-  private def backToLobbyAction(): Unit = context.become(clusterBehaviour orElse beforeInGameBehaviour)
-
-  /**
-    * Action that will be executed every time the world will be updated
-    *
-    * @param world the updated world
-    */
-  private def onWorldUpdatedAction(world: CellWorld): Unit = gameViewActor ! NewWorld(world)
-
-  /**
     * Join participants to first participant cluster
     *
     * @param participants the participants list
@@ -118,6 +92,35 @@ case class PlayerActor() extends Actor with Logging {
   private def join(participants: List[Address]): Unit = {
     cluster.join(AddressFromURIString(participants.head.address))
   }
+
+  /**
+    * Starts the game
+    */
+  private def startGame(): Unit = {
+    context.become(inGameBehaviour)
+    gameViewActor ! ShowGUI
+    gameViewActor ! NewWorld(GameMain.debugWorld) // TODO: set generated world
+  }
+
+  /**
+    * @return the behaviour of the actor when it's in game
+    */
+  private def inGameBehaviour: Receive =
+    distributedState.distributedStateBehaviour orElse {
+      case EndGame => backToLobbyAction() // TODO: is gui to send this? and need to be hidden or is the contrary
+    }
+
+  /**
+    * The action to do when the game is ended
+    */
+  private def backToLobbyAction(): Unit = context.become(beforeInGameBehaviour orElse clusterBehaviour)
+
+  /**
+    * Action that will be executed every time the world will be updated
+    *
+    * @param world the updated world
+    */
+  private def onWorldUpdatedAction(world: CellWorld): Unit = gameViewActor ! NewWorld(world)
 
   /**
     * @return the address of this player

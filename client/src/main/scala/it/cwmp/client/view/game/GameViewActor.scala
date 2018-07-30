@@ -108,7 +108,7 @@ object GameViewActor {
   /**
     * The size of the squared view
     */
-  val VIEW_SIZE = 512 // TODO: sarebbe buono forse fare una dimensione diversa in base alla dimensione dello schermo
+  val VIEW_SIZE = 512
 
   /**
     * Shows the GUI
