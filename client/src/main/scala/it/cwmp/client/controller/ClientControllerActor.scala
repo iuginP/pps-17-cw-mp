@@ -149,6 +149,11 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       log.info(s"Exiting room $roomID")
     case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
       log.info(s"Exiting public room with $playersNumber")
+    case GUIReturnToSignIn() =>
+      println("L'utente vuole tornare al login [ClientControllerActor]")
+      //Todo sistemare
+      roomViewActor ! Hide
+      authenticationViewActor ! Show
   }
 
   /**

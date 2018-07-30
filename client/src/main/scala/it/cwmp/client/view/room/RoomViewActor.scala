@@ -39,6 +39,11 @@ case class RoomViewActor() extends FXServiceViewActor {
           roomEnteringMessage = GUIEnterPublic(playersNumber)
           controllerActor ! roomEnteringMessage
         }
+
+        override def onClosingRoomView(): Unit = {
+          //Todo sistemare
+          controllerActor ! GUIReturnToSignIn()
+        }
       }))
   }
 
@@ -88,5 +93,4 @@ object RoomViewActor {
     * Tells View actor that opponents have been found
     */
   case object FoundOpponents
-
 }
