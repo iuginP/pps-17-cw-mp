@@ -30,6 +30,12 @@ object AuthenticationRequests {
     */
   sealed case class LogOut(username: String) extends AuthenticationRequest
 
+  /**
+    * Request to log-out
+    *
+    */
+  sealed case class GUILogOut() extends AuthenticationRequest
+
 }
 
 /**

@@ -4,6 +4,7 @@ package it.cwmp.client.view.room
   * A strategy to know what to do when requested to create or enter a room
   *
   * @author Enrico Siboni
+  * @author contributor Davide Borficchia
   */
 trait RoomStrategy {
 
@@ -28,4 +29,9 @@ trait RoomStrategy {
     * @param playersNumber the public room players number
     */
   def onEnterPublic(playersNumber: Int): Unit
+
+  /**
+    * invoked when the user wants to return to signin view
+    */
+  def onClosingRoomView(): Unit
 }

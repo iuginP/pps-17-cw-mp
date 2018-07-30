@@ -116,6 +116,10 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
     gridPane.add(copyButton, 1, 1)
     gridPane
   }
+
+  override protected def onCloseAction(): Unit = {
+    strategy.onClosingRoomView()
+  }
 }
 
 /**
