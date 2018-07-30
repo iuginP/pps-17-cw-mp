@@ -1,5 +1,6 @@
 package it.cwmp.client.view.room
 
+import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.view.FXServiceViewActor
 import it.cwmp.client.view.room.RoomViewActor._
@@ -38,6 +39,10 @@ case class RoomViewActor() extends FXServiceViewActor {
           fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
           roomEnteringMessage = GUIEnterPublic(playersNumber)
           controllerActor ! roomEnteringMessage
+        }
+
+        override def onClosingRoomView(): Unit = {
+          controllerActor ! GUILogOut()
         }
       }))
   }
@@ -88,5 +93,4 @@ object RoomViewActor {
     * Tells View actor that opponents have been found
     */
   case object FoundOpponents
-
 }
