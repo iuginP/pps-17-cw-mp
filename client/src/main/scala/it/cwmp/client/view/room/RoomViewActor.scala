@@ -41,7 +41,6 @@ case class RoomViewActor() extends FXServiceViewActor {
         }
 
         override def onClosingRoomView(): Unit = {
-          //Todo sistemare
           controllerActor ! GUIReturnToSignIn()
         }
       }))

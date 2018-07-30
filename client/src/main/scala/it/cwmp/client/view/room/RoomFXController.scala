@@ -118,7 +118,6 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
   }
 
   override protected def onCloseAction(): Unit = {
-    //Todo sistemare
     strategy.onClosingRoomView()
   }
 }
