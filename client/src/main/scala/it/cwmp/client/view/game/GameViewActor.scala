@@ -26,6 +26,7 @@ case class GameViewActor() extends Actor with Logging {
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
+  private var playerName: String = _
 
   override def receive: Receive = showGUIBehaviour orElse {
     case Initialize => parentActor = sender()
@@ -35,8 +36,9 @@ case class GameViewActor() extends Actor with Logging {
     * The behaviour of opening the view
     */
   private def showGUIBehaviour: Receive = {
-    case ShowGUIWithName(playerName) =>
-      gameFX.start(s"$VIEW_TITLE_PREFIX$playerName", VIEW_SIZE)
+    case ShowGUIWithName(name) =>
+      playerName = name
+      gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE)
       context.become(hideGUIBehaviour orElse
         newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
@@ -78,20 +80,20 @@ case class GameViewActor() extends Actor with Logging {
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
       (fromCell, toCell) match {
-        case (Some(attacker), Some(attacked)) if attacker != attacked =>
+        case (Some(attacker), Some(attacked)) if attacker != attacked && attacker.owner.username == playerName =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           parentActor ! UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
-        case tmp@_ => log.debug(s"No cells detected or auto-attack $tmp")
+        case tmp@_ => log.debug(s"No cells detected or auto-attack or not $playerName cell $tmp")
       }
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
       val attack = findTentacleNearTo(pointOnAttackView, tempWorld.attacks)
       attack match {
-        case Some(tentacle) =>
+        case Some(tentacle) if tentacle.from.owner.username == playerName =>
           log.debug(s"Removing this attack: $tentacle ...")
           parentActor ! UpdateState(tempWorld -- tentacle)
-        case tmp@_ => log.debug(s"No attack detected $tmp")
+        case tmp@_ => log.debug(s"No attack detected or not $playerName attack $tmp")
       }
   }
 }
