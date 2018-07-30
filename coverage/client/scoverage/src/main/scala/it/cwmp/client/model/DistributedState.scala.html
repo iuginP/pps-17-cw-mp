@@ -25,71 +25,83 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.Actor.Receive
-</span>4 <span style=''>import akka.actor.{Actor, ActorRef}
+</span>4 <span style=''>import akka.actor.ActorRef
 </span>5 <span style=''>import akka.cluster.Cluster
 </span>6 <span style=''>import akka.cluster.ddata.Replicator._
 </span>7 <span style=''>import akka.cluster.ddata._
-</span>8 <span style=''>import it.cwmp.client.model.game.World
+</span>8 <span style=''>import it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
 </span>9 <span style=''>import it.cwmp.utils.Logging
 </span>10 <span style=''>
-</span>11 <span style=''>object DistributedStateMessages {
-</span>12 <span style=''>
-</span>13 <span style=''>  /**
-</span>14 <span style=''>    * The message received when the user do something in the GUI
-</span>15 <span style=''>    *
-</span>16 <span style=''>    * @param world The world to update in the GUI
-</span>17 <span style=''>    * @tparam W Type of the world
-</span>18 <span style=''>    */
-</span>19 <span style=''>  case class UpdateWorld[W &lt;: World[_, _, _]](world: W)
+</span>11 <span style=''>/**
+</span>12 <span style=''>  * Distributed representation of data and attached behaviours.
+</span>13 <span style=''>  *
+</span>14 <span style=''>  * @param onDistributedStateUpdate the update strategy when the world is changed
+</span>15 <span style=''>  * @author Eugenio Pierfederici
+</span>16 <span style=''>  * @author contributor Enrico Siboni
+</span>17 <span style=''>  */
+</span>18 <span style=''>abstract class DistributedState[T](onDistributedStateUpdate: T =&gt; Unit)
+</span>19 <span style=''>                                  (implicit replicatorActor: ActorRef, cluster: Cluster) extends Logging {
 </span>20 <span style=''>
-</span>21 <span style=''>}
+</span>21 <span style=''>  protected val DistributedKey: LWWRegisterKey[T] = </span><span style='background: #F0ADAD'>LWWRegisterKey[T](DISTRIBUTED_KEY_NAME)</span><span style=''>
 </span>22 <span style=''>
-</span>23 <span style=''>/**
-</span>24 <span style=''>  * Distributed representation of the world and of his behaviours.
-</span>25 <span style=''>  *
-</span>26 <span style=''>  * @param onWorldUpdate the update strategy when the world is changed
-</span>27 <span style=''>  * @author Eugenio Pierfederici
-</span>28 <span style=''>  */
-</span>29 <span style=''>case class DistributedState[WD &lt;: World[_, _, _]]
-</span>30 <span style=''>(actor: Actor, onWorldUpdate: WD =&gt; Unit)(implicit replicator: ActorRef, cluster: Cluster) extends Logging {
-</span>31 <span style=''>
-</span>32 <span style=''>  import it.cwmp.client.model.DistributedStateMessages._
-</span>33 <span style=''>
-</span>34 <span style=''>  private val WorldKey = </span><span style='background: #F0ADAD'>LWWRegisterKey[WD](&quot;world&quot;)</span><span style=''>
-</span>35 <span style=''>
-</span>36 <span style=''>  def initState(): Unit = {
-</span>37 <span style=''>    </span><span style='background: #F0ADAD'>replicator ! Subscribe(WorldKey, actor.self)</span><span style=''>
-</span>38 <span style=''>  }
-</span>39 <span style=''>
-</span>40 <span style=''>  /**
-</span>41 <span style=''>    * This behaviour provides an easy way to integrate the distributed state in the player actor.
+</span>23 <span style=''>  /**
+</span>24 <span style=''>    * Subscribes the provided actor to receive changes in this distributed state
+</span>25 <span style=''>    *
+</span>26 <span style=''>    * @param subscriber the actor to subscribe
+</span>27 <span style=''>    */
+</span>28 <span style=''>  def subscribe(subscriber: ActorRef): Unit =
+</span>29 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Subscribe(DistributedKey, subscriber)</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * Un-subscribes the provided actor from updates of this distributed state
+</span>33 <span style=''>    *
+</span>34 <span style=''>    * @param subscriber the exiting subscriber
+</span>35 <span style=''>    */
+</span>36 <span style=''>  def unsubscribe(subscriber: ActorRef): Unit =
+</span>37 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Unsubscribe(DistributedKey, subscriber)</span><span style=''>
+</span>38 <span style=''>
+</span>39 <span style=''>  /**
+</span>40 <span style=''>    * This behaviour provides an easy way to make the interested actor,
+</span>41 <span style=''>    * able to receive updates and make changes in this distributed state
 </span>42 <span style=''>    */
-</span>43 <span style=''>  def stateBehaviour: Receive = </span><span style='background: #F0ADAD'>userActionBehaviour orElse distributedActionBehaviour</span><span style=''>
+</span>43 <span style=''>  def distributedStateBehaviour: Receive = </span><span style='background: #F0ADAD'>passiveBehaviour orElse activeBehaviour</span><span style=''>
 </span>44 <span style=''>
 </span>45 <span style=''>  /**
-</span>46 <span style=''>    * All the behaviours needed to execute all the action requested from the user (the player on this client)
-</span>47 <span style=''>    *
-</span>48 <span style=''>    * @return
-</span>49 <span style=''>    */
-</span>50 <span style=''>  private def userActionBehaviour: Receive = {
-</span>51 <span style=''>    // Called from the view/controller
-</span>52 <span style=''>    case UpdateWorld(world: WD) =&gt;
-</span>53 <span style=''>      log.debug(&quot;Requiring UpdateWorld DISTRIBUTED&quot;)
-</span>54 <span style=''>      </span><span style='background: #F0ADAD'>replicator ! Update(WorldKey, LWWRegister[WD](world), WriteLocal)(_.withValue(world))</span><span style=''>
-</span>55 <span style=''>  }
-</span>56 <span style=''>
-</span>57 <span style=''>  /**
-</span>58 <span style=''>    * All the behaviours needed to manage the distribution of the state
-</span>59 <span style=''>    *
-</span>60 <span style=''>    * @return
-</span>61 <span style=''>    */
-</span>62 <span style=''>  private def distributedActionBehaviour: Receive = {
-</span>63 <span style=''>    // Called when notified of the distributed data change
-</span>64 <span style=''>    case c@Changed(WorldKey) =&gt;
-</span>65 <span style=''>      log.debug(&quot;UpdateGUI from DISTRIBUTED because WorldKey was changed&quot;)
-</span>66 <span style=''>      </span><span style='background: #F0ADAD'>onWorldUpdate(c.get(WorldKey).getValue)</span><span style=''>
-</span>67 <span style=''>  }
-</span>68 <span style=''>}
+</span>46 <span style=''>    * @return the behaviour enabling to listen for modification in the distributed state
+</span>47 <span style=''>    */
+</span>48 <span style=''>  protected def passiveBehaviour: Receive = {
+</span>49 <span style=''>    // Called when notified of the distributed data change
+</span>50 <span style=''>    case c@Changed(DistributedKey) =&gt;
+</span>51 <span style=''>      log.debug(&quot;Being notified that distributed state has changed&quot;)
+</span>52 <span style=''>      </span><span style='background: #F0ADAD'>onDistributedStateUpdate(c.get(DistributedKey).getValue)</span><span style=''>
+</span>53 <span style=''>  }
+</span>54 <span style=''>
+</span>55 <span style=''>  /**
+</span>56 <span style=''>    * @return the behaviour enabling to modify distributed state
+</span>57 <span style=''>    */
+</span>58 <span style=''>  protected def activeBehaviour: Receive
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * @return the consistency policy to adopt when writing updates in distributed state
+</span>62 <span style=''>    */
+</span>63 <span style=''>  protected def consistencyPolicy: Replicator.WriteConsistency
+</span>64 <span style=''>}
+</span>65 <span style=''>
+</span>66 <span style=''>/**
+</span>67 <span style=''>  * Companion Object, containing actor messages
+</span>68 <span style=''>  */
+</span>69 <span style=''>object DistributedState {
+</span>70 <span style=''>
+</span>71 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
+</span>72 <span style=''>
+</span>73 <span style=''>  /**
+</span>74 <span style=''>    * The message to send to update distributed state
+</span>75 <span style=''>    *
+</span>76 <span style=''>    * @param state the new state
+</span>77 <span style=''>    */
+</span>78 <span style=''>  case class UpdateState[T](state: T)
+</span>79 <span style=''>
+</span>80 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -103,15 +115,36 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          34
+          21
         </td>
         <td>
-          424
+          487
         </td>
         <td>
-          952
+          760
           -
-          979
+          780
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          488
+        </td>
+        <td>
+          742
+          -
+          781
         </td>
         <td>
           Apply
@@ -120,103 +153,82 @@
           akka.cluster.ddata.LWWRegisterKey.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.LWWRegisterKey.apply[WD](&quot;world&quot;)
+          akka.cluster.ddata.LWWRegisterKey.apply[T](it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME)
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          427
+          490
         </td>
         <td>
-          1046
+          1008
           -
-          1056
+          1022
         </td>
         <td>
           Select
         </td>
         <td>
-          akka.actor.Actor.self
+          it.cwmp.client.model.DistributedState.DistributedKey
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.actor.self
+          DistributedState.this.DistributedKey
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          430
+          489
         </td>
         <td>
-          1013
+          980
           -
-          1057
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(DistributedState.this.replicator).!(akka.cluster.ddata.Replicator.Subscribe.apply[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey, DistributedState.this.actor.self))(DistributedState.this.replicator)
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          429
-        </td>
-        <td>
-          1024
-          -
-          1024
+          995
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.replicator
+          it.cwmp.client.model.DistributedState.replicatorActor
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.replicator
+          DistributedState.this.replicatorActor
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          426
+          492
         </td>
         <td>
-          1036
+          996
           -
-          1044
+          996
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.WorldKey
+          it.cwmp.client.model.DistributedState.replicatorActor
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.WorldKey
+          DistributedState.this.replicatorActor
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          428
+          491
         </td>
         <td>
-          1026
+          998
           -
-          1057
+          1035
         </td>
         <td>
           Apply
@@ -225,166 +237,19 @@
           akka.cluster.ddata.Replicator.Subscribe.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.Subscribe.apply[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey, DistributedState.this.actor.self)
+          akka.cluster.ddata.Replicator.Subscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber)
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          425
+          493
         </td>
         <td>
-          1013
+          980
           -
-          1023
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.replicator
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.replicator
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          432
-        </td>
-        <td>
-          1206
-          -
-          1259
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.PartialFunction.orElse
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.userActionBehaviour.orElse[Any, Unit](DistributedState.this.distributedActionBehaviour)
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          431
-        </td>
-        <td>
-          1233
-          -
-          1259
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.distributedActionBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.distributedActionBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          446
-        </td>
-        <td>
-          1449
-          -
-          1449
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          433
-        </td>
-        <td>
-          1584
-          -
-          1594
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.replicator
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.replicator
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          442
-        </td>
-        <td>
-          1650
-          -
-          1668
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.cluster.ddata.LWWRegister.withValue
-        </td>
-        <td style="background: #F0ADAD">
-          x$1.withValue(x$5)(x$6, x$7)
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          436
-        </td>
-        <td>
-          1629
-          -
-          1629
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.cluster.ddata.LWWRegister.apply$default$3
-        </td>
-        <td style="background: #F0ADAD">
-          akka.cluster.ddata.LWWRegister.apply$default$3[WD](x$2)
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          445
-        </td>
-        <td>
-          1584
-          -
-          1669
+          1035
         </td>
         <td>
           ApplyToImplicitArgs
@@ -393,228 +258,166 @@
           akka.actor.ScalaActorRef.!
         </td>
         <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(DistributedState.this.replicator).!(akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey, {
-  &lt;artifact&gt; val x$2: WD = world;
-  &lt;artifact&gt; val x$3: akka.cluster.Cluster = DistributedState.this.cluster;
-  &lt;artifact&gt; val x$4: akka.cluster.ddata.LWWRegister.Clock[WD] @scala.reflect.internal.annotations.uncheckedBounds = akka.cluster.ddata.LWWRegister.apply$default$3[WD](x$2);
-  akka.cluster.ddata.LWWRegister.apply[WD](x$2)(x$3, x$4)
-}, akka.cluster.ddata.Replicator.WriteLocal, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.LWWRegister[WD]) =&gt; {
-  &lt;artifact&gt; val x$5: WD = world;
-  &lt;artifact&gt; val x$6: akka.cluster.Cluster = DistributedState.this.cluster;
-  &lt;artifact&gt; val x$7: akka.cluster.ddata.LWWRegister.Clock[WD] @scala.reflect.internal.annotations.uncheckedBounds = x$1.withValue$default$3(x$5);
-  x$1.withValue(x$5)(x$6, x$7)
-})))(DistributedState.this.replicator)
+          actor.this.`package`.actorRef2Scala(DistributedState.this.replicatorActor).!(akka.cluster.ddata.Replicator.Subscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber))(DistributedState.this.replicatorActor)
         </td>
       </tr><tr>
         <td>
-          54
+          37
         </td>
         <td>
-          439
+          496
         </td>
         <td>
-          1597
+          1251
           -
-          1597
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          akka.cluster.ddata.Replicator.Update.apply$default$4
-        </td>
-        <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing]
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          438
-        </td>
-        <td>
-          1638
-          -
-          1648
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.cluster.ddata.Replicator.WriteLocal
-        </td>
-        <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.WriteLocal
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          441
-        </td>
-        <td>
-          1661
-          -
-          1661
+          1290
         </td>
         <td>
           Apply
         </td>
         <td>
-          akka.cluster.ddata.LWWRegister.withValue$default$3
+          akka.cluster.ddata.Replicator.Unsubscribe.apply
         </td>
         <td style="background: #F0ADAD">
-          x$1.withValue$default$3(x$5)
+          akka.cluster.ddata.Replicator.Unsubscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber)
         </td>
       </tr><tr>
         <td>
-          54
+          37
         </td>
         <td>
-          435
+          498
         </td>
         <td>
-          1629
+          1233
           -
-          1629
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.cluster
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.cluster
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          444
-        </td>
-        <td>
-          1595
-          -
-          1595
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.replicator
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.replicator
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          443
-        </td>
-        <td>
-          1597
-          -
-          1669
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.cluster.ddata.Replicator.Update.apply
-        </td>
-        <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey, {
-  &lt;artifact&gt; val x$2: WD = world;
-  &lt;artifact&gt; val x$3: akka.cluster.Cluster = DistributedState.this.cluster;
-  &lt;artifact&gt; val x$4: akka.cluster.ddata.LWWRegister.Clock[WD] @scala.reflect.internal.annotations.uncheckedBounds = akka.cluster.ddata.LWWRegister.apply$default$3[WD](x$2);
-  akka.cluster.ddata.LWWRegister.apply[WD](x$2)(x$3, x$4)
-}, akka.cluster.ddata.Replicator.WriteLocal, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.LWWRegister[WD]) =&gt; {
-  &lt;artifact&gt; val x$5: WD = world;
-  &lt;artifact&gt; val x$6: akka.cluster.Cluster = DistributedState.this.cluster;
-  &lt;artifact&gt; val x$7: akka.cluster.ddata.LWWRegister.Clock[WD] @scala.reflect.internal.annotations.uncheckedBounds = x$1.withValue$default$3(x$5);
-  x$1.withValue(x$5)(x$6, x$7)
-}))
-        </td>
-      </tr><tr>
-        <td>
-          54
-        </td>
-        <td>
-          437
-        </td>
-        <td>
-          1614
-          -
-          1636
+          1290
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          akka.cluster.ddata.LWWRegister.apply
+          akka.actor.ScalaActorRef.!
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.LWWRegister.apply[WD](x$2)(x$3, x$4)
+          actor.this.`package`.actorRef2Scala(DistributedState.this.replicatorActor).!(akka.cluster.ddata.Replicator.Unsubscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber))(DistributedState.this.replicatorActor)
         </td>
       </tr><tr>
         <td>
-          54
+          37
         </td>
         <td>
-          440
+          495
         </td>
         <td>
-          1661
+          1263
           -
-          1661
+          1277
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.cluster
+          it.cwmp.client.model.DistributedState.DistributedKey
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.cluster
+          DistributedState.this.DistributedKey
         </td>
       </tr><tr>
         <td>
-          54
+          37
         </td>
         <td>
-          434
+          497
         </td>
         <td>
-          1604
+          1249
           -
-          1612
+          1249
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.WorldKey
+          it.cwmp.client.model.DistributedState.replicatorActor
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.WorldKey
+          DistributedState.this.replicatorActor
         </td>
       </tr><tr>
         <td>
-          62
+          37
         </td>
         <td>
-          449
+          494
         </td>
         <td>
-          1832
+          1233
           -
-          1832
+          1248
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          499
+        </td>
+        <td>
+          1517
+          -
+          1532
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.activeBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.activeBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          500
+        </td>
+        <td>
+          1493
+          -
+          1532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.passiveBehaviour.orElse[Any, Unit](DistributedState.this.activeBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          503
+        </td>
+        <td>
+          1680
+          -
+          1680
         </td>
         <td>
           Apply
@@ -627,36 +430,15 @@
         </td>
       </tr><tr>
         <td>
-          66
+          52
         </td>
         <td>
-          448
+          501
         </td>
         <td>
-          2006
+          1879
           -
-          2045
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Function1.apply
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.onWorldUpdate.apply(c.get[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey).getValue())
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          447
-        </td>
-        <td>
-          2020
-          -
-          2044
+          1909
         </td>
         <td>
           Apply
@@ -665,7 +447,49 @@
           akka.cluster.ddata.LWWRegister.getValue
         </td>
         <td style="background: #F0ADAD">
-          c.get[akka.cluster.ddata.LWWRegister[WD]](DistributedState.this.WorldKey).getValue()
+          c.get[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey).getValue()
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          502
+        </td>
+        <td>
+          1854
+          -
+          1910
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.onDistributedStateUpdate.apply(c.get[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey).getValue())
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          504
+        </td>
+        <td>
+          2324
+          -
+          2340
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;distributedKey&quot;
         </td>
       </tr>
     </table>

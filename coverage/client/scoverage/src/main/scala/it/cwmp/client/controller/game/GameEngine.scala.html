@@ -110,7 +110,7 @@
 </span>86 <span style=''>                               allTentacles: Seq[Tentacle],
 </span>87 <span style=''>                               maturedEnergy: Double): Cell = {
 </span>88 <span style=''>    val firstAttackerOfCell = </span><span style='background: #AEF1AE'>allTentacles.min(Tentacle.orderByLaunchInstant).from.owner</span><span style=''>
-</span>89 <span style=''>    </span><span style='background: #AEF1AE'>Cell(firstAttackerOfCell, cell.position, GameConstants.cellWhenBornEnergy + maturedEnergy)</span><span style=''>
+</span>89 <span style=''>    </span><span style='background: #AEF1AE'>Cell(firstAttackerOfCell, cell.position, GameConstants.CELL_ENERGY_WHEN_BORN + maturedEnergy)</span><span style=''>
 </span>90 <span style=''>  }
 </span>91 <span style=''>
 </span>92 <span style=''>  /**
@@ -217,7 +217,7 @@
           26
         </td>
         <td>
-          241
+          361
         </td>
         <td>
           824
@@ -238,7 +238,7 @@
           27
         </td>
         <td>
-          242
+          362
         </td>
         <td>
           892
@@ -259,7 +259,7 @@
           30
         </td>
         <td>
-          243
+          363
         </td>
         <td>
           1059
@@ -280,28 +280,7 @@
           33
         </td>
         <td>
-          245
-        </td>
-        <td>
-          1150
-          -
-          1150
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.CellManipulator.evolve$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          qual$1.evolve$default$2
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          244
+          364
         </td>
         <td>
           1148
@@ -322,7 +301,7 @@
           33
         </td>
         <td>
-          247
+          367
         </td>
         <td>
           1147
@@ -343,7 +322,7 @@
           33
         </td>
         <td>
-          246
+          366
         </td>
         <td>
           1148
@@ -361,10 +340,31 @@
         </td>
       </tr><tr>
         <td>
+          33
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          1150
+          -
+          1150
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.CellManipulator.evolve$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.evolve$default$2
+        </td>
+      </tr><tr>
+        <td>
           34
         </td>
         <td>
-          250
+          370
         </td>
         <td>
           1121
@@ -390,7 +390,7 @@
           34
         </td>
         <td>
-          249
+          369
         </td>
         <td>
           1211
@@ -411,7 +411,7 @@
           34
         </td>
         <td>
-          248
+          368
         </td>
         <td>
           1212
@@ -432,7 +432,7 @@
           36
         </td>
         <td>
-          251
+          371
         </td>
         <td>
           1356
@@ -453,28 +453,7 @@
           39
         </td>
         <td>
-          254
-        </td>
-        <td>
-          1539
-          -
-          1615
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.TraversableLike.map
-        </td>
-        <td style="background: #AEF1AE">
-          tempWorld.characters.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$3: it.cwmp.client.model.game.impl.Cell) =&gt; GameEngine.this.attackConsequencesOnAttacked(x$3, tempWorld.attacks)(oldWorldInstant, elapsedTimeImplicit)))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          253
+          373
         </td>
         <td>
           1563
@@ -495,7 +474,7 @@
           39
         </td>
         <td>
-          252
+          372
         </td>
         <td>
           1564
@@ -513,10 +492,31 @@
         </td>
       </tr><tr>
         <td>
+          39
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          1539
+          -
+          1615
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          tempWorld.characters.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$3: it.cwmp.client.model.game.impl.Cell) =&gt; GameEngine.this.attackConsequencesOnAttacked(x$3, tempWorld.attacks)(oldWorldInstant, elapsedTimeImplicit)))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+        </td>
+      </tr><tr>
+        <td>
           41
         </td>
         <td>
-          255
+          375
         </td>
         <td>
           1633
@@ -537,7 +537,7 @@
           42
         </td>
         <td>
-          256
+          376
         </td>
         <td>
           1752
@@ -558,7 +558,7 @@
           42
         </td>
         <td>
-          257
+          377
         </td>
         <td>
           1711
@@ -579,7 +579,7 @@
           44
         </td>
         <td>
-          259
+          379
         </td>
         <td>
           1826
@@ -600,7 +600,7 @@
           44
         </td>
         <td>
-          258
+          378
         </td>
         <td>
           1789
@@ -621,7 +621,7 @@
           44
         </td>
         <td>
-          261
+          381
         </td>
         <td>
           1779
@@ -642,7 +642,7 @@
           44
         </td>
         <td>
-          260
+          380
         </td>
         <td>
           1848
@@ -663,7 +663,7 @@
           59
         </td>
         <td>
-          262
+          382
         </td>
         <td>
           2427
@@ -684,7 +684,7 @@
           59
         </td>
         <td>
-          273
+          393
         </td>
         <td>
           2381
@@ -705,7 +705,7 @@
           59
         </td>
         <td>
-          263
+          383
         </td>
         <td>
           2400
@@ -726,7 +726,7 @@
           59
         </td>
         <td>
-          272
+          392
         </td>
         <td>
           2372
@@ -747,7 +747,7 @@
           59
         </td>
         <td>
-          287
+          407
         </td>
         <td>
           2367
@@ -794,7 +794,7 @@
           60
         </td>
         <td>
-          265
+          385
         </td>
         <td>
           2555
@@ -815,7 +815,7 @@
           60
         </td>
         <td>
-          267
+          387
         </td>
         <td>
           2521
@@ -836,7 +836,7 @@
           60
         </td>
         <td>
-          264
+          384
         </td>
         <td>
           2521
@@ -857,7 +857,7 @@
           60
         </td>
         <td>
-          266
+          386
         </td>
         <td>
           2530
@@ -878,7 +878,7 @@
           61
         </td>
         <td>
-          268
+          388
         </td>
         <td>
           2620
@@ -899,7 +899,7 @@
           61
         </td>
         <td>
-          270
+          390
         </td>
         <td>
           2620
@@ -920,7 +920,7 @@
           61
         </td>
         <td>
-          269
+          389
         </td>
         <td>
           2629
@@ -941,7 +941,7 @@
           62
         </td>
         <td>
-          271
+          391
         </td>
         <td>
           2703
@@ -962,7 +962,7 @@
           64
         </td>
         <td>
-          274
+          394
         </td>
         <td>
           2777
@@ -983,7 +983,7 @@
           67
         </td>
         <td>
-          277
+          397
         </td>
         <td>
           2976
@@ -1004,7 +1004,7 @@
           67
         </td>
         <td>
-          276
+          396
         </td>
         <td>
           2926
@@ -1025,7 +1025,7 @@
           67
         </td>
         <td>
-          275
+          395
         </td>
         <td>
           2940
@@ -1046,7 +1046,7 @@
           67
         </td>
         <td>
-          278
+          398
         </td>
         <td>
           2961
@@ -1067,7 +1067,7 @@
           70
         </td>
         <td>
-          286
+          406
         </td>
         <td>
           3076
@@ -1091,7 +1091,7 @@ else
           70
         </td>
         <td>
-          279
+          399
         </td>
         <td>
           3080
@@ -1112,7 +1112,7 @@ else
           71
         </td>
         <td>
-          280
+          400
         </td>
         <td>
           3239
@@ -1133,7 +1133,7 @@ else
           71
         </td>
         <td>
-          283
+          403
         </td>
         <td>
           3173
@@ -1154,7 +1154,7 @@ else
           71
         </td>
         <td>
-          282
+          402
         </td>
         <td>
           3188
@@ -1175,7 +1175,7 @@ else
           71
         </td>
         <td>
-          281
+          401
         </td>
         <td>
           3225
@@ -1196,7 +1196,7 @@ else
           72
         </td>
         <td>
-          285
+          405
         </td>
         <td>
           3275
@@ -1217,7 +1217,7 @@ else
           72
         </td>
         <td>
-          284
+          404
         </td>
         <td>
           3290
@@ -1238,7 +1238,7 @@ else
           88
         </td>
         <td>
-          289
+          409
         </td>
         <td>
           3766
@@ -1259,7 +1259,7 @@ else
           88
         </td>
         <td>
-          288
+          408
         </td>
         <td>
           3783
@@ -1280,12 +1280,12 @@ else
           89
         </td>
         <td>
-          292
+          412
         </td>
         <td>
           3829
           -
-          3919
+          3922
         </td>
         <td>
           Apply
@@ -1294,19 +1294,19 @@ else
           it.cwmp.client.model.game.impl.Cell.apply
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.apply(firstAttackerOfCell, cell.position, GameConstants.cellWhenBornEnergy.+(maturedEnergy))
+          it.cwmp.client.model.game.impl.Cell.apply(firstAttackerOfCell, cell.position, GameConstants.CELL_ENERGY_WHEN_BORN.+(maturedEnergy))
         </td>
       </tr><tr>
         <td>
           89
         </td>
         <td>
-          291
+          411
         </td>
         <td>
           3870
           -
-          3918
+          3921
         </td>
         <td>
           Apply
@@ -1315,14 +1315,14 @@ else
           scala.Double.+
         </td>
         <td style="background: #AEF1AE">
-          GameConstants.cellWhenBornEnergy.+(maturedEnergy)
+          GameConstants.CELL_ENERGY_WHEN_BORN.+(maturedEnergy)
         </td>
       </tr><tr>
         <td>
           89
         </td>
         <td>
-          290
+          410
         </td>
         <td>
           3855
@@ -1343,12 +1343,12 @@ else
           102
         </td>
         <td>
-          293
+          413
         </td>
         <td>
-          4458
+          4461
           -
-          4470
+          4473
         </td>
         <td>
           Apply
@@ -1364,12 +1364,12 @@ else
           105
         </td>
         <td>
-          295
+          415
         </td>
         <td>
-          4626
+          4629
           -
-          4645
+          4648
         </td>
         <td>
           Select
@@ -1385,12 +1385,12 @@ else
           105
         </td>
         <td>
-          307
+          427
         </td>
         <td>
-          4559
+          4562
           -
-          4559
+          4562
         </td>
         <td>
           TypeApply
@@ -1406,12 +1406,12 @@ else
           105
         </td>
         <td>
-          294
+          414
         </td>
         <td>
-          4602
+          4605
           -
-          4615
+          4618
         </td>
         <td>
           Select
@@ -1427,12 +1427,12 @@ else
           105
         </td>
         <td>
-          306
+          426
         </td>
         <td>
-          4550
+          4553
           -
-          4550
+          4553
         </td>
         <td>
           Apply
@@ -1448,12 +1448,12 @@ else
           105
         </td>
         <td>
-          317
+          437
         </td>
         <td>
-          4545
+          4548
           -
-          5152
+          5155
         </td>
         <td>
           Apply
@@ -1488,12 +1488,12 @@ else
           105
         </td>
         <td>
-          296
+          416
         </td>
         <td>
-          4575
+          4578
           -
-          4645
+          4648
         </td>
         <td>
           Apply
@@ -1509,12 +1509,12 @@ else
           106
         </td>
         <td>
-          304
+          424
         </td>
         <td>
-          4678
+          4681
           -
-          4763
+          4766
         </td>
         <td>
           Apply
@@ -1540,12 +1540,12 @@ else
           106
         </td>
         <td>
-          298
+          418
         </td>
         <td>
-          4694
+          4697
           -
-          4727
+          4730
         </td>
         <td>
           Apply
@@ -1561,12 +1561,12 @@ else
           106
         </td>
         <td>
-          301
+          421
         </td>
         <td>
-          4731
+          4734
           -
-          4739
+          4742
         </td>
         <td>
           ApplyImplicitView
@@ -1582,12 +1582,12 @@ else
           106
         </td>
         <td>
-          300
+          420
         </td>
         <td>
-          4678
+          4681
           -
-          4728
+          4731
         </td>
         <td>
           Apply
@@ -1603,12 +1603,12 @@ else
           106
         </td>
         <td>
-          303
+          423
         </td>
         <td>
-          4731
+          4734
           -
-          4763
+          4766
         </td>
         <td>
           Apply
@@ -1624,12 +1624,12 @@ else
           106
         </td>
         <td>
-          297
+          417
         </td>
         <td>
-          4678
+          4681
           -
-          4686
+          4689
         </td>
         <td>
           ApplyImplicitView
@@ -1645,12 +1645,12 @@ else
           106
         </td>
         <td>
-          299
+          419
         </td>
         <td>
-          4687
+          4690
           -
-          4687
+          4690
         </td>
         <td>
           Select
@@ -1666,12 +1666,12 @@ else
           106
         </td>
         <td>
-          302
+          422
         </td>
         <td>
-          4740
+          4743
           -
-          4740
+          4743
         </td>
         <td>
           Select
@@ -1687,12 +1687,12 @@ else
           107
         </td>
         <td>
-          305
+          425
         </td>
         <td>
-          4800
+          4803
           -
-          4862
+          4865
         </td>
         <td>
           Apply
@@ -1708,12 +1708,12 @@ else
           109
         </td>
         <td>
-          308
+          428
         </td>
         <td>
-          4877
+          4880
           -
-          4930
+          4933
         </td>
         <td>
           Apply
@@ -1729,12 +1729,12 @@ else
           110
         </td>
         <td>
-          310
+          430
         </td>
         <td>
-          4981
+          4984
           -
-          4986
+          4989
         </td>
         <td>
           Literal
@@ -1750,12 +1750,12 @@ else
           110
         </td>
         <td>
-          309
+          429
         </td>
         <td>
-          4960
+          4963
           -
-          4979
+          4982
         </td>
         <td>
           Select
@@ -1771,12 +1771,12 @@ else
           110
         </td>
         <td>
-          312
+          432
         </td>
         <td>
-          4940
+          4943
           -
-          4987
+          4990
         </td>
         <td>
           Assign
@@ -1792,12 +1792,12 @@ else
           110
         </td>
         <td>
-          311
+          431
         </td>
         <td>
-          4959
+          4962
           -
-          4987
+          4990
         </td>
         <td>
           Apply
@@ -1813,12 +1813,12 @@ else
           112
         </td>
         <td>
-          313
+          433
         </td>
         <td>
-          5084
+          5087
           -
-          5130
+          5133
         </td>
         <td>
           Apply
@@ -1834,12 +1834,12 @@ else
           112
         </td>
         <td>
-          316
+          436
         </td>
         <td>
-          5064
+          5067
           -
-          5152
+          5155
         </td>
         <td>
           Assign
@@ -1855,12 +1855,12 @@ else
           112
         </td>
         <td>
-          315
+          435
         </td>
         <td>
-          5083
+          5086
           -
-          5152
+          5155
         </td>
         <td>
           Apply
@@ -1876,12 +1876,12 @@ else
           112
         </td>
         <td>
-          314
+          434
         </td>
         <td>
-          5132
+          5135
           -
-          5151
+          5154
         </td>
         <td>
           Select
@@ -1897,12 +1897,12 @@ else
           130
         </td>
         <td>
-          322
+          442
         </td>
         <td>
-          5998
+          6001
           -
-          6011
+          6014
         </td>
         <td>
           Select
@@ -1918,12 +1918,12 @@ else
           130
         </td>
         <td>
-          319
+          439
         </td>
         <td>
-          5991
+          5994
           -
-          5995
+          5998
         </td>
         <td>
           Select
@@ -1939,12 +1939,12 @@ else
           130
         </td>
         <td>
-          318
+          438
         </td>
         <td>
-          5954
+          5957
           -
-          5967
+          5970
         </td>
         <td>
           Select
@@ -1960,12 +1960,12 @@ else
           130
         </td>
         <td>
-          321
+          441
         </td>
         <td>
-          5969
+          5972
           -
-          5996
+          5999
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1981,12 +1981,12 @@ else
           130
         </td>
         <td>
-          323
+          443
         </td>
         <td>
-          5944
+          5947
           -
-          6012
+          6015
         </td>
         <td>
           Apply
@@ -2002,12 +2002,12 @@ else
           130
         </td>
         <td>
-          320
+          440
         </td>
         <td>
-          5990
+          5993
           -
-          5990
+          5993
         </td>
         <td>
           TypeApply
@@ -2023,12 +2023,12 @@ else
           131
         </td>
         <td>
-          325
+          445
         </td>
         <td>
-          6092
+          6095
           -
-          6096
+          6099
         </td>
         <td>
           Select
@@ -2044,12 +2044,12 @@ else
           131
         </td>
         <td>
-          327
+          447
         </td>
         <td>
-          6054
+          6057
           -
-          6097
+          6100
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2065,12 +2065,12 @@ else
           131
         </td>
         <td>
-          324
+          444
         </td>
         <td>
-          6082
+          6085
           -
-          6086
+          6089
         </td>
         <td>
           Select
@@ -2086,12 +2086,12 @@ else
           131
         </td>
         <td>
-          326
+          446
         </td>
         <td>
-          6091
+          6094
           -
-          6091
+          6094
         </td>
         <td>
           TypeApply
@@ -2107,12 +2107,12 @@ else
           132
         </td>
         <td>
-          337
+          457
         </td>
         <td>
-          6102
+          6105
           -
-          6485
+          6488
         </td>
         <td>
           Apply
@@ -2128,12 +2128,12 @@ else
           133
         </td>
         <td>
-          331
+          451
         </td>
         <td>
-          6162
+          6165
           -
-          6235
+          6238
         </td>
         <td>
           Apply
@@ -2149,12 +2149,12 @@ else
           133
         </td>
         <td>
-          328
+          448
         </td>
         <td>
-          6180
+          6183
           -
-          6186
+          6189
         </td>
         <td>
           Select
@@ -2170,12 +2170,12 @@ else
           133
         </td>
         <td>
-          330
+          450
         </td>
         <td>
-          6195
+          6198
           -
-          6234
+          6237
         </td>
         <td>
           Apply
@@ -2191,12 +2191,12 @@ else
           133
         </td>
         <td>
-          329
+          449
         </td>
         <td>
-          6179
+          6182
           -
-          6179
+          6182
         </td>
         <td>
           TypeApply
@@ -2212,12 +2212,12 @@ else
           135
         </td>
         <td>
-          336
+          456
         </td>
         <td>
-          6348
+          6351
           -
-          6485
+          6488
         </td>
         <td>
           Apply
@@ -2233,12 +2233,12 @@ else
           136
         </td>
         <td>
-          333
+          453
         </td>
         <td>
-          6396
+          6399
           -
-          6440
+          6443
         </td>
         <td>
           Apply
@@ -2254,12 +2254,12 @@ else
           136
         </td>
         <td>
-          332
+          452
         </td>
         <td>
-          6423
+          6426
           -
-          6429
+          6432
         </td>
         <td>
           Select
@@ -2275,12 +2275,12 @@ else
           137
         </td>
         <td>
-          334
+          454
         </td>
         <td>
-          6455
+          6458
           -
-          6484
+          6487
         </td>
         <td>
           Select
@@ -2296,12 +2296,12 @@ else
           137
         </td>
         <td>
-          335
+          455
         </td>
         <td>
-          6361
+          6364
           -
-          6485
+          6488
         </td>
         <td>
           Apply
@@ -2317,12 +2317,12 @@ else
           153
         </td>
         <td>
-          340
+          460
         </td>
         <td>
-          7167
+          7170
           -
-          7213
+          7216
         </td>
         <td>
           Apply
@@ -2338,12 +2338,12 @@ else
           153
         </td>
         <td>
-          339
+          459
         </td>
         <td>
-          7199
+          7202
           -
-          7212
+          7215
         </td>
         <td>
           Select
@@ -2359,12 +2359,12 @@ else
           153
         </td>
         <td>
-          338
+          458
         </td>
         <td>
-          7177
+          7180
           -
-          7190
+          7193
         </td>
         <td>
           Select
@@ -2380,12 +2380,12 @@ else
           154
         </td>
         <td>
-          343
+          463
         </td>
         <td>
-          7256
+          7259
           -
-          7315
+          7318
         </td>
         <td>
           Select
@@ -2401,12 +2401,12 @@ else
           154
         </td>
         <td>
-          348
+          468
         </td>
         <td>
-          7218
+          7221
           -
-          7412
+          7415
         </td>
         <td>
           Apply
@@ -2422,12 +2422,12 @@ else
           154
         </td>
         <td>
-          342
+          462
         </td>
         <td>
-          7270
+          7273
           -
-          7314
+          7317
         </td>
         <td>
           Apply
@@ -2443,12 +2443,12 @@ else
           154
         </td>
         <td>
-          341
+          461
         </td>
         <td>
-          7300
+          7303
           -
-          7313
+          7316
         </td>
         <td>
           Select
@@ -2464,33 +2464,12 @@ else
           155
         </td>
         <td>
-          346
+          465
         </td>
         <td>
-          7369
+          7400
           -
-          7411
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableLike.filterNot
-        </td>
-        <td style="background: #AEF1AE">
-          tempWorld.attacks.filterNot(((x$12: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$12.==(tentacle)))
-        </td>
-      </tr><tr>
-        <td>
-          155
-        </td>
-        <td>
-          345
-        </td>
-        <td>
-          7397
-          -
-          7410
+          7413
         </td>
         <td>
           Apply
@@ -2506,12 +2485,12 @@ else
           155
         </td>
         <td>
-          344
+          464
         </td>
         <td>
-          7347
+          7350
           -
-          7360
+          7363
         </td>
         <td>
           Select
@@ -2527,12 +2506,12 @@ else
           155
         </td>
         <td>
-          347
+          467
         </td>
         <td>
-          7337
+          7340
           -
-          7412
+          7415
         </td>
         <td>
           Apply
@@ -2545,15 +2524,36 @@ else
         </td>
       </tr><tr>
         <td>
+          155
+        </td>
+        <td>
+          466
+        </td>
+        <td>
+          7372
+          -
+          7414
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableLike.filterNot
+        </td>
+        <td style="background: #AEF1AE">
+          tempWorld.attacks.filterNot(((x$12: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$12.==(tentacle)))
+        </td>
+      </tr><tr>
+        <td>
           171
         </td>
         <td>
-          349
+          469
         </td>
         <td>
-          7976
+          7979
           -
-          7989
+          7992
         </td>
         <td>
           Select
@@ -2569,12 +2569,12 @@ else
           171
         </td>
         <td>
-          351
+          471
         </td>
         <td>
-          7966
+          7969
           -
-          8012
+          8015
         </td>
         <td>
           Apply
@@ -2590,12 +2590,12 @@ else
           171
         </td>
         <td>
-          350
+          470
         </td>
         <td>
-          7998
+          8001
           -
-          8011
+          8014
         </td>
         <td>
           Select
@@ -2611,12 +2611,12 @@ else
           172
         </td>
         <td>
-          352
+          472
         </td>
         <td>
-          8099
+          8102
           -
-          8110
+          8113
         </td>
         <td>
           Select
@@ -2632,12 +2632,12 @@ else
           172
         </td>
         <td>
-          354
+          474
         </td>
         <td>
-          8055
+          8058
           -
-          8112
+          8115
         </td>
         <td>
           Select
@@ -2653,12 +2653,12 @@ else
           172
         </td>
         <td>
-          366
+          486
         </td>
         <td>
-          8017
+          8020
           -
-          8413
+          8416
         </td>
         <td>
           Apply
@@ -2678,12 +2678,12 @@ else
           172
         </td>
         <td>
-          353
+          473
         </td>
         <td>
-          8069
+          8072
           -
-          8111
+          8114
         </td>
         <td>
           Apply
@@ -2699,33 +2699,12 @@ else
           173
         </td>
         <td>
-          355
+          477
         </td>
         <td>
-          8173
+          8149
           -
-          8193
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.position
-        </td>
-        <td style="background: #AEF1AE">
-          tentacle.to.position
-        </td>
-      </tr><tr>
-        <td>
-          173
-        </td>
-        <td>
-          357
-        </td>
-        <td>
-          8146
-          -
-          8199
+          8202
         </td>
         <td>
           Select
@@ -2741,12 +2720,12 @@ else
           173
         </td>
         <td>
-          356
+          476
         </td>
         <td>
-          8159
+          8162
           -
-          8193
+          8196
         </td>
         <td>
           Apply
@@ -2759,15 +2738,36 @@ else
         </td>
       </tr><tr>
         <td>
+          173
+        </td>
+        <td>
+          475
+        </td>
+        <td>
+          8176
+          -
+          8196
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #AEF1AE">
+          tentacle.to.position
+        </td>
+      </tr><tr>
+        <td>
           174
         </td>
         <td>
-          358
+          478
         </td>
         <td>
-          8237
+          8240
           -
-          8250
+          8253
         </td>
         <td>
           Select
@@ -2783,12 +2783,12 @@ else
           174
         </td>
         <td>
-          360
+          480
         </td>
         <td>
-          8228
+          8231
           -
-          8294
+          8297
         </td>
         <td>
           Apply
@@ -2804,12 +2804,12 @@ else
           174
         </td>
         <td>
-          359
+          479
         </td>
         <td>
-          8271
+          8274
           -
-          8293
+          8296
         </td>
         <td>
           Select
@@ -2825,33 +2825,12 @@ else
           175
         </td>
         <td>
-          364
+          481
         </td>
         <td>
-          8345
+          8326
           -
-          8406
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.SeqLike.:+
-        </td>
-        <td style="background: #AEF1AE">
-          tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle])
-        </td>
-      </tr><tr>
-        <td>
-          175
-        </td>
-        <td>
-          361
-        </td>
-        <td>
-          8323
-          -
-          8336
+          8339
         </td>
         <td>
           Select
@@ -2867,12 +2846,12 @@ else
           175
         </td>
         <td>
-          363
+          483
         </td>
         <td>
-          8388
+          8391
           -
-          8388
+          8391
         </td>
         <td>
           TypeApply
@@ -2888,12 +2867,12 @@ else
           175
         </td>
         <td>
-          362
+          482
         </td>
         <td>
-          8373
+          8376
           -
-          8386
+          8389
         </td>
         <td>
           Apply
@@ -2909,12 +2888,12 @@ else
           175
         </td>
         <td>
-          365
+          485
         </td>
         <td>
-          8313
+          8316
           -
-          8407
+          8410
         </td>
         <td>
           Apply
@@ -2924,6 +2903,27 @@ else
         </td>
         <td style="background: #AEF1AE">
           it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]))
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          8348
+          -
+          8409
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SeqLike.:+
+        </td>
+        <td style="background: #AEF1AE">
+          tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle])
         </td>
       </tr>
     </table>

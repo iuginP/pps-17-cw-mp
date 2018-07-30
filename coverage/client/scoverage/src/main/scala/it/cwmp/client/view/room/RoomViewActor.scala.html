@@ -24,85 +24,89 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.room
 </span>2 <span style=''>
-</span>3 <span style=''>import akka.actor.{Actor, ActorRef}
-</span>4 <span style=''>import it.cwmp.client.controller.ClientControllerMessages
-</span>5 <span style=''>import it.cwmp.client.view.AlertActor
-</span>6 <span style=''>import javafx.application.Platform
-</span>7 <span style=''>import javafx.embed.swing.JFXPanel
-</span>8 <span style=''>
-</span>9 <span style=''>/**
-</span>10 <span style=''>  * Questo oggetto contiene tutti i messaggi che questo attore può ricevere.
-</span>11 <span style=''>  */
-</span>12 <span style=''>object RoomViewMessages {
-</span>13 <span style=''>  /**
-</span>14 <span style=''>    * Questo messaggio rappresenta l'inizializzazione del controller che verrà poi utilizzato per le rispote che verrano inviate al mittente.
-</span>15 <span style=''>    * Quando ricevuto, inizializzo il controller.
-</span>16 <span style=''>    */
-</span>17 <span style=''>  case object InitController
-</span>18 <span style=''>  /**
-</span>19 <span style=''>    * Questo messaggio rappresenta la visualizzazione dell'interfaccia grafica.
-</span>20 <span style=''>    * Quando ricevuto, viene mostrata all'utente l'interfaccia grafica.
-</span>21 <span style=''>    */
-</span>22 <span style=''>  case object ShowGUI
-</span>23 <span style=''>  /**
-</span>24 <span style=''>    * Questo messaggio rappresenta la chiusura dell'interfaccia grafica.
-</span>25 <span style=''>    * Quando ricevuto, viene nascosta all'utente l'interfaccia grafica di selezione delle stanze.
-</span>26 <span style=''>    */
-</span>27 <span style=''>  case object HideGUI
-</span>28 <span style=''>}
-</span>29 <span style=''>
-</span>30 <span style=''>object RoomViewActor {
-</span>31 <span style=''>  def apply(): RoomViewActor = </span><span style='background: #F0ADAD'>new RoomViewActor()</span><span style=''>
-</span>32 <span style=''>}
-</span>33 <span style=''>
-</span>34 <span style=''>/**
-</span>35 <span style=''>  * Questa classe rappresenta l'attore incaricato di visualizzare
-</span>36 <span style=''>  * l'interfaccia grafica della lobby di selezione delle stanze.
-</span>37 <span style=''>  *
-</span>38 <span style=''>  * @author Davide Borficchia
-</span>39 <span style=''>  */
-</span>40 <span style=''>class RoomViewActor extends Actor with AlertActor {
-</span>41 <span style=''>  /**
-</span>42 <span style=''>    * roomFXController il controller che gestisce la view della lobby delle stanze
-</span>43 <span style=''>    */
-</span>44 <span style=''>  var fxController: RoomFXController = _
-</span>45 <span style=''>  /**
-</span>46 <span style=''>    * Questo è l'attore che ci invia i messaggi e quello al quale dobbiamo rispondere
-</span>47 <span style=''>    */
-</span>48 <span style=''>  var controllerActor: ActorRef = _
-</span>49 <span style=''>
-</span>50 <span style=''>  /**
-</span>51 <span style=''>    * Questo metodo viene invocato alla creazione dell'attore. Non va mai chiamato direttamente!
-</span>52 <span style=''>    * Si occupa di creare il controller/view di javaFX per gestire il layout grafico delle stanze.
-</span>53 <span style=''>    */
-</span>54 <span style=''>  override def preStart(): Unit = {
-</span>55 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
-</span>56 <span style=''>    //inizializzo il toolkit
-</span>57 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel</span><span style=''>
-</span>58 <span style=''>    </span><span style='background: #F0ADAD'>Platform setImplicitExit false</span><span style=''>
-</span>59 <span style=''>    </span><span style='background: #F0ADAD'>Platform runLater(() =&gt; {
-</span>60 <span style=''></span><span style='background: #F0ADAD'>      fxController = RoomFXController(new RoomFXStrategy {
-</span>61 <span style=''></span><span style='background: #F0ADAD'>        override def onCreate(name: String, nPlayer: Int): Unit =
-</span>62 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! ClientControllerMessages.RoomCreatePrivate(name, nPlayer)
-</span>63 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPrivate(idRoom: String): Unit =
-</span>64 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! ClientControllerMessages.RoomEnterPrivate(idRoom)
-</span>65 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPublic(nPlayer: Int): Unit =
-</span>66 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! ClientControllerMessages.RoomEnterPublic(nPlayer)
-</span>67 <span style=''></span><span style='background: #F0ADAD'>      })
-</span>68 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>69 <span style=''>  }
-</span>70 <span style=''>
-</span>71 <span style=''>  /**
-</span>72 <span style=''>    * Questo metodo viene chiamato in automatico dall'esterno ogni volta che viene ricevuto un messaggio.
-</span>73 <span style=''>    * Non va mai chiamato direttamente!
-</span>74 <span style=''>    * I messaggi che questo attore è ingrado di ricevere sono raggruppati in [[RoomViewMessages]]
-</span>75 <span style=''>    */
-</span>76 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>alertBehaviour orElse {
-</span>77 <span style=''></span><span style='background: #F0ADAD'>    case RoomViewMessages.InitController =&gt; controllerActor = sender()
-</span>78 <span style=''></span><span style='background: #F0ADAD'>    case RoomViewMessages.ShowGUI =&gt; Platform runLater(() =&gt; fxController.showGUI())
-</span>79 <span style=''></span><span style='background: #F0ADAD'>    case RoomViewMessages.HideGUI =&gt; Platform runLater(() =&gt; fxController.hideGUI())
-</span>80 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
-</span>81 <span style=''>}
+</span>3 <span style=''>import it.cwmp.client.controller.messages.RoomsRequests._
+</span>4 <span style=''>import it.cwmp.client.view.FXServiceViewActor
+</span>5 <span style=''>import it.cwmp.client.view.room.RoomViewActor._
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * This class represents the actor that manages the rooms
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * @author Davide Borficchia
+</span>11 <span style=''>  * @author contributor Enrico Siboni
+</span>12 <span style=''>  */
+</span>13 <span style=''>case class RoomViewActor() extends FXServiceViewActor {
+</span>14 <span style=''>
+</span>15 <span style=''>  protected var fxController: RoomFXController = _
+</span>16 <span style=''>
+</span>17 <span style=''>  private var roomEnteringMessage: RoomEnteringRequest with GUIRequest = _
+</span>18 <span style=''>
+</span>19 <span style=''>  override def preStart(): Unit = {
+</span>20 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
+</span>22 <span style=''></span><span style='background: #F0ADAD'>      fxController = RoomFXController(new RoomStrategy {
+</span>23 <span style=''></span><span style='background: #F0ADAD'>        override def onCreate(roomName: String, playersNumber: Int): Unit = {
+</span>24 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>25 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading CREATING_PRIVATE_ROOM_MESSAGE
+</span>26 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! GUICreate(roomName, playersNumber)
+</span>27 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>28 <span style=''></span><span style='background: #F0ADAD'>
+</span>29 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPrivate(roomID: String): Unit = {
+</span>30 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>31 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPrivate(roomID)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>35 <span style=''></span><span style='background: #F0ADAD'>
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPublic(playersNumber: Int): Unit = {
+</span>37 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>38 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPublic(playersNumber)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      }))</span><span style=''>
+</span>43 <span style=''>  }
+</span>44 <span style=''>
+</span>45 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>super.receive orElse {
+</span>46 <span style=''></span><span style='background: #F0ADAD'>    case ShowToken(roomToken) =&gt; runOnUIThread(() =&gt; {
+</span>47 <span style=''></span><span style='background: #F0ADAD'>      onServiceResponseReceived()
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      fxController showTokenDialog roomToken
+</span>49 <span style=''></span><span style='background: #F0ADAD'>    })
+</span>50 <span style=''></span><span style='background: #F0ADAD'>    case WaitingForOthers =&gt;
+</span>51 <span style=''></span><span style='background: #F0ADAD'>      fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () =&gt; {
+</span>52 <span style=''></span><span style='background: #F0ADAD'>        controllerActor ! (roomEnteringMessage match {
+</span>53 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPrivate(roomID) =&gt; GUIExitPrivate(roomID)
+</span>54 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPublic(playersNumber) =&gt; GUIExitPublic(playersNumber)
+</span>55 <span style=''></span><span style='background: #F0ADAD'>        })
+</span>56 <span style=''></span><span style='background: #F0ADAD'>      })
+</span>57 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>58 <span style=''>}
+</span>59 <span style=''>
+</span>60 <span style=''>/**
+</span>61 <span style=''>  * Companion object, with actor messages
+</span>62 <span style=''>  */
+</span>63 <span style=''>object RoomViewActor {
+</span>64 <span style=''>
+</span>65 <span style=''>  private val CREATING_PRIVATE_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo creando la stanza privata&quot;</span><span style=''>
+</span>66 <span style=''>
+</span>67 <span style=''>  private val ENTERING_ROOM_TITLE = </span><span style='background: #F0ADAD'>&quot;Entrata in stanza&quot;</span><span style=''>
+</span>68 <span style=''>  private val ENTERING_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stai per entrare nella stanza scelta&quot;</span><span style=''>
+</span>69 <span style=''>
+</span>70 <span style=''>  private val WAITING_FOR_PARTICIPANTS_TITLE = </span><span style='background: #F0ADAD'>&quot;In attesa di giocatori&quot;</span><span style=''>
+</span>71 <span style=''>  private val WAITING_FOR_PARTICIPANTS_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiungere il numero stabilito&quot;</span><span style=''>
+</span>72 <span style=''>
+</span>73 <span style=''>  /**
+</span>74 <span style=''>    * Shows the room token on screen
+</span>75 <span style=''>    *
+</span>76 <span style=''>    * @param roomToken the private room token to spread among friends
+</span>77 <span style=''>    */
+</span>78 <span style=''>  case class ShowToken(roomToken: String)
+</span>79 <span style=''>
+</span>80 <span style=''>  /**
+</span>81 <span style=''>    * Shows a loading while waiting for others participants
+</span>82 <span style=''>    */
+</span>83 <span style=''>  case object WaitingForOthers
+</span>84 <span style=''>
+</span>85 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -116,163 +120,87 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          31
+          20
         </td>
         <td>
-          1132
+          1428
         </td>
         <td>
-          1033
+          552
           -
-          1052
+          568
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.room.RoomViewActor.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new RoomViewActor()
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          1133
-        </td>
-        <td>
-          1804
-          -
-          1820
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Actor.preStart
+          it.cwmp.client.view.FXServiceViewActor.preStart
         </td>
         <td style="background: #F0ADAD">
           RoomViewActor.super.preStart()
         </td>
       </tr><tr>
         <td>
-          57
+          21
         </td>
         <td>
-          1134
+          1461
         </td>
         <td>
-          1854
+          573
           -
-          1866
+          1537
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.embed.swing.JFXPanel.&lt;init&gt;
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
         </td>
         <td style="background: #F0ADAD">
-          new javafx.embed.swing.JFXPanel()
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          1135
-        </td>
-        <td>
-          1871
-          -
-          1901
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.setImplicitExit
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.setImplicitExit(false)
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          1151
-        </td>
-        <td>
-          1906
-          -
-          2431
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; RoomViewActor.this.fxController_=(RoomFXController.apply({
-  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomFXStrategy {
-    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomFXStrategy&gt; = {
+          RoomViewActor.this.runOnUIThread((() =&gt; RoomViewActor.this.fxController_=(RoomFXController.apply({
+  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomStrategy {
+    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomStrategy&gt; = {
       $anon.super.&lt;init&gt;();
       ()
     };
-    override def onCreate(name: String, nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply(name, nPlayer))(RoomViewActor.this.self);
-    override def onEnterPrivate(idRoom: String): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply(idRoom))(RoomViewActor.this.self);
-    override def onEnterPublic(nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply(nPlayer))(RoomViewActor.this.self)
+    override def onCreate(roomName: String, playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$1: it.cwmp.client.view.room.RoomFXController = RoomViewActor.this.fxController;
+        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE;
+        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
+        qual$1.showLoading(x$1, x$2)
+      };
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
+    };
+    override def onEnterPrivate(roomID: String): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    };
+    override def onEnterPublic(playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    }
   };
   new $anon()
 }))))
         </td>
       </tr><tr>
         <td>
-          60
+          22
         </td>
         <td>
-          1150
+          1459
         </td>
         <td>
-          1938
+          614
           -
-          2424
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomViewActor.fxController_=
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.fxController_=(RoomFXController.apply({
-  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomFXStrategy {
-    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomFXStrategy&gt; = {
-      $anon.super.&lt;init&gt;();
-      ()
-    };
-    override def onCreate(name: String, nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply(name, nPlayer))(RoomViewActor.this.self);
-    override def onEnterPrivate(idRoom: String): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply(idRoom))(RoomViewActor.this.self);
-    override def onEnterPublic(nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply(nPlayer))(RoomViewActor.this.self)
-  };
-  new $anon()
-}))
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          1149
-        </td>
-        <td>
-          1953
-          -
-          2424
+          1536
         </td>
         <td>
           Apply
@@ -282,29 +210,48 @@
         </td>
         <td style="background: #F0ADAD">
           RoomFXController.apply({
-  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomFXStrategy {
-    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomFXStrategy&gt; = {
+  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomStrategy {
+    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomStrategy&gt; = {
       $anon.super.&lt;init&gt;();
       ()
     };
-    override def onCreate(name: String, nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply(name, nPlayer))(RoomViewActor.this.self);
-    override def onEnterPrivate(idRoom: String): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply(idRoom))(RoomViewActor.this.self);
-    override def onEnterPublic(nPlayer: Int): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply(nPlayer))(RoomViewActor.this.self)
+    override def onCreate(roomName: String, playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$1: it.cwmp.client.view.room.RoomFXController = RoomViewActor.this.fxController;
+        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE;
+        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
+        qual$1.showLoading(x$1, x$2)
+      };
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
+    };
+    override def onEnterPrivate(roomID: String): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    };
+    override def onEnterPublic(playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    }
   };
   new $anon()
 })
         </td>
       </tr><tr>
         <td>
-          60
+          22
         </td>
         <td>
-          1148
+          1458
         </td>
         <td>
-          1970
+          631
           -
-          1973
+          634
         </td>
         <td>
           Apply
@@ -317,308 +264,675 @@
         </td>
       </tr><tr>
         <td>
-          62
+          22
         </td>
         <td>
-          1136
+          1460
         </td>
         <td>
-          2067
+          599
           -
-          2082
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomViewActor.controllerActor
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.controllerActor
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          1138
-        </td>
-        <td>
-          2083
-          -
-          2083
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          1137
-        </td>
-        <td>
-          2085
-          -
-          2142
+          1536
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply
+          it.cwmp.client.view.room.RoomViewActor.fxController_=
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply(name, nPlayer)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          1139
-        </td>
-        <td>
-          2067
-          -
-          2142
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomCreatePrivate.apply(name, nPlayer))(RoomViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1142
-        </td>
-        <td>
-          2229
-          -
-          2229
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1141
-        </td>
-        <td>
-          2231
-          -
-          2280
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply(idRoom)
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1140
-        </td>
-        <td>
-          2213
-          -
-          2228
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomViewActor.controllerActor
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.controllerActor
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1143
-        </td>
-        <td>
-          2213
-          -
-          2280
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPrivate.apply(idRoom))(RoomViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1145
-        </td>
-        <td>
-          2366
-          -
-          2415
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply(nPlayer)
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1144
-        </td>
-        <td>
-          2348
-          -
-          2363
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomViewActor.controllerActor
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.controllerActor
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1147
-        </td>
-        <td>
-          2348
-          -
-          2415
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.ClientControllerMessages.RoomEnterPublic.apply(nPlayer))(RoomViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1146
-        </td>
-        <td>
-          2364
-          -
-          2364
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1159
-        </td>
-        <td>
-          2728
-          -
-          2996
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.PartialFunction.orElse
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.alertBehaviour.orElse[Any, Unit](({
-  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,Unit] with Serializable {
-    def &lt;init&gt;(): &lt;$anon: Any =&gt; Unit&gt; = {
-      $anonfun.super.&lt;init&gt;();
+          RoomViewActor.this.fxController_=(RoomFXController.apply({
+  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomStrategy {
+    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomStrategy&gt; = {
+      $anon.super.&lt;init&gt;();
       ()
     };
-    final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
-      case RoomViewMessages.InitController =&gt; RoomViewActor.this.controllerActor_=(RoomViewActor.this.sender())
-      case RoomViewMessages.ShowGUI =&gt; javafx.application.Platform.runLater((() =&gt; RoomViewActor.this.fxController.showGUI()))
-      case RoomViewMessages.HideGUI =&gt; javafx.application.Platform.runLater((() =&gt; RoomViewActor.this.fxController.hideGUI()))
-      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    override def onCreate(roomName: String, playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$1: it.cwmp.client.view.room.RoomFXController = RoomViewActor.this.fxController;
+        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE;
+        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
+        qual$1.showLoading(x$1, x$2)
+      };
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
     };
-    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
-      case RoomViewMessages.InitController =&gt; true
-      case RoomViewMessages.ShowGUI =&gt; true
-      case RoomViewMessages.HideGUI =&gt; true
-      case (defaultCase$ @ _) =&gt; false
+    override def onEnterPrivate(roomID: String): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    };
+    override def onEnterPublic(playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
     }
   };
-  new $anonfun()
-}: PartialFunction[Any,Unit]))
+  new $anon()
+}))
         </td>
       </tr><tr>
         <td>
-          76
+          24
         </td>
         <td>
-          1158
+          1429
         </td>
         <td>
-          2750
+          738
           -
-          2750
+          774
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.disableViewComponents
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController.disableViewComponents()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1432
+        </td>
+        <td>
+          798
+          -
+          798
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showLoading$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.showLoading$default$2
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1431
+        </td>
+        <td>
+          810
+          -
+          839
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1430
+        </td>
+        <td>
+          785
+          -
+          797
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.fxController
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          1433
+        </td>
+        <td>
+          785
+          -
+          839
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showLoading
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.showLoading(x$1, x$2)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1434
+        </td>
+        <td>
+          850
+          -
+          865
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1437
+        </td>
+        <td>
+          850
+          -
+          902
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1436
+        </td>
+        <td>
+          866
+          -
+          866
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1435
+        </td>
+        <td>
+          868
+          -
+          902
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          1438
+        </td>
+        <td>
+          986
+          -
+          1022
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.disableViewComponents
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController.disableViewComponents()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1441
+        </td>
+        <td>
+          1033
+          -
+          1101
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showLoading
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1440
+        </td>
+        <td>
+          1081
+          -
+          1100
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          1439
+        </td>
+        <td>
+          1058
+          -
+          1079
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1443
+        </td>
+        <td>
+          1112
+          -
+          1157
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage_=
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID))
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1442
+        </td>
+        <td>
+          1134
+          -
+          1157
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1447
+        </td>
+        <td>
+          1168
+          -
+          1205
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1446
+        </td>
+        <td>
+          1184
+          -
+          1184
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1445
+        </td>
+        <td>
+          1186
+          -
+          1205
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1444
+        </td>
+        <td>
+          1168
+          -
+          1183
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1448
+        </td>
+        <td>
+          1292
+          -
+          1328
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.disableViewComponents
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController.disableViewComponents()
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1450
+        </td>
+        <td>
+          1387
+          -
+          1406
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1449
+        </td>
+        <td>
+          1364
+          -
+          1385
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1451
+        </td>
+        <td>
+          1339
+          -
+          1407
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showLoading
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1452
+        </td>
+        <td>
+          1440
+          -
+          1469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1453
+        </td>
+        <td>
+          1418
+          -
+          1469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage_=
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1456
+        </td>
+        <td>
+          1496
+          -
+          1496
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1455
+        </td>
+        <td>
+          1498
+          -
+          1517
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1454
+        </td>
+        <td>
+          1480
+          -
+          1495
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1457
+        </td>
+        <td>
+          1480
+          -
+          1517
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1474
+        </td>
+        <td>
+          1598
+          -
+          1598
         </td>
         <td>
           Apply
@@ -631,129 +945,414 @@
         </td>
       </tr><tr>
         <td>
-          77
+          45
         </td>
         <td>
-          1153
+          1475
         </td>
         <td>
-          2796
+          1577
           -
-          2822
+          2104
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.room.RoomViewActor.controllerActor_=
+          scala.PartialFunction.orElse
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.controllerActor_=(RoomViewActor.this.sender())
+          RoomViewActor.super.receive.orElse[Any, Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (roomToken: String)it.cwmp.client.view.room.RoomViewActor.ShowToken((roomToken @ _)) =&gt; RoomViewActor.this.runOnUIThread((() =&gt; {
+        RoomViewActor.this.onServiceResponseReceived();
+        RoomViewActor.this.fxController.showTokenDialog(roomToken)
+      }))
+      case it.cwmp.client.view.room.RoomViewActor.WaitingForOthers =&gt; RoomViewActor.this.fxController.showCloseableLoading(it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE, it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_TITLE, (() =&gt; actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage match {
+        case (roomID: String)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate((roomID @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply(roomID)
+        case (playersNumber: Int)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic((playersNumber @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply(playersNumber)
+      })(RoomViewActor.this.self)))
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case (roomToken: String)it.cwmp.client.view.room.RoomViewActor.ShowToken((roomToken @ _)) =&gt; true
+      case it.cwmp.client.view.room.RoomViewActor.WaitingForOthers =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,Unit]))
         </td>
       </tr><tr>
         <td>
-          77
+          46
         </td>
         <td>
-          1152
+          1464
         </td>
         <td>
-          2814
+          1633
           -
-          2822
+          1740
         </td>
         <td>
           Apply
         </td>
         <td>
-          akka.actor.Actor.sender
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.sender()
+          RoomViewActor.this.runOnUIThread((() =&gt; {
+  RoomViewActor.this.onServiceResponseReceived();
+  RoomViewActor.this.fxController.showTokenDialog(roomToken)
+}))
         </td>
       </tr><tr>
         <td>
-          78
+          47
         </td>
         <td>
-          1154
+          1462
         </td>
         <td>
-          2884
+          1661
           -
-          2906
+          1688
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXView.showGUI
+          it.cwmp.client.view.FXServiceViewActor.onServiceResponseReceived
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.fxController.showGUI()
+          RoomViewActor.this.onServiceResponseReceived()
         </td>
       </tr><tr>
         <td>
-          78
+          48
         </td>
         <td>
-          1155
+          1463
         </td>
         <td>
-          2860
+          1695
           -
-          2907
+          1733
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          it.cwmp.client.view.room.RoomFXController.showTokenDialog
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; RoomViewActor.this.fxController.showGUI()))
+          RoomViewActor.this.fxController.showTokenDialog(roomToken)
         </td>
       </tr><tr>
         <td>
-          79
+          51
         </td>
         <td>
-          1156
+          1465
         </td>
         <td>
-          2969
+          1810
           -
-          2991
+          1842
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.view.FXView.hideGUI
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.fxController.hideGUI()
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
         </td>
       </tr><tr>
         <td>
-          79
+          51
         </td>
         <td>
-          1157
+          1473
         </td>
         <td>
-          2945
+          1776
           -
-          2992
+          2100
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          it.cwmp.client.view.FXAlertsController.showCloseableLoading
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; RoomViewActor.this.fxController.hideGUI()))
+          RoomViewActor.this.fxController.showCloseableLoading(it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE, it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_TITLE, (() =&gt; actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage match {
+  case (roomID: String)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate((roomID @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply(roomID)
+  case (playersNumber: Int)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic((playersNumber @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply(playersNumber)
+})(RoomViewActor.this.self)))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1466
+        </td>
+        <td>
+          1844
+          -
+          1874
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_TITLE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_TITLE
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1468
+        </td>
+        <td>
+          1911
+          -
+          1930
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1467
+        </td>
+        <td>
+          1892
+          -
+          1907
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1472
+        </td>
+        <td>
+          1892
+          -
+          2091
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage match {
+  case (roomID: String)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate((roomID @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply(roomID)
+  case (playersNumber: Int)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic((playersNumber @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply(playersNumber)
+})(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          1471
+        </td>
+        <td>
+          1908
+          -
+          1908
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          1469
+        </td>
+        <td>
+          1981
+          -
+          2003
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply(roomID)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          1470
+        </td>
+        <td>
+          2052
+          -
+          2080
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply(playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1476
+        </td>
+        <td>
+          2229
+          -
+          2263
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Stiamo creando la stanza privata&quot;
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          1477
+        </td>
+        <td>
+          2301
+          -
+          2320
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Entrata in stanza&quot;
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1478
+        </td>
+        <td>
+          2359
+          -
+          2397
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Stai per entrare nella stanza scelta&quot;
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1479
+        </td>
+        <td>
+          2446
+          -
+          2470
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;In attesa di giocatori&quot;
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1480
+        </td>
+        <td>
+          2520
+          -
+          2626
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiungere il numero stabilito&quot;
         </td>
       </tr>
     </table>

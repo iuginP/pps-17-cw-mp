@@ -24,30 +24,24 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.rooms
 </span>2 <span style=''>
-</span>3 <span style=''>import com.typesafe.scalalogging.Logger
-</span>4 <span style=''>import io.vertx.lang.scala.VertxExecutionContext
-</span>5 <span style=''>import io.vertx.scala.core.Vertx
-</span>6 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomReceiverApiWrapper}
-</span>7 <span style=''>import it.cwmp.utils.Logging
-</span>8 <span style=''>
-</span>9 <span style=''>import scala.util.{Failure, Success}
-</span>10 <span style=''>
-</span>11 <span style=''>/**
-</span>12 <span style=''>  * Object that implements the Rooms micro-service entry-point
-</span>13 <span style=''>  *
-</span>14 <span style=''>  * @author Enrico Siboni
-</span>15 <span style=''>  */
-</span>16 <span style=''>object RoomsServiceMain extends App with Logging {
-</span>17 <span style=''>  private val vertx: Vertx = </span><span style='background: #F0ADAD'>Vertx.vertx()</span><span style=''>
-</span>18 <span style=''>
-</span>19 <span style=''>  log.info(&quot;Deploying RoomService...&quot;)
-</span>20 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationApiWrapper(), RoomReceiverApiWrapper()))
-</span>21 <span style=''></span><span style='background: #F0ADAD'>    .onComplete {
-</span>22 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt; log.info(&quot;RoomsService up and running!&quot;)
-</span>23 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying RoomsService&quot;, ex)
-</span>24 <span style=''></span><span style='background: #F0ADAD'>    }(VertxExecutionContext(vertx.getOrCreateContext()))</span><span style=''>
-</span>25 <span style=''>
-</span>26 <span style=''>}
+</span>3 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomReceiverApiWrapper}
+</span>4 <span style=''>import it.cwmp.utils.{Logging, VertxInstance}
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.util.{Failure, Success}
+</span>7 <span style=''>
+</span>8 <span style=''>/**
+</span>9 <span style=''>  * Object that implements the Rooms micro-service entry-point
+</span>10 <span style=''>  *
+</span>11 <span style=''>  * @author Enrico Siboni
+</span>12 <span style=''>  */
+</span>13 <span style=''>object RoomsServiceMain extends App with VertxInstance with Logging {
+</span>14 <span style=''>  log.info(&quot;Deploying RoomService...&quot;)
+</span>15 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationApiWrapper(), RoomReceiverApiWrapper()))
+</span>16 <span style=''></span><span style='background: #F0ADAD'>    .onComplete {
+</span>17 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt; log.info(&quot;RoomsService up and running!&quot;)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying RoomsService&quot;, ex)
+</span>19 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>20 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -61,78 +55,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          17
+          15
         </td>
         <td>
-          466
+          465
         </td>
         <td>
+          461
+          -
           487
-          -
-          500
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.core.Vertx.vertx
-        </td>
-        <td style="background: #F0ADAD">
-          io.vertx.scala.core.Vertx.vertx()
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          469
-        </td>
-        <td>
-          570
-          -
-          644
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.apply
-        </td>
-        <td style="background: #F0ADAD">
-          RoomsServiceVerticle.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(), it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply())
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          468
-        </td>
-        <td>
-          619
-          -
-          643
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply()
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          467
-        </td>
-        <td>
-          591
-          -
-          617
         </td>
         <td>
           Apply
@@ -145,18 +76,60 @@
         </td>
       </tr><tr>
         <td>
-          24
+          15
         </td>
         <td>
-          472
+          467
         </td>
         <td>
-          543
+          440
           -
-          857
+          514
         </td>
         <td>
           Apply
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          RoomsServiceVerticle.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(), it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply())
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          466
+        </td>
+        <td>
+          489
+          -
+          513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          469
+        </td>
+        <td>
+          413
+          -
+          676
+        </td>
+        <td>
+          ApplyToImplicitArgs
         </td>
         <td>
           scala.concurrent.Future.onComplete
@@ -171,49 +144,28 @@
     RoomsServiceMain.this.log.underlying.info(&quot;Error deploying RoomsService&quot;, ex)
   else
     (): Unit)
-}))(io.vertx.lang.scala.VertxExecutionContext.apply(RoomsServiceMain.this.vertx.getOrCreateContext()))
+}))(RoomsServiceMain.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
-          24
+          16
         </td>
         <td>
-          471
+          468
         </td>
         <td>
-          807
+          532
           -
-          856
+          532
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          io.vertx.lang.scala.VertxExecutionContext.apply
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #F0ADAD">
-          io.vertx.lang.scala.VertxExecutionContext.apply(RoomsServiceMain.this.vertx.getOrCreateContext())
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          470
-        </td>
-        <td>
-          829
-          -
-          855
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.core.Vertx.getOrCreateContext
-        </td>
-        <td style="background: #F0ADAD">
-          RoomsServiceMain.this.vertx.getOrCreateContext()
+          RoomsServiceMain.this.vertxExecutionContext
         </td>
       </tr>
     </table>

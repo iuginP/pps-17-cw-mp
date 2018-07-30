@@ -26,24 +26,43 @@
 </span>2 <span style=''>
 </span>3 <span style=''>import java.text.ParseException
 </span>4 <span style=''>
-</span>5 <span style=''>object Utils {
+</span>5 <span style=''>import scala.language.implicitConversions
 </span>6 <span style=''>
-</span>7 <span style=''>  def randomString(length: Int): String = </span><span style='background: #AEF1AE'>scala.util.Random.alphanumeric.take(length).mkString</span><span style=''>
-</span>8 <span style=''>
-</span>9 <span style=''>  /**
-</span>10 <span style=''>    * Utility method to test if a string is empty
-</span>11 <span style=''>    *
-</span>12 <span style=''>    * @param string the string to test
-</span>13 <span style=''>    * @return true if string is empty, false otherwise
-</span>14 <span style=''>    */
-</span>15 <span style=''>  def emptyString(string: String): Boolean = </span><span style='background: #AEF1AE'>string == null || string.isEmpty</span><span style=''>
-</span>16 <span style=''>
-</span>17 <span style=''>  /**
-</span>18 <span style=''>    * @return the ParseException filled with error string
-</span>19 <span style=''>    */
-</span>20 <span style=''>  def parseException(context: String, errorMessage: String): ParseException =
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>new ParseException(s&quot;$context: $errorMessage&quot;, 0)</span><span style=''>
-</span>22 <span style=''>}
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * Generic utilities that can be used anywhere
+</span>9 <span style=''>  */
+</span>10 <span style=''>object Utils {
+</span>11 <span style=''>
+</span>12 <span style=''>  /**
+</span>13 <span style=''>    * Generates a random string of specified length
+</span>14 <span style=''>    *
+</span>15 <span style=''>    * @param length the length of the random String
+</span>16 <span style=''>    * @return the random string
+</span>17 <span style=''>    */
+</span>18 <span style=''>  def randomString(length: Int): String = </span><span style='background: #AEF1AE'>scala.util.Random.alphanumeric.take(length).mkString</span><span style=''>
+</span>19 <span style=''>
+</span>20 <span style=''>  /**
+</span>21 <span style=''>    * Utility method to test if a string is empty
+</span>22 <span style=''>    *
+</span>23 <span style=''>    * @param string the string to test
+</span>24 <span style=''>    * @return true if string is empty, false otherwise
+</span>25 <span style=''>    */
+</span>26 <span style=''>  def emptyString(string: String): Boolean = </span><span style='background: #AEF1AE'>string == null || string.trim.isEmpty</span><span style=''>
+</span>27 <span style=''>
+</span>28 <span style=''>  /**
+</span>29 <span style=''>    * @return the ParseException filled with error string
+</span>30 <span style=''>    */
+</span>31 <span style=''>  def parseException(context: String, errorMessage: String): ParseException =
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>new ParseException(s&quot;$context: $errorMessage&quot;, 0)</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>    * Implicit conversion of strings to String options
+</span>36 <span style=''>    *
+</span>37 <span style=''>    * @param string the string to convert
+</span>38 <span style=''>    * @return the option of that string
+</span>39 <span style=''>    */
+</span>40 <span style=''>  implicit def stringToOption(string: String): Option[String] = </span><span style='background: #AEF1AE'>Option(string)</span><span style=''>
+</span>41 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -57,15 +76,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          7
+          18
         </td>
         <td>
           372
         </td>
         <td>
-          114
+          369
           -
-          166
+          421
         </td>
         <td>
           Select
@@ -78,15 +97,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          26
         </td>
         <td>
           373
         </td>
         <td>
-          386
+          641
           -
-          390
+          645
         </td>
         <td>
           Literal
@@ -99,15 +118,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          26
         </td>
         <td>
           375
         </td>
         <td>
-          376
+          631
           -
-          408
+          668
         </td>
         <td>
           Apply
@@ -116,19 +135,19 @@
           scala.Boolean.||
         </td>
         <td style="background: #AEF1AE">
-          string.==(null).||(string.isEmpty())
+          string.==(null).||(string.trim().isEmpty())
         </td>
       </tr><tr>
         <td>
-          15
+          26
         </td>
         <td>
           374
         </td>
         <td>
-          394
+          649
           -
-          408
+          668
         </td>
         <td>
           Apply
@@ -137,19 +156,19 @@
           java.lang.String.isEmpty
         </td>
         <td style="background: #AEF1AE">
-          string.isEmpty()
+          string.trim().isEmpty()
         </td>
       </tr><tr>
         <td>
-          21
+          32
         </td>
         <td>
           376
         </td>
         <td>
-          582
+          842
           -
-          608
+          868
         </td>
         <td>
           Apply
@@ -162,15 +181,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          32
         </td>
         <td>
           378
         </td>
         <td>
-          563
+          823
           -
-          612
+          872
         </td>
         <td>
           Apply
@@ -183,15 +202,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          32
         </td>
         <td>
           377
         </td>
         <td>
-          610
+          870
           -
-          611
+          871
         </td>
         <td>
           Literal
@@ -201,6 +220,27 @@
         </td>
         <td style="background: #F0ADAD">
           0
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          1094
+          -
+          1108
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](string)
         </td>
       </tr>
     </table>

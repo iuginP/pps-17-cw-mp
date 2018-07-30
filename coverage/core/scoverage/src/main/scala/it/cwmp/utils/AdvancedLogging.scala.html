@@ -50,51 +50,55 @@
 </span>26 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
 </span>27 <span style=''>      * @return The future itself.
 </span>28 <span style=''>      */
-</span>29 <span style=''>    def logSuccessInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
-</span>30 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
-</span>31 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; log.info(message)
-</span>32 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>33 <span style=''>
-</span>34 <span style=''>    /**
-</span>35 <span style=''>      * Log an info message containing the text message if the future succeeds and the condition is respected.
-</span>36 <span style=''>      *
-</span>37 <span style=''>      * @param message          the message to display.
-</span>38 <span style=''>      * @param condition        the strategy that specifies if the argument of the successful future is right.
-</span>39 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
-</span>40 <span style=''>      * @return The future itself.
-</span>41 <span style=''>      */
-</span>42 <span style=''>    def logSuccessInfo(message: String, condition: T =&gt; Boolean)(implicit executionContext: ExecutionContext): Future[T] =
-</span>43 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
-</span>44 <span style=''></span><span style='background: #F0ADAD'>        case Success(s) if condition(s) =&gt; log.info(message)
-</span>45 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>46 <span style=''>
-</span>47 <span style=''>    /**
-</span>48 <span style=''>      * Log an info message containing the text message if the future fails.
-</span>49 <span style=''>      *
-</span>50 <span style=''>      * @param message          the message to display.
-</span>51 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
-</span>52 <span style=''>      * @return The future itself.
-</span>53 <span style=''>      */
-</span>54 <span style=''>    def logFailureInfo(message: String)(implicit executionContext: ExecutionContext): Future[T] =
-</span>55 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
-</span>56 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) =&gt; log.info(message, e)
-</span>57 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>58 <span style=''>
-</span>59 <span style=''>    /**
-</span>60 <span style=''>      * Log an info message containing the text message if the future fails with the specified exception type.
-</span>61 <span style=''>      *
-</span>62 <span style=''>      * @param message the message to display.
-</span>63 <span style=''>      * @tparam A the type of exception that should be returned as failure.
-</span>64 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
-</span>65 <span style=''>      * @return The future itself.
-</span>66 <span style=''>      */
-</span>67 <span style=''>    def logFailureInfo[A &lt;: Exception : ClassTag](message: String)(implicit executionContext: ExecutionContext): Future[T] =
-</span>68 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
-</span>69 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; log.info(message, e)
-</span>70 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>71 <span style=''>  }
-</span>72 <span style=''>
-</span>73 <span style=''>}
+</span>29 <span style=''>    def logSuccessInfo(message: String)
+</span>30 <span style=''>                      (implicit executionContext: ExecutionContext): Future[T] =
+</span>31 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>32 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt; log.info(message)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>34 <span style=''>
+</span>35 <span style=''>    /**
+</span>36 <span style=''>      * Log an info message containing the text message if the future succeeds and the condition is respected.
+</span>37 <span style=''>      *
+</span>38 <span style=''>      * @param message          the message to display.
+</span>39 <span style=''>      * @param condition        the strategy that specifies if the argument of the successful future is right.
+</span>40 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>41 <span style=''>      * @return The future itself.
+</span>42 <span style=''>      */
+</span>43 <span style=''>    def logSuccessInfo(message: String, condition: T =&gt; Boolean)
+</span>44 <span style=''>                      (implicit executionContext: ExecutionContext): Future[T] =
+</span>45 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>46 <span style=''></span><span style='background: #F0ADAD'>        case Success(s) if condition(s) =&gt; log.info(message)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>48 <span style=''>
+</span>49 <span style=''>    /**
+</span>50 <span style=''>      * Log an info message containing the text message if the future fails.
+</span>51 <span style=''>      *
+</span>52 <span style=''>      * @param message          the message to display.
+</span>53 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>54 <span style=''>      * @return The future itself.
+</span>55 <span style=''>      */
+</span>56 <span style=''>    def logFailureInfo(message: String)
+</span>57 <span style=''>                      (implicit executionContext: ExecutionContext): Future[T] =
+</span>58 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>59 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) =&gt; log.info(message, e)
+</span>60 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>61 <span style=''>
+</span>62 <span style=''>    /**
+</span>63 <span style=''>      * Log an info message containing the text message if the future fails with the specified exception type.
+</span>64 <span style=''>      *
+</span>65 <span style=''>      * @param message the message to display.
+</span>66 <span style=''>      * @tparam A the type of exception that should be returned as failure.
+</span>67 <span style=''>      * @param executionContext the implicit execution context on which to execute the operation.
+</span>68 <span style=''>      * @return The future itself.
+</span>69 <span style=''>      */
+</span>70 <span style=''>    def logFailureInfo[A &lt;: Exception : ClassTag](message: String)
+</span>71 <span style=''>                                                 (implicit executionContext: ExecutionContext): Future[T] =
+</span>72 <span style=''>      </span><span style='background: #F0ADAD'>future.andThen {
+</span>73 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; log.info(message, e)
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>75 <span style=''>  }
+</span>76 <span style=''>
+</span>77 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -108,15 +112,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          30
+          31
         </td>
         <td>
           328
         </td>
         <td>
-          992
+          1015
           -
-          1061
+          1084
         </td>
         <td>
           ApplyToImplicitArgs
@@ -148,15 +152,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          45
         </td>
         <td>
           329
         </td>
         <td>
-          1628
+          1674
           -
-          1713
+          1759
         </td>
         <td>
           ApplyToImplicitArgs
@@ -188,15 +192,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          58
         </td>
         <td>
           330
         </td>
         <td>
-          2110
+          2179
           -
-          2182
+          2251
         </td>
         <td>
           ApplyToImplicitArgs
@@ -228,15 +232,15 @@
         </td>
       </tr><tr>
         <td>
-          68
+          72
         </td>
         <td>
           331
         </td>
         <td>
-          2707
+          2826
           -
-          2821
+          2940
         </td>
         <td>
           ApplyToImplicitArgs

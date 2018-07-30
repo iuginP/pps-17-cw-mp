@@ -1,0 +1,2170 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/game/GeometricUtils.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.client.model.game.impl.Point
+</span>4 <span style=''>
+</span>5 <span style=''>/**
+</span>6 <span style=''>  * A little collection of useful geometric utils
+</span>7 <span style=''>  *
+</span>8 <span style=''>  * @author Enrico Siboni
+</span>9 <span style=''>  */
+</span>10 <span style=''>object GeometricUtils {
+</span>11 <span style=''>
+</span>12 <span style=''>  /**
+</span>13 <span style=''>    * Calculates the distance between two points
+</span>14 <span style=''>    *
+</span>15 <span style=''>    * @param point1 the first point
+</span>16 <span style=''>    * @param point2 the second point
+</span>17 <span style=''>    * @return the distance
+</span>18 <span style=''>    */
+</span>19 <span style=''>  def distance(point1: Point, point2: Point): Double = {
+</span>20 <span style=''>    </span><span style='background: #AEF1AE'>Math.sqrt {
+</span>21 <span style=''></span><span style='background: #AEF1AE'>      (point1.x.toDouble - point2.x).squared +
+</span>22 <span style=''></span><span style='background: #AEF1AE'>        (point1.y.toDouble - point2.y).squared
+</span>23 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  /**
+</span>27 <span style=''>    * Calculates the angular coefficient of a straight line passing through two points
+</span>28 <span style=''>    *
+</span>29 <span style=''>    * m in this formula -&gt; y = mx + q
+</span>30 <span style=''>    *
+</span>31 <span style=''>    * @param point1 the first point
+</span>32 <span style=''>    * @param point2 the second point
+</span>33 <span style=''>    * @return the angular coefficient or [[Double.PositiveInfinity]] if the straight line is vertical
+</span>34 <span style=''>    */
+</span>35 <span style=''>  def angularCoefficient(point1: Point, point2: Point): Double = {
+</span>36 <span style=''>    if (</span><span style='background: #AEF1AE'>point1.x == point2.x</span><span style=''>) </span><span style='background: #AEF1AE'>Double.PositiveInfinity</span><span style=''>
+</span>37 <span style=''>    else </span><span style='background: #AEF1AE'>(point1.y.toDouble - point2.y) / (point1.x.toDouble - point2.x)</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  /**
+</span>41 <span style=''>    * Calculates the ordinate at the origin of a straight line passing through two points
+</span>42 <span style=''>    *
+</span>43 <span style=''>    * q in this formula -&gt; y = mx + q
+</span>44 <span style=''>    *
+</span>45 <span style=''>    * @param point1 the first point
+</span>46 <span style=''>    * @param point2 the second point
+</span>47 <span style=''>    * @return the ordinate at the origin or [[Double.NaN]] if the straight line is vertical
+</span>48 <span style=''>    */
+</span>49 <span style=''>  def ordinateAtOrigin(point1: Point, point2: Point): Double = {
+</span>50 <span style=''>    if (</span><span style='background: #AEF1AE'>point1.x == point2.x</span><span style=''>) </span><span style='background: #AEF1AE'>Double.NaN</span><span style=''>
+</span>51 <span style=''>    else </span><span style='background: #AEF1AE'>(point1.x.toDouble * point2.y - point2.x.toDouble * point1.y) / (point1.x.toDouble - point2.x)</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  /**
+</span>55 <span style=''>    * Calculates the delta X and Y starting from point1 of a point that will be on a straight line passing through two point at given distance from first point
+</span>56 <span style=''>    *
+</span>57 <span style=''>    * @param point1   the point from which to refer for the distance
+</span>58 <span style=''>    * @param point2   the other point from which the straight line should pass
+</span>59 <span style=''>    * @param distance the distance from point1 on the straight line towards point2
+</span>60 <span style=''>    * @return a couple of numbers that represents the delta X and Y from point1
+</span>61 <span style=''>    *         where will be placed a point at given distance on the straight line
+</span>62 <span style=''>    */
+</span>63 <span style=''>  def deltaXYFromFirstPoint(point1: Point,
+</span>64 <span style=''>                            point2: Point,
+</span>65 <span style=''>                            distance: Double): (Double, Double) = {
+</span>66 <span style=''>    </span><span style='background: #AEF1AE'>require(distance &gt; 0, &quot;Distance should be greater than 0&quot;)</span><span style=''>
+</span>67 <span style=''>
+</span>68 <span style=''>    val deltaY =
+</span>69 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.y == point2.y</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''> // point on same horizontal line has no delta Y
+</span>70 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y) // point on same vertical line has delta Y that equals distance to travel; signum function makes delta positive if first point below second, negative otherwise
+</span>71 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y)</span><span style=''> // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
+</span>72 <span style=''>
+</span>73 <span style=''>    val deltaX =
+</span>74 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.x == point2.x</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''> // point on same vertical line has no delta X
+</span>75 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x) // point on same horizontal line has delta X that equals distance to travel; signum function makes delta positive if first point is on the left of the second, negative otherwise
+</span>76 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x)</span><span style=''> // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
+</span>77 <span style=''>
+</span>78 <span style=''>    </span><span style='background: #AEF1AE'>(deltaX, deltaY)</span><span style=''>
+</span>79 <span style=''>  }
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * A method returning the distance of a point from a straight line passing through two points
+</span>83 <span style=''>    *
+</span>84 <span style=''>    * @param myPoint the point from which to calculate the distance
+</span>85 <span style=''>    * @param point1  the first point from which the straight line is passing through
+</span>86 <span style=''>    * @param point2  the second point from which the straight line is passing through
+</span>87 <span style=''>    * @return the distance of first point from this straight line
+</span>88 <span style=''>    */
+</span>89 <span style=''>  def pointDistanceFromStraightLine(myPoint: Point,
+</span>90 <span style=''>                                    point1: Point,
+</span>91 <span style=''>                                    point2: Point): Double = {
+</span>92 <span style=''>    val angularCoefficient = </span><span style='background: #AEF1AE'>GeometricUtils.angularCoefficient(point1, point2)</span><span style=''>
+</span>93 <span style=''>
+</span>94 <span style=''>    if (</span><span style='background: #AEF1AE'>angularCoefficient.isPosInfinity</span><span style=''>) </span><span style='background: #AEF1AE'>Math.abs(myPoint.x - point1.x)</span><span style=''> // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
+</span>95 <span style=''>    else
+</span>96 <span style=''>      </span><span style='background: #AEF1AE'>Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
+</span>97 <span style=''></span><span style='background: #AEF1AE'>        Math.sqrt(angularCoefficient.squared + 1)</span><span style=''>
+</span>98 <span style=''>  }
+</span>99 <span style=''>
+</span>100 <span style=''>  /**
+</span>101 <span style=''>    * A method that says if provided point is inside the circumference with provided center and radius
+</span>102 <span style=''>    *
+</span>103 <span style=''>    * @param point  the point to verify inside circumference
+</span>104 <span style=''>    * @param center the center of the circumference
+</span>105 <span style=''>    * @param radius the radius of the circumference
+</span>106 <span style=''>    * @return true if the point is inside or on the circumference, false otherwise
+</span>107 <span style=''>    */
+</span>108 <span style=''>  def isWithinCircumference(point: Point,
+</span>109 <span style=''>                            center: Point,
+</span>110 <span style=''>                            radius: Double): Boolean = {
+</span>111 <span style=''>    </span><span style='background: #AEF1AE'>require(radius &gt;= 0, &quot;Circumference radius must be positive&quot;)</span><span style=''>
+</span>112 <span style=''>
+</span>113 <span style=''>    (</span><span style='background: #AEF1AE'>point.x - center.x).squared + (point.y - center.y).squared &lt;= radius.squared</span><span style=''>
+</span>114 <span style=''>  }
+</span>115 <span style=''>
+</span>116 <span style=''>  /**
+</span>117 <span style=''>    * A class that makes possible to square numbers
+</span>118 <span style=''>    *
+</span>119 <span style=''>    * @param number a number to square
+</span>120 <span style=''>    */
+</span>121 <span style=''>  implicit class RichDouble(number: Double) {
+</span>122 <span style=''>    /**
+</span>123 <span style=''>      * @return the squared number -&gt; n^2^
+</span>124 <span style=''>      */
+</span>125 <span style=''>    def squared: Double = </span><span style='background: #AEF1AE'>number * number</span><span style=''>
+</span>126 <span style=''>  }
+</span>127 <span style=''>
+</span>128 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          566
+        </td>
+        <td>
+          423
+          -
+          534
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.sqrt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.sqrt(GeometricUtils.this.RichDouble(point1.x.toDouble.-(point2.x)).squared.+(GeometricUtils.this.RichDouble(point1.y.toDouble.-(point2.y)).squared))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          561
+        </td>
+        <td>
+          442
+          -
+          470
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.-
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.toDouble.-(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          560
+        </td>
+        <td>
+          462
+          -
+          470
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          565
+        </td>
+        <td>
+          442
+          -
+          528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(point1.x.toDouble.-(point2.x)).squared.+(GeometricUtils.this.RichDouble(point1.y.toDouble.-(point2.y)).squared)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          564
+        </td>
+        <td>
+          491
+          -
+          528
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.RichDouble.squared
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(point1.y.toDouble.-(point2.y)).squared
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          563
+        </td>
+        <td>
+          491
+          -
+          519
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.-
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y.toDouble.-(point2.y)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          562
+        </td>
+        <td>
+          511
+          -
+          519
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          568
+        </td>
+        <td>
+          940
+          -
+          960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          567
+        </td>
+        <td>
+          952
+          -
+          960
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          570
+        </td>
+        <td>
+          962
+          -
+          985
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          Infinity
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          569
+        </td>
+        <td>
+          962
+          -
+          985
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          Infinity
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          573
+        </td>
+        <td>
+          1029
+          -
+          1057
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.-
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.toDouble.-(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          572
+        </td>
+        <td>
+          1049
+          -
+          1057
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          575
+        </td>
+        <td>
+          995
+          -
+          1058
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y.toDouble.-(point2.y)./(point1.x.toDouble.-(point2.x))
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          571
+        </td>
+        <td>
+          1016
+          -
+          1024
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          574
+        </td>
+        <td>
+          995
+          -
+          1058
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y.toDouble.-(point2.y)./(point1.x.toDouble.-(point2.x))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          577
+        </td>
+        <td>
+          1455
+          -
+          1475
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          576
+        </td>
+        <td>
+          1467
+          -
+          1475
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          579
+        </td>
+        <td>
+          1477
+          -
+          1487
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          NaN
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          578
+        </td>
+        <td>
+          1477
+          -
+          1487
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          NaN
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          585
+        </td>
+        <td>
+          1497
+          -
+          1591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.toDouble.*(point2.y).-(point2.x.toDouble.*(point1.y))./(point1.x.toDouble.-(point2.x))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          582
+        </td>
+        <td>
+          1529
+          -
+          1557
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x.toDouble.*(point1.y)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          581
+        </td>
+        <td>
+          1549
+          -
+          1557
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          584
+        </td>
+        <td>
+          1562
+          -
+          1590
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.-
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.toDouble.-(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          586
+        </td>
+        <td>
+          1497
+          -
+          1591
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.toDouble.*(point2.y).-(point2.x.toDouble.*(point1.y))./(point1.x.toDouble.-(point2.x))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          580
+        </td>
+        <td>
+          1518
+          -
+          1526
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          583
+        </td>
+        <td>
+          1582
+          -
+          1590
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          588
+        </td>
+        <td>
+          2349
+          -
+          2384
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Distance should be greater than 0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          587
+        </td>
+        <td>
+          2335
+          -
+          2347
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          distance.&gt;(0)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          589
+        </td>
+        <td>
+          2327
+          -
+          2385
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(distance.&gt;(0), &quot;Distance should be greater than 0&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          591
+        </td>
+        <td>
+          2414
+          -
+          2434
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y.==(point2.y)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          590
+        </td>
+        <td>
+          2426
+          -
+          2434
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          593
+        </td>
+        <td>
+          2436
+          -
+          2437
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          592
+        </td>
+        <td>
+          2436
+          -
+          2437
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          600
+        </td>
+        <td>
+          2523
+          -
+          2573
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          594
+        </td>
+        <td>
+          2513
+          -
+          2521
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          597
+        </td>
+        <td>
+          2546
+          -
+          2572
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Long.toFloat
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y.toLong.-(point1.y).toFloat
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          608
+        </td>
+        <td>
+          2497
+          -
+          2859
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (point1.x.==(point2.x))
+  distance.*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+else
+  distance./(java.lang.Math.sqrt(1./(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared).+(1))).*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          599
+        </td>
+        <td>
+          2523
+          -
+          2573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          596
+        </td>
+        <td>
+          2564
+          -
+          2572
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          595
+        </td>
+        <td>
+          2501
+          -
+          2521
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          598
+        </td>
+        <td>
+          2534
+          -
+          2573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.signum
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          603
+        </td>
+        <td>
+          2850
+          -
+          2858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          606
+        </td>
+        <td>
+          2745
+          -
+          2859
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance./(java.lang.Math.sqrt(1./(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared).+(1))).*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          602
+        </td>
+        <td>
+          2756
+          -
+          2817
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.sqrt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.sqrt(1./(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared).+(1))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          605
+        </td>
+        <td>
+          2820
+          -
+          2859
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.signum
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          604
+        </td>
+        <td>
+          2832
+          -
+          2858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Long.toFloat
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y.toLong.-(point1.y).toFloat
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          607
+        </td>
+        <td>
+          2745
+          -
+          2859
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance./(java.lang.Math.sqrt(1./(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared).+(1))).*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          601
+        </td>
+        <td>
+          2766
+          -
+          2816
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          1./(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared).+(1)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          609
+        </td>
+        <td>
+          3016
+          -
+          3024
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          612
+        </td>
+        <td>
+          3026
+          -
+          3027
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          611
+        </td>
+        <td>
+          3026
+          -
+          3027
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0.0
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          610
+        </td>
+        <td>
+          3004
+          -
+          3024
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          627
+        </td>
+        <td>
+          3085
+          -
+          3461
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (point1.y.==(point2.y))
+  distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+else
+  distance./(java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))).*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          618
+        </td>
+        <td>
+          3111
+          -
+          3161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          615
+        </td>
+        <td>
+          3152
+          -
+          3160
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          617
+        </td>
+        <td>
+          3122
+          -
+          3161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.signum
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          614
+        </td>
+        <td>
+          3089
+          -
+          3109
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.y.==(point2.y)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          613
+        </td>
+        <td>
+          3101
+          -
+          3109
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          616
+        </td>
+        <td>
+          3134
+          -
+          3160
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Long.toFloat
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x.toLong.-(point1.x).toFloat
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          619
+        </td>
+        <td>
+          3111
+          -
+          3161
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          621
+        </td>
+        <td>
+          3362
+          -
+          3419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.sqrt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          624
+        </td>
+        <td>
+          3422
+          -
+          3461
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.signum
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          623
+        </td>
+        <td>
+          3434
+          -
+          3460
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Long.toFloat
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x.toLong.-(point1.x).toFloat
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          626
+        </td>
+        <td>
+          3351
+          -
+          3461
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance./(java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))).*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          620
+        </td>
+        <td>
+          3372
+          -
+          3418
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          622
+        </td>
+        <td>
+          3452
+          -
+          3460
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          625
+        </td>
+        <td>
+          3351
+          -
+          3461
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance./(java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))).*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          628
+        </td>
+        <td>
+          3583
+          -
+          3599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[Double, Double](deltaX, deltaY)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          629
+        </td>
+        <td>
+          4221
+          -
+          4270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.angularCoefficient
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.angularCoefficient(point1, point2)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          630
+        </td>
+        <td>
+          4280
+          -
+          4312
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.runtime.RichDouble.isPosInfinity
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.doubleWrapper(angularCoefficient).isPosInfinity
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          633
+        </td>
+        <td>
+          4314
+          -
+          4344
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.abs(myPoint.x.-(point1.x)).toDouble
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          4323
+          -
+          4343
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.-
+        </td>
+        <td style="background: #AEF1AE">
+          myPoint.x.-(point1.x)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          631
+        </td>
+        <td>
+          4335
+          -
+          4343
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          634
+        </td>
+        <td>
+          4314
+          -
+          4344
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.abs(myPoint.x.-(point1.x)).toDouble
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          636
+        </td>
+        <td>
+          4529
+          -
+          4561
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.ordinateAtOrigin
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.ordinateAtOrigin(point1, point2)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          4474
+          -
+          4615
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.abs(myPoint.y.-(angularCoefficient.*(myPoint.x).+(GeometricUtils.this.ordinateAtOrigin(point1, point2))))./(java.lang.Math.sqrt(GeometricUtils.this.RichDouble(angularCoefficient).squared.+(1)))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          4474
+          -
+          4615
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.abs(myPoint.y.-(angularCoefficient.*(myPoint.x).+(GeometricUtils.this.ordinateAtOrigin(point1, point2))))./(java.lang.Math.sqrt(GeometricUtils.this.RichDouble(angularCoefficient).squared.+(1)))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          635
+        </td>
+        <td>
+          4517
+          -
+          4526
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          myPoint.x
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          638
+        </td>
+        <td>
+          4483
+          -
+          4562
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.-
+        </td>
+        <td style="background: #AEF1AE">
+          myPoint.y.-(angularCoefficient.*(myPoint.x).+(GeometricUtils.this.ordinateAtOrigin(point1, point2)))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          637
+        </td>
+        <td>
+          4496
+          -
+          4561
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          angularCoefficient.*(myPoint.x).+(GeometricUtils.this.ordinateAtOrigin(point1, point2))
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          639
+        </td>
+        <td>
+          4584
+          -
+          4614
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(angularCoefficient).squared.+(1)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          4574
+          -
+          4615
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.sqrt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.sqrt(GeometricUtils.this.RichDouble(angularCoefficient).squared.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          5137
+          -
+          5198
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(radius.&gt;=(0), &quot;Circumference radius must be positive&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          5158
+          -
+          5197
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Circumference radius must be positive&quot;
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          643
+        </td>
+        <td>
+          5145
+          -
+          5156
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&gt;=
+        </td>
+        <td style="background: #AEF1AE">
+          radius.&gt;=(0)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          5246
+          -
+          5254
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          center.y
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          5267
+          -
+          5281
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.RichDouble.squared
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(radius).squared
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          5236
+          -
+          5263
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.RichDouble.squared
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(point.y.-(center.y).toDouble).squared
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          5205
+          -
+          5223
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #AEF1AE">
+          point.x.-(center.x).toDouble
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          5215
+          -
+          5223
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.x
+        </td>
+        <td style="background: #AEF1AE">
+          center.x
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          5236
+          -
+          5254
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #AEF1AE">
+          point.y.-(center.y).toDouble
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          5205
+          -
+          5281
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&lt;=
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(point.x.-(center.x).toDouble).squared.+(GeometricUtils.this.RichDouble(point.y.-(center.y).toDouble).squared).&lt;=(GeometricUtils.this.RichDouble(radius).squared)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          5529
+          -
+          5544
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          RichDouble.this.number.*(RichDouble.this.number)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          5538
+          -
+          5544
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.RichDouble.number
+        </td>
+        <td style="background: #AEF1AE">
+          RichDouble.this.number
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

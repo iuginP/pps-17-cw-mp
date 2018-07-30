@@ -24,23 +24,56 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game
 </span>2 <span style=''>
-</span>3 <span style=''>import java.awt.Color
-</span>4 <span style=''>
-</span>5 <span style=''>/**
-</span>6 <span style=''>  * An object where to put constants about the game visual
-</span>7 <span style=''>  */
-</span>8 <span style=''>object GameViewConstants {
-</span>9 <span style=''>
-</span>10 <span style=''>  /**
-</span>11 <span style=''>    * @return the cell Size
-</span>12 <span style=''>    */
-</span>13 <span style=''>  def cellSize: Int = </span><span style='background: #F0ADAD'>20</span><span style=''>
-</span>14 <span style=''>
-</span>15 <span style=''>  /**
-</span>16 <span style=''>    * @return the default color
-</span>17 <span style=''>    */
-</span>18 <span style=''>  def defaultColor: Color = </span><span style='background: #F0ADAD'>Color.BLACK</span><span style=''>
-</span>19 <span style=''>}
+</span>3 <span style=''>import javafx.scene.paint.Color
+</span>4 <span style=''>import javafx.scene.text.Font
+</span>5 <span style=''>
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * An object where to put constants about the game visual
+</span>8 <span style=''>  *
+</span>9 <span style=''>  * @author Enrico Siboni
+</span>10 <span style=''>  */
+</span>11 <span style=''>object GameViewConstants {
+</span>12 <span style=''>
+</span>13 <span style=''>  /**
+</span>14 <span style=''>    * The constant value indicating the rgb range max value
+</span>15 <span style=''>    */
+</span>16 <span style=''>  val RGB_RANGE = </span><span style='background: #F0ADAD'>255.0</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  /**
+</span>19 <span style=''>    * The game default font size
+</span>20 <span style=''>    */
+</span>21 <span style=''>  val GAME_DEFAULT_FONT_SIZE = </span><span style='background: #F0ADAD'>20</span><span style=''>
+</span>22 <span style=''>
+</span>23 <span style=''>  /**
+</span>24 <span style=''>    * The game default font color
+</span>25 <span style=''>    */
+</span>26 <span style=''>  val GAME_DEFAULT_FONT_COLOR: Color = </span><span style='background: #F0ADAD'>Color.BLACK</span><span style=''>
+</span>27 <span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  // GAME TIME TEXT CONSTANTS
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * The game time default font
+</span>33 <span style=''>    */
+</span>34 <span style=''>  val GAME_TIME_TEXT_FONT: Font = </span><span style='background: #F0ADAD'>Font.font(&quot;Verdana&quot;, GAME_DEFAULT_FONT_SIZE)</span><span style=''>
+</span>35 <span style=''>
+</span>36 <span style=''>  /**
+</span>37 <span style=''>    * The constant value indicating the transparency of instant text in the GUI
+</span>38 <span style=''>    */
+</span>39 <span style=''>  val GAME_TIME_TEXT_TRANSPARENCY: Double = </span><span style='background: #F0ADAD'>0.5</span><span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * The game time default font color
+</span>43 <span style=''>    */
+</span>44 <span style=''>  val GAME_TIME_TEXT_COLOR: Color =
+</span>45 <span style=''>    </span><span style='background: #F0ADAD'>Color.color(GAME_DEFAULT_FONT_COLOR.getRed, GameViewConstants.GAME_DEFAULT_FONT_COLOR.getGreen,
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      GameViewConstants.GAME_DEFAULT_FONT_COLOR.getBlue, GameViewConstants.GAME_TIME_TEXT_TRANSPARENCY)</span><span style=''>
+</span>47 <span style=''>
+</span>48 <span style=''>  /**
+</span>49 <span style=''>    * The game time default format
+</span>50 <span style=''>    */
+</span>51 <span style=''>  val GAME_TIME_TEXT_FORMAT: String = </span><span style='background: #F0ADAD'>&quot;%02dm : %02ds&quot;</span><span style=''>
+</span>52 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -54,15 +87,36 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          13
+          16
         </td>
         <td>
-          1021
+          1246
         </td>
         <td>
-          216
+          314
           -
-          218
+          319
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          255.0
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          1247
+        </td>
+        <td>
+          398
+          -
+          400
         </td>
         <td>
           Literal
@@ -75,24 +129,234 @@
         </td>
       </tr><tr>
         <td>
-          18
+          26
         </td>
         <td>
-          1022
+          1248
         </td>
         <td>
-          293
+          488
           -
-          304
+          499
         </td>
         <td>
           Select
         </td>
         <td>
-          java.awt.Color.BLACK
+          javafx.scene.paint.Color.BLACK
         </td>
         <td style="background: #F0ADAD">
-          java.awt.Color.BLACK
+          javafx.scene.paint.Color.BLACK
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1249
+        </td>
+        <td>
+          623
+          -
+          632
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Verdana&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1251
+        </td>
+        <td>
+          613
+          -
+          657
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.text.Font.font
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.text.Font.font(&quot;Verdana&quot;, GameViewConstants.this.GAME_DEFAULT_FONT_SIZE.toDouble)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          1250
+        </td>
+        <td>
+          634
+          -
+          656
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewConstants.this.GAME_DEFAULT_FONT_SIZE.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1252
+        </td>
+        <td>
+          796
+          -
+          799
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0.5
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1254
+        </td>
+        <td>
+          937
+          -
+          987
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.paint.Color.getGreen
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewConstants.GAME_DEFAULT_FONT_COLOR.getGreen()
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1257
+        </td>
+        <td>
+          893
+          -
+          1092
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.paint.Color.color
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.paint.Color.color(GameViewConstants.this.GAME_DEFAULT_FONT_COLOR.getRed(), GameViewConstants.GAME_DEFAULT_FONT_COLOR.getGreen(), GameViewConstants.GAME_DEFAULT_FONT_COLOR.getBlue(), GameViewConstants.GAME_TIME_TEXT_TRANSPARENCY)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1253
+        </td>
+        <td>
+          905
+          -
+          935
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.paint.Color.getRed
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewConstants.this.GAME_DEFAULT_FONT_COLOR.getRed()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1255
+        </td>
+        <td>
+          995
+          -
+          1044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.paint.Color.getBlue
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewConstants.GAME_DEFAULT_FONT_COLOR.getBlue()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1256
+        </td>
+        <td>
+          1046
+          -
+          1091
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewConstants.GAME_TIME_TEXT_TRANSPARENCY
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewConstants.GAME_TIME_TEXT_TRANSPARENCY
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1258
+        </td>
+        <td>
+          1180
+          -
+          1195
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;%02dm : %02ds&quot;
         </td>
       </tr>
     </table>

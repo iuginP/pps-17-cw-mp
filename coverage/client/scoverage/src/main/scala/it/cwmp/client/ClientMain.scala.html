@@ -28,15 +28,16 @@
 </span>4 <span style=''>import com.typesafe.config.ConfigFactory
 </span>5 <span style=''>import it.cwmp.client.controller.ClientControllerActor
 </span>6 <span style=''>
-</span>7 <span style=''>object ClientMain extends App {
-</span>8 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;ClientApp&quot;</span><span style=''>
-</span>9 <span style=''>
-</span>10 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
-</span>11 <span style=''>
-</span>12 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
-</span>13 <span style=''>
-</span>14 <span style=''>  val clientControllerActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[ClientControllerActor], system), ClientControllerActor.getClass.getName)</span><span style=''>
-</span>15 <span style=''>}
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * The client entry point
+</span>9 <span style=''>  */
+</span>10 <span style=''>object ClientMain extends App {
+</span>11 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;CellWarsClient&quot;</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
+</span>14 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
+</span>15 <span style=''>  val clientControllerActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[ClientControllerActor], system), ClientControllerActor.getClass.getName)</span><span style=''>
+</span>16 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -50,15 +51,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          8
+          11
         </td>
         <td>
           1
         </td>
         <td>
-          209
+          245
           -
-          220
+          261
         </td>
         <td>
           Literal
@@ -67,19 +68,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;ClientApp&quot;
+          &quot;CellWarsClient&quot;
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           2
         </td>
         <td>
-          271
+          312
           -
-          301
+          342
         </td>
         <td>
           Literal
@@ -92,15 +93,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           4
         </td>
         <td>
-          245
+          286
           -
-          337
+          378
         </td>
         <td>
           Apply
@@ -113,15 +114,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           3
         </td>
         <td>
-          316
+          357
           -
-          336
+          377
         </td>
         <td>
           Apply
@@ -134,15 +135,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          14
         </td>
         <td>
           5
         </td>
         <td>
-          366
+          406
           -
-          374
+          414
         </td>
         <td>
           Select
@@ -155,15 +156,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          14
         </td>
         <td>
           7
         </td>
         <td>
-          354
+          394
           -
-          383
+          423
         </td>
         <td>
           Apply
@@ -176,15 +177,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          14
         </td>
         <td>
           6
         </td>
         <td>
-          376
+          416
           -
-          382
+          422
         </td>
         <td>
           Select
@@ -197,15 +198,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
           8
         </td>
         <td>
-          436
+          475
           -
-          466
+          505
         </td>
         <td>
           Literal
@@ -218,15 +219,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
           11
         </td>
         <td>
-          477
+          516
           -
-          515
+          554
         </td>
         <td>
           Apply
@@ -239,15 +240,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
           10
         </td>
         <td>
-          430
+          469
           -
-          475
+          514
         </td>
         <td>
           Apply
@@ -260,15 +261,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
           9
         </td>
         <td>
-          468
+          507
           -
-          474
+          513
         </td>
         <td>
           Select
@@ -281,15 +282,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
           12
         </td>
         <td>
-          415
+          454
           -
-          516
+          555
         </td>
         <td>
           Apply

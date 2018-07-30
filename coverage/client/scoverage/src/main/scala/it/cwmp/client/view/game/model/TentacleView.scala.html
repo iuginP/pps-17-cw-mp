@@ -24,45 +24,85 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game.model
 </span>2 <span style=''>
-</span>3 <span style=''>import java.awt.Color
-</span>4 <span style=''>import java.time.{Duration, Instant}
-</span>5 <span style=''>
-</span>6 <span style=''>import it.cwmp.client.model.game.impl.{GeometricUtils, Point, Tentacle}
+</span>3 <span style=''>import java.time.{Duration, Instant}
+</span>4 <span style=''>
+</span>5 <span style=''>import it.cwmp.client.model.game.impl.{Point, Tentacle}
+</span>6 <span style=''>import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
 </span>7 <span style=''>import it.cwmp.client.view.game.ColoringStrategy
-</span>8 <span style=''>
+</span>8 <span style=''>import javafx.scene.paint.Color
 </span>9 <span style=''>
-</span>10 <span style=''>/**
-</span>11 <span style=''>  * Tentacle View utilities
-</span>12 <span style=''>  *
-</span>13 <span style=''>  * @author Enrico Siboni
-</span>14 <span style=''>  */
-</span>15 <span style=''>object TentacleView {
-</span>16 <span style=''>
-</span>17 <span style=''>  /**
-</span>18 <span style=''>    * Default coloring strategy for tentacles
-</span>19 <span style=''>    *
-</span>20 <span style=''>    * Copies the color of starting cell
-</span>21 <span style=''>    */
-</span>22 <span style=''>  val coloringStrategy: ColoringStrategy[Tentacle, Color] =
-</span>23 <span style=''>    (tentacle: Tentacle) =&gt; </span><span style='background: #F0ADAD'>CellView.coloringStrategy(tentacle.from)</span><span style=''>
-</span>24 <span style=''>
-</span>25 <span style=''>  /**
-</span>26 <span style=''>    * A method returning the Point reached actually by the tentacle
-</span>27 <span style=''>    *
-</span>28 <span style=''>    * @param tentacle      the tentacle to calculate the reached point
-</span>29 <span style=''>    * @param actualInstant the instant to draw
-</span>30 <span style=''>    * @return the point that the tentacle has reached going towards enemy cell
+</span>10 <span style=''>import scala.language.implicitConversions
+</span>11 <span style=''>
+</span>12 <span style=''>/**
+</span>13 <span style=''>  * A class representing the View counterpart of Tentacle
+</span>14 <span style=''>  *
+</span>15 <span style=''>  * @param startPoint   the starting point for this tentacle View
+</span>16 <span style=''>  * @param reachedPoint the arrive point for this tentacle View
+</span>17 <span style=''>  * @param color        the color of this tetacle
+</span>18 <span style=''>  * @author Enrico Siboni
+</span>19 <span style=''>  */
+</span>20 <span style=''>case class TentacleView(startPoint: Point, reachedPoint: Point, color: Color, thickness: Double)
+</span>21 <span style=''>
+</span>22 <span style=''>/**
+</span>23 <span style=''>  * Companion Object
+</span>24 <span style=''>  *
+</span>25 <span style=''>  * @author Enrico Siboni
+</span>26 <span style=''>  */
+</span>27 <span style=''>object TentacleView {
+</span>28 <span style=''>
+</span>29 <span style=''>  /**
+</span>30 <span style=''>    * Provides default value for tentacle thickness
 </span>31 <span style=''>    */
-</span>32 <span style=''>  def reachedPoint(tentacle: Tentacle, actualInstant: Instant): Point = {
-</span>33 <span style=''>    if (</span><span style='background: #F0ADAD'>tentacle.hasReachedDestinationFor(actualInstant) == Duration.ZERO</span><span style=''>) </span><span style='background: #F0ADAD'>{
-</span>34 <span style=''></span><span style='background: #F0ADAD'>      val tentacleActualLength = tentacle.length(actualInstant)
-</span>35 <span style=''></span><span style='background: #F0ADAD'>      val attackerPosition = tentacle.from.position
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      val deltaXYFromAttackerPosition = GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength)
-</span>37 <span style=''></span><span style='background: #F0ADAD'>      Point(attackerPosition.x + deltaXYFromAttackerPosition._1.toInt,
-</span>38 <span style=''></span><span style='background: #F0ADAD'>        attackerPosition.y + deltaXYFromAttackerPosition._2.toInt)
-</span>39 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> else </span><span style='background: #F0ADAD'>tentacle.to.position</span><span style=''>
-</span>40 <span style=''>  }
-</span>41 <span style=''>}
+</span>32 <span style=''>  val TENTACLE_DEFAULT_THICKNESS = </span><span style='background: #F0ADAD'>3d</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>    * Conversion from Tentacle to TentacleView
+</span>36 <span style=''>    *
+</span>37 <span style=''>    * @param tentacle      the tentacle to convert
+</span>38 <span style=''>    * @param actualInstant the instant of the world
+</span>39 <span style=''>    * @return the TentacleView corresponding to the give Tentacle
+</span>40 <span style=''>    */
+</span>41 <span style=''>  def tentacleToView(tentacle: Tentacle, actualInstant: Instant): TentacleView =
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>TentacleView(tentacle.from.position, reachedPoint(tentacle, actualInstant), coloringStrategy(tentacle), thicknessStrategy(tentacle))</span><span style=''>
+</span>43 <span style=''>
+</span>44 <span style=''>  /**
+</span>45 <span style=''>    * Default coloring strategy for tentacles
+</span>46 <span style=''>    *
+</span>47 <span style=''>    * Copies the color of starting cell
+</span>48 <span style=''>    */
+</span>49 <span style=''>  val coloringStrategy: ColoringStrategy[Tentacle, Color] =
+</span>50 <span style=''>    (tentacle: Tentacle) =&gt; </span><span style='background: #F0ADAD'>CellView.coloringStrategy(tentacle.from)</span><span style=''>
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * Default tentacle thickness strategy
+</span>54 <span style=''>    *
+</span>55 <span style=''>    * Returns always same thickness
+</span>56 <span style=''>    */
+</span>57 <span style=''>  val thicknessStrategy: SizingStrategy[Tentacle, Double] =
+</span>58 <span style=''>    (_: Tentacle) =&gt; </span><span style='background: #F0ADAD'>TENTACLE_DEFAULT_THICKNESS</span><span style=''>
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * A method returning the Point reached actually by the tentacle
+</span>62 <span style=''>    *
+</span>63 <span style=''>    * @param tentacle      the tentacle to calculate the reached point
+</span>64 <span style=''>    * @param actualInstant the instant to draw
+</span>65 <span style=''>    * @return the point that the tentacle has reached going towards enemy cell
+</span>66 <span style=''>    */
+</span>67 <span style=''>  def reachedPoint(tentacle: Tentacle, actualInstant: Instant): Point = {
+</span>68 <span style=''>    val tentacleActualLength = </span><span style='background: #F0ADAD'>tentacle.length(actualInstant)</span><span style=''>
+</span>69 <span style=''>
+</span>70 <span style=''>    if (</span><span style='background: #F0ADAD'>tentacleActualLength == 0</span><span style=''>) {
+</span>71 <span style=''>      </span><span style='background: #F0ADAD'>tentacle.from.position</span><span style=''>
+</span>72 <span style=''>    } else </span><span style='background: #F0ADAD'>if (tentacle.hasReachedDestinationFor(actualInstant) == Duration.ZERO) {
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      val attackerPosition = tentacle.from.position
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      val deltaXYFromAttackerPosition = GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>      Point(attackerPosition.x + deltaXYFromAttackerPosition._1.toInt,
+</span>76 <span style=''></span><span style='background: #F0ADAD'>        attackerPosition.y + deltaXYFromAttackerPosition._2.toInt)
+</span>77 <span style=''></span><span style='background: #F0ADAD'>    } else {
+</span>78 <span style=''></span><span style='background: #F0ADAD'>      tentacle.to.position
+</span>79 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>80 <span style=''>  }
+</span>81 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -76,261 +116,36 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          23
+          32
         </td>
         <td>
-          1076
+          1326
         </td>
         <td>
-          532
+          883
           -
-          545
+          885
         </td>
         <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
-        </td>
-        <td style="background: #F0ADAD">
-          tentacle.from
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1077
-        </td>
-        <td>
-          506
-          -
-          546
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Function1.apply
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.coloringStrategy.apply(tentacle.from)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1079
-        </td>
-        <td>
-          923
-          -
-          923
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.hasReachedDestinationFor$default$2
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1082
-        </td>
-        <td>
-          914
-          -
-          979
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.==
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  &lt;artifact&gt; val qual$1: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-  &lt;artifact&gt; val x$1: java.time.Instant = actualInstant;
-  &lt;artifact&gt; val x$2: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$1.hasReachedDestinationFor$default$2;
-  qual$1.hasReachedDestinationFor(x$1, x$2)
-}.==(java.time.Duration.ZERO)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1078
-        </td>
-        <td>
-          914
-          -
-          922
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
-        </td>
-        <td style="background: #F0ADAD">
-          impl.this.Tentacle.TentacleManipulation(tentacle)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1081
-        </td>
-        <td>
-          966
-          -
-          979
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          java.time.Duration.ZERO
-        </td>
-        <td style="background: #F0ADAD">
-          java.time.Duration.ZERO
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1080
-        </td>
-        <td>
-          914
-          -
-          962
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.hasReachedDestinationFor(x$1, x$2)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1095
-        </td>
-        <td>
-          981
-          -
-          1381
-        </td>
-        <td>
-          Block
+          Literal
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          {
-  val tentacleActualLength: Long = {
-    &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-    &lt;artifact&gt; val x$3: java.time.Instant = actualInstant;
-    &lt;artifact&gt; val x$4: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.length$default$2;
-    qual$2.length(x$3, x$4)
-  };
-  val attackerPosition: it.cwmp.client.model.game.impl.Point = tentacle.from.position;
-  val deltaXYFromAttackerPosition: (Double, Double) = it.cwmp.client.model.game.impl.GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength.toDouble);
-  it.cwmp.client.model.game.impl.Point.apply(attackerPosition.x.+(deltaXYFromAttackerPosition._1.toInt), attackerPosition.y.+(deltaXYFromAttackerPosition._2.toInt))
-}
+          3.0
         </td>
       </tr><tr>
         <td>
-          34
+          42
         </td>
         <td>
-          1085
+          1327
         </td>
         <td>
-          1016
+          1220
           -
-          1046
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
-        </td>
-        <td style="background: #F0ADAD">
-          qual$2.length(x$3, x$4)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          1084
-        </td>
-        <td>
-          1025
-          -
-          1025
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
-        </td>
-        <td style="background: #F0ADAD">
-          qual$2.length$default$2
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          1083
-        </td>
-        <td>
-          1016
-          -
-          1024
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
-        </td>
-        <td style="background: #F0ADAD">
-          impl.this.Tentacle.TentacleManipulation(tentacle)
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          1086
-        </td>
-        <td>
-          1076
-          -
-          1098
+          1242
         </td>
         <td>
           Select
@@ -343,15 +158,477 @@
         </td>
       </tr><tr>
         <td>
-          36
+          42
         </td>
         <td>
-          1088
+          1330
         </td>
         <td>
-          1216
+          1311
           -
-          1236
+          1338
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.this.thicknessStrategy.apply(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1329
+        </td>
+        <td>
+          1283
+          -
+          1309
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.this.coloringStrategy.apply(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1328
+        </td>
+        <td>
+          1244
+          -
+          1281
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.TentacleView.reachedPoint
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.this.reachedPoint(tentacle, actualInstant)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1331
+        </td>
+        <td>
+          1207
+          -
+          1339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.TentacleView.apply
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.apply(tentacle.from.position, TentacleView.this.reachedPoint(tentacle, actualInstant), TentacleView.this.coloringStrategy.apply(tentacle), TentacleView.this.thicknessStrategy.apply(tentacle))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1333
+        </td>
+        <td>
+          1534
+          -
+          1574
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.coloringStrategy.apply(tentacle.from)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1332
+        </td>
+        <td>
+          1560
+          -
+          1573
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1334
+        </td>
+        <td>
+          1754
+          -
+          1780
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.TentacleView.TENTACLE_DEFAULT_THICKNESS
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.this.TENTACLE_DEFAULT_THICKNESS
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1336
+        </td>
+        <td>
+          2180
+          -
+          2180
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.length$default$2
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1335
+        </td>
+        <td>
+          2171
+          -
+          2179
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
+        </td>
+        <td style="background: #F0ADAD">
+          impl.this.Tentacle.TentacleManipulation(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          1337
+        </td>
+        <td>
+          2171
+          -
+          2201
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
+        </td>
+        <td style="background: #F0ADAD">
+          qual$1.length(x$2, x$3)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1338
+        </td>
+        <td>
+          2211
+          -
+          2236
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long.==
+        </td>
+        <td style="background: #F0ADAD">
+          tentacleActualLength.==(0)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1339
+        </td>
+        <td>
+          2246
+          -
+          2268
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from.position
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1340
+        </td>
+        <td>
+          2246
+          -
+          2268
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from.position
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1342
+        </td>
+        <td>
+          2293
+          -
+          2293
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.hasReachedDestinationFor$default$2
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1345
+        </td>
+        <td>
+          2284
+          -
+          2349
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+  &lt;artifact&gt; val x$4: java.time.Instant = actualInstant;
+  &lt;artifact&gt; val x$5: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.hasReachedDestinationFor$default$2;
+  qual$2.hasReachedDestinationFor(x$4, x$5)
+}.==(java.time.Duration.ZERO)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1341
+        </td>
+        <td>
+          2284
+          -
+          2292
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
+        </td>
+        <td style="background: #F0ADAD">
+          impl.this.Tentacle.TentacleManipulation(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1344
+        </td>
+        <td>
+          2336
+          -
+          2349
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          java.time.Duration.ZERO
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.Duration.ZERO
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1343
+        </td>
+        <td>
+          2284
+          -
+          2332
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.hasReachedDestinationFor(x$4, x$5)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1355
+        </td>
+        <td>
+          2351
+          -
+          2687
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val attackerPosition: it.cwmp.client.model.game.impl.Point = tentacle.from.position;
+  val deltaXYFromAttackerPosition: (Double, Double) = it.cwmp.client.model.game.GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength.toDouble);
+  it.cwmp.client.model.game.impl.Point.apply(attackerPosition.x.+(deltaXYFromAttackerPosition._1.toInt), attackerPosition.y.+(deltaXYFromAttackerPosition._2.toInt))
+}
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          1358
+        </td>
+        <td>
+          2280
+          -
+          2727
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          if ({
+  &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+  &lt;artifact&gt; val x$4: java.time.Instant = actualInstant;
+  &lt;artifact&gt; val x$5: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.hasReachedDestinationFor$default$2;
+  qual$2.hasReachedDestinationFor(x$4, x$5)
+}.==(java.time.Duration.ZERO))
+  {
+    val attackerPosition: it.cwmp.client.model.game.impl.Point = tentacle.from.position;
+    val deltaXYFromAttackerPosition: (Double, Double) = it.cwmp.client.model.game.GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength.toDouble);
+    it.cwmp.client.model.game.impl.Point.apply(attackerPosition.x.+(deltaXYFromAttackerPosition._1.toInt), attackerPosition.y.+(deltaXYFromAttackerPosition._2.toInt))
+  }
+else
+  tentacle.to.position
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1346
+        </td>
+        <td>
+          2382
+          -
+          2404
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from.position
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1348
+        </td>
+        <td>
+          2522
+          -
+          2542
         </td>
         <td>
           Select
@@ -364,15 +641,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          74
         </td>
         <td>
-          1087
+          1347
         </td>
         <td>
-          1194
+          2500
           -
-          1214
+          2520
         </td>
         <td>
           Select
@@ -385,36 +662,36 @@
         </td>
       </tr><tr>
         <td>
-          36
+          74
         </td>
         <td>
-          1089
+          1349
         </td>
         <td>
-          1139
+          2445
           -
-          1237
+          2543
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.GeometricUtils.deltaXYFromFirstPoint
+          it.cwmp.client.model.game.GeometricUtils.deltaXYFromFirstPoint
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.model.game.impl.GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength.toDouble)
+          it.cwmp.client.model.game.GeometricUtils.deltaXYFromFirstPoint(attackerPosition, tentacle.to.position, tentacleActualLength.toDouble)
         </td>
       </tr><tr>
         <td>
-          37
+          75
         </td>
         <td>
-          1091
+          1351
         </td>
         <td>
-          1250
+          2556
           -
-          1307
+          2613
         </td>
         <td>
           Apply
@@ -427,15 +704,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          75
         </td>
         <td>
-          1094
+          1354
         </td>
         <td>
-          1244
+          2550
           -
-          1375
+          2681
         </td>
         <td>
           Apply
@@ -448,15 +725,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          75
         </td>
         <td>
-          1090
+          1350
         </td>
         <td>
-          1271
+          2577
           -
-          1307
+          2613
         </td>
         <td>
           Select
@@ -469,15 +746,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          76
         </td>
         <td>
-          1093
+          1353
         </td>
         <td>
-          1317
+          2623
           -
-          1374
+          2680
         </td>
         <td>
           Apply
@@ -490,15 +767,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          76
         </td>
         <td>
-          1092
+          1352
         </td>
         <td>
-          1338
+          2644
           -
-          1374
+          2680
         </td>
         <td>
           Select
@@ -511,15 +788,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          78
         </td>
         <td>
-          1097
+          1357
         </td>
         <td>
-          1387
+          2701
           -
-          1407
+          2721
         </td>
         <td>
           Block
@@ -532,15 +809,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          78
         </td>
         <td>
-          1096
+          1356
         </td>
         <td>
-          1387
+          2701
           -
-          1407
+          2721
         </td>
         <td>
           Select

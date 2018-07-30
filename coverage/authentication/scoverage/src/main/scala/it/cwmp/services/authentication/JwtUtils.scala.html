@@ -29,37 +29,38 @@
 </span>5 <span style=''>
 </span>6 <span style=''>import scala.util.{Failure, Success}
 </span>7 <span style=''>
-</span>8 <span style=''>object JwtUtils {
-</span>9 <span style=''>
-</span>10 <span style=''>  private val secretKey = </span><span style='background: #AEF1AE'>&quot;secretKey&quot;</span><span style=''>
-</span>11 <span style=''>  private val algorithm = </span><span style='background: #AEF1AE'>JwtAlgorithm.HS256</span><span style=''>
-</span>12 <span style=''>
-</span>13 <span style=''>  def encodeToken(claim: JwtClaim): Option[String] = claim match {
-</span>14 <span style=''>    case c if </span><span style='background: #AEF1AE'>c != null</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>Some(Jwt.encode(claim, secretKey, algorithm))</span><span style=''>
-</span>15 <span style=''>    case _ =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>16 <span style=''>  }
-</span>17 <span style=''>
-</span>18 <span style=''>  def decodeToken(token: String): Option[JwtClaim] = {
-</span>19 <span style=''>    </span><span style='background: #AEF1AE'>Jwt.decodeRawAll(token, secretKey, Seq(algorithm))</span><span style=''> match {
-</span>20 <span style=''>      case Success((_, b, _)) =&gt;
-</span>21 <span style=''>        </span><span style='background: #AEF1AE'>Some(JwtClaim(b))</span><span style=''>
-</span>22 <span style=''>      case Failure(_) =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>23 <span style=''>    }
-</span>24 <span style=''>  }
-</span>25 <span style=''>
-</span>26 <span style=''>  def validateToken(token: String): Boolean = {
-</span>27 <span style=''>    </span><span style='background: #AEF1AE'>Jwt.isValid(token, secretKey, Seq(algorithm))</span><span style=''>
-</span>28 <span style=''>  }
-</span>29 <span style=''>
-</span>30 <span style=''>  def encodeUsernameToken(username: String): Option[String] = {
-</span>31 <span style=''>    if (</span><span style='background: #AEF1AE'>username == null</span><span style=''>) </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>32 <span style=''>    else </span><span style='background: #AEF1AE'>encodeToken(JwtClaim(new JsonObject().put(&quot;username&quot;, username).encode()))</span><span style=''>
-</span>33 <span style=''>  }
-</span>34 <span style=''>
-</span>35 <span style=''>  def decodeUsernameToken(token: String): Option[String] = {
-</span>36 <span style=''>    </span><span style='background: #AEF1AE'>decodeToken(token).map(decoded =&gt; new JsonObject(decoded.content).getString(&quot;username&quot;))</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>}
+</span>8 <span style=''>// TODO: add doc to all class methods
+</span>9 <span style=''>object JwtUtils {
+</span>10 <span style=''>
+</span>11 <span style=''>  private val secretKey = </span><span style='background: #AEF1AE'>&quot;secretKey&quot;</span><span style=''>
+</span>12 <span style=''>  private val algorithm = </span><span style='background: #AEF1AE'>JwtAlgorithm.HS256</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  def encodeToken(claim: JwtClaim): Option[String] = claim match {
+</span>15 <span style=''>    case c if </span><span style='background: #AEF1AE'>c != null</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>Some(Jwt.encode(claim, secretKey, algorithm))</span><span style=''>
+</span>16 <span style=''>    case _ =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>17 <span style=''>  }
+</span>18 <span style=''>
+</span>19 <span style=''>  def decodeToken(token: String): Option[JwtClaim] = {
+</span>20 <span style=''>    </span><span style='background: #AEF1AE'>Jwt.decodeRawAll(token, secretKey, Seq(algorithm))</span><span style=''> match {
+</span>21 <span style=''>      case Success((_, b, _)) =&gt;
+</span>22 <span style=''>        </span><span style='background: #AEF1AE'>Some(JwtClaim(b))</span><span style=''>
+</span>23 <span style=''>      case Failure(_) =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>24 <span style=''>    }
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  def validateToken(token: String): Boolean = {
+</span>28 <span style=''>    </span><span style='background: #AEF1AE'>Jwt.isValid(token, secretKey, Seq(algorithm))</span><span style=''>
+</span>29 <span style=''>  }
+</span>30 <span style=''>
+</span>31 <span style=''>  def encodeUsernameToken(username: String): Option[String] = {
+</span>32 <span style=''>    if (</span><span style='background: #AEF1AE'>username == null</span><span style=''>) </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>33 <span style=''>    else </span><span style='background: #AEF1AE'>encodeToken(JwtClaim(new JsonObject().put(&quot;username&quot;, username).encode()))</span><span style=''>
+</span>34 <span style=''>  }
+</span>35 <span style=''>
+</span>36 <span style=''>  def decodeUsernameToken(token: String): Option[String] = {
+</span>37 <span style=''>    </span><span style='background: #AEF1AE'>decodeToken(token).map(decoded =&gt; new JsonObject(decoded.content).getString(&quot;username&quot;))</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -73,15 +74,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          10
+          11
         </td>
         <td>
-          75
+          193
         </td>
         <td>
-          207
+          245
           -
-          218
+          256
         </td>
         <td>
           Literal
@@ -94,15 +95,15 @@
         </td>
       </tr><tr>
         <td>
-          11
+          12
         </td>
         <td>
-          76
+          194
         </td>
         <td>
-          245
+          283
           -
-          263
+          301
         </td>
         <td>
           Select
@@ -115,78 +116,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
-          77
+          196
         </td>
         <td>
-          346
+          420
           -
-          355
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #AEF1AE">
-          c.!=(null)
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          80
-        </td>
-        <td>
-          364
-          -
-          403
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          pdi.jwt.JwtCore.encode
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.Jwt.encode(claim, JwtUtils.this.secretKey, JwtUtils.this.algorithm)
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          79
-        </td>
-        <td>
-          393
-          -
-          402
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.JwtUtils.algorithm
-        </td>
-        <td style="background: #AEF1AE">
-          JwtUtils.this.algorithm
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          78
-        </td>
-        <td>
-          382
-          -
-          391
+          429
         </td>
         <td>
           Select
@@ -199,15 +137,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          15
         </td>
         <td>
-          81
+          199
         </td>
         <td>
-          359
+          397
           -
-          404
+          442
         </td>
         <td>
           Apply
@@ -223,96 +161,54 @@
           15
         </td>
         <td>
-          82
+          198
         </td>
         <td>
-          419
+          402
           -
-          423
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #AEF1AE">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          83
-        </td>
-        <td>
-          512
-          -
-          521
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.JwtUtils.secretKey
-        </td>
-        <td style="background: #AEF1AE">
-          JwtUtils.this.secretKey
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          86
-        </td>
-        <td>
-          488
-          -
-          538
+          441
         </td>
         <td>
           Apply
         </td>
         <td>
-          pdi.jwt.JwtCore.decodeRawAll
+          pdi.jwt.JwtCore.encode
         </td>
         <td style="background: #AEF1AE">
-          pdi.jwt.Jwt.decodeRawAll(token, JwtUtils.this.secretKey, scala.collection.Seq.apply[pdi.jwt.JwtAlgorithm.HS256.type](JwtUtils.this.algorithm))
+          pdi.jwt.Jwt.encode(claim, JwtUtils.this.secretKey, JwtUtils.this.algorithm)
         </td>
       </tr><tr>
         <td>
-          19
+          15
         </td>
         <td>
-          85
+          195
         </td>
         <td>
-          523
+          384
           -
-          537
+          393
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.GenericCompanion.apply
+          java.lang.Object.!=
         </td>
         <td style="background: #AEF1AE">
-          scala.collection.Seq.apply[pdi.jwt.JwtAlgorithm.HS256.type](JwtUtils.this.algorithm)
+          c.!=(null)
         </td>
       </tr><tr>
         <td>
-          19
+          15
         </td>
         <td>
-          84
+          197
         </td>
         <td>
-          527
+          431
           -
-          536
+          440
         </td>
         <td>
           Select
@@ -325,78 +221,120 @@
         </td>
       </tr><tr>
         <td>
-          21
+          16
         </td>
         <td>
-          92
+          200
         </td>
         <td>
-          593
+          457
           -
-          593
+          461
         </td>
         <td>
           Select
         </td>
         <td>
-          pdi.jwt.JwtClaim.apply$default$7
+          scala.None
         </td>
         <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$7
+          scala.None
         </td>
       </tr><tr>
         <td>
-          21
+          20
         </td>
         <td>
-          95
+          202
         </td>
         <td>
-          588
+          565
           -
-          605
+          574
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.JwtUtils.algorithm
+        </td>
+        <td style="background: #AEF1AE">
+          JwtUtils.this.algorithm
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          550
+          -
+          559
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.JwtUtils.secretKey
+        </td>
+        <td style="background: #AEF1AE">
+          JwtUtils.this.secretKey
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          204
+        </td>
+        <td>
+          526
+          -
+          576
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Some.apply
+          pdi.jwt.JwtCore.decodeRawAll
         </td>
         <td style="background: #AEF1AE">
-          scala.Some.apply[pdi.jwt.JwtClaim](pdi.jwt.JwtClaim.apply(b, pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8))
+          pdi.jwt.Jwt.decodeRawAll(token, JwtUtils.this.secretKey, scala.collection.Seq.apply[pdi.jwt.JwtAlgorithm.HS256.type](JwtUtils.this.algorithm))
         </td>
       </tr><tr>
         <td>
-          21
+          20
         </td>
         <td>
-          89
+          203
         </td>
         <td>
-          593
+          561
           -
-          593
+          575
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          pdi.jwt.JwtClaim.apply$default$4
+          scala.collection.generic.GenericCompanion.apply
         </td>
         <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$4
+          scala.collection.Seq.apply[pdi.jwt.JwtAlgorithm.HS256.type](JwtUtils.this.algorithm)
         </td>
       </tr><tr>
         <td>
-          21
+          22
         </td>
         <td>
-          91
+          209
         </td>
         <td>
-          593
+          631
           -
-          593
+          631
         </td>
         <td>
           Select
@@ -409,99 +347,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          22
         </td>
         <td>
-          94
+          211
         </td>
         <td>
-          593
+          631
           -
-          604
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply(b, pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          88
-        </td>
-        <td>
-          593
-          -
-          593
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$3
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$3
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          87
-        </td>
-        <td>
-          593
-          -
-          593
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$2
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          90
-        </td>
-        <td>
-          593
-          -
-          593
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$5
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$5
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          93
-        </td>
-        <td>
-          593
-          -
-          593
+          631
         </td>
         <td>
           Select
@@ -517,12 +371,159 @@
           22
         </td>
         <td>
-          96
+          205
         </td>
         <td>
           631
           -
-          635
+          631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          208
+        </td>
+        <td>
+          631
+          -
+          631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$5
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$5
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          207
+        </td>
+        <td>
+          631
+          -
+          631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$4
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          210
+        </td>
+        <td>
+          631
+          -
+          631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$7
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$7
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          213
+        </td>
+        <td>
+          626
+          -
+          643
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[pdi.jwt.JwtClaim](pdi.jwt.JwtClaim.apply(b, pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8))
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          631
+          -
+          642
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply(b, pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          631
+          -
+          631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$3
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          669
+          -
+          673
         </td>
         <td>
           Select
@@ -535,36 +536,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          28
         </td>
         <td>
-          98
+          218
         </td>
         <td>
-          733
+          737
           -
-          742
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.JwtUtils.algorithm
-        </td>
-        <td style="background: #AEF1AE">
-          JwtUtils.this.algorithm
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          100
-        </td>
-        <td>
-          699
-          -
-          744
+          782
         </td>
         <td>
           Apply
@@ -577,36 +557,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          28
         </td>
         <td>
-          97
+          217
         </td>
         <td>
-          718
+          767
           -
-          727
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.JwtUtils.secretKey
-        </td>
-        <td style="background: #AEF1AE">
-          JwtUtils.this.secretKey
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          99
-        </td>
-        <td>
-          729
-          -
-          743
+          781
         </td>
         <td>
           Apply
@@ -619,15 +578,78 @@
         </td>
       </tr><tr>
         <td>
-          31
+          28
         </td>
         <td>
-          101
+          216
         </td>
         <td>
-          822
+          771
           -
-          838
+          780
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.JwtUtils.algorithm
+        </td>
+        <td style="background: #AEF1AE">
+          JwtUtils.this.algorithm
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          215
+        </td>
+        <td>
+          756
+          -
+          765
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.JwtUtils.secretKey
+        </td>
+        <td style="background: #AEF1AE">
+          JwtUtils.this.secretKey
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          220
+        </td>
+        <td>
+          878
+          -
+          882
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #AEF1AE">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          219
+        </td>
+        <td>
+          860
+          -
+          876
         </td>
         <td>
           Apply
@@ -640,15 +662,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
-          103
+          221
         </td>
         <td>
-          840
+          878
           -
-          844
+          882
         </td>
         <td>
           Block
@@ -661,36 +683,141 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          102
+          227
         </td>
         <td>
-          840
+          904
           -
-          844
+          904
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.None
+          pdi.jwt.JwtClaim.apply$default$6
         </td>
         <td style="background: #AEF1AE">
-          scala.None
+          pdi.jwt.JwtClaim.apply$default$6
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          110
+          226
         </td>
         <td>
-          866
+          904
           -
-          866
+          904
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$5
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$5
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          229
+        </td>
+        <td>
+          904
+          -
+          904
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$8
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$8
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          223
+        </td>
+        <td>
+          904
+          -
+          904
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          232
+        </td>
+        <td>
+          892
+          -
+          966
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.services.authentication.JwtUtils.encodeToken
+        </td>
+        <td style="background: #AEF1AE">
+          JwtUtils.this.encodeToken(pdi.jwt.JwtClaim.apply(new io.vertx.core.json.JsonObject().put(&quot;username&quot;, username).encode(), pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8))
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          904
+          -
+          904
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          pdi.jwt.JwtClaim.apply$default$4
+        </td>
+        <td style="background: #AEF1AE">
+          pdi.jwt.JwtClaim.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          228
+        </td>
+        <td>
+          904
+          -
+          904
         </td>
         <td>
           Select
@@ -703,15 +830,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          104
+          222
         </td>
         <td>
-          875
+          913
           -
-          926
+          964
         </td>
         <td>
           Apply
@@ -724,15 +851,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          113
+          231
         </td>
         <td>
-          854
+          892
           -
-          928
+          966
         </td>
         <td>
           Apply
@@ -745,78 +872,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          107
+          230
         </td>
         <td>
-          866
+          904
           -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$4
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$4
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          106
-        </td>
-        <td>
-          866
-          -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$3
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$3
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          109
-        </td>
-        <td>
-          866
-          -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$6
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$6
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          112
-        </td>
-        <td>
-          866
-          -
-          927
+          965
         </td>
         <td>
           Apply
@@ -829,99 +893,36 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          105
+          224
         </td>
         <td>
-          866
+          904
           -
-          866
+          904
         </td>
         <td>
           Select
         </td>
         <td>
-          pdi.jwt.JwtClaim.apply$default$2
+          pdi.jwt.JwtClaim.apply$default$3
         </td>
         <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$2
+          pdi.jwt.JwtClaim.apply$default$3
         </td>
       </tr><tr>
         <td>
-          32
+          37
         </td>
         <td>
-          114
+          234
         </td>
         <td>
-          854
+          1037
           -
-          928
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.services.authentication.JwtUtils.encodeToken
-        </td>
-        <td style="background: #AEF1AE">
-          JwtUtils.this.encodeToken(pdi.jwt.JwtClaim.apply(new io.vertx.core.json.JsonObject().put(&quot;username&quot;, username).encode(), pdi.jwt.JwtClaim.apply$default$2, pdi.jwt.JwtClaim.apply$default$3, pdi.jwt.JwtClaim.apply$default$4, pdi.jwt.JwtClaim.apply$default$5, pdi.jwt.JwtClaim.apply$default$6, pdi.jwt.JwtClaim.apply$default$7, pdi.jwt.JwtClaim.apply$default$8))
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          108
-        </td>
-        <td>
-          866
-          -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$5
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$5
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          111
-        </td>
-        <td>
-          866
-          -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          pdi.jwt.JwtClaim.apply$default$8
-        </td>
-        <td style="background: #AEF1AE">
-          pdi.jwt.JwtClaim.apply$default$8
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          116
-        </td>
-        <td>
-          999
-          -
-          1087
+          1125
         </td>
         <td>
           Apply
@@ -934,15 +935,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          37
         </td>
         <td>
-          115
+          233
         </td>
         <td>
-          1033
+          1071
           -
-          1086
+          1124
         </td>
         <td>
           Apply

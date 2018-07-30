@@ -1,0 +1,1286 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/FXAlertsController.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.client.view.FXAlertsController.WAIT_MESSAGE
+</span>4 <span style=''>import javafx.scene.Node
+</span>5 <span style=''>import javafx.scene.control.Alert.AlertType
+</span>6 <span style=''>import javafx.scene.control.{Alert, ButtonType, ProgressBar}
+</span>7 <span style=''>import javafx.scene.layout.BorderPane
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * A trait that makes possible to show Alerts
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Eugenio Pierfederici
+</span>13 <span style=''>  * @author contributor Davide Borficchia
+</span>14 <span style=''>  * @author contributor Enrico Siboni
+</span>15 <span style=''>  */
+</span>16 <span style=''>trait FXAlertsController extends FXRunOnUIThread {
+</span>17 <span style=''>
+</span>18 <span style=''>  /**
+</span>19 <span style=''>    * A method to show an info message
+</span>20 <span style=''>    *
+</span>21 <span style=''>    * @param headerText    the text to show as header
+</span>22 <span style=''>    * @param message       the specific message
+</span>23 <span style=''>    * @param onCloseAction the action that should be executed on alert close
+</span>24 <span style=''>    */
+</span>25 <span style=''>  def showInfo(headerText: String, message: String,
+</span>26 <span style=''>               onCloseAction: () =&gt; Unit = () =&gt; ()): Unit =
+</span>27 <span style=''>    </span><span style='background: #F0ADAD'>showAlertWithButton(AlertType.INFORMATION, headerText, message, ButtonType.OK, onCloseAction)</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  /**
+</span>30 <span style=''>    * An info alert with custom content
+</span>31 <span style=''>    *
+</span>32 <span style=''>    * @param headerText    the header text to show
+</span>33 <span style=''>    * @param message       the message to show
+</span>34 <span style=''>    * @param alertContent  the custom content to show
+</span>35 <span style=''>    * @param onCloseAction the action that should be executed on alert close
+</span>36 <span style=''>    */
+</span>37 <span style=''>  def showInfoWithContent(headerText: String, message: String,
+</span>38 <span style=''>                          alertContent: Node, onCloseAction: () =&gt; Unit = () =&gt; ()): Unit =
+</span>39 <span style=''>    </span><span style='background: #F0ADAD'>showAlertWithButton(AlertType.INFORMATION, headerText, message, ButtonType.OK, onCloseAction, Some(alertContent))</span><span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * A method to show an error message
+</span>43 <span style=''>    *
+</span>44 <span style=''>    * @param headerText    the text to show as header
+</span>45 <span style=''>    * @param message       the specific message
+</span>46 <span style=''>    * @param onCloseAction the action that should be executed on alert close
+</span>47 <span style=''>    */
+</span>48 <span style=''>  def showError(headerText: String, message: String,
+</span>49 <span style=''>                onCloseAction: () =&gt; Unit = () =&gt; ()): Unit =
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>showAlertWithButton(AlertType.ERROR, headerText, message, ButtonType.OK, onCloseAction)</span><span style=''>
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * Shows a loading dialog that can not be closed
+</span>54 <span style=''>    *
+</span>55 <span style=''>    * @param message    the message to show
+</span>56 <span style=''>    * @param headerText the header text to show
+</span>57 <span style=''>    */
+</span>58 <span style=''>  def showLoading(message: String, headerText: String = WAIT_MESSAGE): Unit = </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>59 <span style=''></span><span style='background: #F0ADAD'>    LoadingManagement
+</span>60 <span style=''></span><span style='background: #F0ADAD'>      .createLoadingAlert(headerText, message, canBeClosed = false)
+</span>61 <span style=''></span><span style='background: #F0ADAD'>      .show()
+</span>62 <span style=''></span><span style='background: #F0ADAD'>  })</span><span style=''>
+</span>63 <span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>  /**
+</span>66 <span style=''>    * Shows a loading dialog that can be closed
+</span>67 <span style=''>    *
+</span>68 <span style=''>    * @param message                  the message to show
+</span>69 <span style=''>    * @param headerText               the header text to show
+</span>70 <span style=''>    * @param onPrematureClosureAction which action has to be executed if the loading is closed prematurely
+</span>71 <span style=''>    */
+</span>72 <span style=''>  def showCloseableLoading(message: String, headerText: String = WAIT_MESSAGE,
+</span>73 <span style=''>                           onPrematureClosureAction: () =&gt; Unit = () =&gt; ()): Unit = </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>74 <span style=''></span><span style='background: #F0ADAD'>    LoadingManagement
+</span>75 <span style=''></span><span style='background: #F0ADAD'>      .createLoadingAlert(headerText, message, canBeClosed = true, onPrematureClosureAction)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>      .show()
+</span>77 <span style=''></span><span style='background: #F0ADAD'>  })</span><span style=''>
+</span>78 <span style=''>
+</span>79 <span style=''>  /**
+</span>80 <span style=''>    * Hides the loading dialog
+</span>81 <span style=''>    */
+</span>82 <span style=''>  def hideLoading(): Unit = </span><span style='background: #F0ADAD'>LoadingManagement.closeLoadingAlert()</span><span style=''>
+</span>83 <span style=''>
+</span>84 <span style=''>  /**
+</span>85 <span style=''>    * Shows an alert with specified parameters
+</span>86 <span style=''>    *
+</span>87 <span style=''>    * @param alertType     the alert type
+</span>88 <span style=''>    * @param headerText    the title to set
+</span>89 <span style=''>    * @param message       the message to show
+</span>90 <span style=''>    * @param buttonType    the buttonType
+</span>91 <span style=''>    * @param dialogContent the content on the dialog
+</span>92 <span style=''>    */
+</span>93 <span style=''>  private def showAlertWithButton(alertType: AlertType, headerText: String,
+</span>94 <span style=''>                                  message: String, buttonType: ButtonType,
+</span>95 <span style=''>                                  onCloseAction: () =&gt; Unit,
+</span>96 <span style=''>                                  dialogContent: Option[Node] = None): Unit =
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>98 <span style=''></span><span style='background: #F0ADAD'>      val alert = new Alert(alertType, message, buttonType)
+</span>99 <span style=''></span><span style='background: #F0ADAD'>      alert setTitle alertType.toString
+</span>100 <span style=''></span><span style='background: #F0ADAD'>      alert setHeaderText (if (dialogContent.isDefined) s&quot;$headerText\n\n$message&quot; else headerText)
+</span>101 <span style=''></span><span style='background: #F0ADAD'>      dialogContent foreach (alert.getDialogPane.setContent(_))
+</span>102 <span style=''></span><span style='background: #F0ADAD'>      alert.showAndWait
+</span>103 <span style=''></span><span style='background: #F0ADAD'>      onCloseAction() // because of showAndWait runs after dialog closing
+</span>104 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>105 <span style=''>
+</span>106 <span style=''>
+</span>107 <span style=''>  /**
+</span>108 <span style=''>    * An object that wraps Loading alert management
+</span>109 <span style=''>    */
+</span>110 <span style=''>  private object LoadingManagement {
+</span>111 <span style=''>    var loadingAlert: Alert = _
+</span>112 <span style=''>
+</span>113 <span style=''>    /**
+</span>114 <span style=''>      * Creates and shows a non blocking loading alert
+</span>115 <span style=''>      *
+</span>116 <span style=''>      * @param title   the title of the loading alert
+</span>117 <span style=''>      * @param message the message to show in the loading alert
+</span>118 <span style=''>      */
+</span>119 <span style=''>    def createLoadingAlert(title: String, message: String,
+</span>120 <span style=''>                           canBeClosed: Boolean,
+</span>121 <span style=''>                           onPrematureCloseAction: () =&gt; Unit = () =&gt; ()): Alert = {
+</span>122 <span style=''>      </span><span style='background: #F0ADAD'>loadingAlert = new Alert(AlertType.NONE)</span><span style=''>
+</span>123 <span style=''>      </span><span style='background: #F0ADAD'>loadingAlert setTitle title</span><span style=''>
+</span>124 <span style=''>      </span><span style='background: #F0ADAD'>loadingAlert setHeaderText message</span><span style=''>
+</span>125 <span style=''>      val pane = </span><span style='background: #F0ADAD'>new BorderPane()</span><span style=''>
+</span>126 <span style=''>      </span><span style='background: #F0ADAD'>pane.setCenter(new ProgressBar())</span><span style=''>
+</span>127 <span style=''>      </span><span style='background: #F0ADAD'>loadingAlert.getDialogPane.setContent(pane)</span><span style=''>
+</span>128 <span style=''>
+</span>129 <span style=''>      if (canBeClosed) </span><span style='background: #F0ADAD'>{
+</span>130 <span style=''></span><span style='background: #F0ADAD'>        loadingAlert.getButtonTypes.add(ButtonType.CANCEL)
+</span>131 <span style=''></span><span style='background: #F0ADAD'>        loadingAlert.setOnCloseRequest(_ =&gt; onPrematureCloseAction())
+</span>132 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>133 <span style=''>
+</span>134 <span style=''>      </span><span style='background: #F0ADAD'>loadingAlert</span><span style=''>
+</span>135 <span style=''>    }
+</span>136 <span style=''>
+</span>137 <span style=''>    /**
+</span>138 <span style=''>      * Closes the loading alert
+</span>139 <span style=''>      */
+</span>140 <span style=''>    def closeLoadingAlert(): Unit =
+</span>141 <span style=''>      </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>142 <span style=''></span><span style='background: #F0ADAD'>        //noinspection ScalaStyle
+</span>143 <span style=''></span><span style='background: #F0ADAD'>        loadingAlert.setOnCloseRequest(null)
+</span>144 <span style=''></span><span style='background: #F0ADAD'>        loadingAlert.setResult(ButtonType.OK) // setting a result of right type, seems the only way to have dialog to close
+</span>145 <span style=''></span><span style='background: #F0ADAD'>      })</span><span style=''>
+</span>146 <span style=''>  }
+</span>147 <span style=''>
+</span>148 <span style=''>}
+</span>149 <span style=''>
+</span>150 <span style=''>/**
+</span>151 <span style=''>  * Companion object
+</span>152 <span style=''>  */
+</span>153 <span style=''>object FXAlertsController {
+</span>154 <span style=''>  val WAIT_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Attendere...&quot;</span><span style=''>
+</span>155 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          810
+        </td>
+        <td>
+          900
+          -
+          913
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          812
+        </td>
+        <td>
+          836
+          -
+          929
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showAlertWithButton
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.showAlertWithButton(INFORMATION, headerText, message, javafx.scene.control.ButtonType.OK, onCloseAction, FXAlertsController.this.showAlertWithButton$default$6)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          809
+        </td>
+        <td>
+          856
+          -
+          877
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          INFORMATION
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          811
+        </td>
+        <td>
+          836
+          -
+          836
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showAlertWithButton$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.showAlertWithButton$default$6
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          813
+        </td>
+        <td>
+          1398
+          -
+          1419
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          INFORMATION
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          815
+        </td>
+        <td>
+          1472
+          -
+          1490
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[javafx.scene.Node](alertContent)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          814
+        </td>
+        <td>
+          1442
+          -
+          1455
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          816
+        </td>
+        <td>
+          1378
+          -
+          1491
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showAlertWithButton
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.showAlertWithButton(INFORMATION, headerText, message, javafx.scene.control.ButtonType.OK, onCloseAction, scala.Some.apply[javafx.scene.Node](alertContent))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          819
+        </td>
+        <td>
+          1850
+          -
+          1850
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showAlertWithButton$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.showAlertWithButton$default$6
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          818
+        </td>
+        <td>
+          1908
+          -
+          1921
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          817
+        </td>
+        <td>
+          1870
+          -
+          1885
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ERROR
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          820
+        </td>
+        <td>
+          1850
+          -
+          1937
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showAlertWithButton
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.showAlertWithButton(ERROR, headerText, message, javafx.scene.control.ButtonType.OK, onCloseAction, FXAlertsController.this.showAlertWithButton$default$6)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          822
+        </td>
+        <td>
+          2180
+          -
+          2310
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.runOnUIThread((() =&gt; FXAlertsController.this.LoadingManagement.createLoadingAlert(headerText, message, false, FXAlertsController.this.LoadingManagement.createLoadingAlert$default$4).show()))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          821
+        </td>
+        <td>
+          2206
+          -
+          2305
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.show
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.LoadingManagement.createLoadingAlert(headerText, message, false, FXAlertsController.this.LoadingManagement.createLoadingAlert$default$4).show()
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          824
+        </td>
+        <td>
+          2770
+          -
+          2925
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.runOnUIThread((() =&gt; FXAlertsController.this.LoadingManagement.createLoadingAlert(headerText, message, true, onPrematureClosureAction).show()))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          823
+        </td>
+        <td>
+          2796
+          -
+          2920
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.show
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.LoadingManagement.createLoadingAlert(headerText, message, true, onPrematureClosureAction).show()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          825
+        </td>
+        <td>
+          2999
+          -
+          3036
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.LoadingManagement.closeLoadingAlert
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.LoadingManagement.closeLoadingAlert()
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          838
+        </td>
+        <td>
+          3626
+          -
+          4016
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.runOnUIThread((() =&gt; {
+  val alert: javafx.scene.control.Alert = new javafx.scene.control.Alert(alertType, message, buttonType);
+  alert.setTitle(alertType.toString());
+  alert.setHeaderText(if (dialogContent.isDefined)
+    scala.StringContext.apply(&quot;&quot;, &quot;\\n\\n&quot;, &quot;&quot;).s(headerText, message)
+  else
+    headerText);
+  dialogContent.foreach[Unit](((x$1: javafx.scene.Node) =&gt; alert.getDialogPane().setContent(x$1)));
+  alert.showAndWait();
+  onCloseAction.apply()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          826
+        </td>
+        <td>
+          3666
+          -
+          3707
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Alert.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Alert(alertType, message, buttonType)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          828
+        </td>
+        <td>
+          3714
+          -
+          3747
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          alert.setTitle(alertType.toString())
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          827
+        </td>
+        <td>
+          3729
+          -
+          3747
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Enum.toString
+        </td>
+        <td style="background: #F0ADAD">
+          alertType.toString()
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          831
+        </td>
+        <td>
+          3804
+          -
+          3830
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;\\n\\n&quot;, &quot;&quot;).s(headerText, message)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          830
+        </td>
+        <td>
+          3804
+          -
+          3830
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;\\n\\n&quot;, &quot;&quot;).s(headerText, message)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          833
+        </td>
+        <td>
+          3754
+          -
+          3847
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setHeaderText
+        </td>
+        <td style="background: #F0ADAD">
+          alert.setHeaderText(if (dialogContent.isDefined)
+  scala.StringContext.apply(&quot;&quot;, &quot;\\n\\n&quot;, &quot;&quot;).s(headerText, message)
+else
+  headerText)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          829
+        </td>
+        <td>
+          3779
+          -
+          3802
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.isDefined
+        </td>
+        <td style="background: #F0ADAD">
+          dialogContent.isDefined
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          832
+        </td>
+        <td>
+          3836
+          -
+          3846
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.headerText
+        </td>
+        <td style="background: #F0ADAD">
+          headerText
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          835
+        </td>
+        <td>
+          3854
+          -
+          3911
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.foreach
+        </td>
+        <td style="background: #F0ADAD">
+          dialogContent.foreach[Unit](((x$1: javafx.scene.Node) =&gt; alert.getDialogPane().setContent(x$1)))
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          834
+        </td>
+        <td>
+          3877
+          -
+          3910
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.DialogPane.setContent
+        </td>
+        <td style="background: #F0ADAD">
+          alert.getDialogPane().setContent(x$1)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          836
+        </td>
+        <td>
+          3918
+          -
+          3935
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.showAndWait
+        </td>
+        <td style="background: #F0ADAD">
+          alert.showAndWait()
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          837
+        </td>
+        <td>
+          3942
+          -
+          3957
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function0.apply
+        </td>
+        <td style="background: #F0ADAD">
+          onCloseAction.apply()
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          839
+        </td>
+        <td>
+          4566
+          -
+          4591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Alert.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Alert(NONE)
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          840
+        </td>
+        <td>
+          4551
+          -
+          4591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.LoadingManagement.loadingAlert_=
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert_=(new javafx.scene.control.Alert(NONE))
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          841
+        </td>
+        <td>
+          4598
+          -
+          4625
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.setTitle(title)
+        </td>
+      </tr><tr>
+        <td>
+          124
+        </td>
+        <td>
+          842
+        </td>
+        <td>
+          4632
+          -
+          4666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setHeaderText
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.setHeaderText(message)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          843
+        </td>
+        <td>
+          4684
+          -
+          4700
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.BorderPane.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.layout.BorderPane()
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          845
+        </td>
+        <td>
+          4707
+          -
+          4740
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.BorderPane.setCenter
+        </td>
+        <td style="background: #F0ADAD">
+          pane.setCenter(new javafx.scene.control.ProgressBar())
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          844
+        </td>
+        <td>
+          4722
+          -
+          4739
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.ProgressBar.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.ProgressBar()
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          846
+        </td>
+        <td>
+          4747
+          -
+          4790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.DialogPane.setContent
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.getDialogPane().setContent(pane)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          851
+        </td>
+        <td>
+          4815
+          -
+          4953
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  LoadingManagement.this.loadingAlert.getButtonTypes().add(javafx.scene.control.ButtonType.CANCEL);
+  LoadingManagement.this.loadingAlert.setOnCloseRequest(((x$2: javafx.scene.control.DialogEvent) =&gt; onPrematureCloseAction.apply()))
+}
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          853
+        </td>
+        <td>
+          4798
+          -
+          4798
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          4798
+          -
+          4798
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          848
+        </td>
+        <td>
+          4825
+          -
+          4875
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.add
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.getButtonTypes().add(javafx.scene.control.ButtonType.CANCEL)
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          847
+        </td>
+        <td>
+          4857
+          -
+          4874
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.CANCEL
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.CANCEL
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          850
+        </td>
+        <td>
+          4884
+          -
+          4945
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setOnCloseRequest
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.setOnCloseRequest(((x$2: javafx.scene.control.DialogEvent) =&gt; onPrematureCloseAction.apply()))
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          849
+        </td>
+        <td>
+          4920
+          -
+          4944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function0.apply
+        </td>
+        <td style="background: #F0ADAD">
+          onPrematureCloseAction.apply()
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          854
+        </td>
+        <td>
+          4961
+          -
+          4973
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.LoadingManagement.loadingAlert
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert
+        </td>
+      </tr><tr>
+        <td>
+          141
+        </td>
+        <td>
+          858
+        </td>
+        <td>
+          5073
+          -
+          5306
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          FXAlertsController.this.runOnUIThread((() =&gt; {
+  LoadingManagement.this.loadingAlert.setOnCloseRequest(null);
+  LoadingManagement.this.loadingAlert.setResult(javafx.scene.control.ButtonType.OK)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          143
+        </td>
+        <td>
+          855
+        </td>
+        <td>
+          5137
+          -
+          5173
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setOnCloseRequest
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.setOnCloseRequest(null)
+        </td>
+      </tr><tr>
+        <td>
+          144
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          5182
+          -
+          5219
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setResult
+        </td>
+        <td style="background: #F0ADAD">
+          LoadingManagement.this.loadingAlert.setResult(javafx.scene.control.ButtonType.OK)
+        </td>
+      </tr><tr>
+        <td>
+          144
+        </td>
+        <td>
+          856
+        </td>
+        <td>
+          5205
+          -
+          5218
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.OK
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.OK
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          859
+        </td>
+        <td>
+          5394
+          -
+          5408
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Attendere...&quot;
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,244 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/controller/ActorViewVisibilityManagement.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.Actor.Receive
+</span>4 <span style=''>import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
+</span>5 <span style=''>import it.cwmp.client.view.{FXRunOnUIThread, FXViewController}
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * A trait that give autonomous management to view visibility
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * To use it you need to add &quot;visibilityBehaviour&quot; to your Actor receive
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Enrico Siboni
+</span>13 <span style=''>  */
+</span>14 <span style=''>trait ActorViewVisibilityManagement extends FXRunOnUIThread {
+</span>15 <span style=''>
+</span>16 <span style=''>  /**
+</span>17 <span style=''>    * @return the visibility controller
+</span>18 <span style=''>    */
+</span>19 <span style=''>  protected def fxController: FXViewController
+</span>20 <span style=''>
+</span>21 <span style=''>  /**
+</span>22 <span style=''>    * @return the behaviour that manages alert messages
+</span>23 <span style=''>    */
+</span>24 <span style=''>  protected def visibilityBehaviour: Receive = {
+</span>25 <span style=''>    case Show =&gt; </span><span style='background: #F0ADAD'>onShowGUI()</span><span style=''>
+</span>26 <span style=''>    case Hide =&gt; </span><span style='background: #F0ADAD'>onHideGUI()</span><span style=''>
+</span>27 <span style=''>  }
+</span>28 <span style=''>
+</span>29 <span style=''>  /**
+</span>30 <span style=''>    * Called when GUI is shown
+</span>31 <span style=''>    */
+</span>32 <span style=''>  protected def onShowGUI(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; fxController showGUI())</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>    * Called when GUI is hidden
+</span>36 <span style=''>    */
+</span>37 <span style=''>  protected def onHideGUI(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; fxController hideGUI())</span><span style=''>
+</span>38 <span style=''>}
+</span>39 <span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>/**
+</span>42 <span style=''>  * A collection of view visibility messages
+</span>43 <span style=''>  */
+</span>44 <span style=''>object ViewVisibilityMessages {
+</span>45 <span style=''>
+</span>46 <span style=''>  /**
+</span>47 <span style=''>    * Shows the underlying graphical interface
+</span>48 <span style=''>    */
+</span>49 <span style=''>  case object Show
+</span>50 <span style=''>
+</span>51 <span style=''>  /**
+</span>52 <span style=''>    * Hides the underlying graphical interface
+</span>53 <span style=''>    */
+</span>54 <span style=''>  case object Hide
+</span>55 <span style=''>
+</span>56 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          660
+          -
+          660
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ActorViewVisibilityManagement.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          48
+        </td>
+        <td>
+          679
+          -
+          690
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ActorViewVisibilityManagement.onShowGUI
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.onShowGUI()
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          708
+          -
+          719
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ActorViewVisibilityManagement.onHideGUI
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.onHideGUI()
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          805
+          -
+          848
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.runOnUIThread((() =&gt; ActorViewVisibilityManagement.this.fxController.showGUI()))
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          825
+          -
+          847
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.showGUI
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.fxController.showGUI()
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          951
+          -
+          973
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.hideGUI
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.fxController.hideGUI()
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          931
+          -
+          974
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          ActorViewVisibilityManagement.this.runOnUIThread((() =&gt; ActorViewVisibilityManagement.this.fxController.hideGUI()))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

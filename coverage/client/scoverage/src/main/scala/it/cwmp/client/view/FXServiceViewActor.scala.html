@@ -1,0 +1,377 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/FXServiceViewActor.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.{Actor, ActorRef}
+</span>4 <span style=''>import it.cwmp.client.controller.messages.Initialize
+</span>5 <span style=''>import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement}
+</span>6 <span style=''>import javafx.application.Platform
+</span>7 <span style=''>import javafx.embed.swing.JFXPanel
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * A base class representing a Service View actor with JavaFX underlying
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Enrico Siboni
+</span>13 <span style=''>  */
+</span>14 <span style=''>abstract class FXServiceViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+</span>15 <span style=''>
+</span>16 <span style=''>  protected def fxController: FXViewController with FXAlertsController with FXInputViewController
+</span>17 <span style=''>
+</span>18 <span style=''>  protected var controllerActor: ActorRef = _
+</span>19 <span style=''>
+</span>20 <span style=''>  override def preStart(): Unit = {
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel</span><span style=''> // initializes JavaFX
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>Platform setImplicitExit false</span><span style=''>
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>alertBehaviour orElse visibilityBehaviour orElse {
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    case Initialize =&gt; controllerActor = sender()
+</span>28 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>super.onErrorAlertReceived(title, message)</span><span style=''>
+</span>33 <span style=''>  }
+</span>34 <span style=''>
+</span>35 <span style=''>  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  /**
+</span>40 <span style=''>    * When receiving a response from contacted service should enable buttons and hide loading
+</span>41 <span style=''>    */
+</span>42 <span style=''>  protected def onServiceResponseReceived(): Unit = {
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>fxController enableViewComponents()</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>fxController hideLoading()</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          902
+        </td>
+        <td>
+          687
+          -
+          703
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.preStart
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.super.preStart()
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          903
+        </td>
+        <td>
+          708
+          -
+          720
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.embed.swing.JFXPanel.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.embed.swing.JFXPanel()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          904
+        </td>
+        <td>
+          747
+          -
+          777
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.setImplicitExit
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.setImplicitExit(false)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          908
+        </td>
+        <td>
+          866
+          -
+          866
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          905
+        </td>
+        <td>
+          839
+          -
+          858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.ActorViewVisibilityManagement.visibilityBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.visibilityBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          909
+        </td>
+        <td>
+          817
+          -
+          921
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.alertBehaviour.orElse[Any, Unit](FXServiceViewActor.this.visibilityBehaviour).orElse[Any, Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case it.cwmp.client.controller.messages.Initialize =&gt; FXServiceViewActor.this.controllerActor_=(FXServiceViewActor.this.sender())
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case it.cwmp.client.controller.messages.Initialize =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,Unit]))
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          907
+        </td>
+        <td>
+          891
+          -
+          917
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.controllerActor_=(FXServiceViewActor.this.sender())
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          906
+        </td>
+        <td>
+          909
+          -
+          917
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          910
+        </td>
+        <td>
+          1015
+          -
+          1042
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.onServiceResponseReceived
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.onServiceResponseReceived()
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          911
+        </td>
+        <td>
+          1047
+          -
+          1089
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.ActorAlertManagement.onErrorAlertReceived
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.super.onErrorAlertReceived(title, message)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          912
+        </td>
+        <td>
+          1186
+          -
+          1213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.onServiceResponseReceived
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.onServiceResponseReceived()
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          913
+        </td>
+        <td>
+          1384
+          -
+          1419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXInputViewController.enableViewComponents
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.fxController.enableViewComponents()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          914
+        </td>
+        <td>
+          1424
+          -
+          1450
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.hideLoading
+        </td>
+        <td style="background: #F0ADAD">
+          FXServiceViewActor.this.fxController.hideLoading()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

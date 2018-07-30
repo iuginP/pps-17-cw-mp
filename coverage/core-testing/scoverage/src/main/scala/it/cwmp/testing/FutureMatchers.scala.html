@@ -40,42 +40,55 @@
 </span>16 <span style=''>trait FutureMatchers {
 </span>17 <span style=''>  this: Matchers =&gt;
 </span>18 <span style=''>
-</span>19 <span style=''>  case object FutureTestingException extends Exception
-</span>20 <span style=''>
-</span>21 <span style=''>  implicit class RichFutureTesting[T](future: Future[T]) extends Matchers {
-</span>22 <span style=''>
-</span>23 <span style=''>    /**
-</span>24 <span style=''>      * Asserts that the future has any sort of failure.
-</span>25 <span style=''>      * @param executionContext the implicit execution context
-</span>26 <span style=''>      * @return the future containing the result of the verification
-</span>27 <span style=''>      */
-</span>28 <span style=''>    def shouldFail(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
-</span>29 <span style=''></span><span style='background: #F0ADAD'>      .transform {
-</span>30 <span style=''></span><span style='background: #F0ADAD'>        case Failure(_) =&gt; Success(succeed)
-</span>31 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
-</span>32 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>33 <span style=''>
-</span>34 <span style=''>    /**
-</span>35 <span style=''>      * Asserts that the future has the failure requested
-</span>36 <span style=''>      * @param executionContext the implicit execution context
-</span>37 <span style=''>      * @tparam A the type of failure that should be obtained
-</span>38 <span style=''>      * @return the future containing the result of the verification
-</span>39 <span style=''>      */
-</span>40 <span style=''>    def shouldFailWith[A &lt;: Exception: ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
-</span>41 <span style=''></span><span style='background: #F0ADAD'>      .transform {
-</span>42 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; Success(succeed)
-</span>43 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
-</span>44 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>45 <span style=''>
-</span>46 <span style=''>    /**
-</span>47 <span style=''>      * Asserts that the future succeed.
-</span>48 <span style=''>      * @param executionContext the implicit execution context
+</span>19 <span style=''>  /**
+</span>20 <span style=''>    * An exception thrown by FutureMatchers when failed
+</span>21 <span style=''>    */
+</span>22 <span style=''>  case object FutureTestingException extends Exception
+</span>23 <span style=''>
+</span>24 <span style=''>  /**
+</span>25 <span style=''>    * A class that enables to rapidly test futures
+</span>26 <span style=''>    *
+</span>27 <span style=''>    * @param future the future to test
+</span>28 <span style=''>    * @tparam T the type of future result
+</span>29 <span style=''>    */
+</span>30 <span style=''>  implicit class RichFutureTesting[T](future: Future[T]) extends Matchers {
+</span>31 <span style=''>
+</span>32 <span style=''>    /**
+</span>33 <span style=''>      * Asserts that the future has any sort of failure.
+</span>34 <span style=''>      *
+</span>35 <span style=''>      * @param executionContext the implicit execution context
+</span>36 <span style=''>      * @return the future containing the result of the verification
+</span>37 <span style=''>      */
+</span>38 <span style=''>    def shouldFail(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      .transform {
+</span>40 <span style=''></span><span style='background: #F0ADAD'>        case Failure(_) =&gt; Success(succeed)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>43 <span style=''>
+</span>44 <span style=''>    /**
+</span>45 <span style=''>      * Asserts that the future has the failure requested
+</span>46 <span style=''>      *
+</span>47 <span style=''>      * @param executionContext the implicit execution context
+</span>48 <span style=''>      * @tparam A the type of failure that should be obtained
 </span>49 <span style=''>      * @return the future containing the result of the verification
 </span>50 <span style=''>      */
-</span>51 <span style=''>    def shouldSucceed(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
-</span>52 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; succeed)</span><span style=''>
-</span>53 <span style=''>  }
-</span>54 <span style=''>}
+</span>51 <span style=''>    def shouldFailWith[A &lt;: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
+</span>52 <span style=''></span><span style='background: #F0ADAD'>      .transform {
+</span>53 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; Success(succeed)
+</span>54 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>56 <span style=''>
+</span>57 <span style=''>    /**
+</span>58 <span style=''>      * Asserts that the future succeed.
+</span>59 <span style=''>      *
+</span>60 <span style=''>      * @param executionContext the implicit execution context
+</span>61 <span style=''>      * @return the future containing the result of the verification
+</span>62 <span style=''>      */
+</span>63 <span style=''>    def shouldSucceed(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; succeed)</span><span style=''>
+</span>65 <span style=''>  }
+</span>66 <span style=''>
+</span>67 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -89,15 +102,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          29
+          39
         </td>
         <td>
           1
         </td>
         <td>
-          913
+          1141
           -
-          1040
+          1268
         </td>
         <td>
           ApplyToImplicitArgs
@@ -113,15 +126,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          52
         </td>
         <td>
           2
         </td>
         <td>
-          1426
+          1663
           -
-          1595
+          1832
         </td>
         <td>
           ApplyToImplicitArgs
@@ -137,15 +150,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          64
         </td>
         <td>
           3
         </td>
         <td>
-          1875
+          2120
           -
-          1906
+          2151
         </td>
         <td>
           ApplyToImplicitArgs

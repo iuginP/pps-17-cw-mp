@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/client/view/FXChecks.scala.html
+          src/main/scala/it/cwmp/client/view/FXInputChecks.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -24,42 +24,87 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
 </span>2 <span style=''>
-</span>3 <span style=''>import javafx.scene.control.{CheckBox, Spinner, TextField}
-</span>4 <span style=''>
-</span>5 <span style=''>trait FXChecks extends FXController with FXAlerts {
-</span>6 <span style=''>
-</span>7 <span style=''>  private val alertTitle = </span><span style='background: #F0ADAD'>&quot;Wrong input!&quot;</span><span style=''> // TODO parametrize
-</span>8 <span style=''>
-</span>9 <span style=''>  def getTextFieldValue(field: TextField): Option[String] =
-</span>10 <span style=''>    if (</span><span style='background: #F0ADAD'>field != null &amp;&amp; field.getText() != &quot;&quot;</span><span style=''>) </span><span style='background: #F0ADAD'>Some(field.getText)</span><span style=''>
-</span>11 <span style=''>    else </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>3 <span style=''>import it.cwmp.utils.Utils.emptyString
+</span>4 <span style=''>import javafx.scene.control.{CheckBox, Spinner, TextField}
+</span>5 <span style=''>
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * A trait describing common checks over view input
+</span>8 <span style=''>  */
+</span>9 <span style=''>trait FXInputChecks extends FXAlertsController {
+</span>10 <span style=''>
+</span>11 <span style=''>  private val WRONG_INPUT_ERROR = </span><span style='background: #F0ADAD'>&quot;Wrong input!&quot;</span><span style=''> // TODO parametrize
 </span>12 <span style=''>
-</span>13 <span style=''>  def getTextFieldValue(field: TextField, message: String): Option[String] =
-</span>14 <span style=''>    </span><span style='background: #F0ADAD'>getTextFieldValue(field)</span><span style=''> match {
-</span>15 <span style=''>      case s @ Some(_) =&gt; s
-</span>16 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(alertTitle, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>17 <span style=''>    }
-</span>18 <span style=''>
-</span>19 <span style=''>  def getSpinnerFieldValue[A](spinner: Spinner[A]): Option[A] =
-</span>20 <span style=''>    if (</span><span style='background: #F0ADAD'>spinner != null</span><span style=''>) </span><span style='background: #F0ADAD'>Some(spinner.getValue)</span><span style=''>
+</span>13 <span style=''>  /**
+</span>14 <span style=''>    * Gets a text field value
+</span>15 <span style=''>    *
+</span>16 <span style=''>    * @param field the field to get
+</span>17 <span style=''>    * @return optionally the text into field
+</span>18 <span style=''>    */
+</span>19 <span style=''>  def getTextFieldValue(field: TextField): Option[String] =
+</span>20 <span style=''>    if (</span><span style='background: #F0ADAD'>field != null &amp;&amp; !emptyString(field.getText)</span><span style=''>) </span><span style='background: #F0ADAD'>Some(field.getText)</span><span style=''>
 </span>21 <span style=''>    else </span><span style='background: #F0ADAD'>None</span><span style=''>
 </span>22 <span style=''>
-</span>23 <span style=''>  def getSpinnerFieldValue[A](spinner: Spinner[A], message: String): Option[A] =
-</span>24 <span style=''>    </span><span style='background: #F0ADAD'>getSpinnerFieldValue(spinner)</span><span style=''> match {
-</span>25 <span style=''>      case s @ Some(_) =&gt; s
-</span>26 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(alertTitle, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>27 <span style=''>    }
-</span>28 <span style=''>
-</span>29 <span style=''>  def getCheckedBoxValue(checkBox: CheckBox): Option[Boolean] =
-</span>30 <span style=''>    if (</span><span style='background: #F0ADAD'>checkBox != null</span><span style=''>) </span><span style='background: #F0ADAD'>Some(checkBox.isSelected)</span><span style=''>
-</span>31 <span style=''>    else </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>32 <span style=''>
-</span>33 <span style=''>  def getCheckedBoxValue(checkBox: CheckBox, message: String): Option[Boolean] =
-</span>34 <span style=''>    </span><span style='background: #F0ADAD'>getCheckedBoxValue(checkBox)</span><span style=''> match {
-</span>35 <span style=''>      case s @ Some(_) =&gt; s
-</span>36 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(alertTitle, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>37 <span style=''>    }
-</span>38 <span style=''>}
+</span>23 <span style=''>  /**
+</span>24 <span style=''>    * Gets a text field or show an error
+</span>25 <span style=''>    *
+</span>26 <span style=''>    * @param field   the field to get
+</span>27 <span style=''>    * @param message the message to show if field empty
+</span>28 <span style=''>    * @return optionally the field text
+</span>29 <span style=''>    */
+</span>30 <span style=''>  def getTextFieldValue(field: TextField, message: String): Option[String] =
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>getTextFieldValue(field)</span><span style=''> match {
+</span>32 <span style=''>      case s@Some(_) =&gt; s
+</span>33 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(WRONG_INPUT_ERROR, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>34 <span style=''>    }
+</span>35 <span style=''>
+</span>36 <span style=''>  /**
+</span>37 <span style=''>    * Gets the spinner value
+</span>38 <span style=''>    *
+</span>39 <span style=''>    * @param spinner the spinner on which to work
+</span>40 <span style=''>    * @tparam A the type of objects into spinner
+</span>41 <span style=''>    * @return optionally the spinner value
+</span>42 <span style=''>    */
+</span>43 <span style=''>  def getSpinnerFieldValue[A](spinner: Spinner[A]): Option[A] =
+</span>44 <span style=''>    if (</span><span style='background: #F0ADAD'>spinner != null</span><span style=''>) </span><span style='background: #F0ADAD'>Some(spinner.getValue)</span><span style=''>
+</span>45 <span style=''>    else </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>46 <span style=''>
+</span>47 <span style=''>  /**
+</span>48 <span style=''>    * Gets spinner value or shows an error
+</span>49 <span style=''>    *
+</span>50 <span style=''>    * @param spinner the spinner on which to work
+</span>51 <span style=''>    * @param message the message to show if value not present
+</span>52 <span style=''>    * @tparam A the type of spinner values
+</span>53 <span style=''>    * @return optionally the spinner value
+</span>54 <span style=''>    */
+</span>55 <span style=''>  def getSpinnerFieldValue[A](spinner: Spinner[A], message: String): Option[A] =
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>getSpinnerFieldValue(spinner)</span><span style=''> match {
+</span>57 <span style=''>      case s@Some(_) =&gt; s
+</span>58 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(WRONG_INPUT_ERROR, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>59 <span style=''>    }
+</span>60 <span style=''>
+</span>61 <span style=''>  /**
+</span>62 <span style=''>    * Gets the check box value
+</span>63 <span style=''>    *
+</span>64 <span style=''>    * @param checkBox the check box on which to work
+</span>65 <span style=''>    * @return optionally the checkbox value
+</span>66 <span style=''>    */
+</span>67 <span style=''>  def getCheckBoxValue(checkBox: CheckBox): Option[Boolean] =
+</span>68 <span style=''>    if (</span><span style='background: #F0ADAD'>checkBox != null</span><span style=''>) </span><span style='background: #F0ADAD'>Some(checkBox.isSelected)</span><span style=''>
+</span>69 <span style=''>    else </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>70 <span style=''>
+</span>71 <span style=''>  /**
+</span>72 <span style=''>    * Gets the checkbox value or show an error message
+</span>73 <span style=''>    *
+</span>74 <span style=''>    * @param checkBox the checkbox on which to work
+</span>75 <span style=''>    * @param message  the message to show on error
+</span>76 <span style=''>    * @return optionally the checkbox value
+</span>77 <span style=''>    */
+</span>78 <span style=''>  def getCheckedBoxValue(checkBox: CheckBox, message: String): Option[Boolean] =
+</span>79 <span style=''>    </span><span style='background: #F0ADAD'>getCheckBoxValue(checkBox)</span><span style=''> match {
+</span>80 <span style=''>      case s@Some(_) =&gt; s
+</span>81 <span style=''>      case None =&gt; </span><span style='background: #F0ADAD'>showError(WRONG_INPUT_ERROR, message)</span><span style=''>; </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>82 <span style=''>    }
+</span>83 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -73,15 +118,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          7
+          11
         </td>
         <td>
-          813
+          860
         </td>
         <td>
-          169
+          274
           -
-          183
+          288
         </td>
         <td>
           Literal
@@ -94,18 +139,60 @@
         </td>
       </tr><tr>
         <td>
-          10
+          20
         </td>
         <td>
-          819
+          864
         </td>
         <td>
-          313
+          508
           -
-          332
+          552
         </td>
         <td>
-          Block
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          field.!=(null).&amp;&amp;(it.cwmp.utils.Utils.emptyString(field.getText()).unary_!)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          863
+        </td>
+        <td>
+          525
+          -
+          552
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.emptyString(field.getText()).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          866
+        </td>
+        <td>
+          554
+          -
+          573
+        </td>
+        <td>
+          Apply
         </td>
         <td>
           scala.Some.apply
@@ -115,57 +202,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          20
         </td>
         <td>
-          815
+          862
         </td>
         <td>
-          290
+          538
           -
-          311
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #F0ADAD">
-          field.getText().!=(&quot;&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          818
-        </td>
-        <td>
-          313
-          -
-          332
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Some.apply[String](field.getText())
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          817
-        </td>
-        <td>
-          318
-          -
-          331
+          551
         </td>
         <td>
           Apply
@@ -178,15 +223,57 @@
         </td>
       </tr><tr>
         <td>
-          10
+          20
         </td>
         <td>
-          814
+          865
         </td>
         <td>
-          282
+          559
           -
-          286
+          572
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          field.getText()
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          867
+        </td>
+        <td>
+          554
+          -
+          573
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[String](field.getText())
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          861
+        </td>
+        <td>
+          517
+          -
+          521
         </td>
         <td>
           Literal
@@ -199,36 +286,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          21
         </td>
         <td>
-          816
+          869
         </td>
         <td>
-          273
+          583
           -
-          311
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Boolean.&amp;&amp;
-        </td>
-        <td style="background: #F0ADAD">
-          field.!=(null).&amp;&amp;(field.getText().!=(&quot;&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          821
-        </td>
-        <td>
-          342
-          -
-          346
+          587
         </td>
         <td>
           Block
@@ -241,15 +307,15 @@
         </td>
       </tr><tr>
         <td>
-          11
+          21
         </td>
         <td>
-          820
+          868
         </td>
         <td>
-          342
+          583
           -
-          346
+          587
         </td>
         <td>
           Select
@@ -262,57 +328,99 @@
         </td>
       </tr><tr>
         <td>
-          14
+          31
         </td>
         <td>
-          822
+          870
         </td>
         <td>
-          429
+          864
           -
-          453
+          888
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXChecks.getTextFieldValue
+          it.cwmp.client.view.FXInputChecks.getTextFieldValue
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.getTextFieldValue(field)
+          FXInputChecks.this.getTextFieldValue(field)
         </td>
       </tr><tr>
         <td>
-          16
+          33
         </td>
         <td>
-          824
+          873
         </td>
         <td>
-          509
+          942
           -
-          509
+          979
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError
+        </td>
+        <td style="background: #F0ADAD">
+          FXInputChecks.this.showError(FXInputChecks.this.WRONG_INPUT_ERROR, message, FXInputChecks.this.showError$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          872
+        </td>
+        <td>
+          942
+          -
+          942
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.FXAlerts.showError$default$3
+          it.cwmp.client.view.FXAlertsController.showError$default$3
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.showError$default$3
+          FXInputChecks.this.showError$default$3
         </td>
       </tr><tr>
         <td>
-          16
+          33
         </td>
         <td>
-          826
+          871
         </td>
         <td>
-          541
+          952
           -
-          545
+          969
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXInputChecks.WRONG_INPUT_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          FXInputChecks.this.WRONG_INPUT_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          874
+        </td>
+        <td>
+          981
+          -
+          985
         </td>
         <td>
           Select
@@ -325,99 +433,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          44
         </td>
         <td>
-          823
+          875
         </td>
         <td>
-          519
+          1255
           -
-          529
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.FXChecks.alertTitle
-        </td>
-        <td style="background: #F0ADAD">
-          FXChecks.this.alertTitle
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          825
-        </td>
-        <td>
-          509
-          -
-          539
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlerts.showError
-        </td>
-        <td style="background: #F0ADAD">
-          FXChecks.this.showError(FXChecks.this.alertTitle, message, FXChecks.this.showError$default$3)
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          828
-        </td>
-        <td>
-          647
-          -
-          663
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.control.Spinner.getValue
-        </td>
-        <td style="background: #F0ADAD">
-          spinner.getValue()
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          830
-        </td>
-        <td>
-          642
-          -
-          664
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Some.apply[A](spinner.getValue())
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          827
-        </td>
-        <td>
-          625
-          -
-          640
+          1270
         </td>
         <td>
           Apply
@@ -430,15 +454,36 @@
         </td>
       </tr><tr>
         <td>
-          20
+          44
         </td>
         <td>
-          829
+          878
         </td>
         <td>
-          642
+          1272
           -
-          664
+          1294
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[A](spinner.getValue())
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          877
+        </td>
+        <td>
+          1272
+          -
+          1294
         </td>
         <td>
           Apply
@@ -451,36 +496,36 @@
         </td>
       </tr><tr>
         <td>
-          21
+          44
         </td>
         <td>
-          831
+          876
         </td>
         <td>
-          674
+          1277
           -
-          678
+          1293
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          scala.None
+          javafx.scene.control.Spinner.getValue
         </td>
         <td style="background: #F0ADAD">
-          scala.None
+          spinner.getValue()
         </td>
       </tr><tr>
         <td>
-          21
+          45
         </td>
         <td>
-          832
+          880
         </td>
         <td>
-          674
+          1304
           -
-          678
+          1308
         </td>
         <td>
           Block
@@ -493,120 +538,141 @@
         </td>
       </tr><tr>
         <td>
-          24
+          45
         </td>
         <td>
-          833
+          879
         </td>
         <td>
-          765
+          1304
           -
-          794
+          1308
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          881
+        </td>
+        <td>
+          1655
+          -
+          1684
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXChecks.getSpinnerFieldValue
+          it.cwmp.client.view.FXInputChecks.getSpinnerFieldValue
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.getSpinnerFieldValue[A](spinner)
+          FXInputChecks.this.getSpinnerFieldValue[A](spinner)
         </td>
       </tr><tr>
         <td>
-          26
-        </td>
-        <td>
-          837
+          58
         </td>
         <td>
           882
+        </td>
+        <td>
+          1748
           -
-          886
+          1765
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.None
+          it.cwmp.client.view.FXInputChecks.WRONG_INPUT_ERROR
         </td>
         <td style="background: #F0ADAD">
-          scala.None
+          FXInputChecks.this.WRONG_INPUT_ERROR
         </td>
       </tr><tr>
         <td>
-          26
+          58
         </td>
         <td>
-          836
+          884
         </td>
         <td>
-          850
+          1738
           -
-          880
+          1775
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXAlerts.showError
+          it.cwmp.client.view.FXAlertsController.showError
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.showError(FXChecks.this.alertTitle, message, FXChecks.this.showError$default$3)
+          FXInputChecks.this.showError(FXInputChecks.this.WRONG_INPUT_ERROR, message, FXInputChecks.this.showError$default$3)
         </td>
       </tr><tr>
         <td>
-          26
+          58
         </td>
         <td>
-          835
+          883
         </td>
         <td>
-          850
+          1738
           -
-          850
+          1738
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.FXAlerts.showError$default$3
+          it.cwmp.client.view.FXAlertsController.showError$default$3
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.showError$default$3
+          FXInputChecks.this.showError$default$3
         </td>
       </tr><tr>
         <td>
-          26
+          58
         </td>
         <td>
-          834
+          885
         </td>
         <td>
-          860
+          1777
           -
-          870
+          1781
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.FXChecks.alertTitle
+          scala.None
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.alertTitle
+          scala.None
         </td>
       </tr><tr>
         <td>
-          30
+          68
         </td>
         <td>
-          839
+          887
         </td>
         <td>
-          989
+          2029
           -
-          1008
+          2048
         </td>
         <td>
           Apply
@@ -619,15 +685,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          68
         </td>
         <td>
-          838
+          886
         </td>
         <td>
-          966
+          2006
           -
-          982
+          2022
         </td>
         <td>
           Apply
@@ -640,15 +706,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          68
         </td>
         <td>
-          841
+          889
         </td>
         <td>
-          984
+          2024
           -
-          1009
+          2049
         </td>
         <td>
           Block
@@ -661,15 +727,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          68
         </td>
         <td>
-          840
+          888
         </td>
         <td>
-          984
+          2024
           -
-          1009
+          2049
         </td>
         <td>
           Apply
@@ -682,36 +748,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          69
         </td>
         <td>
-          842
+          891
         </td>
         <td>
-          1019
+          2059
           -
-          1023
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #F0ADAD">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          843
-        </td>
-        <td>
-          1019
-          -
-          1023
+          2063
         </td>
         <td>
           Block
@@ -724,57 +769,15 @@
         </td>
       </tr><tr>
         <td>
-          34
+          69
         </td>
         <td>
-          844
+          890
         </td>
         <td>
-          1110
+          2059
           -
-          1138
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.FXChecks.getCheckedBoxValue
-        </td>
-        <td style="background: #F0ADAD">
-          FXChecks.this.getCheckedBoxValue(checkBox)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          846
-        </td>
-        <td>
-          1194
-          -
-          1194
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlerts.showError$default$3
-        </td>
-        <td style="background: #F0ADAD">
-          FXChecks.this.showError$default$3
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          848
-        </td>
-        <td>
-          1226
-          -
-          1230
+          2063
         </td>
         <td>
           Select
@@ -787,45 +790,108 @@
         </td>
       </tr><tr>
         <td>
-          36
+          79
         </td>
         <td>
-          845
+          892
         </td>
         <td>
-          1204
+          2371
           -
-          1214
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.FXChecks.alertTitle
-        </td>
-        <td style="background: #F0ADAD">
-          FXChecks.this.alertTitle
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          847
-        </td>
-        <td>
-          1194
-          -
-          1224
+          2397
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXAlerts.showError
+          it.cwmp.client.view.FXInputChecks.getCheckBoxValue
         </td>
         <td style="background: #F0ADAD">
-          FXChecks.this.showError(FXChecks.this.alertTitle, message, FXChecks.this.showError$default$3)
+          FXInputChecks.this.getCheckBoxValue(checkBox)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          893
+        </td>
+        <td>
+          2461
+          -
+          2478
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXInputChecks.WRONG_INPUT_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          FXInputChecks.this.WRONG_INPUT_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          896
+        </td>
+        <td>
+          2490
+          -
+          2494
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          895
+        </td>
+        <td>
+          2451
+          -
+          2488
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError
+        </td>
+        <td style="background: #F0ADAD">
+          FXInputChecks.this.showError(FXInputChecks.this.WRONG_INPUT_ERROR, message, FXInputChecks.this.showError$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          894
+        </td>
+        <td>
+          2451
+          -
+          2451
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          FXInputChecks.this.showError$default$3
         </td>
       </tr>
     </table>

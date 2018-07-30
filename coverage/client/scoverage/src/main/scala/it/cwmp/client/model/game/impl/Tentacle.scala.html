@@ -25,9 +25,9 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game.impl
 </span>2 <span style=''>
 </span>3 <span style=''>import java.time.{Duration, Instant}
-</span>4 <span style=''>import java.util.Objects._
+</span>4 <span style=''>import java.util.Objects.requireNonNull
 </span>5 <span style=''>
-</span>6 <span style=''>import it.cwmp.client.controller.game.GameConstants._
+</span>6 <span style=''>import it.cwmp.client.controller.game.GameConstants.MILLIS_TO_MOVEMENT_CONVERSION_RATE
 </span>7 <span style=''>import it.cwmp.client.model.game.{Attack, SizingStrategy}
 </span>8 <span style=''>
 </span>9 <span style=''>/**
@@ -144,12 +144,33 @@
           22
         </td>
         <td>
-          735
+          753
         </td>
         <td>
-          634
+          695
           -
-          684
+          699
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          Tentacle.this.from
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          755
+        </td>
+        <td>
+          680
+          -
+          730
         </td>
         <td>
           Apply
@@ -165,12 +186,12 @@
           22
         </td>
         <td>
-          734
+          754
         </td>
         <td>
-          655
+          701
           -
-          683
+          729
         </td>
         <td>
           Literal
@@ -183,36 +204,36 @@
         </td>
       </tr><tr>
         <td>
-          22
+          23
         </td>
         <td>
-          733
+          756
         </td>
         <td>
-          649
+          748
           -
-          653
+          750
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
+          it.cwmp.client.model.game.impl.Tentacle.to
         </td>
         <td style="background: #AEF1AE">
-          Tentacle.this.from
+          Tentacle.this.to
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          738
+          758
         </td>
         <td>
-          687
-          -
           733
+          -
+          779
         </td>
         <td>
           Apply
@@ -228,12 +249,12 @@
           23
         </td>
         <td>
-          737
+          757
         </td>
         <td>
-          706
+          752
           -
-          732
+          778
         </td>
         <td>
           Literal
@@ -246,36 +267,36 @@
         </td>
       </tr><tr>
         <td>
-          23
+          24
         </td>
         <td>
-          736
+          759
         </td>
         <td>
-          702
+          797
           -
-          704
+          810
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.to
+          it.cwmp.client.model.game.impl.Tentacle.launchInstant
         </td>
         <td style="background: #AEF1AE">
-          Tentacle.this.to
+          Tentacle.this.launchInstant
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          741
+          761
         </td>
         <td>
-          736
+          782
           -
-          800
+          846
         </td>
         <td>
           Apply
@@ -291,12 +312,12 @@
           24
         </td>
         <td>
-          740
+          760
         </td>
         <td>
-          766
+          812
           -
-          799
+          845
         </td>
         <td>
           Literal
@@ -309,78 +330,36 @@
         </td>
       </tr><tr>
         <td>
-          24
-        </td>
-        <td>
-          739
-        </td>
-        <td>
-          751
-          -
-          764
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.launchInstant
-        </td>
-        <td style="background: #AEF1AE">
-          Tentacle.this.launchInstant
-        </td>
-      </tr><tr>
-        <td>
           25
         </td>
         <td>
-          744
+          765
         </td>
         <td>
-          823
+          849
           -
-          876
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;A tentacle cannot be launched from and to same cell&quot;
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          743
-        </td>
-        <td>
-          811
-          -
-          821
+          923
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.!=
+          scala.Predef.require
         </td>
         <td style="background: #AEF1AE">
-          Tentacle.this.from.!=(Tentacle.this.to)
+          scala.Predef.require(Tentacle.this.from.!=(Tentacle.this.to), &quot;A tentacle cannot be launched from and to same cell&quot;)
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          742
+          762
         </td>
         <td>
-          819
+          865
           -
-          821
+          867
         </td>
         <td>
           Select
@@ -396,33 +375,54 @@
           25
         </td>
         <td>
-          745
+          764
         </td>
         <td>
-          803
+          869
           -
-          877
+          922
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;A tentacle cannot be launched from and to same cell&quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          763
+        </td>
+        <td>
+          857
+          -
+          867
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Predef.require
+          java.lang.Object.!=
         </td>
         <td style="background: #AEF1AE">
-          scala.Predef.require(Tentacle.this.from.!=(Tentacle.this.to), &quot;A tentacle cannot be launched from and to same cell&quot;)
+          Tentacle.this.from.!=(Tentacle.this.to)
         </td>
       </tr><tr>
         <td>
           39
         </td>
         <td>
-          747
+          767
         </td>
         <td>
-          1254
+          1300
           -
-          1311
+          1357
         </td>
         <td>
           Apply
@@ -438,12 +438,12 @@
           39
         </td>
         <td>
-          746
+          766
         </td>
         <td>
-          1277
+          1323
           -
-          1311
+          1357
         </td>
         <td>
           Select
@@ -459,12 +459,33 @@
           48
         </td>
         <td>
-          750
+          768
         </td>
         <td>
-          1526
+          1586
           -
-          1567
+          1599
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          TentacleManipulation.this.tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          770
+        </td>
+        <td>
+          1572
+          -
+          1613
         </td>
         <td>
           Apply
@@ -480,12 +501,12 @@
           48
         </td>
         <td>
-          749
+          769
         </td>
         <td>
-          1555
+          1601
           -
-          1566
+          1612
         </td>
         <td>
           Select
@@ -498,36 +519,15 @@
         </td>
       </tr><tr>
         <td>
-          48
-        </td>
-        <td>
-          748
-        </td>
-        <td>
-          1540
-          -
-          1553
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.from
-        </td>
-      </tr><tr>
-        <td>
           59
         </td>
         <td>
-          751
+          771
         </td>
         <td>
-          2062
+          2108
           -
-          2134
+          2180
         </td>
         <td>
           Apply
@@ -543,12 +543,33 @@
           61
         </td>
         <td>
-          753
+          774
         </td>
         <td>
-          2194
+          2219
           -
-          2249
+          2296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          timeToLengthStrategy.apply(java.time.Duration.between(TentacleManipulation.this.tentacle.launchInstant, actualInstant))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          773
+        </td>
+        <td>
+          2240
+          -
+          2295
         </td>
         <td>
           Apply
@@ -564,12 +585,12 @@
           61
         </td>
         <td>
-          752
+          772
         </td>
         <td>
-          2211
+          2257
           -
-          2233
+          2279
         </td>
         <td>
           Select
@@ -582,57 +603,36 @@
         </td>
       </tr><tr>
         <td>
-          61
+          62
         </td>
         <td>
-          754
+          777
         </td>
         <td>
-          2173
+          2356
           -
-          2250
+          2376
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.Function1.apply
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.distanceBetweenCells
         </td>
         <td style="background: #AEF1AE">
-          timeToLengthStrategy.apply(java.time.Duration.between(TentacleManipulation.this.tentacle.launchInstant, actualInstant))
+          TentacleManipulation.this.distanceBetweenCells
         </td>
       </tr><tr>
         <td>
           62
         </td>
         <td>
-          756
+          779
         </td>
         <td>
-          2261
+          2382
           -
-          2308
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Long.&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          tentacleShouldHaveLength.&gt;(TentacleManipulation.this.distanceBetweenCells)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          759
-        </td>
-        <td>
-          2336
-          -
-          2360
+          2406
         </td>
         <td>
           Ident
@@ -648,12 +648,33 @@
           62
         </td>
         <td>
-          755
+          776
         </td>
         <td>
-          2288
+          2307
           -
-          2308
+          2354
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          tentacleShouldHaveLength.&gt;(TentacleManipulation.this.distanceBetweenCells)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          775
+        </td>
+        <td>
+          2334
+          -
+          2354
         </td>
         <td>
           Select
@@ -669,12 +690,12 @@
           62
         </td>
         <td>
-          758
+          778
         </td>
         <td>
-          2310
+          2356
           -
-          2330
+          2376
         </td>
         <td>
           Block
@@ -687,36 +708,15 @@
         </td>
       </tr><tr>
         <td>
-          62
-        </td>
-        <td>
-          757
-        </td>
-        <td>
-          2310
-          -
-          2330
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.distanceBetweenCells
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.distanceBetweenCells
-        </td>
-      </tr><tr>
-        <td>
           77
         </td>
         <td>
-          760
+          780
         </td>
         <td>
-          3074
+          3120
           -
-          3099
+          3145
         </td>
         <td>
           Apply
@@ -732,12 +732,12 @@
           79
         </td>
         <td>
-          761
+          781
         </td>
         <td>
-          3107
+          3153
           -
-          3179
+          3225
         </td>
         <td>
           Apply
@@ -753,33 +753,54 @@
           81
         </td>
         <td>
-          765
+          783
         </td>
         <td>
-          3191
+          3266
           -
-          3279
+          3277
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.Long.==
+          it.cwmp.client.model.game.impl.Tentacle.to
         </td>
         <td style="background: #AEF1AE">
-          Cell.distance(TentacleManipulation.this.tentacle.from, TentacleManipulation.this.tentacle.to).==(TentacleManipulation.this.length(actualInstant, timeToLengthStrategy))
+          TentacleManipulation.this.tentacle.to
         </td>
       </tr><tr>
         <td>
           81
         </td>
         <td>
-          774
+          782
         </td>
         <td>
-          3281
+          3251
           -
-          3700
+          3264
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          TentacleManipulation.this.tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          794
+        </td>
+        <td>
+          3327
+          -
+          3746
         </td>
         <td>
           Block
@@ -801,33 +822,33 @@
           81
         </td>
         <td>
-          762
+          785
         </td>
         <td>
-          3205
+          3237
           -
-          3218
+          3325
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
+          scala.Long.==
         </td>
         <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.from
+          Cell.distance(TentacleManipulation.this.tentacle.from, TentacleManipulation.this.tentacle.to).==(TentacleManipulation.this.length(actualInstant, timeToLengthStrategy))
         </td>
       </tr><tr>
         <td>
           81
         </td>
         <td>
-          764
+          784
         </td>
         <td>
-          3236
+          3282
           -
-          3279
+          3325
         </td>
         <td>
           Apply
@@ -840,57 +861,15 @@
         </td>
       </tr><tr>
         <td>
-          81
-        </td>
-        <td>
-          763
-        </td>
-        <td>
-          3220
-          -
-          3231
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.to
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.to
-        </td>
-      </tr><tr>
-        <td>
           82
         </td>
         <td>
-          767
+          786
         </td>
         <td>
-          3316
+          3379
           -
-          3371
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.Duration.between
-        </td>
-        <td style="background: #AEF1AE">
-          java.time.Duration.between(TentacleManipulation.this.tentacle.launchInstant, actualInstant)
-        </td>
-      </tr><tr>
-        <td>
-          82
-        </td>
-        <td>
-          766
-        </td>
-        <td>
-          3333
-          -
-          3355
+          3401
         </td>
         <td>
           Select
@@ -903,15 +882,36 @@
         </td>
       </tr><tr>
         <td>
+          82
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          3362
+          -
+          3417
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Duration.between
+        </td>
+        <td style="background: #AEF1AE">
+          java.time.Duration.between(TentacleManipulation.this.tentacle.launchInstant, actualInstant)
+        </td>
+      </tr><tr>
+        <td>
           83
         </td>
         <td>
-          768
+          788
         </td>
         <td>
-          3411
+          3457
           -
-          3451
+          3497
         </td>
         <td>
           Apply
@@ -927,12 +927,12 @@
           84
         </td>
         <td>
-          769
+          789
         </td>
         <td>
-          3485
+          3531
           -
-          3549
+          3595
         </td>
         <td>
           Apply
@@ -948,12 +948,12 @@
           86
         </td>
         <td>
-          771
+          791
         </td>
         <td>
-          3581
+          3627
           -
-          3628
+          3674
         </td>
         <td>
           Apply
@@ -969,12 +969,12 @@
           86
         </td>
         <td>
-          770
+          790
         </td>
         <td>
-          3608
+          3654
           -
-          3628
+          3674
         </td>
         <td>
           Select
@@ -990,33 +990,12 @@
           87
         </td>
         <td>
-          773
+          792
         </td>
         <td>
-          3637
+          3701
           -
-          3692
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.Duration.ofMillis
-        </td>
-        <td style="background: #AEF1AE">
-          java.time.Duration.ofMillis(exceedingLength.*(timeToLengthFactor))
-        </td>
-      </tr><tr>
-        <td>
-          87
-        </td>
-        <td>
-          772
-        </td>
-        <td>
-          3655
-          -
-          3691
+          3737
         </td>
         <td>
           Apply
@@ -1029,36 +1008,36 @@
         </td>
       </tr><tr>
         <td>
-          88
+          87
         </td>
         <td>
-          776
+          793
         </td>
         <td>
-          3706
+          3683
           -
-          3719
+          3738
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
-          java.time.Duration.ZERO
+          java.time.Duration.ofMillis
         </td>
         <td style="background: #AEF1AE">
-          java.time.Duration.ZERO
+          java.time.Duration.ofMillis(exceedingLength.*(timeToLengthFactor))
         </td>
       </tr><tr>
         <td>
           88
         </td>
         <td>
-          775
+          795
         </td>
         <td>
-          3706
+          3752
           -
-          3719
+          3765
         </td>
         <td>
           Select
@@ -1071,15 +1050,36 @@
         </td>
       </tr><tr>
         <td>
+          88
+        </td>
+        <td>
+          796
+        </td>
+        <td>
+          3752
+          -
+          3765
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          java.time.Duration.ZERO
+        </td>
+        <td style="background: #AEF1AE">
+          java.time.Duration.ZERO
+        </td>
+      </tr><tr>
+        <td>
           95
         </td>
         <td>
-          777
+          797
         </td>
         <td>
-          3956
+          4002
           -
-          4022
+          4068
         </td>
         <td>
           Apply
@@ -1095,12 +1095,12 @@
           96
         </td>
         <td>
-          778
+          798
         </td>
         <td>
-          4029
+          4075
           -
-          4087
+          4133
         </td>
         <td>
           Apply
@@ -1116,54 +1116,12 @@
           97
         </td>
         <td>
-          779
+          801
         </td>
         <td>
-          4126
+          4197
           -
-          4148
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.launchInstant
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.launchInstant
-        </td>
-      </tr><tr>
-        <td>
-          97
-        </td>
-        <td>
-          782
-        </td>
-        <td>
-          4094
-          -
-          4201
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.require
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.require(actualInstant.isBefore(TentacleManipulation.this.tentacle.launchInstant).unary_!, &quot;Actual instant cannot be before tentacle launch&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          97
-        </td>
-        <td>
-          781
-        </td>
-        <td>
-          4151
-          -
-          4200
+          4246
         </td>
         <td>
           Literal
@@ -1179,12 +1137,12 @@
           97
         </td>
         <td>
-          780
+          800
         </td>
         <td>
-          4102
+          4148
           -
-          4149
+          4195
         </td>
         <td>
           Select
@@ -1197,15 +1155,36 @@
         </td>
       </tr><tr>
         <td>
-          104
+          97
         </td>
         <td>
-          783
+          802
         </td>
         <td>
-          4386
+          4140
           -
-          4401
+          4247
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(actualInstant.isBefore(TentacleManipulation.this.tentacle.launchInstant).unary_!, &quot;Actual instant cannot be before tentacle launch&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          799
+        </td>
+        <td>
+          4172
+          -
+          4194
         </td>
         <td>
           Select
@@ -1214,19 +1193,19 @@
           it.cwmp.client.model.game.impl.Tentacle.launchInstant
         </td>
         <td style="background: #AEF1AE">
-          y.launchInstant
+          TentacleManipulation.this.tentacle.launchInstant
         </td>
       </tr><tr>
         <td>
           104
         </td>
         <td>
-          784
+          804
         </td>
         <td>
-          4360
+          4406
           -
-          4402
+          4448
         </td>
         <td>
           Apply
@@ -1236,6 +1215,27 @@
         </td>
         <td style="background: #AEF1AE">
           x.launchInstant.compareTo(y.launchInstant)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          803
+        </td>
+        <td>
+          4432
+          -
+          4447
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.launchInstant
+        </td>
+        <td style="background: #AEF1AE">
+          y.launchInstant
         </td>
       </tr>
     </table>

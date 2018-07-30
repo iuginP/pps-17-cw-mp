@@ -49,26 +49,31 @@
 </span>25 <span style=''>    /**
 </span>26 <span style=''>      * Asserts that the future succeed (the response is returned) and that the server responded with the
 </span>27 <span style=''>      * specified status code.
-</span>28 <span style=''>      * @param statusCode the status code that the server should return
-</span>29 <span style=''>      * @param executionContext the implicit execution context
-</span>30 <span style=''>      * @return the future containing the result of the verification
-</span>31 <span style=''>      */
-</span>32 <span style=''>    def shouldAnswerWith(statusCode: Int)(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>toCheck
-</span>33 <span style=''></span><span style='background: #F0ADAD'>      .map(_.statusCode() shouldBe statusCode)</span><span style=''>
-</span>34 <span style=''>
-</span>35 <span style=''>    /**
-</span>36 <span style=''>      * Asserts that the future succeed (the response is returned) and that the server responded with the
-</span>37 <span style=''>      * specified status code and that the body respects the rule specified in the strategy.
-</span>38 <span style=''>      * @param statusCode the status code that the server should return
-</span>39 <span style=''>      * @param strategy the strategy that should be used to validate the body
-</span>40 <span style=''>      * @param executionContext the implicit execution context
-</span>41 <span style=''>      * @return the future containing the result of the verification
-</span>42 <span style=''>      */
-</span>43 <span style=''>    def shouldAnswerWith(statusCode: Int, strategy: Option[String] =&gt; Boolean)(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>toCheck
-</span>44 <span style=''></span><span style='background: #F0ADAD'>      .map(response =&gt; assert(response.statusCode() == statusCode &amp;&amp; strategy(response.bodyAsString())))</span><span style=''>
-</span>45 <span style=''>
-</span>46 <span style=''>  }
-</span>47 <span style=''>}
+</span>28 <span style=''>      *
+</span>29 <span style=''>      * @param statusCode       the status code that the server should return
+</span>30 <span style=''>      * @param executionContext the implicit execution context
+</span>31 <span style=''>      * @return the future containing the result of the verification
+</span>32 <span style=''>      */
+</span>33 <span style=''>    def shouldAnswerWith(statusCode: Int)
+</span>34 <span style=''>                        (implicit executionContext: ExecutionContext): Future[Assertion] =
+</span>35 <span style=''>      </span><span style='background: #F0ADAD'>toCheck.map(_.statusCode() shouldBe statusCode)</span><span style=''>
+</span>36 <span style=''>
+</span>37 <span style=''>    /**
+</span>38 <span style=''>      * Asserts that the future succeed (the response is returned) and that the server responded with the
+</span>39 <span style=''>      * specified status code and that the body respects the rule specified in the strategy.
+</span>40 <span style=''>      *
+</span>41 <span style=''>      * @param statusCode       the status code that the server should return
+</span>42 <span style=''>      * @param strategy         the strategy that should be used to validate the body
+</span>43 <span style=''>      * @param executionContext the implicit execution context
+</span>44 <span style=''>      * @return the future containing the result of the verification
+</span>45 <span style=''>      */
+</span>46 <span style=''>    def shouldAnswerWith(statusCode: Int, strategy: Option[String] =&gt; Boolean)
+</span>47 <span style=''>                        (implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>toCheck
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      .map(response =&gt; assert(response.statusCode() == statusCode &amp;&amp; strategy(response.bodyAsString())))</span><span style=''>
+</span>49 <span style=''>
+</span>50 <span style=''>  }
+</span>51 <span style=''>
+</span>52 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -82,15 +87,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          33
+          35
         </td>
         <td>
           4
         </td>
         <td>
-          1102
+          1147
           -
-          1156
+          1194
         </td>
         <td>
           ApplyToImplicitArgs
@@ -99,19 +104,19 @@
           scala.concurrent.Future.map
         </td>
         <td style="background: #F0ADAD">
-          VertxHttpResponseChecking.this.toCheck.map[org.scalatest.Assertion](((x$1: io.vertx.scala.ext.web.client.HttpResponse[T]) =&gt; HttpMatchers.this.convertToAnyShouldWrapper[Int](x$1.statusCode())(org.scalactic.source.Position.apply(&quot;HttpMatchers.scala&quot;, &quot;Please set the environment variable SCALACTIC_FILL_FILE_PATHNAMES to yes at compile time to enable this feature.&quot;, 33), scalactic.this.Prettifier.default).shouldBe(statusCode)))(executionContext)
+          VertxHttpResponseChecking.this.toCheck.map[org.scalatest.Assertion](((x$1: io.vertx.scala.ext.web.client.HttpResponse[T]) =&gt; HttpMatchers.this.convertToAnyShouldWrapper[Int](x$1.statusCode())(org.scalactic.source.Position.apply(&quot;HttpMatchers.scala&quot;, &quot;Please set the environment variable SCALACTIC_FILL_FILE_PATHNAMES to yes at compile time to enable this feature.&quot;, 35), scalactic.this.Prettifier.default).shouldBe(statusCode)))(executionContext)
         </td>
       </tr><tr>
         <td>
-          44
+          48
         </td>
         <td>
           5
         </td>
         <td>
-          1801
+          1886
           -
-          1913
+          1998
         </td>
         <td>
           ApplyToImplicitArgs
@@ -133,7 +138,7 @@
       org.scalactic.Bool.simpleMacroBool(false, &quot;&quot;, scalactic.this.Prettifier.default);
     org.scalactic.Bool.binaryMacroBool($org_scalatest_assert_macro_left, &quot;&amp;&amp;&quot;, $org_scalatest_assert_macro_right, $org_scalatest_assert_macro_left.&amp;&amp;($org_scalatest_assert_macro_right), scalactic.this.Prettifier.default)
   };
-  HttpMatchers.this.assertionsHelper.macroAssert($org_scalatest_assert_macro_expr, &quot;&quot;, scalactic.this.Prettifier.default, org.scalactic.source.Position.apply(&quot;HttpMatchers.scala&quot;, &quot;Please set the environment variable SCALACTIC_FILL_FILE_PATHNAMES to yes at compile time to enable this feature.&quot;, 44))
+  HttpMatchers.this.assertionsHelper.macroAssert($org_scalatest_assert_macro_expr, &quot;&quot;, scalactic.this.Prettifier.default, org.scalactic.source.Position.apply(&quot;HttpMatchers.scala&quot;, &quot;Please set the environment variable SCALACTIC_FILL_FILE_PATHNAMES to yes at compile time to enable this feature.&quot;, 48))
 }))(executionContext)
         </td>
       </tr>

@@ -1,0 +1,2673 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/authentication/AuthenticationLocalDAO.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.services.authentication.AuthenticationLocalDAO._
+</span>4 <span style=''>import it.cwmp.utils.VertxJDBC.stringsToJsonArray
+</span>5 <span style=''>import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
+</span>6 <span style=''>
+</span>7 <span style=''>import scala.concurrent._
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * Trait che descrive l' Authentication Data Access Object
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Davide Borficchia
+</span>13 <span style=''>  */
+</span>14 <span style=''>trait AuthenticationDAO {
+</span>15 <span style=''>  /**
+</span>16 <span style=''>    * Registra un nuovo utente all'interno dello storage
+</span>17 <span style=''>    *
+</span>18 <span style=''>    * @param username username del nuovo utente
+</span>19 <span style=''>    * @param password password del nuovo utente
+</span>20 <span style=''>    * @return ritorna un Future vuoto
+</span>21 <span style=''>    */
+</span>22 <span style=''>  def signUpFuture(username: String, password: String): Future[Unit]
+</span>23 <span style=''>
+</span>24 <span style=''>  /**
+</span>25 <span style=''>    * Fa sloggare un utente che ha precedentemente fatto login
+</span>26 <span style=''>    *
+</span>27 <span style=''>    * @param username username dell'utente che si vuole fare sloggare
+</span>28 <span style=''>    * @return ritorna un Future vuoto
+</span>29 <span style=''>    */
+</span>30 <span style=''>  def signOutFuture(username: String): Future[Unit]
+</span>31 <span style=''>
+</span>32 <span style=''>  /**
+</span>33 <span style=''>    * Permette di far loggare un utente precedentemente registrato nel sistema
+</span>34 <span style=''>    *
+</span>35 <span style=''>    * @param username username dell'utente
+</span>36 <span style=''>    * @param password password dell'utente
+</span>37 <span style=''>    * @return ritorna un Future vuoto
+</span>38 <span style=''>    */
+</span>39 <span style=''>  def loginFuture(username: String, password: String): Future[Unit]
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * controlla se un utente è presente nel sistema
+</span>43 <span style=''>    *
+</span>44 <span style=''>    * @param username utente da controllare
+</span>45 <span style=''>    * @return ritorna un Future vuoto
+</span>46 <span style=''>    */
+</span>47 <span style=''>  def existsFuture(username: String): Future[Unit]
+</span>48 <span style=''>}
+</span>49 <span style=''>
+</span>50 <span style=''>/**
+</span>51 <span style=''>  * Wrapper per accedere allo storage Vertex locale per l'autenticazione
+</span>52 <span style=''>  *
+</span>53 <span style=''>  * @author Davide Borficchia
+</span>54 <span style=''>  */
+</span>55 <span style=''>case class AuthenticationLocalDAO(override val configurationPath: String = &quot;authentication/database.json&quot;)
+</span>56 <span style=''>  extends AuthenticationDAO with VertxInstance with VertxJDBC with Logging {
+</span>57 <span style=''>
+</span>58 <span style=''>  private var notInitialized = </span><span style='background: #AEF1AE'>true</span><span style=''>
+</span>59 <span style=''>
+</span>60 <span style=''>  def initialize(): Future[Unit] = {
+</span>61 <span style=''>    log.info(&quot;Initializing RoomLocalDAO...&quot;)
+</span>62 <span style=''>    (</span><span style='background: #AEF1AE'>for (
+</span>63 <span style=''></span><span style='background: #AEF1AE'>      connection &lt;- openConnection();
+</span>64 <span style=''></span><span style='background: #AEF1AE'>      _ &lt;- connection.executeFuture(createStorageTableSql)
+</span>65 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>66 <span style=''></span><span style='background: #AEF1AE'>      notInitialized = false
+</span>67 <span style=''></span><span style='background: #AEF1AE'>    }).closeConnections</span><span style=''>
+</span>68 <span style=''>  }
+</span>69 <span style=''>
+</span>70 <span style=''>  override def signUpFuture(usernameP: String, passwordP: String): Future[Unit] = {
+</span>71 <span style=''>    log.debug(s&quot;signup() username:$usernameP, password:$passwordP&quot;)
+</span>72 <span style=''>    (</span><span style='background: #AEF1AE'>for (
+</span>73 <span style=''></span><span style='background: #AEF1AE'>      // Controllo l'input
+</span>74 <span style=''></span><span style='background: #AEF1AE'>      username &lt;- Option(usernameP) if username.nonEmpty;
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      password &lt;- Option(passwordP) if password.nonEmpty
+</span>76 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>77 <span style=''></span><span style='background: #AEF1AE'>      (for (
+</span>78 <span style=''></span><span style='background: #AEF1AE'>        // Eseguo operazioni sul db in maniera sequenziale
+</span>79 <span style=''></span><span style='background: #AEF1AE'>        _ &lt;- checkInitialization(notInitialized);
+</span>80 <span style=''></span><span style='background: #AEF1AE'>        connection &lt;- openConnection();
+</span>81 <span style=''></span><span style='background: #AEF1AE'>        _ &lt;- connection.updateWithParamsFuture(
+</span>82 <span style=''></span><span style='background: #AEF1AE'>          insertNewUserSql, Seq(username, password, &quot;SALT&quot;))
+</span>83 <span style=''></span><span style='background: #AEF1AE'>      ) yield ()).closeConnections
+</span>84 <span style=''></span><span style='background: #AEF1AE'>    }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>85 <span style=''>  }
+</span>86 <span style=''>
+</span>87 <span style=''>  override def signOutFuture(usernameP: String): Future[Unit] = {
+</span>88 <span style=''>    log.debug(s&quot;signoutFuture() username:$usernameP&quot;)
+</span>89 <span style=''>    (</span><span style='background: #AEF1AE'>for (
+</span>90 <span style=''></span><span style='background: #AEF1AE'>      // Controllo l'input
+</span>91 <span style=''></span><span style='background: #AEF1AE'>      username &lt;- Option(usernameP) if username.nonEmpty
+</span>92 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>93 <span style=''></span><span style='background: #AEF1AE'>      (for (
+</span>94 <span style=''></span><span style='background: #AEF1AE'>        // Eseguo operazioni sul db in maniera sequenziale
+</span>95 <span style=''></span><span style='background: #AEF1AE'>        _ &lt;- checkInitialization(notInitialized);
+</span>96 <span style=''></span><span style='background: #AEF1AE'>        connection &lt;- openConnection();
+</span>97 <span style=''></span><span style='background: #AEF1AE'>        result &lt;- connection.updateWithParamsFuture(signOutUserSql, Seq(username)) if result.getUpdated &gt; 0
+</span>98 <span style=''></span><span style='background: #AEF1AE'>      ) yield ()).closeConnections
+</span>99 <span style=''></span><span style='background: #AEF1AE'>    }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>100 <span style=''>  }
+</span>101 <span style=''>
+</span>102 <span style=''>  override def loginFuture(usernameP: String, passwordP: String): Future[Unit] = {
+</span>103 <span style=''>    log.debug(s&quot;loginFuture() username:$usernameP, password:$passwordP&quot;)
+</span>104 <span style=''>    (</span><span style='background: #AEF1AE'>for (
+</span>105 <span style=''></span><span style='background: #AEF1AE'>      // Controllo l'input
+</span>106 <span style=''></span><span style='background: #AEF1AE'>      username &lt;- Option(usernameP) if username.nonEmpty;
+</span>107 <span style=''></span><span style='background: #AEF1AE'>      password &lt;- Option(passwordP) if password.nonEmpty
+</span>108 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>109 <span style=''></span><span style='background: #AEF1AE'>      (for (
+</span>110 <span style=''></span><span style='background: #AEF1AE'>        // Eseguo operazioni sul db in maniera sequenziale
+</span>111 <span style=''></span><span style='background: #AEF1AE'>        _ &lt;- checkInitialization(notInitialized);
+</span>112 <span style=''></span><span style='background: #AEF1AE'>        connection &lt;- openConnection();
+</span>113 <span style=''></span><span style='background: #AEF1AE'>        result &lt;- connection.queryWithParamsFuture(loginUserSql, Seq(username, password)) if result.getResults.nonEmpty
+</span>114 <span style=''></span><span style='background: #AEF1AE'>      ) yield ()).closeConnections
+</span>115 <span style=''></span><span style='background: #AEF1AE'>    }).getOrElse(Future.failed(new IllegalArgumentException()))</span><span style=''>
+</span>116 <span style=''>  }
+</span>117 <span style=''>
+</span>118 <span style=''>  override def existsFuture(usernameP: String): Future[Unit] = {
+</span>119 <span style=''>    log.debug(s&quot;existsFuture() username:$usernameP&quot;)
+</span>120 <span style=''>    (</span><span style='background: #AEF1AE'>for (
+</span>121 <span style=''></span><span style='background: #AEF1AE'>      // Controllo l'input
+</span>122 <span style=''></span><span style='background: #AEF1AE'>      username &lt;- Option(usernameP) if username.nonEmpty
+</span>123 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>124 <span style=''></span><span style='background: #AEF1AE'>      (for (
+</span>125 <span style=''></span><span style='background: #AEF1AE'>        // Eseguo operazioni sul db in maniera sequenziale
+</span>126 <span style=''></span><span style='background: #AEF1AE'>        _ &lt;- checkInitialization(notInitialized);
+</span>127 <span style=''></span><span style='background: #AEF1AE'>        connection &lt;- openConnection();
+</span>128 <span style=''></span><span style='background: #AEF1AE'>        result &lt;- connection.queryWithParamsFuture(existFutureUserSql, Seq(username)) if result.getResults.nonEmpty
+</span>129 <span style=''></span><span style='background: #AEF1AE'>      ) yield ()).closeConnections
+</span>130 <span style=''></span><span style='background: #AEF1AE'>    }).getOrElse(</span><span style='background: #F0ADAD'>Future.failed(new IllegalArgumentException())</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>131 <span style=''>  }
+</span>132 <span style=''>}
+</span>133 <span style=''>
+</span>134 <span style=''>/**
+</span>135 <span style=''>  * Companion Object
+</span>136 <span style=''>  */
+</span>137 <span style=''>object AuthenticationLocalDAO {
+</span>138 <span style=''>
+</span>139 <span style=''>  private val FIELD_AUTH_USERNAME = </span><span style='background: #AEF1AE'>&quot;auth_username&quot;</span><span style=''>
+</span>140 <span style=''>  private val FIELD_AUTH_PASSWORD = </span><span style='background: #AEF1AE'>&quot;auth_password&quot;</span><span style=''>
+</span>141 <span style=''>  private val FIELD_AUTH_SALT = </span><span style='background: #AEF1AE'>&quot;auth_salt&quot;</span><span style=''>
+</span>142 <span style=''>
+</span>143 <span style=''>  /**
+</span>144 <span style=''>    * Utility method per controlloare se il DAO è stato inizializzato
+</span>145 <span style=''>    */
+</span>146 <span style=''>  private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
+</span>147 <span style=''>    if (notInitialized) </span><span style='background: #AEF1AE'>Future.failed(new IllegalStateException(&quot;Not initialized, you should first call initialize()&quot;))</span><span style=''>
+</span>148 <span style=''>    else </span><span style='background: #AEF1AE'>Future.successful(())</span><span style=''>
+</span>149 <span style=''>  }
+</span>150 <span style=''>
+</span>151 <span style=''>  private val createStorageTableSql =
+</span>152 <span style=''>    </span><span style='background: #AEF1AE'>s&quot;&quot;&quot;
+</span>153 <span style=''></span><span style='background: #AEF1AE'>  CREATE TABLE IF NOT EXISTS authorization (
+</span>154 <span style=''></span><span style='background: #AEF1AE'>    $FIELD_AUTH_USERNAME VARCHAR(45) NOT NULL,
+</span>155 <span style=''></span><span style='background: #AEF1AE'>    $FIELD_AUTH_PASSWORD VARCHAR(45) NOT NULL,
+</span>156 <span style=''></span><span style='background: #AEF1AE'>    $FIELD_AUTH_SALT CHAR(32) NOT NULL,
+</span>157 <span style=''></span><span style='background: #AEF1AE'>    PRIMARY KEY ($FIELD_AUTH_USERNAME))
+</span>158 <span style=''></span><span style='background: #AEF1AE'>  &quot;&quot;&quot;</span><span style=''>
+</span>159 <span style=''>
+</span>160 <span style=''>  private val insertNewUserSql = </span><span style='background: #AEF1AE'>&quot;INSERT INTO authorization VALUES (?, ?, ?)&quot;</span><span style=''>
+</span>161 <span style=''>  private val signOutUserSql = </span><span style='background: #AEF1AE'>&quot;DELETE FROM authorization WHERE auth_username = ?&quot;</span><span style=''>
+</span>162 <span style=''>  private val loginUserSql =
+</span>163 <span style=''>    </span><span style='background: #AEF1AE'>s&quot;&quot;&quot;
+</span>164 <span style=''></span><span style='background: #AEF1AE'>  SELECT *
+</span>165 <span style=''></span><span style='background: #AEF1AE'>  FROM authorization
+</span>166 <span style=''></span><span style='background: #AEF1AE'>  WHERE $FIELD_AUTH_USERNAME = ?
+</span>167 <span style=''></span><span style='background: #AEF1AE'>  AND $FIELD_AUTH_PASSWORD = ?
+</span>168 <span style=''></span><span style='background: #AEF1AE'>  &quot;&quot;&quot;</span><span style=''>
+</span>169 <span style=''>  private val existFutureUserSql =
+</span>170 <span style=''>    </span><span style='background: #AEF1AE'>s&quot;&quot;&quot;
+</span>171 <span style=''></span><span style='background: #AEF1AE'>  SELECT *
+</span>172 <span style=''></span><span style='background: #AEF1AE'>  FROM authorization
+</span>173 <span style=''></span><span style='background: #AEF1AE'>  WHERE $FIELD_AUTH_USERNAME = ?
+</span>174 <span style=''></span><span style='background: #AEF1AE'>  &quot;&quot;&quot;</span><span style=''>
+</span>175 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          1722
+          -
+          1726
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          1815
+          -
+          1960
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.executeFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.createStorageTableSql).map[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.notInitialized_=(false)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          1838
+          -
+          1838
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          1895
+          -
+          1916
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.createStorageTableSql
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.createStorageTableSql
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          1865
+          -
+          1960
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.executeFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.createStorageTableSql).map[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.notInitialized_=(false)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          1867
+          -
+          1867
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          1938
+          -
+          1960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.notInitialized_=
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.notInitialized_=(false)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          1968
+          -
+          1968
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          1815
+          -
+          1984
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.RichFuture[Unit](AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.executeFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.createStorageTableSql).map[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.notInitialized_=(false)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          2219
+          -
+          2236
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          2277
+          -
+          2294
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(password).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          2244
+          -
+          2614
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)))
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          2316
+          -
+          2596
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          2391
+          -
+          2391
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          2414
+          -
+          2428
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.notInitialized
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.notInitialized
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          2439
+          -
+          2596
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          2450
+          -
+          2450
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          2481
+          -
+          2481
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          2479
+          -
+          2596
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          2547
+          -
+          2578
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          2529
+          -
+          2545
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          2547
+          -
+          2578
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          2598
+          -
+          2598
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          2594
+          -
+          2596
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          2316
+          -
+          2614
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          2646
+          -
+          2676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          2147
+          -
+          2678
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).flatMap[scala.concurrent.Future[Unit]](((username: String) =&gt; scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.insertNewUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password, &quot;SALT&quot;))).map[Unit](((_: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext))))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          2632
+          -
+          2677
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          2881
+          -
+          2898
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          2995
+          -
+          2995
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          3018
+          -
+          3032
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.notInitialized
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.notInitialized
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          42
+        </td>
+        <td>
+          2920
+          -
+          3199
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          40
+        </td>
+        <td>
+          3043
+          -
+          3199
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          39
+        </td>
+        <td>
+          3054
+          -
+          3054
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          3143
+          -
+          3156
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[String](username)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          3126
+          -
+          3126
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          38
+        </td>
+        <td>
+          3083
+          -
+          3199
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          3127
+          -
+          3141
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          3161
+          -
+          3182
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          result.getUpdated.&gt;(0)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          3090
+          -
+          3090
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          3143
+          -
+          3156
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          44
+        </td>
+        <td>
+          2920
+          -
+          3217
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          43
+        </td>
+        <td>
+          3201
+          -
+          3201
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          3197
+          -
+          3199
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          47
+        </td>
+        <td>
+          2809
+          -
+          3281
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.updateWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.signOutUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; result.getUpdated.&gt;(0)))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.UpdateResult) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          46
+        </td>
+        <td>
+          3235
+          -
+          3280
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          45
+        </td>
+        <td>
+          3249
+          -
+          3279
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          48
+        </td>
+        <td>
+          3520
+          -
+          3537
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          65
+        </td>
+        <td>
+          3545
+          -
+          3926
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.WithFilter.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)))
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          3578
+          -
+          3595
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(password).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          3715
+          -
+          3729
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.notInitialized
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.notInitialized
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          62
+        </td>
+        <td>
+          3617
+          -
+          3908
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          61
+        </td>
+        <td>
+          3692
+          -
+          3692
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          59
+        </td>
+        <td>
+          3751
+          -
+          3751
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          60
+        </td>
+        <td>
+          3740
+          -
+          3908
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          3837
+          -
+          3860
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          55
+        </td>
+        <td>
+          3822
+          -
+          3822
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          58
+        </td>
+        <td>
+          3780
+          -
+          3908
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          3837
+          -
+          3860
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[String](username, password)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          3865
+          -
+          3891
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          result.getResults.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          57
+        </td>
+        <td>
+          3787
+          -
+          3787
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          3823
+          -
+          3835
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          56
+        </td>
+        <td>
+          3906
+          -
+          3908
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          64
+        </td>
+        <td>
+          3617
+          -
+          3926
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          63
+        </td>
+        <td>
+          3910
+          -
+          3910
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          68
+        </td>
+        <td>
+          3448
+          -
+          3990
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).flatMap[scala.concurrent.Future[Unit]](((username: String) =&gt; scala.Option.apply[String](passwordP).withFilter(((password: String) =&gt; scala.Predef.augmentString(password).nonEmpty)).map[scala.concurrent.Future[Unit]](((password: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.loginUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username, password))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext))))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          67
+        </td>
+        <td>
+          3944
+          -
+          3989
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          66
+        </td>
+        <td>
+          3958
+          -
+          3988
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          69
+        </td>
+        <td>
+          4191
+          -
+          4208
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(username).nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          82
+        </td>
+        <td>
+          4230
+          -
+          4517
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          70
+        </td>
+        <td>
+          4328
+          -
+          4342
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.notInitialized
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.notInitialized
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          81
+        </td>
+        <td>
+          4305
+          -
+          4305
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          80
+        </td>
+        <td>
+          4353
+          -
+          4517
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          79
+        </td>
+        <td>
+          4364
+          -
+          4364
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          77
+        </td>
+        <td>
+          4400
+          -
+          4400
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          71
+        </td>
+        <td>
+          4436
+          -
+          4454
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          74
+        </td>
+        <td>
+          4474
+          -
+          4500
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          result.getResults.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          73
+        </td>
+        <td>
+          4456
+          -
+          4469
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          78
+        </td>
+        <td>
+          4393
+          -
+          4517
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          72
+        </td>
+        <td>
+          4456
+          -
+          4469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[String](username)
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          75
+        </td>
+        <td>
+          4435
+          -
+          4435
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          83
+        </td>
+        <td>
+          4519
+          -
+          4519
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          76
+        </td>
+        <td>
+          4515
+          -
+          4517
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          84
+        </td>
+        <td>
+          4230
+          -
+          4535
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.closeConnections
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          86
+        </td>
+        <td>
+          4553
+          -
+          4598
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException())
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          85
+        </td>
+        <td>
+          4567
+          -
+          4597
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalArgumentException.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new scala.`package`.IllegalArgumentException()
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          87
+        </td>
+        <td>
+          4119
+          -
+          4599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Option.apply[String](usernameP).withFilter(((username: String) =&gt; scala.Predef.augmentString(username).nonEmpty)).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationLocalDAO.this.RichFuture[Unit](it.cwmp.services.authentication.AuthenticationLocalDAO.checkInitialization(AuthenticationLocalDAO.this.notInitialized).flatMap[Unit](((_: Unit) =&gt; AuthenticationLocalDAO.this.openConnection().flatMap[Unit](((connection: io.vertx.scala.ext.sql.SQLConnection) =&gt; connection.queryWithParamsFuture(it.cwmp.services.authentication.AuthenticationLocalDAO.existFutureUserSql, it.cwmp.utils.VertxJDBC.stringsToJsonArray(scala.collection.Seq.apply[String](username))).withFilter(((result: io.vertx.scala.ext.sql.ResultSet) =&gt; result.getResults.nonEmpty))(AuthenticationLocalDAO.this.vertxExecutionContext).map[Unit](((result: io.vertx.scala.ext.sql.ResultSet) =&gt; ()))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)))(AuthenticationLocalDAO.this.vertxExecutionContext)).closeConnections(AuthenticationLocalDAO.this.vertxExecutionContext))).getOrElse[scala.concurrent.Future[Unit]](scala.concurrent.Future.failed[Nothing](new scala.`package`.IllegalArgumentException()))
+        </td>
+      </tr><tr>
+        <td>
+          139
+        </td>
+        <td>
+          88
+        </td>
+        <td>
+          4706
+          -
+          4721
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;auth_username&quot;
+        </td>
+      </tr><tr>
+        <td>
+          140
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          4758
+          -
+          4773
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;auth_password&quot;
+        </td>
+      </tr><tr>
+        <td>
+          141
+        </td>
+        <td>
+          90
+        </td>
+        <td>
+          4806
+          -
+          4817
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;auth_salt&quot;
+        </td>
+      </tr><tr>
+        <td>
+          147
+        </td>
+        <td>
+          92
+        </td>
+        <td>
+          5003
+          -
+          5098
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new java.lang.IllegalStateException(&quot;Not initialized, you should first call initialize()&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          147
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          5017
+          -
+          5097
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalStateException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.lang.IllegalStateException(&quot;Not initialized, you should first call initialize()&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          147
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          5003
+          -
+          5098
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.failed[Nothing](new java.lang.IllegalStateException(&quot;Not initialized, you should first call initialize()&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          148
+        </td>
+        <td>
+          95
+        </td>
+        <td>
+          5108
+          -
+          5129
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.concurrent.Future.successful
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.successful[Unit](())
+        </td>
+      </tr><tr>
+        <td>
+          148
+        </td>
+        <td>
+          94
+        </td>
+        <td>
+          5108
+          -
+          5129
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.successful
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.successful[Unit](())
+        </td>
+      </tr><tr>
+        <td>
+          152
+        </td>
+        <td>
+          96
+        </td>
+        <td>
+          5181
+          -
+          5232
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n  CREATE TABLE IF NOT EXISTS authorization (\n    &quot;
+        </td>
+      </tr><tr>
+        <td>
+          152
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          5177
+          -
+          5406
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;\n  CREATE TABLE IF NOT EXISTS authorization (\n    &quot;, &quot; VARCHAR(45) NOT NULL,\n    &quot;, &quot; VARCHAR(45) NOT NULL,\n    &quot;, &quot; CHAR(32) NOT NULL,\n    PRIMARY KEY (&quot;, &quot;))\n  &quot;).s(AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME, AuthenticationLocalDAO.this.FIELD_AUTH_PASSWORD, AuthenticationLocalDAO.this.FIELD_AUTH_SALT, AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME)
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          101
+        </td>
+        <td>
+          5232
+          -
+          5251
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          97
+        </td>
+        <td>
+          5251
+          -
+          5279
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; VARCHAR(45) NOT NULL,\n    &quot;
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          98
+        </td>
+        <td>
+          5298
+          -
+          5326
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; VARCHAR(45) NOT NULL,\n    &quot;
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          102
+        </td>
+        <td>
+          5279
+          -
+          5298
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_PASSWORD
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_PASSWORD
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          5326
+          -
+          5341
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_SALT
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_SALT
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          99
+        </td>
+        <td>
+          5341
+          -
+          5379
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; CHAR(32) NOT NULL,\n    PRIMARY KEY (&quot;
+        </td>
+      </tr><tr>
+        <td>
+          157
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          5379
+          -
+          5398
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          157
+        </td>
+        <td>
+          100
+        </td>
+        <td>
+          5398
+          -
+          5406
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;))\n  &quot;
+        </td>
+      </tr><tr>
+        <td>
+          160
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          5441
+          -
+          5485
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;INSERT INTO authorization VALUES (?, ?, ?)&quot;
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          107
+        </td>
+        <td>
+          5517
+          -
+          5568
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;DELETE FROM authorization WHERE auth_username = ?&quot;
+        </td>
+      </tr><tr>
+        <td>
+          163
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          5602
+          -
+          5708
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;\n  SELECT *\n  FROM authorization\n  WHERE &quot;, &quot; = ?\n  AND &quot;, &quot; = ?\n  &quot;).s(AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME, AuthenticationLocalDAO.this.FIELD_AUTH_PASSWORD)
+        </td>
+      </tr><tr>
+        <td>
+          163
+        </td>
+        <td>
+          108
+        </td>
+        <td>
+          5606
+          -
+          5648
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n  SELECT *\n  FROM authorization\n  WHERE &quot;
+        </td>
+      </tr><tr>
+        <td>
+          166
+        </td>
+        <td>
+          109
+        </td>
+        <td>
+          5667
+          -
+          5679
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; = ?\n  AND &quot;
+        </td>
+      </tr><tr>
+        <td>
+          166
+        </td>
+        <td>
+          111
+        </td>
+        <td>
+          5648
+          -
+          5667
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          110
+        </td>
+        <td>
+          5698
+          -
+          5708
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; = ?\n  &quot;
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          112
+        </td>
+        <td>
+          5679
+          -
+          5698
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_PASSWORD
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_PASSWORD
+        </td>
+      </tr><tr>
+        <td>
+          170
+        </td>
+        <td>
+          114
+        </td>
+        <td>
+          5752
+          -
+          5794
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;\n  SELECT *\n  FROM authorization\n  WHERE &quot;
+        </td>
+      </tr><tr>
+        <td>
+          170
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          5748
+          -
+          5823
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;\n  SELECT *\n  FROM authorization\n  WHERE &quot;, &quot; = ?\n  &quot;).s(AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME)
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          116
+        </td>
+        <td>
+          5794
+          -
+          5813
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationLocalDAO.FIELD_AUTH_USERNAME
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationLocalDAO.this.FIELD_AUTH_USERNAME
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          115
+        </td>
+        <td>
+          5813
+          -
+          5823
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot; = ?\n  &quot;
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

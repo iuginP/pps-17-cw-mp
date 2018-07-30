@@ -28,197 +28,205 @@
 </span>4 <span style=''>import io.vertx.lang.scala.json.Json
 </span>5 <span style=''>import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 </span>6 <span style=''>import it.cwmp.exceptions.HTTPException
-</span>7 <span style=''>import it.cwmp.model.{Address, Room}
-</span>8 <span style=''>import it.cwmp.services.rooms.RoomApiWrapperUtils
-</span>9 <span style=''>import it.cwmp.utils.{VertxClient, VertxInstance}
-</span>10 <span style=''>
-</span>11 <span style=''>import scala.concurrent.Future
-</span>12 <span style=''>import scala.language.implicitConversions
-</span>13 <span style=''>
-</span>14 <span style=''>/**
-</span>15 <span style=''>  * A trait that describes the Api wrapper for Rooms
-</span>16 <span style=''>  *
-</span>17 <span style=''>  * @author Enrico Siboni
-</span>18 <span style=''>  */
-</span>19 <span style=''>trait RoomsApiWrapper {
-</span>20 <span style=''>
-</span>21 <span style=''>  /**
-</span>22 <span style=''>    * Creates a room
-</span>23 <span style=''>    *
-</span>24 <span style=''>    * @param roomName      the room name
-</span>25 <span style=''>    * @param playersNumber the players number
-</span>26 <span style=''>    * @param userToken     the token to be authenticated against api
-</span>27 <span style=''>    * @return the future containing the identifier of the created room,
-</span>28 <span style=''>    *         or fails if roomName is empty or playersNumber not correct
-</span>29 <span style=''>    */
-</span>30 <span style=''>  def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String]
-</span>31 <span style=''>
-</span>32 <span style=''>  /**
-</span>33 <span style=''>    * Enters a room
-</span>34 <span style=''>    *
-</span>35 <span style=''>    * @param roomID              the identifier of the room
-</span>36 <span style=''>    * @param userAddress         the address of the paler that wants to enter
-</span>37 <span style=''>    * @param notificationAddress the address where player wants to receive notification of room filling
-</span>38 <span style=''>    * @param userToken           the token to be authenticated against api
-</span>39 <span style=''>    * @return the future that completes when the user has entered,
-</span>40 <span style=''>    *         or fails if roomID not provided, not present
-</span>41 <span style=''>    *         or user already inside a room, or room full
-</span>42 <span style=''>    */
-</span>43 <span style=''>  def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
-</span>44 <span style=''>
-</span>45 <span style=''>  /**
-</span>46 <span style=''>    * Retrieves room information
-</span>47 <span style=''>    *
-</span>48 <span style=''>    * @param roomID    the identifier of the room
-</span>49 <span style=''>    * @param userToken the token to be authenticated against api
-</span>50 <span style=''>    * @return the future that completes when the room information is available,
-</span>51 <span style=''>    *         or fails if room id not provided or not present
-</span>52 <span style=''>    */
-</span>53 <span style=''>  def roomInfo(roomID: String)(implicit userToken: String): Future[Room]
-</span>54 <span style=''>
-</span>55 <span style=''>  /**
-</span>56 <span style=''>    * Exits a room
-</span>57 <span style=''>    *
-</span>58 <span style=''>    * @param roomID    the identifier of the room to exit
-</span>59 <span style=''>    * @param userToken the token to be authenticated against api
-</span>60 <span style=''>    * @return the future that completes when user has exited,
-</span>61 <span style=''>    *         or fails if roomId is not provided or not present
-</span>62 <span style=''>    *         or user is not inside that room
-</span>63 <span style=''>    */
-</span>64 <span style=''>  def exitRoom(roomID: String)(implicit userToken: String): Future[Unit]
-</span>65 <span style=''>
-</span>66 <span style=''>  /**
-</span>67 <span style=''>    * retrieves a list of available public rooms
-</span>68 <span style=''>    *
-</span>69 <span style=''>    * @param userToken the token to be authenticated against api
-</span>70 <span style=''>    * @return a future that completes when such list is available
-</span>71 <span style=''>    */
-</span>72 <span style=''>  def listPublicRooms()(implicit userToken: String): Future[Seq[Room]]
-</span>73 <span style=''>
-</span>74 <span style=''>  /**
-</span>75 <span style=''>    * Enters a public room
-</span>76 <span style=''>    *
-</span>77 <span style=''>    * @param playersNumber       the number of players that the public room has to have
-</span>78 <span style=''>    * @param userAddress         the address of the paler that wants to enter
-</span>79 <span style=''>    * @param notificationAddress the address where player wants to receive notification of room filling
-</span>80 <span style=''>    * @param userToken           the token to be authenticated against api
-</span>81 <span style=''>    * @return the future that completes when user ha entered,
-</span>82 <span style=''>    *         or fails if players number is not correct,
-</span>83 <span style=''>    *         or user already inside a room
-</span>84 <span style=''>    */
-</span>85 <span style=''>  def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit]
-</span>86 <span style=''>
-</span>87 <span style=''>  /**
-</span>88 <span style=''>    * Retrieves information about a public room with specific number of players
-</span>89 <span style=''>    *
-</span>90 <span style=''>    * @param playersNumber the number of players that the public room has to have
-</span>91 <span style=''>    * @param userToken     the token to be authenticated against api
-</span>92 <span style=''>    * @return the future that completes when the information is available,
-</span>93 <span style=''>    *         or fails if players number not correct
-</span>94 <span style=''>    */
-</span>95 <span style=''>  def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room]
-</span>96 <span style=''>
-</span>97 <span style=''>  /**
-</span>98 <span style=''>    * Exits a public room
-</span>99 <span style=''>    *
-</span>100 <span style=''>    * @param playersNumber the number of players that the public room has to have
-</span>101 <span style=''>    * @param userToken     the token to be authenticated against api
-</span>102 <span style=''>    * @return the future taht completes when the user has exited,
-</span>103 <span style=''>    *         or fails if players number is not correct,
-</span>104 <span style=''>    *         or user not inside that room
-</span>105 <span style=''>    */
-</span>106 <span style=''>  def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit]
-</span>107 <span style=''>}
-</span>108 <span style=''>
-</span>109 <span style=''>/**
-</span>110 <span style=''>  * Companion Object
-</span>111 <span style=''>  *
-</span>112 <span style=''>  * @author Enrico Siboni
-</span>113 <span style=''>  */
-</span>114 <span style=''>object RoomsApiWrapper {
-</span>115 <span style=''>
-</span>116 <span style=''>  val DEFAULT_HOST = </span><span style='background: #AEF1AE'>&quot;localhost&quot;</span><span style=''>
+</span>7 <span style=''>import it.cwmp.model.Room.Converters._
+</span>8 <span style=''>import it.cwmp.model.{Address, Room}
+</span>9 <span style=''>import it.cwmp.services.rooms.RoomApiWrapperUtils
+</span>10 <span style=''>import it.cwmp.services.rooms.ServerParameters._
+</span>11 <span style=''>import it.cwmp.utils.{VertxClient, VertxInstance}
+</span>12 <span style=''>
+</span>13 <span style=''>import scala.concurrent.Future
+</span>14 <span style=''>import scala.language.implicitConversions
+</span>15 <span style=''>
+</span>16 <span style=''>/**
+</span>17 <span style=''>  * A trait that describes the Api wrapper for Rooms
+</span>18 <span style=''>  *
+</span>19 <span style=''>  * @author Enrico Siboni
+</span>20 <span style=''>  */
+</span>21 <span style=''>trait RoomsApiWrapper {
+</span>22 <span style=''>
+</span>23 <span style=''>  /**
+</span>24 <span style=''>    * Creates a room
+</span>25 <span style=''>    *
+</span>26 <span style=''>    * @param roomName      the room name
+</span>27 <span style=''>    * @param playersNumber the players number
+</span>28 <span style=''>    * @param userToken     the token to be authenticated against api
+</span>29 <span style=''>    * @return the future containing the identifier of the created room,
+</span>30 <span style=''>    *         or fails if roomName is empty or playersNumber not correct
+</span>31 <span style=''>    */
+</span>32 <span style=''>  def createRoom(roomName: String, playersNumber: Int)
+</span>33 <span style=''>                (implicit userToken: String): Future[String]
+</span>34 <span style=''>
+</span>35 <span style=''>  /**
+</span>36 <span style=''>    * Enters a room
+</span>37 <span style=''>    *
+</span>38 <span style=''>    * @param roomID              the identifier of the room
+</span>39 <span style=''>    * @param userAddress         the address of the paler that wants to enter
+</span>40 <span style=''>    * @param notificationAddress the address where player wants to receive notification of room filling
+</span>41 <span style=''>    * @param userToken           the token to be authenticated against api
+</span>42 <span style=''>    * @return the future that completes when the user has entered,
+</span>43 <span style=''>    *         or fails if roomID not provided, not present
+</span>44 <span style=''>    *         or user already inside a room, or room full
+</span>45 <span style=''>    */
+</span>46 <span style=''>  def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
+</span>47 <span style=''>               (implicit userToken: String): Future[Unit]
+</span>48 <span style=''>
+</span>49 <span style=''>  /**
+</span>50 <span style=''>    * Retrieves room information
+</span>51 <span style=''>    *
+</span>52 <span style=''>    * @param roomID    the identifier of the room
+</span>53 <span style=''>    * @param userToken the token to be authenticated against api
+</span>54 <span style=''>    * @return the future that completes when the room information is available,
+</span>55 <span style=''>    *         or fails if room id not provided or not present
+</span>56 <span style=''>    */
+</span>57 <span style=''>  def roomInfo(roomID: String)
+</span>58 <span style=''>              (implicit userToken: String): Future[Room]
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * Exits a room
+</span>62 <span style=''>    *
+</span>63 <span style=''>    * @param roomID    the identifier of the room to exit
+</span>64 <span style=''>    * @param userToken the token to be authenticated against api
+</span>65 <span style=''>    * @return the future that completes when user has exited,
+</span>66 <span style=''>    *         or fails if roomId is not provided or not present
+</span>67 <span style=''>    *         or user is not inside that room
+</span>68 <span style=''>    */
+</span>69 <span style=''>  def exitRoom(roomID: String)
+</span>70 <span style=''>              (implicit userToken: String): Future[Unit]
+</span>71 <span style=''>
+</span>72 <span style=''>  /**
+</span>73 <span style=''>    * retrieves a list of available public rooms
+</span>74 <span style=''>    *
+</span>75 <span style=''>    * @param userToken the token to be authenticated against api
+</span>76 <span style=''>    * @return a future that completes when such list is available
+</span>77 <span style=''>    */
+</span>78 <span style=''>  def listPublicRooms()(implicit userToken: String): Future[Seq[Room]]
+</span>79 <span style=''>
+</span>80 <span style=''>  /**
+</span>81 <span style=''>    * Enters a public room
+</span>82 <span style=''>    *
+</span>83 <span style=''>    * @param playersNumber       the number of players that the public room has to have
+</span>84 <span style=''>    * @param userAddress         the address of the paler that wants to enter
+</span>85 <span style=''>    * @param notificationAddress the address where player wants to receive notification of room filling
+</span>86 <span style=''>    * @param userToken           the token to be authenticated against api
+</span>87 <span style=''>    * @return the future that completes when user ha entered,
+</span>88 <span style=''>    *         or fails if players number is not correct,
+</span>89 <span style=''>    *         or user already inside a room
+</span>90 <span style=''>    */
+</span>91 <span style=''>  def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
+</span>92 <span style=''>                     (implicit userToken: String): Future[Unit]
+</span>93 <span style=''>
+</span>94 <span style=''>  /**
+</span>95 <span style=''>    * Retrieves information about a public room with specific number of players
+</span>96 <span style=''>    *
+</span>97 <span style=''>    * @param playersNumber the number of players that the public room has to have
+</span>98 <span style=''>    * @param userToken     the token to be authenticated against api
+</span>99 <span style=''>    * @return the future that completes when the information is available,
+</span>100 <span style=''>    *         or fails if players number not correct
+</span>101 <span style=''>    */
+</span>102 <span style=''>  def publicRoomInfo(playersNumber: Int)
+</span>103 <span style=''>                    (implicit userToken: String): Future[Room]
+</span>104 <span style=''>
+</span>105 <span style=''>  /**
+</span>106 <span style=''>    * Exits a public room
+</span>107 <span style=''>    *
+</span>108 <span style=''>    * @param playersNumber the number of players that the public room has to have
+</span>109 <span style=''>    * @param userToken     the token to be authenticated against api
+</span>110 <span style=''>    * @return the future taht completes when the user has exited,
+</span>111 <span style=''>    *         or fails if players number is not correct,
+</span>112 <span style=''>    *         or user not inside that room
+</span>113 <span style=''>    */
+</span>114 <span style=''>  def exitPublicRoom(playersNumber: Int)
+</span>115 <span style=''>                    (implicit userToken: String): Future[Unit]
+</span>116 <span style=''>}
 </span>117 <span style=''>
-</span>118 <span style=''>  import it.cwmp.services.rooms.ServerParameters._
-</span>119 <span style=''>
-</span>120 <span style=''>  def apply(): RoomsApiWrapper = </span><span style='background: #AEF1AE'>RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)</span><span style=''>
-</span>121 <span style=''>
-</span>122 <span style=''>  def apply(host: String): RoomsApiWrapper = </span><span style='background: #F0ADAD'>RoomsApiWrapper(host, DEFAULT_PORT)</span><span style=''>
-</span>123 <span style=''>
-</span>124 <span style=''>  def apply(host: String, port: Int): RoomsApiWrapper = </span><span style='background: #AEF1AE'>new RoomsApiWrapperDefault(WebClientOptions()
-</span>125 <span style=''></span><span style='background: #AEF1AE'>    .setDefaultHost(host)
-</span>126 <span style=''></span><span style='background: #AEF1AE'>    .setDefaultPort(port))</span><span style=''>
-</span>127 <span style=''>
-</span>128 <span style=''>  /**
-</span>129 <span style=''>    * Implementation of the Api Wrapper for rooms service
-</span>130 <span style=''>    *
-</span>131 <span style=''>    * @param clientOptions the implicit configuration for the client connection to the host
-</span>132 <span style=''>    *
-</span>133 <span style=''>    */
-</span>134 <span style=''>  private class RoomsApiWrapperDefault(override protected val clientOptions: WebClientOptions)
-</span>135 <span style=''>    extends RoomsApiWrapper with RoomApiWrapperUtils with VertxInstance with VertxClient {
-</span>136 <span style=''>
-</span>137 <span style=''>    override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] =
-</span>138 <span style=''>      </span><span style='background: #AEF1AE'>createPrivateRoomRequest(roomName, playersNumber)
-</span>139 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(response.bodyAsString().get), 201))</span><span style=''>
-</span>140 <span style=''>
-</span>141 <span style=''>    override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
-</span>142 <span style=''>      </span><span style='background: #AEF1AE'>enterPrivateRoomRequest(roomID, userAddress, notificationAddress)
-</span>143 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(Unit), 200))</span><span style=''>
-</span>144 <span style=''>
-</span>145 <span style=''>    override def roomInfo(roomID: String)(implicit userToken: String): Future[Room] =
-</span>146 <span style=''>      </span><span style='background: #AEF1AE'>privateRoomInfoRequest(roomID)
-</span>147 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse({
-</span>148 <span style=''></span><span style='background: #AEF1AE'>          import Room.Converters._
-</span>149 <span style=''></span><span style='background: #AEF1AE'>          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
-</span>150 <span style=''></span><span style='background: #AEF1AE'>        }, 200))</span><span style=''>
-</span>151 <span style=''>
-</span>152 <span style=''>    override def exitRoom(roomID: String)(implicit userToken: String): Future[Unit] =
-</span>153 <span style=''>      </span><span style='background: #AEF1AE'>exitPrivateRoomRequest(roomID)
-</span>154 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(Unit), 200))</span><span style=''>
-</span>155 <span style=''>
-</span>156 <span style=''>    override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
-</span>157 <span style=''>      </span><span style='background: #AEF1AE'>listPublicRoomsRequest()
-</span>158 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse({
-</span>159 <span style=''></span><span style='background: #AEF1AE'>          Future.successful {
-</span>160 <span style=''></span><span style='background: #AEF1AE'>            import Room.Converters._
-</span>161 <span style=''></span><span style='background: #AEF1AE'>            Json.fromArrayString(response.bodyAsString().get)
-</span>162 <span style=''></span><span style='background: #AEF1AE'>              .stream().toArray().toSeq.map(_.toString)
-</span>163 <span style=''></span><span style='background: #AEF1AE'>              .map(jsonString =&gt; Json.fromObjectString(jsonString).toRoom)
-</span>164 <span style=''></span><span style='background: #AEF1AE'>          }
-</span>165 <span style=''></span><span style='background: #AEF1AE'>        }, 200))</span><span style=''>
-</span>166 <span style=''>
-</span>167 <span style=''>    /**
-</span>168 <span style=''>      * Utility method to handle the Service response
-</span>169 <span style=''>      */
-</span>170 <span style=''>    private def handleResponse[T](onSuccessFuture: =&gt; Future[T], successHttpCodes: Int*)(implicit response: HttpResponse[Buffer]) =
-</span>171 <span style=''>      </span><span style='background: #AEF1AE'>successHttpCodes find (_ == response.statusCode)</span><span style=''> match {
-</span>172 <span style=''>        case Some(_) =&gt; onSuccessFuture
-</span>173 <span style=''>        case None =&gt; </span><span style='background: #AEF1AE'>response.bodyAsString</span><span style=''> match {
-</span>174 <span style=''>          case Some(body) =&gt;
-</span>175 <span style=''>            </span><span style='background: #AEF1AE'>Future.failed(HTTPException(response.statusCode, body))</span><span style=''>
-</span>176 <span style=''>          case None =&gt;
-</span>177 <span style=''>            </span><span style='background: #AEF1AE'>Future.failed(HTTPException(response.statusCode))</span><span style=''>
-</span>178 <span style=''>        }
-</span>179 <span style=''>      }
-</span>180 <span style=''>
-</span>181 <span style=''>    override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] =
-</span>182 <span style=''>      </span><span style='background: #AEF1AE'>enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
-</span>183 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(Unit), 200))</span><span style=''>
-</span>184 <span style=''>
-</span>185 <span style=''>    override def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room] =
-</span>186 <span style=''>      </span><span style='background: #AEF1AE'>publicRoomInfoRequest(playersNumber)
-</span>187 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse({
-</span>188 <span style=''></span><span style='background: #AEF1AE'>          import Room.Converters._
-</span>189 <span style=''></span><span style='background: #AEF1AE'>          Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom)
-</span>190 <span style=''></span><span style='background: #AEF1AE'>        }, 200))</span><span style=''>
-</span>191 <span style=''>
-</span>192 <span style=''>    override def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
-</span>193 <span style=''>      </span><span style='background: #AEF1AE'>exitPublicRoomRequest(playersNumber)
-</span>194 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(Unit), 200))</span><span style=''>
-</span>195 <span style=''>  }
-</span>196 <span style=''>
-</span>197 <span style=''>}
+</span>118 <span style=''>/**
+</span>119 <span style=''>  * Companion Object
+</span>120 <span style=''>  *
+</span>121 <span style=''>  * @author Enrico Siboni
+</span>122 <span style=''>  */
+</span>123 <span style=''>object RoomsApiWrapper {
+</span>124 <span style=''>
+</span>125 <span style=''>  val DEFAULT_HOST = </span><span style='background: #AEF1AE'>&quot;localhost&quot;</span><span style=''>
+</span>126 <span style=''>
+</span>127 <span style=''>  def apply(): RoomsApiWrapper = </span><span style='background: #AEF1AE'>RoomsApiWrapper(DEFAULT_HOST, DEFAULT_PORT)</span><span style=''>
+</span>128 <span style=''>
+</span>129 <span style=''>  def apply(host: String): RoomsApiWrapper = </span><span style='background: #F0ADAD'>RoomsApiWrapper(host, DEFAULT_PORT)</span><span style=''>
+</span>130 <span style=''>
+</span>131 <span style=''>  def apply(host: String, port: Int): RoomsApiWrapper = </span><span style='background: #AEF1AE'>new RoomsApiWrapperDefault(WebClientOptions()
+</span>132 <span style=''></span><span style='background: #AEF1AE'>    .setDefaultHost(host)
+</span>133 <span style=''></span><span style='background: #AEF1AE'>    .setDefaultPort(port))</span><span style=''>
+</span>134 <span style=''>
+</span>135 <span style=''>  /**
+</span>136 <span style=''>    * Implementation of the Api Wrapper for rooms service
+</span>137 <span style=''>    *
+</span>138 <span style=''>    * @param clientOptions the implicit configuration for the client connection to the host
+</span>139 <span style=''>    *
+</span>140 <span style=''>    */
+</span>141 <span style=''>  private class RoomsApiWrapperDefault(override protected val clientOptions: WebClientOptions)
+</span>142 <span style=''>    extends RoomsApiWrapper with RoomApiWrapperUtils with VertxInstance with VertxClient {
+</span>143 <span style=''>
+</span>144 <span style=''>    override def createRoom(roomName: String, playersNumber: Int)
+</span>145 <span style=''>                           (implicit userToken: String): Future[String] =
+</span>146 <span style=''>      </span><span style='background: #AEF1AE'>createPrivateRoomRequest(roomName, playersNumber)
+</span>147 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(response.bodyAsString().get), 201))</span><span style=''>
+</span>148 <span style=''>
+</span>149 <span style=''>    override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
+</span>150 <span style=''>                          (implicit userToken: String): Future[Unit] =
+</span>151 <span style=''>      </span><span style='background: #AEF1AE'>enterPrivateRoomRequest(roomID, userAddress, notificationAddress)
+</span>152 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(()), 200))</span><span style=''>
+</span>153 <span style=''>
+</span>154 <span style=''>    override def roomInfo(roomID: String)
+</span>155 <span style=''>                         (implicit userToken: String): Future[Room] =
+</span>156 <span style=''>      </span><span style='background: #AEF1AE'>privateRoomInfoRequest(roomID)
+</span>157 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt;
+</span>158 <span style=''></span><span style='background: #AEF1AE'>          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))</span><span style=''>
+</span>159 <span style=''>
+</span>160 <span style=''>    override def exitRoom(roomID: String)
+</span>161 <span style=''>                         (implicit userToken: String): Future[Unit] =
+</span>162 <span style=''>      </span><span style='background: #AEF1AE'>exitPrivateRoomRequest(roomID)
+</span>163 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(()), 200))</span><span style=''>
+</span>164 <span style=''>
+</span>165 <span style=''>    override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
+</span>166 <span style=''>      </span><span style='background: #AEF1AE'>listPublicRoomsRequest()
+</span>167 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse({
+</span>168 <span style=''></span><span style='background: #AEF1AE'>          Future.successful {
+</span>169 <span style=''></span><span style='background: #AEF1AE'>            Json.fromArrayString(response.bodyAsString().get)
+</span>170 <span style=''></span><span style='background: #AEF1AE'>              .stream().toArray().toSeq.map(_.toString)
+</span>171 <span style=''></span><span style='background: #AEF1AE'>              .map(jsonString =&gt; Json.fromObjectString(jsonString).toRoom)
+</span>172 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>173 <span style=''></span><span style='background: #AEF1AE'>        }, 200))</span><span style=''>
+</span>174 <span style=''>
+</span>175 <span style=''>    override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
+</span>176 <span style=''>                                (implicit userToken: String): Future[Unit] =
+</span>177 <span style=''>      </span><span style='background: #AEF1AE'>enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
+</span>178 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(()), 200))</span><span style=''>
+</span>179 <span style=''>
+</span>180 <span style=''>    override def publicRoomInfo(playersNumber: Int)
+</span>181 <span style=''>                               (implicit userToken: String): Future[Room] =
+</span>182 <span style=''>      </span><span style='background: #AEF1AE'>publicRoomInfoRequest(playersNumber)
+</span>183 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt;
+</span>184 <span style=''></span><span style='background: #AEF1AE'>          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))</span><span style=''>
+</span>185 <span style=''>
+</span>186 <span style=''>    override def exitPublicRoom(playersNumber: Int)
+</span>187 <span style=''>                               (implicit userToken: String): Future[Unit] =
+</span>188 <span style=''>      </span><span style='background: #AEF1AE'>exitPublicRoomRequest(playersNumber)
+</span>189 <span style=''></span><span style='background: #AEF1AE'>        .flatMap(implicit response =&gt; handleResponse(Future.successful(()), 200))</span><span style=''>
+</span>190 <span style=''>
+</span>191 <span style=''>    /**
+</span>192 <span style=''>      * Utility method to handle the Service response
+</span>193 <span style=''>      */
+</span>194 <span style=''>    private def handleResponse[T](onSuccessFuture: =&gt; Future[T], successHttpCodes: Int*)
+</span>195 <span style=''>                                 (implicit response: HttpResponse[Buffer]) =
+</span>196 <span style=''>      </span><span style='background: #AEF1AE'>successHttpCodes find (_ == response.statusCode)</span><span style=''> match {
+</span>197 <span style=''>        case Some(_) =&gt; onSuccessFuture
+</span>198 <span style=''>        case None =&gt; </span><span style='background: #AEF1AE'>response.bodyAsString</span><span style=''> match {
+</span>199 <span style=''>          case Some(body) =&gt; </span><span style='background: #AEF1AE'>Future.failed(HTTPException(response.statusCode, body))</span><span style=''>
+</span>200 <span style=''>          case None =&gt; </span><span style='background: #AEF1AE'>Future.failed(HTTPException(response.statusCode))</span><span style=''>
+</span>201 <span style=''>        }
+</span>202 <span style=''>      }
+</span>203 <span style=''>  }
+</span>204 <span style=''>
+</span>205 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -232,15 +240,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          116
+          125
         </td>
         <td>
           277
         </td>
         <td>
-          4422
+          4637
           -
-          4433
+          4648
         </td>
         <td>
           Literal
@@ -253,15 +261,15 @@
         </td>
       </tr><tr>
         <td>
-          120
+          127
         </td>
         <td>
           280
         </td>
         <td>
-          4520
+          4683
           -
-          4563
+          4726
         </td>
         <td>
           Apply
@@ -274,15 +282,15 @@
         </td>
       </tr><tr>
         <td>
-          120
+          127
         </td>
         <td>
           279
         </td>
         <td>
-          4550
+          4713
           -
-          4562
+          4725
         </td>
         <td>
           Select
@@ -295,15 +303,15 @@
         </td>
       </tr><tr>
         <td>
-          120
+          127
         </td>
         <td>
           278
         </td>
         <td>
-          4536
+          4699
           -
-          4548
+          4711
         </td>
         <td>
           Select
@@ -316,15 +324,15 @@
         </td>
       </tr><tr>
         <td>
-          122
+          129
         </td>
         <td>
           282
         </td>
         <td>
-          4610
+          4773
           -
-          4645
+          4808
         </td>
         <td>
           Apply
@@ -337,15 +345,15 @@
         </td>
       </tr><tr>
         <td>
-          122
+          129
         </td>
         <td>
           281
         </td>
         <td>
-          4632
+          4795
           -
-          4644
+          4807
         </td>
         <td>
           Select
@@ -358,15 +366,15 @@
         </td>
       </tr><tr>
         <td>
-          124
+          131
         </td>
         <td>
           284
         </td>
         <td>
-          4703
+          4866
           -
-          4801
+          4964
         </td>
         <td>
           Apply
@@ -379,15 +387,15 @@
         </td>
       </tr><tr>
         <td>
-          126
+          133
         </td>
         <td>
           283
         </td>
         <td>
-          4730
+          4893
           -
-          4800
+          4963
         </td>
         <td>
           Apply
@@ -400,15 +408,15 @@
         </td>
       </tr><tr>
         <td>
-          138
+          146
         </td>
         <td>
           285
         </td>
         <td>
-          5307
+          5498
           -
-          5307
+          5498
         </td>
         <td>
           Select
@@ -421,15 +429,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          147
         </td>
         <td>
           286
         </td>
         <td>
-          5371
+          5562
           -
-          5438
+          5629
         </td>
         <td>
           ApplyToImplicitArgs
@@ -442,15 +450,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          147
         </td>
         <td>
           288
         </td>
         <td>
-          5283
+          5474
           -
-          5439
+          5630
         </td>
         <td>
           ApplyToImplicitArgs
@@ -463,15 +471,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          147
         </td>
         <td>
           287
         </td>
         <td>
-          5349
+          5540
           -
-          5349
+          5540
         </td>
         <td>
           Select
@@ -484,15 +492,15 @@
         </td>
       </tr><tr>
         <td>
-          142
+          151
         </td>
         <td>
           289
         </td>
         <td>
-          5609
+          5827
           -
-          5609
+          5827
         </td>
         <td>
           Select
@@ -505,15 +513,15 @@
         </td>
       </tr><tr>
         <td>
-          143
+          152
         </td>
         <td>
           292
         </td>
         <td>
-          5586
+          5804
           -
-          5735
+          5951
         </td>
         <td>
           ApplyToImplicitArgs
@@ -522,22 +530,19 @@
           scala.concurrent.Future.flatMap
         </td>
         <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.enterPrivateRoomRequest(roomID, userAddress, notificationAddress)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+          RoomsApiWrapperDefault.this.enterPrivateRoomRequest(roomID, userAddress, notificationAddress)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
-          143
+          152
         </td>
         <td>
           291
         </td>
         <td>
-          5668
+          5886
           -
-          5668
+          5886
         </td>
         <td>
           Select
@@ -550,15 +555,15 @@
         </td>
       </tr><tr>
         <td>
-          143
+          152
         </td>
         <td>
           290
         </td>
         <td>
-          5690
+          5908
           -
-          5734
+          5950
         </td>
         <td>
           ApplyToImplicitArgs
@@ -567,22 +572,19 @@
           it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
         </td>
         <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)
+          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)
         </td>
       </tr><tr>
         <td>
-          146
+          156
         </td>
         <td>
           293
         </td>
         <td>
-          5851
+          6093
           -
-          5851
+          6093
         </td>
         <td>
           Select
@@ -595,153 +597,15 @@
         </td>
       </tr><tr>
         <td>
-          147
+          157
         </td>
         <td>
           295
         </td>
         <td>
-          5876
+          6118
           -
-          5876
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          147
-        </td>
-        <td>
-          294
-        </td>
-        <td>
-          5898
-          -
-          6052
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room]({
-  import it.cwmp.model.Room.Converters._;
-  scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom)
-}, 200)(response)
-        </td>
-      </tr><tr>
-        <td>
-          147
-        </td>
-        <td>
-          296
-        </td>
-        <td>
-          5829
-          -
-          6053
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.privateRoomInfoRequest(roomID)(RoomsApiWrapperDefault.this.client, userToken).flatMap[it.cwmp.model.Room](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room]({
-  import it.cwmp.model.Room.Converters._;
-  scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom)
-}, 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          153
-        </td>
-        <td>
-          297
-        </td>
-        <td>
-          6169
-          -
-          6169
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxClient.client
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.client
-        </td>
-      </tr><tr>
-        <td>
-          154
-        </td>
-        <td>
-          298
-        </td>
-        <td>
-          6216
-          -
-          6260
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)
-        </td>
-      </tr><tr>
-        <td>
-          154
-        </td>
-        <td>
-          300
-        </td>
-        <td>
-          6147
-          -
-          6261
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.exitPrivateRoomRequest(roomID)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          154
-        </td>
-        <td>
-          299
-        </td>
-        <td>
-          6194
-          -
-          6194
+          6118
         </td>
         <td>
           Select
@@ -757,12 +621,54 @@
           157
         </td>
         <td>
-          301
+          296
         </td>
         <td>
-          6375
+          6071
           -
-          6375
+          6248
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.privateRoomInfoRequest(roomID)(RoomsApiWrapperDefault.this.client, userToken).flatMap[it.cwmp.model.Room](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room](scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          294
+        </td>
+        <td>
+          6150
+          -
+          6247
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room](scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom), 200)(response)
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          297
+        </td>
+        <td>
+          6390
+          -
+          6390
         </td>
         <td>
           Select
@@ -775,15 +681,36 @@
         </td>
       </tr><tr>
         <td>
-          158
+          163
         </td>
         <td>
-          304
+          298
         </td>
         <td>
-          6353
+          6437
           -
-          6721
+          6479
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)
+        </td>
+      </tr><tr>
+        <td>
+          163
+        </td>
+        <td>
+          300
+        </td>
+        <td>
+          6368
+          -
+          6480
         </td>
         <td>
           ApplyToImplicitArgs
@@ -792,22 +719,19 @@
           scala.concurrent.Future.flatMap
         </td>
         <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.listPublicRoomsRequest()(RoomsApiWrapperDefault.this.client, userToken).flatMap[Seq[it.cwmp.model.Room]](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]]({
-  import it.cwmp.model.Room.Converters._;
-  scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])
-}), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+          RoomsApiWrapperDefault.this.exitPrivateRoomRequest(roomID)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
-          158
+          163
         </td>
         <td>
-          303
+          299
         </td>
         <td>
-          6394
+          6415
           -
-          6394
+          6415
         </td>
         <td>
           Select
@@ -820,15 +744,78 @@
         </td>
       </tr><tr>
         <td>
-          158
+          166
+        </td>
+        <td>
+          301
+        </td>
+        <td>
+          6594
+          -
+          6594
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.client
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          304
+        </td>
+        <td>
+          6572
+          -
+          6903
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.listPublicRoomsRequest()(RoomsApiWrapperDefault.this.client, userToken).flatMap[Seq[it.cwmp.model.Room]](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]](scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          303
+        </td>
+        <td>
+          6613
+          -
+          6613
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          167
         </td>
         <td>
           302
         </td>
         <td>
-          6416
+          6635
           -
-          6720
+          6902
         </td>
         <td>
           ApplyToImplicitArgs
@@ -837,22 +824,271 @@
           it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
         </td>
         <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]]({
-  import it.cwmp.model.Room.Converters._;
-  scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])
-}), 200)(response)
+          RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]](scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])), 200)(response)
         </td>
       </tr><tr>
         <td>
-          171
+          177
+        </td>
+        <td>
+          305
+        </td>
+        <td>
+          7115
+          -
+          7115
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.client
+        </td>
+      </tr><tr>
+        <td>
+          178
         </td>
         <td>
           307
         </td>
         <td>
-          6932
+          7181
           -
-          6980
+          7181
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          306
+        </td>
+        <td>
+          7203
+          -
+          7245
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          308
+        </td>
+        <td>
+          7093
+          -
+          7246
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          182
+        </td>
+        <td>
+          309
+        </td>
+        <td>
+          7403
+          -
+          7403
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.client
+        </td>
+      </tr><tr>
+        <td>
+          183
+        </td>
+        <td>
+          312
+        </td>
+        <td>
+          7382
+          -
+          7565
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.publicRoomInfoRequest(playersNumber)(RoomsApiWrapperDefault.this.client, userToken).flatMap[it.cwmp.model.Room](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room](scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          183
+        </td>
+        <td>
+          311
+        </td>
+        <td>
+          7435
+          -
+          7435
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          184
+        </td>
+        <td>
+          310
+        </td>
+        <td>
+          7467
+          -
+          7564
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room](scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom), 200)(response)
+        </td>
+      </tr><tr>
+        <td>
+          188
+        </td>
+        <td>
+          313
+        </td>
+        <td>
+          7722
+          -
+          7722
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxClient.client
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.client
+        </td>
+      </tr><tr>
+        <td>
+          189
+        </td>
+        <td>
+          316
+        </td>
+        <td>
+          7701
+          -
+          7819
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.exitPublicRoomRequest(playersNumber)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          189
+        </td>
+        <td>
+          315
+        </td>
+        <td>
+          7754
+          -
+          7754
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          189
+        </td>
+        <td>
+          314
+        </td>
+        <td>
+          7776
+          -
+          7818
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit](()), 200)(response)
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          319
+        </td>
+        <td>
+          8064
+          -
+          8112
         </td>
         <td>
           Apply
@@ -865,15 +1101,15 @@
         </td>
       </tr><tr>
         <td>
-          171
+          196
         </td>
         <td>
-          306
+          318
         </td>
         <td>
-          6955
+          8087
           -
-          6979
+          8111
         </td>
         <td>
           Apply
@@ -886,15 +1122,15 @@
         </td>
       </tr><tr>
         <td>
-          171
+          196
         </td>
         <td>
-          305
+          317
         </td>
         <td>
-          6960
+          8092
           -
-          6979
+          8111
         </td>
         <td>
           Apply
@@ -907,15 +1143,15 @@
         </td>
       </tr><tr>
         <td>
-          173
+          198
         </td>
         <td>
-          308
+          320
         </td>
         <td>
-          7050
+          8182
           -
-          7071
+          8203
         </td>
         <td>
           Apply
@@ -928,15 +1164,15 @@
         </td>
       </tr><tr>
         <td>
-          175
+          199
         </td>
         <td>
-          310
+          322
         </td>
         <td>
-          7135
+          8255
           -
-          7175
+          8295
         </td>
         <td>
           Apply
@@ -949,15 +1185,15 @@
         </td>
       </tr><tr>
         <td>
-          175
+          199
         </td>
         <td>
-          309
+          321
         </td>
         <td>
-          7149
+          8269
           -
-          7168
+          8288
         </td>
         <td>
           Apply
@@ -970,15 +1206,15 @@
         </td>
       </tr><tr>
         <td>
-          175
+          199
         </td>
         <td>
-          311
+          323
         </td>
         <td>
-          7121
+          8241
           -
-          7176
+          8296
         </td>
         <td>
           Apply
@@ -991,15 +1227,15 @@
         </td>
       </tr><tr>
         <td>
-          177
+          200
         </td>
         <td>
-          313
+          325
         </td>
         <td>
-          7226
+          8334
           -
-          7226
+          8334
         </td>
         <td>
           Select
@@ -1012,36 +1248,15 @@
         </td>
       </tr><tr>
         <td>
-          177
+          200
         </td>
         <td>
-          312
+          327
         </td>
         <td>
-          7240
+          8320
           -
-          7259
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.web.client.HttpResponse.statusCode
-        </td>
-        <td style="background: #AEF1AE">
-          response.statusCode()
-        </td>
-      </tr><tr>
-        <td>
-          177
-        </td>
-        <td>
-          315
-        </td>
-        <td>
-          7212
-          -
-          7261
+          8369
         </td>
         <td>
           Apply
@@ -1054,15 +1269,36 @@
         </td>
       </tr><tr>
         <td>
-          177
+          200
         </td>
         <td>
-          314
+          324
         </td>
         <td>
-          7226
+          8348
           -
-          7260
+          8367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpResponse.statusCode
+        </td>
+        <td style="background: #AEF1AE">
+          response.statusCode()
+        </td>
+      </tr><tr>
+        <td>
+          200
+        </td>
+        <td>
+          326
+        </td>
+        <td>
+          8334
+          -
+          8368
         </td>
         <td>
           Apply
@@ -1072,276 +1308,6 @@
         </td>
         <td style="background: #AEF1AE">
           it.cwmp.exceptions.HTTPException.apply(response.statusCode(), it.cwmp.exceptions.HTTPException.apply$default$2)
-        </td>
-      </tr><tr>
-        <td>
-          182
-        </td>
-        <td>
-          316
-        </td>
-        <td>
-          7458
-          -
-          7458
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxClient.client
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.client
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          319
-        </td>
-        <td>
-          7436
-          -
-          7591
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          318
-        </td>
-        <td>
-          7524
-          -
-          7524
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          317
-        </td>
-        <td>
-          7546
-          -
-          7590
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)
-        </td>
-      </tr><tr>
-        <td>
-          186
-        </td>
-        <td>
-          320
-        </td>
-        <td>
-          7716
-          -
-          7716
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxClient.client
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.client
-        </td>
-      </tr><tr>
-        <td>
-          187
-        </td>
-        <td>
-          322
-        </td>
-        <td>
-          7748
-          -
-          7748
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          187
-        </td>
-        <td>
-          321
-        </td>
-        <td>
-          7770
-          -
-          7924
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room]({
-  import it.cwmp.model.Room.Converters._;
-  scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom)
-}, 200)(response)
-        </td>
-      </tr><tr>
-        <td>
-          187
-        </td>
-        <td>
-          323
-        </td>
-        <td>
-          7695
-          -
-          7925
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.publicRoomInfoRequest(playersNumber)(RoomsApiWrapperDefault.this.client, userToken).flatMap[it.cwmp.model.Room](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[it.cwmp.model.Room]({
-  import it.cwmp.model.Room.Converters._;
-  scala.concurrent.Future.successful[it.cwmp.model.Room](it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(response.bodyAsString().get)).toRoom)
-}, 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          193
-        </td>
-        <td>
-          324
-        </td>
-        <td>
-          8050
-          -
-          8050
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxClient.client
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.client
-        </td>
-      </tr><tr>
-        <td>
-          194
-        </td>
-        <td>
-          325
-        </td>
-        <td>
-          8104
-          -
-          8148
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)
-        </td>
-      </tr><tr>
-        <td>
-          194
-        </td>
-        <td>
-          327
-        </td>
-        <td>
-          8029
-          -
-          8149
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.exitPublicRoomRequest(playersNumber)(RoomsApiWrapperDefault.this.client, userToken).flatMap[Unit](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Unit](scala.concurrent.Future.successful[Unit]({
-  scala.Unit;
-  ()
-}), 200)(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          194
-        </td>
-        <td>
-          326
-        </td>
-        <td>
-          8082
-          -
-          8082
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.vertxExecutionContext
         </td>
       </tr>
     </table>

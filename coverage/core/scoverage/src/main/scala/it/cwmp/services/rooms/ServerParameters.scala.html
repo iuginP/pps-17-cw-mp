@@ -26,21 +26,24 @@
 </span>2 <span style=''>
 </span>3 <span style=''>import it.cwmp.model.Room
 </span>4 <span style=''>
-</span>5 <span style=''>object ServerParameters {
-</span>6 <span style=''>
-</span>7 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8667</span><span style=''>
-</span>8 <span style=''>
-</span>9 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/rooms&quot;</span><span style=''>
-</span>10 <span style=''>  val API_CREATE_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
-</span>11 <span style=''>  val API_ENTER_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
-</span>12 <span style=''>  val API_PRIVATE_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
-</span>13 <span style=''>  val API_EXIT_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}/self&quot;</span><span style=''>
-</span>14 <span style=''>
-</span>15 <span style=''>  val API_LIST_PUBLIC_ROOMS_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
-</span>16 <span style=''>  val API_ENTER_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
-</span>17 <span style=''>  val API_PUBLIC_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
-</span>18 <span style=''>  val API_EXIT_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}/self&quot;</span><span style=''>
-</span>19 <span style=''>}
+</span>5 <span style=''>/**
+</span>6 <span style=''>  * An object containing Rooms Service info
+</span>7 <span style=''>  */
+</span>8 <span style=''>object ServerParameters {
+</span>9 <span style=''>
+</span>10 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8667</span><span style=''>
+</span>11 <span style=''>
+</span>12 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/rooms&quot;</span><span style=''>
+</span>13 <span style=''>  val API_CREATE_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
+</span>14 <span style=''>  val API_ENTER_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
+</span>15 <span style=''>  val API_PRIVATE_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
+</span>16 <span style=''>  val API_EXIT_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}/self&quot;</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  val API_LIST_PUBLIC_ROOMS_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
+</span>19 <span style=''>  val API_ENTER_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
+</span>20 <span style=''>  val API_PUBLIC_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
+</span>21 <span style=''>  val API_EXIT_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}/self&quot;</span><span style=''>
+</span>22 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -54,15 +57,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          7
+          10
         </td>
         <td>
           193
         </td>
         <td>
-          107
+          160
           -
-          111
+          164
         </td>
         <td>
           Literal
@@ -75,15 +78,15 @@
         </td>
       </tr><tr>
         <td>
-          9
+          12
         </td>
         <td>
           194
         </td>
         <td>
-          143
+          196
           -
-          155
+          208
         </td>
         <td>
           Literal
@@ -96,15 +99,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           196
         </td>
         <td>
-          208
+          261
           -
-          209
+          262
         </td>
         <td>
           Literal
@@ -117,15 +120,15 @@
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           198
         </td>
         <td>
-          192
+          245
           -
-          209
+          262
         </td>
         <td>
           Apply
@@ -138,94 +141,10 @@
         </td>
       </tr><tr>
         <td>
-          10
+          13
         </td>
         <td>
           195
-        </td>
-        <td>
-          194
-          -
-          195
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          197
-        </td>
-        <td>
-          195
-          -
-          208
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          200
-        </td>
-        <td>
-          261
-          -
-          264
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          202
-        </td>
-        <td>
-          248
-          -
-          261
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          199
         </td>
         <td>
           247
@@ -243,120 +162,15 @@
         </td>
       </tr><tr>
         <td>
-          11
+          13
         </td>
         <td>
-          201
+          197
         </td>
         <td>
-          287
+          248
           -
-          288
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          204
-        </td>
-        <td>
-          245
-          -
-          288
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          203
-        </td>
-        <td>
-          265
-          -
-          286
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          209
-        </td>
-        <td>
-          343
-          -
-          364
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          205
-        </td>
-        <td>
-          325
-          -
-          326
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          208
-        </td>
-        <td>
-          326
-          -
-          339
+          261
         </td>
         <td>
           Select
@@ -369,57 +183,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          14
         </td>
         <td>
-          207
+          200
         </td>
         <td>
-          365
+          314
           -
-          366
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          210
-        </td>
-        <td>
-          323
-          -
-          366
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          206
-        </td>
-        <td>
-          339
-          -
-          342
+          317
         </td>
         <td>
           Literal
@@ -432,36 +204,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          14
         </td>
         <td>
-          211
+          202
         </td>
         <td>
-          403
+          301
           -
-          404
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          214
-        </td>
-        <td>
-          404
-          -
-          417
+          314
         </td>
         <td>
           Select
@@ -474,15 +225,267 @@
         </td>
       </tr><tr>
         <td>
-          13
+          14
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          300
+          -
+          301
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          340
+          -
+          341
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          204
+        </td>
+        <td>
+          298
+          -
+          341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          203
+        </td>
+        <td>
+          318
+          -
+          339
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          209
+        </td>
+        <td>
+          396
+          -
+          417
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          205
+        </td>
+        <td>
+          378
+          -
+          379
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          208
+        </td>
+        <td>
+          379
+          -
+          392
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          207
+        </td>
+        <td>
+          418
+          -
+          419
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          210
+        </td>
+        <td>
+          376
+          -
+          419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          392
+          -
+          395
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          211
+        </td>
+        <td>
+          456
+          -
+          457
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          457
+          -
+          470
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          16
         </td>
         <td>
           216
         </td>
         <td>
-          401
+          454
           -
-          449
+          502
         </td>
         <td>
           Apply
@@ -495,15 +498,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          16
         </td>
         <td>
           213
         </td>
         <td>
-          443
+          496
           -
-          449
+          502
         </td>
         <td>
           Literal
@@ -516,15 +519,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          16
         </td>
         <td>
           212
         </td>
         <td>
-          417
+          470
           -
-          420
+          473
         </td>
         <td>
           Literal
@@ -537,15 +540,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          16
         </td>
         <td>
           215
         </td>
         <td>
-          421
+          474
           -
-          442
+          495
         </td>
         <td>
           Select
@@ -558,15 +561,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          18
         </td>
         <td>
           218
         </td>
         <td>
-          501
+          554
           -
-          502
+          555
         </td>
         <td>
           Literal
@@ -579,15 +582,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          18
         </td>
         <td>
           220
         </td>
         <td>
-          485
+          538
           -
-          502
+          555
         </td>
         <td>
           Apply
@@ -600,15 +603,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          18
         </td>
         <td>
           217
         </td>
         <td>
-          487
+          540
           -
-          488
+          541
         </td>
         <td>
           Literal
@@ -621,15 +624,15 @@
         </td>
       </tr><tr>
         <td>
-          15
+          18
         </td>
         <td>
           219
         </td>
         <td>
-          488
+          541
           -
-          501
+          554
         </td>
         <td>
           Select
@@ -642,15 +645,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           226
         </td>
         <td>
-          537
+          590
           -
-          591
+          644
         </td>
         <td>
           Apply
@@ -663,15 +666,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           223
         </td>
         <td>
-          590
+          643
           -
-          591
+          644
         </td>
         <td>
           Literal
@@ -684,15 +687,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           225
         </td>
         <td>
-          564
+          617
           -
-          589
+          642
         </td>
         <td>
           Select
@@ -705,15 +708,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           222
         </td>
         <td>
-          553
+          606
           -
-          563
+          616
         </td>
         <td>
           Literal
@@ -726,15 +729,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           221
         </td>
         <td>
-          539
+          592
           -
-          540
+          593
         </td>
         <td>
           Literal
@@ -747,15 +750,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          19
         </td>
         <td>
           224
         </td>
         <td>
-          540
+          593
           -
-          553
+          606
         </td>
         <td>
           Select
@@ -768,15 +771,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           227
         </td>
         <td>
-          627
+          680
           -
-          628
+          681
         </td>
         <td>
           Literal
@@ -789,15 +792,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           229
         </td>
         <td>
-          678
+          731
           -
-          679
+          732
         </td>
         <td>
           Literal
@@ -810,15 +813,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           232
         </td>
         <td>
-          625
+          678
           -
-          679
+          732
         </td>
         <td>
           Apply
@@ -831,15 +834,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           228
         </td>
         <td>
-          641
+          694
           -
-          651
+          704
         </td>
         <td>
           Literal
@@ -852,15 +855,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           231
         </td>
         <td>
-          652
+          705
           -
-          677
+          730
         </td>
         <td>
           Select
@@ -873,15 +876,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          20
         </td>
         <td>
           230
         </td>
         <td>
-          628
+          681
           -
-          641
+          694
         </td>
         <td>
           Select
@@ -894,15 +897,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           236
         </td>
         <td>
-          716
+          769
           -
-          729
+          782
         </td>
         <td>
           Select
@@ -915,15 +918,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           235
         </td>
         <td>
-          766
+          819
           -
-          772
+          825
         </td>
         <td>
           Literal
@@ -936,15 +939,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           238
         </td>
         <td>
-          713
+          766
           -
-          772
+          825
         </td>
         <td>
           Apply
@@ -957,15 +960,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           234
         </td>
         <td>
-          729
+          782
           -
-          739
+          792
         </td>
         <td>
           Literal
@@ -978,15 +981,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           237
         </td>
         <td>
-          740
+          793
           -
-          765
+          818
         </td>
         <td>
           Select
@@ -999,15 +1002,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          21
         </td>
         <td>
           233
         </td>
         <td>
-          715
+          768
           -
-          716
+          769
         </td>
         <td>
           Literal

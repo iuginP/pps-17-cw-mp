@@ -25,135 +25,109 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.authentication
 </span>2 <span style=''>
 </span>3 <span style=''>import it.cwmp.client.utils.{LayoutRes, StringRes}
-</span>4 <span style=''>import it.cwmp.client.view.{FXAlerts, FXChecks, FXController, FXView}
-</span>5 <span style=''>import javafx.application.Platform
+</span>4 <span style=''>import it.cwmp.client.view._
+</span>5 <span style=''>import it.cwmp.client.view.authentication.AuthenticationFXController._
 </span>6 <span style=''>import javafx.fxml.FXML
 </span>7 <span style=''>import javafx.scene.control._
-</span>8 <span style=''>import javafx.stage.Stage
-</span>9 <span style=''>
-</span>10 <span style=''>/**
-</span>11 <span style=''>  * Trait that models the strategy to be applied to resolve authentication requests.
-</span>12 <span style=''>  */
-</span>13 <span style=''>trait AuthenticationFXStrategy {
-</span>14 <span style=''>  /**
-</span>15 <span style=''>    * Function invoked for a system access request.
-</span>16 <span style=''>    *
-</span>17 <span style=''>    * @param username identification chosen by the player to access the system
-</span>18 <span style=''>    * @param password password chosen during sign up
-</span>19 <span style=''>    */
-</span>20 <span style=''>  def onSignIn(username: String, password: String): Unit
-</span>21 <span style=''>
-</span>22 <span style=''>  /**
-</span>23 <span style=''>    * Function invoked for checking the correctness of the passwords.
-</span>24 <span style=''>    *
-</span>25 <span style=''>    * @param password password chosen
-</span>26 <span style=''>    * @param confirmPassword confirmation password
-</span>27 <span style=''>    * @return true, if the passwords respect the correctness policies
-</span>28 <span style=''>    *         false, otherwise
-</span>29 <span style=''>    */
-</span>30 <span style=''>  def onCheckPassword(password: String, confirmPassword: String): Boolean
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * Class that models the controller that manages the various authentication processes.
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @param strategy strategy to be applied to resolve authentication requests.
+</span>13 <span style=''>  * @author contributor Enrico Siboni
+</span>14 <span style=''>  */
+</span>15 <span style=''>class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
+</span>16 <span style=''>
+</span>17 <span style=''>  protected val layout: String = </span><span style='background: #F0ADAD'>LayoutRes.authenticationLayout</span><span style=''>
+</span>18 <span style=''>  protected val title: String = </span><span style='background: #F0ADAD'>StringRes.appName</span><span style=''>
+</span>19 <span style=''>  protected val controller: FXViewController = this
+</span>20 <span style=''>
+</span>21 <span style=''>  @FXML private var tpMain: TabPane = _
+</span>22 <span style=''>  @FXML private var tfSignInUsername: TextField = _
+</span>23 <span style=''>  @FXML private var pfSignInPassword: PasswordField = _
+</span>24 <span style=''>  @FXML private var tfSignUpUsername: TextField = _
+</span>25 <span style=''>  @FXML private var pfSignUpPassword: PasswordField = _
+</span>26 <span style=''>  @FXML private var pfSignUpConfirmPassword: PasswordField = _
+</span>27 <span style=''>  @FXML private var btnSignIn: Button = _
+</span>28 <span style=''>  @FXML private var btnSignInReset: Button = _
+</span>29 <span style=''>  @FXML private var btnSignUp: Button = _
+</span>30 <span style=''>  @FXML private var btnSignUpReset: Button = _
 </span>31 <span style=''>
-</span>32 <span style=''>  /**
-</span>33 <span style=''>    * Function invoked for a system registration request.
-</span>34 <span style=''>    *
-</span>35 <span style=''>    * @param username identification chosen by the player to register in the system
-</span>36 <span style=''>    * @param password password chosen to authenticate in the system
-</span>37 <span style=''>    */
-</span>38 <span style=''>  def onSignUp(username: String, password: String): Unit
-</span>39 <span style=''>}
-</span>40 <span style=''>
-</span>41 <span style=''>/**
-</span>42 <span style=''>  * [[AuthenticationFXController]] companion object
-</span>43 <span style=''>  *
-</span>44 <span style=''>  * @author Elia Di Pasquale
-</span>45 <span style=''>  */
-</span>46 <span style=''>object AuthenticationFXController {
-</span>47 <span style=''>  def apply(strategy: AuthenticationFXStrategy): AuthenticationFXController = {
-</span>48 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null)</span><span style=''>
-</span>49 <span style=''>    </span><span style='background: #F0ADAD'>new AuthenticationFXController(strategy)</span><span style=''>
-</span>50 <span style=''>  }
-</span>51 <span style=''>}
+</span>32 <span style=''>  override def showGUI(): Unit = {
+</span>33 <span style=''>    </span><span style='background: #F0ADAD'>super.showGUI()</span><span style=''>
+</span>34 <span style=''>    // adds a listener to reset fields on tab change
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) =&gt; resetFields())</span><span style=''>
+</span>36 <span style=''>  }
+</span>37 <span style=''>
+</span>38 <span style=''>  override def resetFields(): Unit = {
+</span>39 <span style=''>    </span><span style='background: #F0ADAD'>tfSignInUsername setText &quot;&quot;</span><span style=''>
+</span>40 <span style=''>    </span><span style='background: #F0ADAD'>pfSignInPassword setText &quot;&quot;</span><span style=''>
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>tfSignUpUsername setText &quot;&quot;</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpPassword setText &quot;&quot;</span><span style=''>
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpConfirmPassword setText &quot;&quot;</span><span style=''>
+</span>44 <span style=''>  }
+</span>45 <span style=''>
+</span>46 <span style=''>  override def disableViewComponents(): Unit = {
+</span>47 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(true)</span><span style=''>
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(true)</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(true)</span><span style=''>
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(true)</span><span style=''>
+</span>51 <span style=''>  }
 </span>52 <span style=''>
-</span>53 <span style=''>/**
-</span>54 <span style=''>  * Class that models the controller that manages the various authentication processes.
-</span>55 <span style=''>  *
-</span>56 <span style=''>  * @param strategy strategy to be applied to resolve authentication requests.
-</span>57 <span style=''>  */
-</span>58 <span style=''>class AuthenticationFXController(strategy: AuthenticationFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
+</span>53 <span style=''>  override def enableViewComponents(): Unit = {
+</span>54 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(false)</span><span style=''>
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(false)</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(false)</span><span style=''>
+</span>57 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(false)</span><span style=''>
+</span>58 <span style=''>  }
 </span>59 <span style=''>
-</span>60 <span style=''>  protected val layout: String = </span><span style='background: #F0ADAD'>LayoutRes.authenticationLayout</span><span style=''>
-</span>61 <span style=''>  protected val title: String = </span><span style='background: #F0ADAD'>StringRes.appName</span><span style=''>
-</span>62 <span style=''>  protected val stage: Stage = </span><span style='background: #F0ADAD'>new Stage</span><span style=''>
-</span>63 <span style=''>  protected val controller: FXController = this
-</span>64 <span style=''>
-</span>65 <span style=''>  @FXML
-</span>66 <span style=''>  private var tpMain: TabPane = _
-</span>67 <span style=''>  @FXML
-</span>68 <span style=''>  private var tfSignInUsername: TextField = _
-</span>69 <span style=''>  @FXML
-</span>70 <span style=''>  private var pfSignInPassword: PasswordField = _
-</span>71 <span style=''>  @FXML
-</span>72 <span style=''>  private var tfSignUpUsername: TextField = _
-</span>73 <span style=''>  @FXML
-</span>74 <span style=''>  private var pfSignUpPassword: PasswordField = _
-</span>75 <span style=''>  @FXML
-</span>76 <span style=''>  private var pfSignUpConfirmPassword: PasswordField = _
-</span>77 <span style=''>
-</span>78 <span style=''>
-</span>79 <span style=''>  @FXML
-</span>80 <span style=''>  private def onClickSignIn(): Unit = {
-</span>81 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>82 <span style=''></span><span style='background: #F0ADAD'>      for(
-</span>83 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignInUsername, &quot;È necessario inserire lo username&quot;);
-</span>84 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignInPassword, &quot;È necessario inserire la password&quot;)
-</span>85 <span style=''></span><span style='background: #F0ADAD'>      ) yield strategy.onSignIn(username, password)
-</span>86 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>87 <span style=''>  }
+</span>60 <span style=''>  @FXML private def onClickSignIn(): Unit =
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>62 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>63 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
+</span>64 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignInPassword, PASSWORD_EMPTY_ERROR)
+</span>65 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>66 <span style=''></span><span style='background: #F0ADAD'>        strategy.performLogIn(username, password)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>68 <span style=''>
+</span>69 <span style=''>
+</span>70 <span style=''>  @FXML private def onClickSignUp(): Unit =
+</span>71 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>72 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>73 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
+</span>74 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignUpPassword, PASSWORD_EMPTY_ERROR);
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        confirmPassword &lt;- getTextFieldValue(pfSignUpConfirmPassword, REPEAT_PASSWORD_EMPTY_ERROR)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>77 <span style=''></span><span style='background: #F0ADAD'>        if (strategy.performPasswordCheck(password, confirmPassword)) {
+</span>78 <span style=''></span><span style='background: #F0ADAD'>          strategy.performSignUp(username, password)
+</span>79 <span style=''></span><span style='background: #F0ADAD'>        } else {
+</span>80 <span style=''></span><span style='background: #F0ADAD'>          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOES_NOT_MATCH)
+</span>81 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>82 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>83 <span style=''>
+</span>84 <span style=''>  @FXML private def onClickSignInReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>  @FXML private def onClickSignUpReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>87 <span style=''>}
 </span>88 <span style=''>
-</span>89 <span style=''>  @FXML
-</span>90 <span style=''>  private def onClickSignUp(): Unit = {
-</span>91 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>92 <span style=''></span><span style='background: #F0ADAD'>      for(
-</span>93 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignUpUsername, &quot;È necessario inserire lo username&quot;);
-</span>94 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignUpPassword, &quot;È necessario inserire la password&quot;);
-</span>95 <span style=''></span><span style='background: #F0ADAD'>        confirmPassword &lt;- getTextFieldValue(pfSignUpConfirmPassword, &quot;È necessario inserire nuovamente la password&quot;)
-</span>96 <span style=''></span><span style='background: #F0ADAD'>      ) yield {
-</span>97 <span style=''></span><span style='background: #F0ADAD'>        // TODO: rivedere questa logica per farne una più specifica
-</span>98 <span style=''></span><span style='background: #F0ADAD'>        if (strategy.onCheckPassword(password, confirmPassword)) {
-</span>99 <span style=''></span><span style='background: #F0ADAD'>          strategy.onSignUp(username, password)
-</span>100 <span style=''></span><span style='background: #F0ADAD'>        } else {
-</span>101 <span style=''></span><span style='background: #F0ADAD'>          showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;)
-</span>102 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>103 <span style=''></span><span style='background: #F0ADAD'>      }
-</span>104 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>105 <span style=''>  }
-</span>106 <span style=''>
-</span>107 <span style=''>  @FXML
-</span>108 <span style=''>  private def onClickSignInReset(): Unit = {
-</span>109 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>110 <span style=''></span><span style='background: #F0ADAD'>      resetFields()
-</span>111 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>112 <span style=''>  }
-</span>113 <span style=''>
-</span>114 <span style=''>  @FXML
-</span>115 <span style=''>  private def onClickSignUpReset(): Unit = {
-</span>116 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>117 <span style=''></span><span style='background: #F0ADAD'>      resetFields()
-</span>118 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>119 <span style=''>  }
-</span>120 <span style=''>
-</span>121 <span style=''>  override def resetFields(): Unit = {
-</span>122 <span style=''>    if (</span><span style='background: #F0ADAD'>tpMain.getSelectionModel.getSelectedIndex == 0</span><span style=''>) </span><span style='background: #F0ADAD'>{
-</span>123 <span style=''></span><span style='background: #F0ADAD'>      tfSignInUsername setText &quot;&quot;
-</span>124 <span style=''></span><span style='background: #F0ADAD'>      pfSignInPassword setText &quot;&quot;
-</span>125 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''> else </span><span style='background: #F0ADAD'>{
-</span>126 <span style=''></span><span style='background: #F0ADAD'>      tfSignUpUsername setText &quot;&quot;
-</span>127 <span style=''></span><span style='background: #F0ADAD'>      pfSignUpPassword setText &quot;&quot;
-</span>128 <span style=''></span><span style='background: #F0ADAD'>      pfSignUpConfirmPassword setText &quot;&quot;
-</span>129 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>130 <span style=''>  }
-</span>131 <span style=''>
-</span>132 <span style=''>}
+</span>89 <span style=''>/**
+</span>90 <span style=''>  * Companion object
+</span>91 <span style=''>  *
+</span>92 <span style=''>  * @author Elia Di Pasquale
+</span>93 <span style=''>  */
+</span>94 <span style=''>object AuthenticationFXController {
+</span>95 <span style=''>  def apply(strategy: AuthenticationStrategy): AuthenticationFXController = {
+</span>96 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The authentication strategy cannot be null&quot;)</span><span style=''>
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>new AuthenticationFXController(strategy)</span><span style=''>
+</span>98 <span style=''>  }
+</span>99 <span style=''>
+</span>100 <span style=''>  private val USERNAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire lo username&quot;</span><span style=''>
+</span>101 <span style=''>  private val PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire la password&quot;</span><span style=''>
+</span>102 <span style=''>  private val REPEAT_PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire nuovamente la password&quot;</span><span style=''>
+</span>103 <span style=''>  private val GIVEN_PASSWORD_DOES_NOT_MATCH = </span><span style='background: #F0ADAD'>&quot;Le password inserite non sono uguali!&quot;</span><span style=''>
+</span>104 <span style=''>
+</span>105 <span style=''>  private val ATTENTION_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Attenzione&quot;</span><span style=''>
+</span>106 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -167,78 +141,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          48
+          17
         </td>
         <td>
-          866
+          934
         </td>
         <td>
-          1534
+          642
           -
-          1550
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #F0ADAD">
-          strategy.!=(null)
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          867
-        </td>
-        <td>
-          1526
-          -
-          1551
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.require
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.require(strategy.!=(null))
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          868
-        </td>
-        <td>
-          1556
-          -
-          1596
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new AuthenticationFXController(strategy)
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          869
-        </td>
-        <td>
-          1950
-          -
-          1980
+          672
         </td>
         <td>
           Select
@@ -251,15 +162,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          18
         </td>
         <td>
-          870
+          935
         </td>
         <td>
-          2013
+          705
           -
-          2030
+          722
         </td>
         <td>
           Select
@@ -272,663 +183,57 @@
         </td>
       </tr><tr>
         <td>
-          62
+          33
         </td>
         <td>
-          871
+          936
         </td>
         <td>
-          2062
+          1313
           -
-          2071
+          1328
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.stage.Stage.&lt;init&gt;
+          it.cwmp.client.view.FXViewController.showGUI
         </td>
         <td style="background: #F0ADAD">
-          new javafx.stage.Stage()
+          AuthenticationFXController.super.showGUI()
         </td>
       </tr><tr>
         <td>
-          81
+          35
         </td>
         <td>
-          880
+          938
         </td>
         <td>
-          2506
+          1386
           -
-          2788
+          1471
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          javafx.beans.value.ObservableValue.addListener
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignInUsername, &quot;È necessario inserire lo username&quot;).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, &quot;È necessario inserire la password&quot;).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.onSignIn(username, password)))));
-  ()
-}))
+          AuthenticationFXController.this.tpMain.getSelectionModel().selectedItemProperty().addListener(((x$1: javafx.beans.value.ObservableValue[_ &lt;: javafx.scene.control.Tab], x$2: javafx.scene.control.Tab, x$3: javafx.scene.control.Tab) =&gt; AuthenticationFXController.this.resetFields()))
         </td>
       </tr><tr>
         <td>
-          83
+          35
         </td>
         <td>
-          873
+          937
         </td>
         <td>
-          2599
+          1457
           -
-          2634
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;È necessario inserire lo username&quot;
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          872
-        </td>
-        <td>
-          2581
-          -
-          2597
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.tfSignInUsername
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.tfSignInUsername
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          878
-        </td>
-        <td>
-          2538
-          -
-          2781
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignInUsername, &quot;È necessario inserire lo username&quot;).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, &quot;È necessario inserire la password&quot;).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.onSignIn(username, password)))))
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          879
-        </td>
-        <td>
-          2560
-          -
-          2560
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          84
-        </td>
-        <td>
-          875
-        </td>
-        <td>
-          2693
-          -
-          2728
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;È necessario inserire la password&quot;
-        </td>
-      </tr><tr>
-        <td>
-          84
-        </td>
-        <td>
-          877
-        </td>
-        <td>
-          2645
-          -
-          2781
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, &quot;È necessario inserire la password&quot;).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.onSignIn(username, password)))
-        </td>
-      </tr><tr>
-        <td>
-          84
-        </td>
-        <td>
-          874
-        </td>
-        <td>
-          2675
-          -
-          2691
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignInPassword
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.pfSignInPassword
-        </td>
-      </tr><tr>
-        <td>
-          85
-        </td>
-        <td>
-          876
-        </td>
-        <td>
-          2744
-          -
-          2781
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXStrategy.onSignIn
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.strategy.onSignIn(username, password)
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          899
-        </td>
-        <td>
-          2846
-          -
-          3488
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, &quot;È necessario inserire lo username&quot;).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, &quot;È necessario inserire la password&quot;).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, &quot;È necessario inserire nuovamente la password&quot;).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.onCheckPassword(password, confirmPassword))
-    AuthenticationFXController.this.strategy.onSignUp(username, password)
-  else
-    AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)))))));
-  ()
-}))
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          882
-        </td>
-        <td>
-          2939
-          -
-          2974
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;È necessario inserire lo username&quot;
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          881
-        </td>
-        <td>
-          2921
-          -
-          2937
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.tfSignUpUsername
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.tfSignUpUsername
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          898
-        </td>
-        <td>
-          2900
-          -
-          2900
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          897
-        </td>
-        <td>
-          2878
-          -
-          3473
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, &quot;È necessario inserire lo username&quot;).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, &quot;È necessario inserire la password&quot;).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, &quot;È necessario inserire nuovamente la password&quot;).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.onCheckPassword(password, confirmPassword))
-  AuthenticationFXController.this.strategy.onSignUp(username, password)
-else
-  AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)))))))
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          884
-        </td>
-        <td>
-          3033
-          -
-          3068
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;È necessario inserire la password&quot;
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          896
-        </td>
-        <td>
-          2985
-          -
-          3473
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, &quot;È necessario inserire la password&quot;).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, &quot;È necessario inserire nuovamente la password&quot;).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.onCheckPassword(password, confirmPassword))
-  AuthenticationFXController.this.strategy.onSignUp(username, password)
-else
-  AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)))))
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          883
-        </td>
-        <td>
-          3015
-          -
-          3031
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpPassword
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.pfSignUpPassword
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          886
-        </td>
-        <td>
-          3141
-          -
-          3187
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;È necessario inserire nuovamente la password&quot;
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          895
-        </td>
-        <td>
-          3079
-          -
-          3473
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, &quot;È necessario inserire nuovamente la password&quot;).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.onCheckPassword(password, confirmPassword))
-  AuthenticationFXController.this.strategy.onSignUp(username, password)
-else
-  AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)))
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          885
-        </td>
-        <td>
-          3116
-          -
-          3139
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpConfirmPassword
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.pfSignUpConfirmPassword
-        </td>
-      </tr><tr>
-        <td>
-          98
-        </td>
-        <td>
-          887
-        </td>
-        <td>
-          3285
-          -
-          3336
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXStrategy.onCheckPassword
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.strategy.onCheckPassword(password, confirmPassword)
-        </td>
-      </tr><tr>
-        <td>
-          99
-        </td>
-        <td>
-          889
-        </td>
-        <td>
-          3350
-          -
-          3387
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXStrategy.onSignUp
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.strategy.onSignUp(username, password)
-        </td>
-      </tr><tr>
-        <td>
-          99
-        </td>
-        <td>
-          888
-        </td>
-        <td>
-          3350
-          -
-          3387
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXStrategy.onSignUp
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.strategy.onSignUp(username, password)
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          891
-        </td>
-        <td>
-          3436
-          -
-          3462
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Non-compliant passwords!&quot;
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          890
-        </td>
-        <td>
-          3425
-          -
-          3434
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Warning&quot;
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          893
-        </td>
-        <td>
-          3415
-          -
-          3463
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlerts.showError
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          892
-        </td>
-        <td>
-          3415
-          -
-          3415
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlerts.showError$default$3
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.showError$default$3
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          894
-        </td>
-        <td>
-          3415
-          -
-          3463
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlerts.showError
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.showError(&quot;Warning&quot;, &quot;Non-compliant passwords!&quot;, AuthenticationFXController.this.showError$default$3)
-        </td>
-      </tr><tr>
-        <td>
-          109
-        </td>
-        <td>
-          901
-        </td>
-        <td>
-          3551
-          -
-          3603
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; AuthenticationFXController.this.resetFields()))
-        </td>
-      </tr><tr>
-        <td>
-          110
-        </td>
-        <td>
-          900
-        </td>
-        <td>
-          3583
-          -
-          3596
+          1470
         </td>
         <td>
           Apply
@@ -941,102 +246,15 @@ else
         </td>
       </tr><tr>
         <td>
-          116
+          39
         </td>
         <td>
-          903
+          939
         </td>
         <td>
-          3666
+          1520
           -
-          3718
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; AuthenticationFXController.this.resetFields()))
-        </td>
-      </tr><tr>
-        <td>
-          117
-        </td>
-        <td>
-          902
-        </td>
-        <td>
-          3698
-          -
-          3711
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.resetFields
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.resetFields()
-        </td>
-      </tr><tr>
-        <td>
-          122
-        </td>
-        <td>
-          904
-        </td>
-        <td>
-          3771
-          -
-          3817
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.tpMain.getSelectionModel().getSelectedIndex().==(0)
-        </td>
-      </tr><tr>
-        <td>
-          122
-        </td>
-        <td>
-          907
-        </td>
-        <td>
-          3819
-          -
-          3894
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  AuthenticationFXController.this.tfSignInUsername.setText(&quot;&quot;);
-  AuthenticationFXController.this.pfSignInPassword.setText(&quot;&quot;)
-}
-        </td>
-      </tr><tr>
-        <td>
-          123
-        </td>
-        <td>
-          905
-        </td>
-        <td>
-          3827
-          -
-          3854
+          1547
         </td>
         <td>
           Apply
@@ -1049,15 +267,15 @@ else
         </td>
       </tr><tr>
         <td>
-          124
+          40
         </td>
         <td>
-          906
+          940
         </td>
         <td>
-          3861
+          1552
           -
-          3888
+          1579
         </td>
         <td>
           Apply
@@ -1070,40 +288,15 @@ else
         </td>
       </tr><tr>
         <td>
-          125
+          41
         </td>
         <td>
-          911
+          941
         </td>
         <td>
-          3900
+          1584
           -
-          4016
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          {
-  AuthenticationFXController.this.tfSignUpUsername.setText(&quot;&quot;);
-  AuthenticationFXController.this.pfSignUpPassword.setText(&quot;&quot;);
-  AuthenticationFXController.this.pfSignUpConfirmPassword.setText(&quot;&quot;)
-}
-        </td>
-      </tr><tr>
-        <td>
-          126
-        </td>
-        <td>
-          908
-        </td>
-        <td>
-          3908
-          -
-          3935
+          1611
         </td>
         <td>
           Apply
@@ -1116,15 +309,15 @@ else
         </td>
       </tr><tr>
         <td>
-          127
+          42
         </td>
         <td>
-          909
+          942
         </td>
         <td>
-          3942
+          1616
           -
-          3969
+          1643
         </td>
         <td>
           Apply
@@ -1137,15 +330,15 @@ else
         </td>
       </tr><tr>
         <td>
-          128
+          43
         </td>
         <td>
-          910
+          943
         </td>
         <td>
-          3976
+          1648
           -
-          4010
+          1682
         </td>
         <td>
           Apply
@@ -1155,6 +348,1053 @@ else
         </td>
         <td style="background: #F0ADAD">
           AuthenticationFXController.this.pfSignUpConfirmPassword.setText(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          944
+        </td>
+        <td>
+          1741
+          -
+          1772
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignInReset.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          1777
+          -
+          1803
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignIn.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          946
+        </td>
+        <td>
+          1808
+          -
+          1839
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignUpReset.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          947
+        </td>
+        <td>
+          1844
+          -
+          1870
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignUp.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          948
+        </td>
+        <td>
+          1928
+          -
+          1960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignInReset.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          949
+        </td>
+        <td>
+          1965
+          -
+          1992
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignIn.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          950
+        </td>
+        <td>
+          1997
+          -
+          2029
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignUpReset.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          951
+        </td>
+        <td>
+          2034
+          -
+          2061
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignUp.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          960
+        </td>
+        <td>
+          2115
+          -
+          2376
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.runOnUIThread((() =&gt; {
+  AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignInUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.performLogIn(username, password)))));
+  ()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          959
+        </td>
+        <td>
+          2166
+          -
+          2166
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          953
+        </td>
+        <td>
+          2205
+          -
+          2225
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          958
+        </td>
+        <td>
+          2143
+          -
+          2369
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignInUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.performLogIn(username, password)))))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          952
+        </td>
+        <td>
+          2187
+          -
+          2203
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.tfSignInUsername
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.tfSignInUsername
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          955
+        </td>
+        <td>
+          2284
+          -
+          2304
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          954
+        </td>
+        <td>
+          2266
+          -
+          2282
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignInPassword
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.pfSignInPassword
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          957
+        </td>
+        <td>
+          2236
+          -
+          2369
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignInPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).map[Unit](((password: String) =&gt; AuthenticationFXController.this.strategy.performLogIn(username, password)))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          956
+        </td>
+        <td>
+          2328
+          -
+          2369
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationStrategy.performLogIn
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.strategy.performLogIn(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          979
+        </td>
+        <td>
+          2427
+          -
+          2960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.runOnUIThread((() =&gt; {
+  AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
+    AuthenticationFXController.this.strategy.performSignUp(username, password)
+  else
+    AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))))));
+  ()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          977
+        </td>
+        <td>
+          2455
+          -
+          2953
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
+  AuthenticationFXController.this.strategy.performSignUp(username, password)
+else
+  AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))))))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          962
+        </td>
+        <td>
+          2517
+          -
+          2537
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          961
+        </td>
+        <td>
+          2499
+          -
+          2515
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.tfSignUpUsername
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.tfSignUpUsername
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          978
+        </td>
+        <td>
+          2478
+          -
+          2478
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          964
+        </td>
+        <td>
+          2596
+          -
+          2616
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          976
+        </td>
+        <td>
+          2548
+          -
+          2953
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
+  AuthenticationFXController.this.strategy.performSignUp(username, password)
+else
+  AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))))
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          963
+        </td>
+        <td>
+          2578
+          -
+          2594
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpPassword
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.pfSignUpPassword
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          965
+        </td>
+        <td>
+          2664
+          -
+          2687
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpConfirmPassword
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.pfSignUpConfirmPassword
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          975
+        </td>
+        <td>
+          2627
+          -
+          2953
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
+  AuthenticationFXController.this.strategy.performSignUp(username, password)
+else
+  AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          966
+        </td>
+        <td>
+          2689
+          -
+          2716
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          967
+        </td>
+        <td>
+          2744
+          -
+          2800
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationStrategy.performPasswordCheck
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          968
+        </td>
+        <td>
+          2814
+          -
+          2856
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationStrategy.performSignUp
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.strategy.performSignUp(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          969
+        </td>
+        <td>
+          2814
+          -
+          2856
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationStrategy.performSignUp
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.strategy.performSignUp(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          971
+        </td>
+        <td>
+          2913
+          -
+          2942
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          974
+        </td>
+        <td>
+          2884
+          -
+          2943
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          973
+        </td>
+        <td>
+          2884
+          -
+          2943
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          970
+        </td>
+        <td>
+          2894
+          -
+          2911
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          972
+        </td>
+        <td>
+          2884
+          -
+          2884
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.showError$default$3
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          980
+        </td>
+        <td>
+          3033
+          -
+          3046
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.resetFields
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.resetFields()
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          981
+        </td>
+        <td>
+          3011
+          -
+          3048
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.runOnUIThread((() =&gt; AuthenticationFXController.this.resetFields()))
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          983
+        </td>
+        <td>
+          3099
+          -
+          3136
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.runOnUIThread((() =&gt; AuthenticationFXController.this.resetFields()))
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          982
+        </td>
+        <td>
+          3121
+          -
+          3134
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.resetFields
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.resetFields()
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          986
+        </td>
+        <td>
+          3321
+          -
+          3392
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.require(strategy.!=(null), &quot;The authentication strategy cannot be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          985
+        </td>
+        <td>
+          3347
+          -
+          3391
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;The authentication strategy cannot be null&quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          984
+        </td>
+        <td>
+          3329
+          -
+          3345
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          strategy.!=(null)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          987
+        </td>
+        <td>
+          3397
+          -
+          3437
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new AuthenticationFXController(strategy)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          988
+        </td>
+        <td>
+          3480
+          -
+          3515
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;È necessario inserire lo username&quot;
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          989
+        </td>
+        <td>
+          3553
+          -
+          3588
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;È necessario inserire la password&quot;
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          990
+        </td>
+        <td>
+          3633
+          -
+          3679
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;È necessario inserire nuovamente la password&quot;
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          991
+        </td>
+        <td>
+          3726
+          -
+          3765
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Le password inserite non sono uguali!&quot;
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          992
+        </td>
+        <td>
+          3801
+          -
+          3813
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Attenzione&quot;
         </td>
       </tr>
     </table>

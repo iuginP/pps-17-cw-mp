@@ -32,7 +32,7 @@
 </span>8 <span style=''>
 </span>9 <span style=''>/**
 </span>10 <span style=''>  * This class is automatically extended when using [[VerticleBeforeAndAfterEach]] or [[VerticleBeforeAndAfterAll]].
-</span>11 <span style=''>  * Here it is provided the structure for managing the deployment of the verticles and their undeploy at the end.
+</span>11 <span style=''>  * Here it is provided the structure for managing the deployment of the verticles and their un-deploy at the end.
 </span>12 <span style=''>  *
 </span>13 <span style=''>  * @author Eugenio Pierfederici
 </span>14 <span style=''>  */
@@ -42,37 +42,39 @@
 </span>18 <span style=''>  /**
 </span>19 <span style=''>    * Once deployed, this set contains all the ids of the verticles just started.
 </span>20 <span style=''>    */
-</span>21 <span style=''>  private var deployementIds: Set[String] = _
+</span>21 <span style=''>  private var deploymentIds: Set[String] = _
 </span>22 <span style=''>
 </span>23 <span style=''>  /**
 </span>24 <span style=''>    * Deploys all the verticles passed as parameter. If any deploy fails or isn't deployed withing the
 </span>25 <span style=''>    * requested time, it throws a [[RuntimeException]]
-</span>26 <span style=''>    * @param verticles the list of verticle to deploy
-</span>27 <span style=''>    * @param atMost the maximum amount of time we can wait for the verticle to start. By default: 10000 milliseconds
-</span>28 <span style=''>    * @throws RuntimeException if any verticle can't be deployed
-</span>29 <span style=''>    */
-</span>30 <span style=''>  protected def deployAll(verticles: Traversable[ScalaVerticle], atMost: Duration = 10000.millis): Unit = {
-</span>31 <span style=''>    </span><span style='background: #F0ADAD'>deployementIds = Set()</span><span style=''>
-</span>32 <span style=''>    </span><span style='background: #F0ADAD'>verticles.foreach(verticle =&gt; deployementIds = deployementIds + Await.result(vertx.deployVerticleFuture(verticle)
-</span>33 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        case Success(d) =&gt; d
-</span>35 <span style=''></span><span style='background: #F0ADAD'>        case Failure(t) =&gt; throw new RuntimeException(t)
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      }, atMost))</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>
-</span>39 <span style=''>  /**
-</span>40 <span style=''>    * Un-deploys all the verticles previously deployed. If any un-deploy fails or it isn't un-deployed withing the
-</span>41 <span style=''>    * requested time, it throws a [[RuntimeException]]
-</span>42 <span style=''>    * @param atMost the maximum amount of time we can wait for the verticle to stop. By default: 10000 milliseconds
-</span>43 <span style=''>    * @throws RuntimeException if any verticle can't be un-deployed
-</span>44 <span style=''>    */
-</span>45 <span style=''>  protected def undeployAll(atMost: Duration = 10000.millis): Unit =
-</span>46 <span style=''>    </span><span style='background: #F0ADAD'>deployementIds.foreach(id =&gt; Await.result(vertx.undeployFuture(id)
-</span>47 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
-</span>48 <span style=''></span><span style='background: #F0ADAD'>        case Success(d) =&gt; d
-</span>49 <span style=''></span><span style='background: #F0ADAD'>        case Failure(t) =&gt; throw new RuntimeException(t)
-</span>50 <span style=''></span><span style='background: #F0ADAD'>      }, atMost))</span><span style=''>
-</span>51 <span style=''>}
+</span>26 <span style=''>    *
+</span>27 <span style=''>    * @param verticles the list of verticle to deploy
+</span>28 <span style=''>    * @param atMost    the maximum amount of time we can wait for the verticle to start. By default: 10000 milliseconds
+</span>29 <span style=''>    * @throws RuntimeException if any verticle can't be deployed
+</span>30 <span style=''>    */
+</span>31 <span style=''>  protected def deployAll(verticles: Traversable[ScalaVerticle], atMost: Duration = 10000.millis): Unit = {
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>deploymentIds = Set()</span><span style=''>
+</span>33 <span style=''>    </span><span style='background: #F0ADAD'>verticles.foreach(verticle =&gt; deploymentIds = deploymentIds + Await.result(vertx.deployVerticleFuture(verticle)
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        case Success(d) =&gt; d
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        case Failure(t) =&gt; throw new RuntimeException(t)
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      }, atMost))</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  /**
+</span>41 <span style=''>    * Un-deploys all the verticles previously deployed. If any un-deploy fails or it isn't un-deployed withing the
+</span>42 <span style=''>    * requested time, it throws a [[RuntimeException]]
+</span>43 <span style=''>    *
+</span>44 <span style=''>    * @param atMost the maximum amount of time we can wait for the verticle to stop. By default: 10000 milliseconds
+</span>45 <span style=''>    * @throws RuntimeException if any verticle can't be un-deployed
+</span>46 <span style=''>    */
+</span>47 <span style=''>  protected def undeployAll(atMost: Duration = 10000.millis): Unit =
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>deploymentIds.foreach(id =&gt; Await.result(vertx.undeployFuture(id)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
+</span>50 <span style=''></span><span style='background: #F0ADAD'>        case Success(d) =&gt; d
+</span>51 <span style=''></span><span style='background: #F0ADAD'>        case Failure(t) =&gt; throw new RuntimeException(t)
+</span>52 <span style=''></span><span style='background: #F0ADAD'>      }, atMost))</span><span style=''>
+</span>53 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -86,15 +88,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
           20
         </td>
         <td>
-          1168
+          1176
           -
-          1173
+          1181
         </td>
         <td>
           Apply
@@ -107,36 +109,36 @@
         </td>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
           21
         </td>
         <td>
-          1151
+          1160
           -
-          1173
+          1181
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.testing.VerticleTest.deployementIds_=
+          it.cwmp.testing.VerticleTest.deploymentIds_=
         </td>
         <td style="background: #F0ADAD">
-          VerticleTest.this.deployementIds_=(scala.Predef.Set.apply[String]())
+          VerticleTest.this.deploymentIds_=(scala.Predef.Set.apply[String]())
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
           26
         </td>
         <td>
-          1242
+          1248
           -
-          1411
+          1417
         </td>
         <td>
           Apply
@@ -167,15 +169,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
           29
         </td>
         <td>
-          1178
+          1186
           -
-          1412
+          1418
         </td>
         <td>
           Apply
@@ -184,7 +186,7 @@
           scala.collection.generic.GenericTraversableTemplate.foreach
         </td>
         <td style="background: #F0ADAD">
-          verticles.foreach[Unit](((verticle: io.vertx.lang.scala.ScalaVerticle) =&gt; VerticleTest.this.deployementIds_=(VerticleTest.this.deployementIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
+          verticles.foreach[Unit](((verticle: io.vertx.lang.scala.ScalaVerticle) =&gt; VerticleTest.this.deploymentIds_=(VerticleTest.this.deploymentIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
   @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],String] with Serializable {
     def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; String&gt; = {
       $anonfun.super.&lt;init&gt;();
@@ -206,24 +208,24 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
           28
         </td>
         <td>
-          1208
+          1216
           -
-          1411
+          1417
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.testing.VerticleTest.deployementIds_=
+          it.cwmp.testing.VerticleTest.deploymentIds_=
         </td>
         <td style="background: #F0ADAD">
-          VerticleTest.this.deployementIds_=(VerticleTest.this.deployementIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
+          VerticleTest.this.deploymentIds_=(VerticleTest.this.deploymentIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
   @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],String] with Serializable {
     def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; String&gt; = {
       $anonfun.super.&lt;init&gt;();
@@ -245,15 +247,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
           27
         </td>
         <td>
-          1225
+          1232
           -
-          1411
+          1417
         </td>
         <td>
           Apply
@@ -262,7 +264,7 @@
           scala.collection.SetLike.+
         </td>
         <td style="background: #F0ADAD">
-          VerticleTest.this.deployementIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
+          VerticleTest.this.deploymentIds.+(scala.concurrent.Await.result[String](VerticleTest.this.vertx.deployVerticleFuture(verticle).andThen[String](({
   @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],String] with Serializable {
     def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; String&gt; = {
       $anonfun.super.&lt;init&gt;();
@@ -284,15 +286,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
           23
         </td>
         <td>
-          1307
+          1313
           -
-          1307
+          1313
         </td>
         <td>
           Apply
@@ -305,15 +307,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
           25
         </td>
         <td>
-          1255
+          1261
           -
-          1402
+          1408
         </td>
         <td>
           ApplyToImplicitArgs
@@ -344,15 +346,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
           24
         </td>
         <td>
-          1307
+          1313
           -
-          1307
+          1313
         </td>
         <td>
           Select
@@ -365,15 +367,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          36
         </td>
         <td>
           22
         </td>
         <td>
-          1365
+          1371
           -
-          1394
+          1400
         </td>
         <td>
           Throw
@@ -386,15 +388,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          48
         </td>
         <td>
           35
         </td>
         <td>
-          1858
+          1870
           -
-          2045
+          2056
         </td>
         <td>
           Apply
@@ -403,7 +405,7 @@
           scala.collection.IterableLike.foreach
         </td>
         <td style="background: #F0ADAD">
-          VerticleTest.this.deployementIds.foreach[Unit](((id: String) =&gt; scala.concurrent.Await.result[Unit](VerticleTest.this.vertx.undeployFuture(id).andThen[Unit](({
+          VerticleTest.this.deploymentIds.foreach[Unit](((id: String) =&gt; scala.concurrent.Await.result[Unit](VerticleTest.this.vertx.undeployFuture(id).andThen[Unit](({
   @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[Unit],Unit] with Serializable {
     def &lt;init&gt;(): &lt;$anon: scala.util.Try[Unit] =&gt; Unit&gt; = {
       $anonfun.super.&lt;init&gt;();
@@ -425,15 +427,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          48
         </td>
         <td>
           34
         </td>
         <td>
-          1887
+          1898
           -
-          2044
+          2055
         </td>
         <td>
           Apply
@@ -464,15 +466,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
           32
         </td>
         <td>
-          1940
+          1951
           -
-          1940
+          1951
         </td>
         <td>
           Select
@@ -485,15 +487,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
           31
         </td>
         <td>
-          1940
+          1951
           -
-          1940
+          1951
         </td>
         <td>
           Apply
@@ -506,15 +508,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
           33
         </td>
         <td>
-          1900
+          1911
           -
-          2035
+          2046
         </td>
         <td>
           ApplyToImplicitArgs
@@ -545,15 +547,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          51
         </td>
         <td>
           30
         </td>
         <td>
-          1998
+          2009
           -
-          2027
+          2038
         </td>
         <td>
           Throw

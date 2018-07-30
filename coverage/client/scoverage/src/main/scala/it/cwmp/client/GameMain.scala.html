@@ -39,7 +39,7 @@
 </span>15 <span style=''>
 </span>16 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
 </span>17 <span style=''>
-</span>18 <span style=''>  val gameActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[GameViewActor]), GameViewActor.getClass.getName)</span><span style=''>
+</span>18 <span style=''>  val gameActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[GameViewActor], null), GameViewActor.getClass.getName)</span><span style=''>
 </span>19 <span style=''>
 </span>20 <span style=''>  import GameViewActor._
 </span>21 <span style=''>
@@ -228,7 +228,7 @@
         <td>
           544
           -
-          573
+          579
         </td>
         <td>
           Apply
@@ -237,7 +237,7 @@
           akka.actor.Props.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor])
+          akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], null)
         </td>
       </tr><tr>
         <td>
@@ -249,7 +249,7 @@
         <td>
           529
           -
-          606
+          612
         </td>
         <td>
           Apply
@@ -258,7 +258,7 @@
           akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          GameMain.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor]), it.cwmp.client.view.game.GameViewActor.getClass().getName())
+          GameMain.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], null), it.cwmp.client.view.game.GameViewActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
@@ -268,9 +268,9 @@
           21
         </td>
         <td>
-          575
+          581
           -
-          605
+          611
         </td>
         <td>
           Apply
@@ -289,9 +289,9 @@
           23
         </td>
         <td>
-          636
+          642
           -
-          645
+          651
         </td>
         <td>
           Select
@@ -310,9 +310,9 @@
           26
         </td>
         <td>
-          646
+          652
           -
-          646
+          652
         </td>
         <td>
           Apply
@@ -331,9 +331,9 @@
           25
         </td>
         <td>
-          648
+          654
           -
-          655
+          661
         </td>
         <td>
           Select
@@ -352,9 +352,9 @@
           27
         </td>
         <td>
-          636
+          642
           -
-          655
+          661
         </td>
         <td>
           ApplyToImplicitArgs
@@ -373,9 +373,9 @@
           24
         </td>
         <td>
-          636
+          642
           -
-          645
+          651
         </td>
         <td>
           ApplyImplicitView
@@ -394,9 +394,9 @@
           32
         </td>
         <td>
-          668
+          674
           -
-          668
+          674
         </td>
         <td>
           Apply
@@ -415,9 +415,9 @@
           29
         </td>
         <td>
-          658
+          664
           -
-          667
+          673
         </td>
         <td>
           ApplyImplicitView
@@ -436,9 +436,9 @@
           31
         </td>
         <td>
-          670
+          676
           -
-          690
+          696
         </td>
         <td>
           Apply
@@ -457,9 +457,9 @@
           28
         </td>
         <td>
-          658
+          664
           -
-          667
+          673
         </td>
         <td>
           Select
@@ -478,9 +478,9 @@
           30
         </td>
         <td>
-          679
+          685
           -
-          689
+          695
         </td>
         <td>
           Select
@@ -499,9 +499,9 @@
           33
         </td>
         <td>
-          658
+          664
           -
-          690
+          696
         </td>
         <td>
           ApplyToImplicitArgs
@@ -520,9 +520,9 @@
           34
         </td>
         <td>
-          786
+          792
           -
-          960
+          966
         </td>
         <td>
           Apply
@@ -550,9 +550,9 @@
           35
         </td>
         <td>
-          994
+          1000
           -
-          1015
+          1021
         </td>
         <td>
           Apply
@@ -571,9 +571,9 @@
           38
         </td>
         <td>
-          965
+          971
           -
-          1200
+          1206
         </td>
         <td>
           Apply
@@ -601,9 +601,9 @@
           36
         </td>
         <td>
-          975
+          981
           -
-          1016
+          1022
         </td>
         <td>
           Apply
@@ -622,9 +622,9 @@
           37
         </td>
         <td>
-          1075
+          1081
           -
-          1199
+          1205
         </td>
         <td>
           Apply

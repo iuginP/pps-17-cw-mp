@@ -35,9 +35,11 @@
 </span>11 <span style=''>  * @author Eugenio Pierfederici
 </span>12 <span style=''>  */
 </span>13 <span style=''>trait VertxInstance {
-</span>14 <span style=''>  val vertx: Vertx = </span><span style='background: #AEF1AE'>Vertx.vertx</span><span style=''>
-</span>15 <span style=''>  implicit val vertxExecutionContext: VertxExecutionContext = </span><span style='background: #AEF1AE'>VertxExecutionContext(vertx.getOrCreateContext())</span><span style=''>
-</span>16 <span style=''>}
+</span>14 <span style=''>  private val vertxContext = </span><span style='background: #AEF1AE'>Vertx.currentContext().getOrElse(Vertx.vertx.getOrCreateContext())</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  val vertx: Vertx = </span><span style='background: #AEF1AE'>vertxContext.owner()</span><span style=''>
+</span>17 <span style=''>  implicit val vertxExecutionContext: VertxExecutionContext = </span><span style='background: #AEF1AE'>VertxExecutionContext(vertxContext)</span><span style=''>
+</span>18 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -54,33 +56,33 @@
           14
         </td>
         <td>
-          411
+          420
         </td>
         <td>
-          390
+          398
           -
-          401
+          464
         </td>
         <td>
           Apply
         </td>
         <td>
-          io.vertx.scala.core.Vertx.vertx
+          scala.Option.getOrElse
         </td>
         <td style="background: #AEF1AE">
-          io.vertx.scala.core.Vertx.vertx()
+          io.vertx.scala.core.Vertx.currentContext().getOrElse[io.vertx.scala.core.Context](io.vertx.scala.core.Vertx.vertx().getOrCreateContext())
         </td>
       </tr><tr>
         <td>
-          15
+          14
         </td>
         <td>
-          412
+          419
         </td>
         <td>
-          486
+          431
           -
-          512
+          463
         </td>
         <td>
           Apply
@@ -89,19 +91,40 @@
           io.vertx.scala.core.Vertx.getOrCreateContext
         </td>
         <td style="background: #AEF1AE">
-          VertxInstance.this.vertx.getOrCreateContext()
+          io.vertx.scala.core.Vertx.vertx().getOrCreateContext()
         </td>
       </tr><tr>
         <td>
-          15
+          16
         </td>
         <td>
-          413
+          421
         </td>
         <td>
-          464
+          487
           -
-          513
+          507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.Context.owner
+        </td>
+        <td style="background: #AEF1AE">
+          VertxInstance.this.vertxContext.owner()
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          423
+        </td>
+        <td>
+          570
+          -
+          605
         </td>
         <td>
           Apply
@@ -110,7 +133,28 @@
           io.vertx.lang.scala.VertxExecutionContext.apply
         </td>
         <td style="background: #AEF1AE">
-          io.vertx.lang.scala.VertxExecutionContext.apply(VertxInstance.this.vertx.getOrCreateContext())
+          io.vertx.lang.scala.VertxExecutionContext.apply(VertxInstance.this.vertxContext)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          592
+          -
+          604
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxInstance.this.vertxContext
         </td>
       </tr>
     </table>

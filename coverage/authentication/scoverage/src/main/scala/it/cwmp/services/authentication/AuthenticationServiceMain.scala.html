@@ -24,18 +24,17 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication
 </span>2 <span style=''>
-</span>3 <span style=''>import io.vertx.scala.core.Vertx
-</span>4 <span style=''>import it.cwmp.utils.Logging
-</span>5 <span style=''>
-</span>6 <span style=''>/**
-</span>7 <span style=''>  * Hello class for server
-</span>8 <span style=''>  */
-</span>9 <span style=''>object AuthenticationServiceMain extends App with Logging {
-</span>10 <span style=''>
-</span>11 <span style=''>  </span><span style='background: #F0ADAD'>Vertx.vertx().deployVerticle(new AuthenticationServiceVerticle)</span><span style=''>
-</span>12 <span style=''>
-</span>13 <span style=''>  log.info(&quot;Deploying AuthenticationServiceVerticle... &quot;)
-</span>14 <span style=''>}
+</span>3 <span style=''>import it.cwmp.utils.{Logging, VertxInstance}
+</span>4 <span style=''>
+</span>5 <span style=''>/**
+</span>6 <span style=''>  * AuthenticationService entry-point
+</span>7 <span style=''>  */
+</span>8 <span style=''>object AuthenticationServiceMain extends App with VertxInstance with Logging {
+</span>9 <span style=''>
+</span>10 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticle(new AuthenticationServiceVerticle)</span><span style=''>
+</span>11 <span style=''>
+</span>12 <span style=''>  log.info(&quot;Deploying AuthenticationServiceVerticle... &quot;)
+</span>13 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -49,15 +48,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          11
+          10
         </td>
         <td>
-          2
+          119
         </td>
         <td>
-          203
+          217
           -
-          266
+          272
         </td>
         <td>
           Apply
@@ -66,19 +65,19 @@
           io.vertx.scala.core.Vertx.deployVerticle
         </td>
         <td style="background: #F0ADAD">
-          io.vertx.scala.core.Vertx.vertx().deployVerticle(new AuthenticationServiceVerticle())
+          AuthenticationServiceMain.this.vertx.deployVerticle(new AuthenticationServiceVerticle())
         </td>
       </tr><tr>
         <td>
-          11
+          10
         </td>
         <td>
-          1
+          118
         </td>
         <td>
-          232
+          238
           -
-          265
+          271
         </td>
         <td>
           Apply

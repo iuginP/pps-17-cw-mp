@@ -1,0 +1,510 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/view/FXViewController.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
+</span>2 <span style=''>
+</span>3 <span style=''>import javafx.application.Platform
+</span>4 <span style=''>import javafx.fxml.FXMLLoader
+</span>5 <span style=''>import javafx.scene.Scene
+</span>6 <span style=''>import javafx.scene.layout.Pane
+</span>7 <span style=''>import javafx.stage.Stage
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * Trait that models a generic view.
+</span>11 <span style=''>  * Implements the main measures for a basic management of the view, delegating to the class
+</span>12 <span style=''>  * that extends it the choice of which components to use in the creation of the interface.
+</span>13 <span style=''>  */
+</span>14 <span style=''>trait FXViewController {
+</span>15 <span style=''>
+</span>16 <span style=''>  protected val stage: Stage = </span><span style='background: #F0ADAD'>new Stage</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  /**
+</span>19 <span style=''>    * Method called to show the view
+</span>20 <span style=''>    */
+</span>21 <span style=''>  def showGUI(): Unit = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>initGUI()</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>stage show()</span><span style=''>
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  /**
+</span>27 <span style=''>    * Method called to hide the view
+</span>28 <span style=''>    */
+</span>29 <span style=''>  def hideGUI(): Unit = </span><span style='background: #F0ADAD'>stage close()</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * @return the path to layout resource
+</span>33 <span style=''>    */
+</span>34 <span style=''>  protected def layout: String
+</span>35 <span style=''>
+</span>36 <span style=''>  /**
+</span>37 <span style=''>    * @return the view title string
+</span>38 <span style=''>    */
+</span>39 <span style=''>  protected def title: String
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * @return the FXViewController for this view
+</span>43 <span style=''>    */
+</span>44 <span style=''>  protected def controller: FXViewController
+</span>45 <span style=''>
+</span>46 <span style=''>  /**
+</span>47 <span style=''>    * Tells which action to perform on window close
+</span>48 <span style=''>    *
+</span>49 <span style=''>    * @return the default close action (exits JVM)
+</span>50 <span style=''>    */
+</span>51 <span style=''>  protected def onCloseAction(): Unit = {
+</span>52 <span style=''>    </span><span style='background: #F0ADAD'>Platform.exit()</span><span style=''>
+</span>53 <span style=''>    </span><span style='background: #F0ADAD'>System.exit(0)</span><span style=''>
+</span>54 <span style=''>  }
+</span>55 <span style=''>
+</span>56 <span style=''>  /**
+</span>57 <span style=''>    * Initialization of the view
+</span>58 <span style=''>    */
+</span>59 <span style=''>  private def initGUI(): Unit = {
+</span>60 <span style=''>    // creates an instance of layout
+</span>61 <span style=''>    val loader = </span><span style='background: #F0ADAD'>new FXMLLoader(getClass.getResource(layout))</span><span style=''>
+</span>62 <span style=''>    </span><span style='background: #F0ADAD'>loader.setController(controller)</span><span style=''>
+</span>63 <span style=''>    val pane: Pane = </span><span style='background: #F0ADAD'>loader.load()</span><span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>    </span><span style='background: #F0ADAD'>stage setTitle title</span><span style=''>
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>stage setResizable false</span><span style=''>
+</span>67 <span style=''>    </span><span style='background: #F0ADAD'>stage.setOnCloseRequest(_ =&gt; onCloseAction())</span><span style=''>
+</span>68 <span style=''>    </span><span style='background: #F0ADAD'>stage setScene new Scene(pane)</span><span style=''>
+</span>69 <span style=''>  }
+</span>70 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          915
+        </td>
+        <td>
+          468
+          -
+          477
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.stage.Stage()
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          916
+        </td>
+        <td>
+          559
+          -
+          568
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.initGUI
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.initGUI()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          917
+        </td>
+        <td>
+          573
+          -
+          585
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.show
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.show()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          918
+        </td>
+        <td>
+          665
+          -
+          678
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.close
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.close()
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          919
+        </td>
+        <td>
+          1123
+          -
+          1138
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.exit
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.exit()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          920
+        </td>
+        <td>
+          1143
+          -
+          1157
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(0)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          923
+        </td>
+        <td>
+          1297
+          -
+          1341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.fxml.FXMLLoader.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.fxml.FXMLLoader(FXViewController.this.getClass().getResource(FXViewController.this.layout))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          922
+        </td>
+        <td>
+          1312
+          -
+          1340
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getResource
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.getClass().getResource(FXViewController.this.layout)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          921
+        </td>
+        <td>
+          1333
+          -
+          1339
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.layout
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.layout
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          925
+        </td>
+        <td>
+          1346
+          -
+          1378
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.fxml.FXMLLoader.setController
+        </td>
+        <td style="background: #F0ADAD">
+          loader.setController(FXViewController.this.controller)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          924
+        </td>
+        <td>
+          1367
+          -
+          1377
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.controller
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.controller
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          926
+        </td>
+        <td>
+          1400
+          -
+          1413
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.fxml.FXMLLoader.load
+        </td>
+        <td style="background: #F0ADAD">
+          loader.load[Nothing]()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          928
+        </td>
+        <td>
+          1419
+          -
+          1439
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.setTitle(FXViewController.this.title)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          927
+        </td>
+        <td>
+          1434
+          -
+          1439
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.title
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.title
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          929
+        </td>
+        <td>
+          1444
+          -
+          1468
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setResizable
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.setResizable(false)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          931
+        </td>
+        <td>
+          1473
+          -
+          1518
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Window.setOnCloseRequest
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.setOnCloseRequest(((x$1: javafx.stage.WindowEvent) =&gt; FXViewController.this.onCloseAction()))
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          930
+        </td>
+        <td>
+          1502
+          -
+          1517
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.onCloseAction
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.onCloseAction()
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          932
+        </td>
+        <td>
+          1538
+          -
+          1553
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Scene.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.Scene(pane)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          933
+        </td>
+        <td>
+          1523
+          -
+          1553
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setScene
+        </td>
+        <td style="background: #F0ADAD">
+          FXViewController.this.stage.setScene(new javafx.scene.Scene(pane))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

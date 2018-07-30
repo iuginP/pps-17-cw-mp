@@ -27,100 +27,93 @@
 </span>3 <span style=''>import io.vertx.core.buffer.Buffer
 </span>4 <span style=''>import io.vertx.lang.scala.json.{Json, JsonArray, JsonObject}
 </span>5 <span style=''>import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
-</span>6 <span style=''>import it.cwmp.model.{Address, Room}
-</span>7 <span style=''>import it.cwmp.services.rooms.ServerParameters._
-</span>8 <span style=''>import it.cwmp.utils.VertxClient
-</span>9 <span style=''>
-</span>10 <span style=''>import scala.concurrent.Future
-</span>11 <span style=''>
-</span>12 <span style=''>trait RoomApiWrapperUtils {
-</span>13 <span style=''>  this: VertxClient =&gt;
-</span>14 <span style=''>
-</span>15 <span style=''>  /**
-</span>16 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService createPrivateRoom API
-</span>17 <span style=''>    */
-</span>18 <span style=''>  protected def createPrivateRoomRequest(roomName: String, neededPlayers: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>19 <span style=''>    </span><span style='background: #AEF1AE'>client.post(API_CREATE_PRIVATE_ROOM_URL).addAuthentication.sendJsonObjectFuture(roomForCreationJson(roomName, neededPlayers))</span><span style=''>
-</span>20 <span style=''>  }
-</span>21 <span style=''>
-</span>22 <span style=''>  /**
-</span>23 <span style=''>    * Handle method to create the JSON to use in creation API
-</span>24 <span style=''>    */
-</span>25 <span style=''>  protected def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
-</span>26 <span style=''>    </span><span style='background: #AEF1AE'>Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))</span><span style=''>
-</span>27 <span style=''>
-</span>28 <span style=''>  /**
-</span>29 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
-</span>30 <span style=''>    */
-</span>31 <span style=''>  protected def enterPrivateRoomRequest(roomID: String,
-</span>32 <span style=''>                                        userAddress: Address,
-</span>33 <span style=''>                                        notificationAddress: Address)
-</span>34 <span style=''>                                       (implicit webClient: WebClient,
-</span>35 <span style=''>                                        userToken: String): Future[HttpResponse[Buffer]] = {
-</span>36 <span style=''>    </span><span style='background: #AEF1AE'>client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication
-</span>37 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))</span><span style=''>
-</span>38 <span style=''>  }
-</span>39 <span style=''>
-</span>40 <span style=''>  /**
-</span>41 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService privateRoomInfo API
-</span>42 <span style=''>    */
-</span>43 <span style=''>  protected def privateRoomInfoRequest(roomID: String)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>44 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_PRIVATE_ROOM_INFO_URL).addAuthentication
-</span>45 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture()</span><span style=''>
-</span>46 <span style=''>  }
-</span>47 <span style=''>
-</span>48 <span style=''>  /**
-</span>49 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService exitPrivateRoom API
-</span>50 <span style=''>    */
-</span>51 <span style=''>  protected def exitPrivateRoomRequest(roomID: String)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>52 <span style=''>    </span><span style='background: #AEF1AE'>client.delete(API_EXIT_PRIVATE_ROOM_URL).addAuthentication
-</span>53 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture()</span><span style=''>
-</span>54 <span style=''>  }
-</span>55 <span style=''>
-</span>56 <span style=''>  /**
-</span>57 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService listPublicRooms API
-</span>58 <span style=''>    */
-</span>59 <span style=''>  protected def listPublicRoomsRequest()(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>60 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_LIST_PUBLIC_ROOMS_URL).addAuthentication
-</span>61 <span style=''></span><span style='background: #AEF1AE'>      .sendFuture()</span><span style=''>
-</span>62 <span style=''>  }
+</span>6 <span style=''>import it.cwmp.model.Address.Converters._
+</span>7 <span style=''>import it.cwmp.model.{Address, Room}
+</span>8 <span style=''>import it.cwmp.services.rooms.ServerParameters._
+</span>9 <span style=''>import it.cwmp.utils.VertxClient
+</span>10 <span style=''>
+</span>11 <span style=''>import scala.concurrent.Future
+</span>12 <span style=''>
+</span>13 <span style=''>/**
+</span>14 <span style=''>  * A trait that contains utility methods for a RoomApiWrapper
+</span>15 <span style=''>  */
+</span>16 <span style=''>trait RoomApiWrapperUtils {
+</span>17 <span style=''>  this: VertxClient =&gt;
+</span>18 <span style=''>
+</span>19 <span style=''>  /**
+</span>20 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService createPrivateRoom API
+</span>21 <span style=''>    */
+</span>22 <span style=''>  protected def createPrivateRoomRequest(roomName: String, neededPlayers: Int)
+</span>23 <span style=''>                                        (implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>client.post(API_CREATE_PRIVATE_ROOM_URL).addAuthentication
+</span>25 <span style=''></span><span style='background: #AEF1AE'>      .sendJsonObjectFuture(roomForCreationJson(roomName, neededPlayers))</span><span style=''>
+</span>26 <span style=''>
+</span>27 <span style=''>  /**
+</span>28 <span style=''>    * Handle method to create the JSON to use in creation API
+</span>29 <span style=''>    */
+</span>30 <span style=''>  protected def roomForCreationJson(roomName: String, playersNumber: Int): JsonObject =
+</span>31 <span style=''>    </span><span style='background: #AEF1AE'>Json.obj((Room.FIELD_NAME, roomName), (Room.FIELD_NEEDED_PLAYERS, playersNumber))</span><span style=''>
+</span>32 <span style=''>
+</span>33 <span style=''>  /**
+</span>34 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService enterPrivateRoom API
+</span>35 <span style=''>    */
+</span>36 <span style=''>  protected def enterPrivateRoomRequest(roomID: String, userAddress: Address, notificationAddress: Address)
+</span>37 <span style=''>                                       (implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>38 <span style=''>    </span><span style='background: #AEF1AE'>client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication
+</span>39 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID)
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      .sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))</span><span style=''>
+</span>41 <span style=''>
+</span>42 <span style=''>  /**
+</span>43 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService privateRoomInfo API
+</span>44 <span style=''>    */
+</span>45 <span style=''>  protected def privateRoomInfoRequest(roomID: String)
+</span>46 <span style=''>                                      (implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>47 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_PRIVATE_ROOM_INFO_URL).addAuthentication
+</span>48 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture()</span><span style=''>
+</span>49 <span style=''>
+</span>50 <span style=''>  /**
+</span>51 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService exitPrivateRoom API
+</span>52 <span style=''>    */
+</span>53 <span style=''>  protected def exitPrivateRoomRequest(roomID: String)
+</span>54 <span style=''>                                      (implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>55 <span style=''>    </span><span style='background: #AEF1AE'>client.delete(API_EXIT_PRIVATE_ROOM_URL).addAuthentication
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_IDENTIFIER, roomID).sendFuture()</span><span style=''>
+</span>57 <span style=''>
+</span>58 <span style=''>  /**
+</span>59 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService listPublicRooms API
+</span>60 <span style=''>    */
+</span>61 <span style=''>  protected def listPublicRoomsRequest()(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>62 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_LIST_PUBLIC_ROOMS_URL).addAuthentication.sendFuture()</span><span style=''>
 </span>63 <span style=''>
 </span>64 <span style=''>  /**
 </span>65 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService enterPublicRoom API
 </span>66 <span style=''>    */
-</span>67 <span style=''>  protected def enterPublicRoomRequest(playersNumber: Int,
-</span>68 <span style=''>                                       userAddress: Address,
-</span>69 <span style=''>                                       notificationAddress: Address)
-</span>70 <span style=''>                                      (implicit webClient: WebClient,
-</span>71 <span style=''>                                       userToken: String): Future[HttpResponse[Buffer]] = {
-</span>72 <span style=''>    </span><span style='background: #AEF1AE'>client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication
-</span>73 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))</span><span style=''>
-</span>74 <span style=''>  }
-</span>75 <span style=''>
-</span>76 <span style=''>  /**
-</span>77 <span style=''>    * Handle method to create the JSON to use in entering API
-</span>78 <span style=''>    */
-</span>79 <span style=''>  protected def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray = {
-</span>80 <span style=''>    import Address.Converters._
-</span>81 <span style=''>    </span><span style='background: #AEF1AE'>Json.arr(playerAddress.toJson, notificationAddress.toJson)</span><span style=''>
-</span>82 <span style=''>  }
-</span>83 <span style=''>
-</span>84 <span style=''>  /**
-</span>85 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService publicRoomInfo API
-</span>86 <span style=''>    */
-</span>87 <span style=''>  protected def publicRoomInfoRequest(playersNumber: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>88 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_PUBLIC_ROOM_INFO_URL).addAuthentication
-</span>89 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture()</span><span style=''>
-</span>90 <span style=''>  }
-</span>91 <span style=''>
-</span>92 <span style=''>  /**
-</span>93 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService exitPublicRoom API
-</span>94 <span style=''>    */
-</span>95 <span style=''>  protected def exitPublicRoomRequest(playersNumber: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] = {
-</span>96 <span style=''>    </span><span style='background: #AEF1AE'>client.delete(API_EXIT_PUBLIC_ROOM_URL).addAuthentication
-</span>97 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture()</span><span style=''>
-</span>98 <span style=''>  }
-</span>99 <span style=''>}
+</span>67 <span style=''>  protected def enterPublicRoomRequest(playersNumber: Int, userAddress: Address, notificationAddress: Address)
+</span>68 <span style=''>                                      (implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>69 <span style=''>    </span><span style='background: #AEF1AE'>client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication
+</span>70 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString)
+</span>71 <span style=''></span><span style='background: #AEF1AE'>      .sendJsonFuture(addressesForEnteringJson(userAddress, notificationAddress))</span><span style=''>
+</span>72 <span style=''>
+</span>73 <span style=''>  /**
+</span>74 <span style=''>    * Handle method to create the JSON to use in entering API
+</span>75 <span style=''>    */
+</span>76 <span style=''>  protected def addressesForEnteringJson(playerAddress: Address, notificationAddress: Address): JsonArray =
+</span>77 <span style=''>    </span><span style='background: #AEF1AE'>Json arr(playerAddress.toJson, notificationAddress.toJson)</span><span style=''>
+</span>78 <span style=''>
+</span>79 <span style=''>  /**
+</span>80 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService publicRoomInfo API
+</span>81 <span style=''>    */
+</span>82 <span style=''>  protected def publicRoomInfoRequest(playersNumber: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>83 <span style=''>    </span><span style='background: #AEF1AE'>client.get(API_PUBLIC_ROOM_INFO_URL).addAuthentication
+</span>84 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture()</span><span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>  /**
+</span>87 <span style=''>    * Wrapper method to do REST HTTP call to RoomsService exitPublicRoom API
+</span>88 <span style=''>    */
+</span>89 <span style=''>  protected def exitPublicRoomRequest(playersNumber: Int)(implicit webClient: WebClient, userToken: String): Future[HttpResponse[Buffer]] =
+</span>90 <span style=''>    </span><span style='background: #AEF1AE'>client.delete(API_EXIT_PUBLIC_ROOM_URL).addAuthentication
+</span>91 <span style=''></span><span style='background: #AEF1AE'>      .setQueryParam(Room.FIELD_NEEDED_PLAYERS, playersNumber.toString).sendFuture()</span><span style=''>
+</span>92 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -134,36 +127,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          19
-        </td>
-        <td>
-          167
-        </td>
-        <td>
-          736
-          -
-          780
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomApiWrapperUtils.roomForCreationJson
-        </td>
-        <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.roomForCreationJson(roomName, neededPlayers)
-        </td>
-      </tr><tr>
-        <td>
-          19
+          24
         </td>
         <td>
           166
         </td>
         <td>
-          656
+          809
           -
-          696
+          849
         </td>
         <td>
           Apply
@@ -176,15 +148,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          24
         </td>
         <td>
           165
         </td>
         <td>
-          668
+          821
           -
-          695
+          848
         </td>
         <td>
           Select
@@ -197,15 +169,36 @@
         </td>
       </tr><tr>
         <td>
-          19
+          25
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          896
+          -
+          940
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomApiWrapperUtils.roomForCreationJson
+        </td>
+        <td style="background: #AEF1AE">
+          RoomApiWrapperUtils.this.roomForCreationJson(roomName, neededPlayers)
+        </td>
+      </tr><tr>
+        <td>
+          25
         </td>
         <td>
           168
         </td>
         <td>
-          656
+          809
           -
-          781
+          941
         </td>
         <td>
           Apply
@@ -214,19 +207,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendJsonObjectFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.post(it.cwmp.services.rooms.ServerParameters.API_CREATE_PRIVATE_ROOM_URL)).addAuthentication(userToken).sendJsonObjectFuture(RoomApiWrapperUtils.this.roomForCreationJson(roomName, neededPlayers))
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.post(it.cwmp.services.rooms.ServerParameters.API_CREATE_PRIVATE_ROOM_URL)).addAuthentication(userToken).sendJsonObjectFuture(RoomApiWrapperUtils.this.roomForCreationJson(roomName, neededPlayers))
         </td>
       </tr><tr>
         <td>
-          26
+          31
         </td>
         <td>
           173
         </td>
         <td>
-          954
+          1110
           -
-          1035
+          1191
         </td>
         <td>
           Apply
@@ -239,15 +232,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          31
         </td>
         <td>
           169
         </td>
         <td>
-          964
+          1120
           -
-          979
+          1135
         </td>
         <td>
           Select
@@ -260,15 +253,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          31
         </td>
         <td>
           172
         </td>
         <td>
-          992
+          1148
           -
-          1034
+          1190
         </td>
         <td>
           Apply
@@ -281,15 +274,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          31
         </td>
         <td>
           171
         </td>
         <td>
-          993
+          1149
           -
-          1018
+          1174
         </td>
         <td>
           Select
@@ -302,15 +295,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          31
         </td>
         <td>
           170
         </td>
         <td>
-          963
+          1119
           -
-          990
+          1146
         </td>
         <td>
           Apply
@@ -323,15 +316,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          38
         </td>
         <td>
           175
         </td>
         <td>
-          1485
+          1519
           -
-          1523
+          1557
         </td>
         <td>
           Apply
@@ -344,15 +337,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          38
         </td>
         <td>
           174
         </td>
         <td>
-          1496
+          1530
           -
-          1522
+          1556
         </td>
         <td>
           Select
@@ -365,15 +358,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
           176
         </td>
         <td>
-          1563
+          1597
           -
-          1584
+          1618
         </td>
         <td>
           Select
@@ -386,15 +379,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          40
         </td>
         <td>
           178
         </td>
         <td>
-          1485
+          1519
           -
-          1668
+          1709
         </td>
         <td>
           Apply
@@ -403,19 +396,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendJsonFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PRIVATE_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(RoomApiWrapperUtils.this.addressesForEnteringJson(userAddress, notificationAddress))
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PRIVATE_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendJsonFuture(RoomApiWrapperUtils.this.addressesForEnteringJson(userAddress, notificationAddress))
         </td>
       </tr><tr>
         <td>
-          37
+          40
         </td>
         <td>
           177
         </td>
         <td>
-          1609
+          1650
           -
-          1667
+          1708
         </td>
         <td>
           Apply
@@ -428,15 +421,15 @@
         </td>
       </tr><tr>
         <td>
-          45
+          48
         </td>
         <td>
           179
         </td>
         <td>
-          1908
+          1982
           -
-          2028
+          2102
         </td>
         <td>
           Apply
@@ -445,19 +438,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_PRIVATE_ROOM_INFO_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendFuture()
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_PRIVATE_ROOM_INFO_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendFuture()
         </td>
       </tr><tr>
         <td>
-          53
+          56
         </td>
         <td>
           180
         </td>
         <td>
-          2268
+          2375
           -
-          2391
+          2498
         </td>
         <td>
           Apply
@@ -466,19 +459,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PRIVATE_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendFuture()
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PRIVATE_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_IDENTIFIER, roomID).sendFuture()
         </td>
       </tr><tr>
         <td>
-          61
+          62
         </td>
         <td>
           181
         </td>
         <td>
-          2617
+          2718
           -
-          2692
+          2786
         </td>
         <td>
           Apply
@@ -487,19 +480,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_LIST_PUBLIC_ROOMS_URL)).addAuthentication(userToken).sendFuture()
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_LIST_PUBLIC_ROOMS_URL)).addAuthentication(userToken).sendFuture()
         </td>
       </tr><tr>
         <td>
-          72
+          69
         </td>
         <td>
           182
         </td>
         <td>
-          3155
+          3126
           -
-          3180
+          3151
         </td>
         <td>
           Select
@@ -512,15 +505,15 @@
         </td>
       </tr><tr>
         <td>
-          72
+          69
         </td>
         <td>
           183
         </td>
         <td>
-          3144
+          3115
           -
-          3181
+          3152
         </td>
         <td>
           Apply
@@ -533,15 +526,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          70
         </td>
         <td>
           185
         </td>
         <td>
-          3248
+          3219
           -
-          3270
+          3241
         </td>
         <td>
           Apply
@@ -554,15 +547,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          70
         </td>
         <td>
           184
         </td>
         <td>
-          3221
+          3192
           -
-          3246
+          3217
         </td>
         <td>
           Select
@@ -575,15 +568,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          71
         </td>
         <td>
           187
         </td>
         <td>
-          3144
+          3115
           -
-          3346
+          3324
         </td>
         <td>
           Apply
@@ -592,19 +585,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendJsonFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PUBLIC_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendJsonFuture(RoomApiWrapperUtils.this.addressesForEnteringJson(userAddress, notificationAddress))
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PUBLIC_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendJsonFuture(RoomApiWrapperUtils.this.addressesForEnteringJson(userAddress, notificationAddress))
         </td>
       </tr><tr>
         <td>
-          73
+          71
         </td>
         <td>
           186
         </td>
         <td>
-          3287
+          3265
           -
-          3345
+          3323
         </td>
         <td>
           Apply
@@ -617,15 +610,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          77
         </td>
         <td>
           190
         </td>
         <td>
-          3573
+          3513
           -
-          3631
+          3571
         </td>
         <td>
           Apply
@@ -638,15 +631,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          77
         </td>
         <td>
           189
         </td>
         <td>
-          3604
+          3544
           -
-          3630
+          3570
         </td>
         <td>
           Select
@@ -659,15 +652,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          77
         </td>
         <td>
           188
         </td>
         <td>
-          3582
+          3522
           -
-          3602
+          3542
         </td>
         <td>
           Select
@@ -680,15 +673,15 @@
         </td>
       </tr><tr>
         <td>
-          89
+          84
         </td>
         <td>
           191
         </td>
         <td>
-          3873
+          3807
           -
-          4012
+          3946
         </td>
         <td>
           Apply
@@ -697,19 +690,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_PUBLIC_ROOM_INFO_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendFuture()
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.get(it.cwmp.services.rooms.ServerParameters.API_PUBLIC_ROOM_INFO_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendFuture()
         </td>
       </tr><tr>
         <td>
-          97
+          91
         </td>
         <td>
           192
         </td>
         <td>
-          4254
+          4182
           -
-          4396
+          4324
         </td>
         <td>
           Apply
@@ -718,7 +711,7 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          RoomApiWrapperUtils.this.richHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PUBLIC_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendFuture()
+          RoomApiWrapperUtils.this.RichHttpRequest[io.vertx.core.buffer.Buffer](RoomApiWrapperUtils.this.client.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PUBLIC_ROOM_URL)).addAuthentication(userToken).setQueryParam(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, playersNumber.toString()).sendFuture()
         </td>
       </tr>
     </table>

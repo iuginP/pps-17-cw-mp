@@ -25,83 +25,143 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.room
 </span>2 <span style=''>
 </span>3 <span style=''>import it.cwmp.client.utils.{LayoutRes, StringRes}
-</span>4 <span style=''>import it.cwmp.client.view.{FXAlerts, FXChecks, FXController, FXView}
-</span>5 <span style=''>import javafx.application.Platform
+</span>4 <span style=''>import it.cwmp.client.view._
+</span>5 <span style=''>import it.cwmp.client.view.room.RoomFXController._
 </span>6 <span style=''>import javafx.fxml.FXML
-</span>7 <span style=''>import javafx.scene.control._
-</span>8 <span style=''>import javafx.stage.Stage
-</span>9 <span style=''>
-</span>10 <span style=''>trait RoomFXStrategy {
-</span>11 <span style=''>  def onCreate(name: String, nPlayer: Int): Unit
-</span>12 <span style=''>  def onEnterPrivate(idRoom: String): Unit
-</span>13 <span style=''>  def onEnterPublic(nPlayer: Int): Unit
-</span>14 <span style=''>}
-</span>15 <span style=''>
-</span>16 <span style=''>object RoomFXController {
-</span>17 <span style=''>  def apply(strategy: RoomFXStrategy): RoomFXController = {
-</span>18 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null)</span><span style=''>
-</span>19 <span style=''>    </span><span style='background: #F0ADAD'>new RoomFXController(strategy)</span><span style=''>
-</span>20 <span style=''>  }
-</span>21 <span style=''>}
-</span>22 <span style=''>
-</span>23 <span style=''>class RoomFXController(strategy: RoomFXStrategy) extends FXController with FXView with FXChecks with FXAlerts {
-</span>24 <span style=''>
-</span>25 <span style=''>  protected val layout: String = </span><span style='background: #F0ADAD'>LayoutRes.roomManagerLayout</span><span style=''>
-</span>26 <span style=''>  protected val title: String = </span><span style='background: #F0ADAD'>StringRes.roomManagerTitle</span><span style=''>
-</span>27 <span style=''>  protected val stage: Stage = </span><span style='background: #F0ADAD'>new Stage</span><span style=''>
-</span>28 <span style=''>  protected val controller: FXController = this
-</span>29 <span style=''>
-</span>30 <span style=''>  @FXML
-</span>31 <span style=''>  private var pr_cr_roomName: TextField = _
-</span>32 <span style=''>  @FXML
-</span>33 <span style=''>  private var pr_cr_numPlayer: Spinner[Integer] = _
-</span>34 <span style=''>  @FXML
-</span>35 <span style=''>  private var pr_et_roomID: TextField = _
-</span>36 <span style=''>  @FXML
-</span>37 <span style=''>  private var pub_et_numPlayer: Spinner[Integer] = _
-</span>38 <span style=''>
-</span>39 <span style=''>  //creare una stanza privata
-</span>40 <span style=''>  @FXML
-</span>41 <span style=''>  private def onClickCreate(): Unit = {
-</span>42 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>43 <span style=''></span><span style='background: #F0ADAD'>      for(
-</span>44 <span style=''></span><span style='background: #F0ADAD'>        name &lt;- getTextFieldValue(pr_cr_roomName, &quot;Il nome non può essere vuoto&quot;); // TODO parametrize input
-</span>45 <span style=''></span><span style='background: #F0ADAD'>        nPlayer &lt;- getSpinnerFieldValue(pr_cr_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;)
-</span>46 <span style=''></span><span style='background: #F0ADAD'>      ) yield strategy.onCreate(name, nPlayer)
-</span>47 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>48 <span style=''>  }
-</span>49 <span style=''>
-</span>50 <span style=''>  @FXML
-</span>51 <span style=''>  private def onClickReset(): Unit = {
-</span>52 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>53 <span style=''></span><span style='background: #F0ADAD'>      resetFields()
-</span>54 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>55 <span style=''>  }
-</span>56 <span style=''>
-</span>57 <span style=''>  override def resetFields(): Unit = {
-</span>58 <span style=''>    </span><span style='background: #F0ADAD'>pr_cr_roomName setText &quot;&quot;</span><span style=''>
-</span>59 <span style=''>    </span><span style='background: #F0ADAD'>pr_cr_numPlayer getValueFactory() setValue 2</span><span style=''>
-</span>60 <span style=''>  }
-</span>61 <span style=''>
-</span>62 <span style=''>  @FXML
-</span>63 <span style=''>  private def onClickEnter(): Unit = {
-</span>64 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>65 <span style=''></span><span style='background: #F0ADAD'>      for(
-</span>66 <span style=''></span><span style='background: #F0ADAD'>        id_room &lt;- getTextFieldValue(pr_et_roomID, &quot;L'ID della stanza non può essere vuoto&quot;) // TODO parametrize input
-</span>67 <span style=''></span><span style='background: #F0ADAD'>      ) yield strategy.onEnterPrivate(id_room)
+</span>7 <span style=''>import javafx.scene.Node
+</span>8 <span style=''>import javafx.scene.control._
+</span>9 <span style=''>import javafx.scene.input.{Clipboard, ClipboardContent}
+</span>10 <span style=''>import javafx.scene.layout.GridPane
+</span>11 <span style=''>
+</span>12 <span style=''>/**
+</span>13 <span style=''>  * Class that manages the Rooms View
+</span>14 <span style=''>  *
+</span>15 <span style=''>  * @param strategy the strategy to use on user actions
+</span>16 <span style=''>  * @author contributor Enrico Siboni
+</span>17 <span style=''>  */
+</span>18 <span style=''>class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXInputViewController with FXInputChecks {
+</span>19 <span style=''>
+</span>20 <span style=''>  protected val layout: String = </span><span style='background: #F0ADAD'>LayoutRes.roomManagerLayout</span><span style=''>
+</span>21 <span style=''>  protected val title: String = </span><span style='background: #F0ADAD'>StringRes.roomManagerTitle</span><span style=''>
+</span>22 <span style=''>  protected val controller: FXViewController = this
+</span>23 <span style=''>
+</span>24 <span style=''>  @FXML private var tabPane: TabPane = _
+</span>25 <span style=''>  @FXML private var tfPrivateCreateRoomName: TextField = _
+</span>26 <span style=''>  @FXML private var spPrivateCreateNumPlayer: Spinner[Int] = _
+</span>27 <span style=''>  @FXML private var tfPrivateEnterRoomID: TextField = _
+</span>28 <span style=''>  @FXML private var spPublicEnterNumPlayer: Spinner[Int] = _
+</span>29 <span style=''>  @FXML private var btnPrivateCreate: Button = _
+</span>30 <span style=''>  @FXML private var btnPrivateReset: Button = _
+</span>31 <span style=''>  @FXML private var btnPrivateEnter: Button = _
+</span>32 <span style=''>  @FXML private var btnPublicEnter: Button = _
+</span>33 <span style=''>
+</span>34 <span style=''>  override def showGUI(): Unit = {
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>super.showGUI()</span><span style=''>
+</span>36 <span style=''>    // adds a listener to reset fields on tab change
+</span>37 <span style=''>    </span><span style='background: #F0ADAD'>tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) =&gt; resetFields())</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  override def resetFields(): Unit = {
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateCreateRoomName setText &quot;&quot;</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>spPrivateCreateNumPlayer getValueFactory() setValue 2</span><span style=''>
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateEnterRoomID setText &quot;&quot;</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>spPublicEnterNumPlayer getValueFactory() setValue 2</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  override def disableViewComponents(): Unit = {
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(true)</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(true)</span><span style=''>
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(true)</span><span style=''>
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(true)</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  override def enableViewComponents(): Unit = {
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(false)</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(false)</span><span style=''>
+</span>57 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(false)</span><span style=''>
+</span>58 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(false)</span><span style=''>
+</span>59 <span style=''>  }
+</span>60 <span style=''>
+</span>61 <span style=''>  @FXML private def onClickCreatePrivate(): Unit =
+</span>62 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>64 <span style=''></span><span style='background: #F0ADAD'>        roomName &lt;- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
+</span>65 <span style=''></span><span style='background: #F0ADAD'>        playersNumber &lt;- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
+</span>66 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>67 <span style=''></span><span style='background: #F0ADAD'>        strategy.onCreate(roomName, playersNumber)
 </span>68 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>69 <span style=''>  }
-</span>70 <span style=''>
-</span>71 <span style=''>  //Componenti tab stanze pubbliche
-</span>72 <span style=''>  @FXML
-</span>73 <span style=''>  private def onClickRoomPublic(): Unit = {
-</span>74 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>75 <span style=''></span><span style='background: #F0ADAD'>      for(
-</span>76 <span style=''></span><span style='background: #F0ADAD'>        nPlayer &lt;- getSpinnerFieldValue(pub_et_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;) // TODO parametrize input
-</span>77 <span style=''></span><span style='background: #F0ADAD'>      ) yield strategy.onEnterPublic(nPlayer)
-</span>78 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>79 <span style=''>  }
-</span>80 <span style=''>}
+</span>69 <span style=''>
+</span>70 <span style=''>  @FXML private def onClickResetPrivate(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>71 <span style=''>
+</span>72 <span style=''>  @FXML private def onClickEnterPrivate(): Unit =
+</span>73 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      for (roomID &lt;- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR))
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPrivate(roomID)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>77 <span style=''>
+</span>78 <span style=''>
+</span>79 <span style=''>  @FXML private def onClickEnterPublic(): Unit =
+</span>80 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>81 <span style=''></span><span style='background: #F0ADAD'>      for (playersNumber &lt;- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER))
+</span>82 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPublic(playersNumber)
+</span>83 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>84 <span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>  /**
+</span>87 <span style=''>    * A method to show the token dialog to user
+</span>88 <span style=''>    *
+</span>89 <span style=''>    * @param roomToken the token that user should be able to copy
+</span>90 <span style=''>    */
+</span>91 <span style=''>  def showTokenDialog(roomToken: String): Unit =
+</span>92 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
+</span>93 <span style=''></span><span style='background: #F0ADAD'>      showInfoWithContent(PRIVATE_ROOM_TOKEN_TITLE, PRIVATE_ROOM_TOKEN_MESSAGE,
+</span>94 <span style=''></span><span style='background: #F0ADAD'>        createRoomTokenDialogContent(roomToken)))</span><span style=''>
+</span>95 <span style=''>
+</span>96 <span style=''>  /**
+</span>97 <span style=''>    * Creates the dialog content whit selectable token
+</span>98 <span style=''>    *
+</span>99 <span style=''>    * @param roomToken the token to show
+</span>100 <span style=''>    * @return the content of the dialog to show
+</span>101 <span style=''>    */
+</span>102 <span style=''>  private def createRoomTokenDialogContent(roomToken: String): Node = {
+</span>103 <span style=''>    val gridPane = </span><span style='background: #F0ADAD'>new GridPane()</span><span style=''>
+</span>104 <span style=''>
+</span>105 <span style=''>    val tokenTextField = </span><span style='background: #F0ADAD'>new TextField(roomToken)</span><span style=''>
+</span>106 <span style=''>    </span><span style='background: #F0ADAD'>tokenTextField.setEditable(false)</span><span style=''>
+</span>107 <span style=''>
+</span>108 <span style=''>    val copyButton = </span><span style='background: #F0ADAD'>new Button(COPY_BUTTON_TEXT)</span><span style=''>
+</span>109 <span style=''>    </span><span style='background: #F0ADAD'>copyButton.setOnAction(_ =&gt; {
+</span>110 <span style=''></span><span style='background: #F0ADAD'>      val content = new ClipboardContent
+</span>111 <span style=''></span><span style='background: #F0ADAD'>      content.putString(roomToken)
+</span>112 <span style=''></span><span style='background: #F0ADAD'>      Clipboard.getSystemClipboard.setContent(content)
+</span>113 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>114 <span style=''>
+</span>115 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(tokenTextField, 0, 1)</span><span style=''>
+</span>116 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(copyButton, 1, 1)</span><span style=''>
+</span>117 <span style=''>    gridPane
+</span>118 <span style=''>  }
+</span>119 <span style=''>}
+</span>120 <span style=''>
+</span>121 <span style=''>/**
+</span>122 <span style=''>  * Companion object
+</span>123 <span style=''>  */
+</span>124 <span style=''>object RoomFXController {
+</span>125 <span style=''>  def apply(strategy: RoomStrategy): RoomFXController = {
+</span>126 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The room strategy cannot be null&quot;)</span><span style=''>
+</span>127 <span style=''>    </span><span style='background: #F0ADAD'>new RoomFXController(strategy)</span><span style=''>
+</span>128 <span style=''>  }
+</span>129 <span style=''>
+</span>130 <span style=''>  private val ROOM_NAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;Il nome della stanza non può essere vuoto&quot;</span><span style=''>
+</span>131 <span style=''>  private val ROOM_PLAYERS_NUMBER_ERROR = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
+</span>132 <span style=''>  private val EMPTY_ROOM_ID_ERROR = </span><span style='background: #F0ADAD'>&quot;L'ID della stanza non può essere vuoto&quot;</span><span style=''>
+</span>133 <span style=''>  private val NOT_SELECTED_PLAYERS_NUMBER = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
+</span>134 <span style=''>
+</span>135 <span style=''>  private val PRIVATE_ROOM_TOKEN_TITLE = </span><span style='background: #F0ADAD'>&quot;Token per la stanza privata&quot;</span><span style=''>
+</span>136 <span style=''>
+</span>137 <span style=''>  private val PRIVATE_ROOM_TOKEN_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Questo è il token da usare per entrare nella stanza che hai creato&quot;</span><span style=''>
+</span>138 <span style=''>
+</span>139 <span style=''>  private val COPY_BUTTON_TEXT = </span><span style='background: #F0ADAD'>&quot;Copy to clipboard&quot;</span><span style=''>
+</span>140 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -115,78 +175,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          1099
+          1359
         </td>
         <td>
-          519
+          636
           -
-          544
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.require
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.require(strategy.!=(null))
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          1098
-        </td>
-        <td>
-          527
-          -
-          543
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #F0ADAD">
-          strategy.!=(null)
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          1100
-        </td>
-        <td>
-          549
-          -
-          579
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new RoomFXController(strategy)
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          1101
-        </td>
-        <td>
-          733
-          -
-          760
+          663
         </td>
         <td>
           Select
@@ -199,15 +196,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          21
         </td>
         <td>
-          1102
+          1360
         </td>
         <td>
-          793
+          696
           -
-          819
+          722
         </td>
         <td>
           Select
@@ -220,270 +217,57 @@
         </td>
       </tr><tr>
         <td>
-          27
+          35
         </td>
         <td>
-          1103
+          1361
         </td>
         <td>
-          851
+          1288
           -
-          860
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.stage.Stage.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.stage.Stage()
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          1113
-        </td>
-        <td>
-          1216
-          -
-          1522
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  RoomFXController.this.getTextFieldValue(RoomFXController.this.pr_cr_roomName, &quot;Il nome non può essere vuoto&quot;).flatMap[Unit](((name: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Integer](RoomFXController.this.pr_cr_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;).map[Unit](((nPlayer: Integer) =&gt; RoomFXController.this.strategy.onCreate(name, scala.Predef.Integer2int(nPlayer))))));
-  ()
-}))
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1111
-        </td>
-        <td>
-          1248
-          -
-          1515
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.getTextFieldValue(RoomFXController.this.pr_cr_roomName, &quot;Il nome non può essere vuoto&quot;).flatMap[Unit](((name: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Integer](RoomFXController.this.pr_cr_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;).map[Unit](((nPlayer: Integer) =&gt; RoomFXController.this.strategy.onCreate(name, scala.Predef.Integer2int(nPlayer))))))
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1105
-        </td>
-        <td>
           1303
-          -
-          1333
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Il nome non può essere vuoto&quot;
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1104
-        </td>
-        <td>
-          1287
-          -
-          1301
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.pr_cr_roomName
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.pr_cr_roomName
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1112
-        </td>
-        <td>
-          1266
-          -
-          1266
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1106
-        </td>
-        <td>
-          1402
-          -
-          1417
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.pr_cr_numPlayer
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.pr_cr_numPlayer
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1107
-        </td>
-        <td>
-          1419
-          -
-          1467
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;Deve essere selezionato il numero di giocatori&quot;
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1110
-        </td>
-        <td>
-          1370
-          -
-          1515
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Option.map
+          it.cwmp.client.view.FXViewController.showGUI
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.getSpinnerFieldValue[Integer](RoomFXController.this.pr_cr_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;).map[Unit](((nPlayer: Integer) =&gt; RoomFXController.this.strategy.onCreate(name, scala.Predef.Integer2int(nPlayer))))
+          RoomFXController.super.showGUI()
         </td>
       </tr><tr>
         <td>
-          46
+          37
         </td>
         <td>
-          1109
+          1363
         </td>
         <td>
-          1483
+          1361
           -
-          1515
+          1447
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.room.RoomFXStrategy.onCreate
+          javafx.beans.value.ObservableValue.addListener
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.strategy.onCreate(name, scala.Predef.Integer2int(nPlayer))
+          RoomFXController.this.tabPane.getSelectionModel().selectedItemProperty().addListener(((x$1: javafx.beans.value.ObservableValue[_ &lt;: javafx.scene.control.Tab], x$2: javafx.scene.control.Tab, x$3: javafx.scene.control.Tab) =&gt; RoomFXController.this.resetFields()))
         </td>
       </tr><tr>
         <td>
-          46
+          37
         </td>
         <td>
-          1108
+          1362
         </td>
         <td>
-          1507
+          1433
           -
-          1514
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          scala.Predef.Integer2int
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.Integer2int(nPlayer)
-        </td>
-      </tr><tr>
-        <td>
-          52
-        </td>
-        <td>
-          1115
-        </td>
-        <td>
-          1579
-          -
-          1631
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; RoomFXController.this.resetFields()))
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          1114
-        </td>
-        <td>
-          1611
-          -
-          1624
+          1446
         </td>
         <td>
           Apply
@@ -496,15 +280,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          41
         </td>
         <td>
-          1116
+          1364
         </td>
         <td>
-          1680
+          1496
           -
-          1705
+          1530
         </td>
         <td>
           Apply
@@ -513,19 +297,19 @@
           javafx.scene.control.TextInputControl.setText
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.pr_cr_roomName.setText(&quot;&quot;)
+          RoomFXController.this.tfPrivateCreateRoomName.setText(&quot;&quot;)
         </td>
       </tr><tr>
         <td>
-          59
+          42
         </td>
         <td>
-          1118
+          1365
         </td>
         <td>
-          1710
+          1535
           -
-          1754
+          1588
         </td>
         <td>
           Apply
@@ -534,85 +318,253 @@
           javafx.scene.control.SpinnerValueFactory.setValue
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.pr_cr_numPlayer.getValueFactory().setValue(scala.Predef.int2Integer(2))
+          RoomFXController.this.spPrivateCreateNumPlayer.getValueFactory().setValue(2)
         </td>
       </tr><tr>
         <td>
-          59
+          43
         </td>
         <td>
-          1117
+          1366
         </td>
         <td>
-          1753
+          1593
           -
-          1754
+          1624
         </td>
         <td>
-          ApplyImplicitView
+          Apply
         </td>
         <td>
-          scala.Predef.int2Integer
+          javafx.scene.control.TextInputControl.setText
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.int2Integer(2)
+          RoomFXController.this.tfPrivateEnterRoomID.setText(&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1367
+        </td>
+        <td>
+          1629
+          -
+          1680
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.SpinnerValueFactory.setValue
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.spPublicEnterNumPlayer.getValueFactory().setValue(2)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1368
+        </td>
+        <td>
+          1739
+          -
+          1772
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateCreate.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1369
+        </td>
+        <td>
+          1777
+          -
+          1809
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateReset.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          1370
+        </td>
+        <td>
+          1814
+          -
+          1846
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateEnter.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1371
+        </td>
+        <td>
+          1851
+          -
+          1882
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPublicEnter.setDisable(true)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          1372
+        </td>
+        <td>
+          1940
+          -
+          1974
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateCreate.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          1373
+        </td>
+        <td>
+          1979
+          -
+          2012
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateReset.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          1374
+        </td>
+        <td>
+          2017
+          -
+          2050
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPrivateEnter.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          1375
+        </td>
+        <td>
+          2055
+          -
+          2087
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.btnPublicEnter.setDisable(false)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          1384
+        </td>
+        <td>
+          2148
+          -
+          2439
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.runOnUIThread((() =&gt; {
+  RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateCreateRoomName, it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR).flatMap[Unit](((roomName: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPrivateCreateNumPlayer, it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onCreate(roomName, playersNumber)))));
+  ()
+}))
         </td>
       </tr><tr>
         <td>
           64
         </td>
         <td>
-          1124
+          1383
         </td>
         <td>
-          1811
+          2199
           -
-          2020
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  RoomFXController.this.getTextFieldValue(RoomFXController.this.pr_et_roomID, &quot;L\'ID della stanza non può essere vuoto&quot;).map[Unit](((id_room: String) =&gt; RoomFXController.this.strategy.onEnterPrivate(id_room)));
-  ()
-}))
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1120
-        </td>
-        <td>
-          1899
-          -
-          1939
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;L\'ID della stanza non può essere vuoto&quot;
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1123
-        </td>
-        <td>
-          1864
-          -
-          1864
+          2199
         </td>
         <td>
           Literal
@@ -625,36 +577,99 @@
         </td>
       </tr><tr>
         <td>
-          66
+          64
         </td>
         <td>
-          1119
+          1377
         </td>
         <td>
-          1885
+          2245
           -
-          1897
+          2266
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.room.RoomFXController.pr_et_roomID
+          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.pr_et_roomID
+          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
         </td>
       </tr><tr>
         <td>
-          66
+          64
         </td>
         <td>
-          1122
+          1382
         </td>
         <td>
-          1843
+          2176
           -
-          2013
+          2432
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateCreateRoomName, it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR).flatMap[Unit](((roomName: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPrivateCreateNumPlayer, it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onCreate(roomName, playersNumber)))))
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1376
+        </td>
+        <td>
+          2220
+          -
+          2243
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.tfPrivateCreateRoomName
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.tfPrivateCreateRoomName
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1378
+        </td>
+        <td>
+          2315
+          -
+          2339
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.spPrivateCreateNumPlayer
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.spPrivateCreateNumPlayer
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1381
+        </td>
+        <td>
+          2277
+          -
+          2432
         </td>
         <td>
           Apply
@@ -663,64 +678,851 @@
           scala.Option.map
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.getTextFieldValue(RoomFXController.this.pr_et_roomID, &quot;L\'ID della stanza non può essere vuoto&quot;).map[Unit](((id_room: String) =&gt; RoomFXController.this.strategy.onEnterPrivate(id_room)))
+          RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPrivateCreateNumPlayer, it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onCreate(roomName, playersNumber)))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1379
+        </td>
+        <td>
+          2341
+          -
+          2366
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR
         </td>
       </tr><tr>
         <td>
           67
         </td>
         <td>
-          1121
+          1380
         </td>
         <td>
-          1981
+          2390
           -
-          2013
+          2432
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.room.RoomFXStrategy.onEnterPrivate
+          it.cwmp.client.view.room.RoomStrategy.onCreate
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.strategy.onEnterPrivate(id_room)
+          RoomFXController.this.strategy.onCreate(roomName, playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1386
+        </td>
+        <td>
+          2491
+          -
+          2528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.runOnUIThread((() =&gt; RoomFXController.this.resetFields()))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1385
+        </td>
+        <td>
+          2513
+          -
+          2526
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.resetFields
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.resetFields()
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1392
+        </td>
+        <td>
+          2584
+          -
+          2741
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.runOnUIThread((() =&gt; {
+  RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateEnterRoomID, it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR).map[Unit](((roomID: String) =&gt; RoomFXController.this.strategy.onEnterPrivate(roomID)));
+  ()
+}))
         </td>
       </tr><tr>
         <td>
           74
         </td>
         <td>
-          1131
+          1387
         </td>
         <td>
-          2118
+          2645
           -
-          2341
+          2665
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.tfPrivateEnterRoomID
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.tfPrivateEnterRoomID
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1390
+        </td>
+        <td>
+          2612
+          -
+          2734
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          scala.Option.map
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  RoomFXController.this.getSpinnerFieldValue[Integer](RoomFXController.this.pub_et_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;).map[Unit](((nPlayer: Integer) =&gt; RoomFXController.this.strategy.onEnterPublic(scala.Predef.Integer2int(nPlayer))));
+          RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateEnterRoomID, it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR).map[Unit](((roomID: String) =&gt; RoomFXController.this.strategy.onEnterPrivate(roomID)))
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1388
+        </td>
+        <td>
+          2667
+          -
+          2686
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1391
+        </td>
+        <td>
+          2624
+          -
+          2624
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1389
+        </td>
+        <td>
+          2703
+          -
+          2734
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomStrategy.onEnterPrivate
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.strategy.onEnterPrivate(roomID)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1398
+        </td>
+        <td>
+          2797
+          -
+          2980
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.runOnUIThread((() =&gt; {
+  RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPublicEnterNumPlayer, it.cwmp.client.view.room.RoomFXController.NOT_SELECTED_PLAYERS_NUMBER).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onEnterPublic(playersNumber)));
   ()
 }))
         </td>
       </tr><tr>
         <td>
-          76
+          81
         </td>
         <td>
-          1126
+          1393
         </td>
         <td>
-          2213
+          2868
           -
-          2261
+          2890
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.spPublicEnterNumPlayer
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.spPublicEnterNumPlayer
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1396
+        </td>
+        <td>
+          2825
+          -
+          2973
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPublicEnterNumPlayer, it.cwmp.client.view.room.RoomFXController.NOT_SELECTED_PLAYERS_NUMBER).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onEnterPublic(playersNumber)))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1394
+        </td>
+        <td>
+          2892
+          -
+          2919
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.NOT_SELECTED_PLAYERS_NUMBER
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.NOT_SELECTED_PLAYERS_NUMBER
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1397
+        </td>
+        <td>
+          2844
+          -
+          2844
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1395
+        </td>
+        <td>
+          2936
+          -
+          2973
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomStrategy.onEnterPublic
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.strategy.onEnterPublic(playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          1404
+        </td>
+        <td>
+          3169
+          -
+          3318
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.runOnUIThread((() =&gt; RoomFXController.this.showInfoWithContent(it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_TITLE, it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE, RoomFXController.this.createRoomTokenDialogContent(roomToken), RoomFXController.this.showInfoWithContent$default$4)))
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1402
+        </td>
+        <td>
+          3195
+          -
+          3195
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showInfoWithContent$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.showInfoWithContent$default$4
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1399
+        </td>
+        <td>
+          3215
+          -
+          3239
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_TITLE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_TITLE
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1403
+        </td>
+        <td>
+          3195
+          -
+          3317
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showInfoWithContent
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.showInfoWithContent(it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_TITLE, it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE, RoomFXController.this.createRoomTokenDialogContent(roomToken), RoomFXController.this.showInfoWithContent$default$4)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1400
+        </td>
+        <td>
+          3241
+          -
+          3267
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          1401
+        </td>
+        <td>
+          3277
+          -
+          3316
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.createRoomTokenDialogContent
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.createRoomTokenDialogContent(roomToken)
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1405
+        </td>
+        <td>
+          3574
+          -
+          3588
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.layout.GridPane()
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          1406
+        </td>
+        <td>
+          3615
+          -
+          3639
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextField.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.TextField(roomToken)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          1407
+        </td>
+        <td>
+          3644
+          -
+          3677
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setEditable
+        </td>
+        <td style="background: #F0ADAD">
+          tokenTextField.setEditable(false)
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          1408
+        </td>
+        <td>
+          3711
+          -
+          3727
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.COPY_BUTTON_TEXT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.COPY_BUTTON_TEXT
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          1409
+        </td>
+        <td>
+          3700
+          -
+          3728
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Button.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Button(it.cwmp.client.view.room.RoomFXController.COPY_BUTTON_TEXT)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          1414
+        </td>
+        <td>
+          3733
+          -
+          3900
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.ButtonBase.setOnAction
+        </td>
+        <td style="background: #F0ADAD">
+          copyButton.setOnAction(((x$4: javafx.event.ActionEvent) =&gt; {
+  val content: javafx.scene.input.ClipboardContent = new javafx.scene.input.ClipboardContent();
+  content.putString(roomToken);
+  {
+    javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+    ()
+  }
+}))
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          1410
+        </td>
+        <td>
+          3783
+          -
+          3803
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.input.ClipboardContent.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.input.ClipboardContent()
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          1411
+        </td>
+        <td>
+          3810
+          -
+          3838
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.input.ClipboardContent.putString
+        </td>
+        <td style="background: #F0ADAD">
+          content.putString(roomToken)
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          1413
+        </td>
+        <td>
+          3884
+          -
+          3884
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          1412
+        </td>
+        <td>
+          3845
+          -
+          3893
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.input.Clipboard.setContent
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.input.Clipboard.getSystemClipboard().setContent(content)
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          1415
+        </td>
+        <td>
+          3906
+          -
+          3940
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(tokenTextField, 0, 1)
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          1416
+        </td>
+        <td>
+          3945
+          -
+          3975
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(copyButton, 1, 1)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          1419
+        </td>
+        <td>
+          4114
+          -
+          4175
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.require(strategy.!=(null), &quot;The room strategy cannot be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          1418
+        </td>
+        <td>
+          4140
+          -
+          4174
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;The room strategy cannot be null&quot;
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          1417
+        </td>
+        <td>
+          4122
+          -
+          4138
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          strategy.!=(null)
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          1420
+        </td>
+        <td>
+          4180
+          -
+          4210
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new RoomFXController(strategy)
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          1421
+        </td>
+        <td>
+          4254
+          -
+          4297
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Il nome della stanza non può essere vuoto&quot;
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          1422
+        </td>
+        <td>
+          4340
+          -
+          4388
         </td>
         <td>
           Literal
@@ -733,57 +1535,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          132
         </td>
         <td>
-          1129
+          1423
         </td>
         <td>
-          2150
+          4425
           -
-          2334
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.getSpinnerFieldValue[Integer](RoomFXController.this.pub_et_numPlayer, &quot;Deve essere selezionato il numero di giocatori&quot;).map[Unit](((nPlayer: Integer) =&gt; RoomFXController.this.strategy.onEnterPublic(scala.Predef.Integer2int(nPlayer))))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1125
-        </td>
-        <td>
-          2195
-          -
-          2211
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.pub_et_numPlayer
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.pub_et_numPlayer
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1130
-        </td>
-        <td>
-          2171
-          -
-          2171
+          4465
         </td>
         <td>
           Literal
@@ -792,49 +1552,91 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          ()
+          &quot;L\'ID della stanza non può essere vuoto&quot;
         </td>
       </tr><tr>
         <td>
-          77
+          133
         </td>
         <td>
-          1127
+          1424
         </td>
         <td>
-          2326
+          4510
           -
-          2333
+          4558
         </td>
         <td>
-          ApplyImplicitView
+          Literal
         </td>
         <td>
-          scala.Predef.Integer2int
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.Integer2int(nPlayer)
+          &quot;Deve essere selezionato il numero di giocatori&quot;
         </td>
       </tr><tr>
         <td>
-          77
+          135
         </td>
         <td>
-          1128
+          1425
         </td>
         <td>
-          2303
+          4601
           -
-          2334
+          4630
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          it.cwmp.client.view.room.RoomFXStrategy.onEnterPublic
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.this.strategy.onEnterPublic(scala.Predef.Integer2int(nPlayer))
+          &quot;Token per la stanza privata&quot;
+        </td>
+      </tr><tr>
+        <td>
+          137
+        </td>
+        <td>
+          1426
+        </td>
+        <td>
+          4675
+          -
+          4743
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Questo è il token da usare per entrare nella stanza che hai creato&quot;
+        </td>
+      </tr><tr>
+        <td>
+          139
+        </td>
+        <td>
+          1427
+        </td>
+        <td>
+          4778
+          -
+          4797
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Copy to clipboard&quot;
         </td>
       </tr>
     </table>

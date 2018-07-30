@@ -27,25 +27,29 @@
 </span>3 <span style=''>import io.vertx.lang.scala.ScalaVerticle
 </span>4 <span style=''>import org.scalatest.BeforeAndAfterAll
 </span>5 <span style=''>
-</span>6 <span style=''>trait VerticleBeforeAndAfterAll extends VerticleTest with BeforeAndAfterAll {
-</span>7 <span style=''>  this: VertxTest =&gt;
-</span>8 <span style=''>
-</span>9 <span style=''>  /**
-</span>10 <span style=''>    * It contains the list of verticles to deploy before all the tests.
-</span>11 <span style=''>    * @return a [[Traversable]] containing all the verticles to deploy
-</span>12 <span style=''>    */
-</span>13 <span style=''>  protected def verticlesBeforeAll: Traversable[ScalaVerticle]
-</span>14 <span style=''>
-</span>15 <span style=''>  override protected def beforeAll(): Unit =  {
-</span>16 <span style=''>    </span><span style='background: #F0ADAD'>super.beforeAll()</span><span style=''>
-</span>17 <span style=''>    </span><span style='background: #F0ADAD'>deployAll(verticlesBeforeAll)</span><span style=''>
-</span>18 <span style=''>  }
-</span>19 <span style=''>
-</span>20 <span style=''>  override protected def afterAll(): Unit = {
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>super.afterAll()</span><span style=''>
-</span>22 <span style=''>    </span><span style='background: #F0ADAD'>undeployAll()</span><span style=''>
-</span>23 <span style=''>  }
-</span>24 <span style=''>}
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * A trait that makes possible to deploy a bunch of verticles before all tests and un-deploy after all
+</span>8 <span style=''>  */
+</span>9 <span style=''>trait VerticleBeforeAndAfterAll extends VerticleTest with BeforeAndAfterAll {
+</span>10 <span style=''>  this: VertxTest =&gt;
+</span>11 <span style=''>
+</span>12 <span style=''>  /**
+</span>13 <span style=''>    * It contains the list of verticles to deploy before all the tests.
+</span>14 <span style=''>    *
+</span>15 <span style=''>    * @return a [[Traversable]] containing all the verticles to deploy
+</span>16 <span style=''>    */
+</span>17 <span style=''>  protected def verticlesBeforeAll: Traversable[ScalaVerticle]
+</span>18 <span style=''>
+</span>19 <span style=''>  override protected def beforeAll(): Unit = {
+</span>20 <span style=''>    </span><span style='background: #F0ADAD'>super.beforeAll()</span><span style=''>
+</span>21 <span style=''>    </span><span style='background: #F0ADAD'>deployAll(verticlesBeforeAll)</span><span style=''>
+</span>22 <span style=''>  }
+</span>23 <span style=''>
+</span>24 <span style=''>  override protected def afterAll(): Unit = {
+</span>25 <span style=''>    </span><span style='background: #F0ADAD'>super.afterAll()</span><span style=''>
+</span>26 <span style=''>    </span><span style='background: #F0ADAD'>undeployAll()</span><span style=''>
+</span>27 <span style=''>  }
+</span>28 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -59,15 +63,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          16
+          20
         </td>
         <td>
           6
         </td>
         <td>
-          478
+          596
           -
-          495
+          613
         </td>
         <td>
           Apply
@@ -80,15 +84,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          21
         </td>
         <td>
           8
         </td>
         <td>
-          500
+          618
           -
-          500
+          618
         </td>
         <td>
           Select
@@ -101,15 +105,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          21
         </td>
         <td>
           7
         </td>
         <td>
-          510
+          628
           -
-          528
+          646
         </td>
         <td>
           Select
@@ -122,15 +126,15 @@
         </td>
       </tr><tr>
         <td>
-          17
+          21
         </td>
         <td>
           9
         </td>
         <td>
-          500
+          618
           -
-          529
+          647
         </td>
         <td>
           Apply
@@ -143,15 +147,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          25
         </td>
         <td>
           10
         </td>
         <td>
-          585
+          703
           -
-          601
+          719
         </td>
         <td>
           Apply
@@ -164,15 +168,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          26
         </td>
         <td>
           11
         </td>
         <td>
-          606
+          724
           -
-          606
+          724
         </td>
         <td>
           Select
@@ -185,15 +189,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          26
         </td>
         <td>
           12
         </td>
         <td>
-          606
+          724
           -
-          619
+          737
         </td>
         <td>
           Apply
