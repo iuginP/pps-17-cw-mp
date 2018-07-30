@@ -113,7 +113,7 @@ object GameViewActor {
   /**
     * Shows the GUI
     */
-  case object ShowGUI
+  case object ShowGUI // TODO: use view commons
 
   /**
     * Hides the GUI

@@ -12,7 +12,7 @@ import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
-import it.cwmp.model.{Address, Participant}
+import it.cwmp.model.Participant
 import it.cwmp.utils.Logging
 
 /**
@@ -66,10 +66,11 @@ case class PlayerActor() extends Actor with Logging {
       sender() ! RetrieveAddressResponse(getAddress)
     case PrepareForGame(participants, worldGenerationStrategy) =>
       roomSize = participants.size
-
-      cluster.join(AddressFromURIString(participants.head.address)) // join first player cluster
-
-    // TODO: first player generate world according to participants
+      cluster.join(AddressFromURIString(participants.head.address)) // all join first player cluster
+      if (getAddress == participants.head.address) {
+        // first player injects start world
+        distributedState.initialize(worldGenerationStrategy(participants))
+      }
   }
 
   /**
@@ -138,7 +139,7 @@ object PlayerActor {
     * @param participantList         the participants to game
     * @param worldGenerationStrategy the strategy to use generating the game world
     */
-  case class PrepareForGame(participantList: List[Address],
+  case class PrepareForGame(participantList: List[Participant],
                             worldGenerationStrategy: GenerationStrategy[Seq[Participant], CellWorld])
 
   /**
