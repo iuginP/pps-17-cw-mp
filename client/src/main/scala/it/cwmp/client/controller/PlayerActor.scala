@@ -55,7 +55,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
     distributedState.unsubscribe(self)
   }
 
-  override def receive: Receive = beforeInGameBehaviour orElse clusterBehaviour
+  override def receive: Receive = clusterBehaviour orElse beforeInGameBehaviour
 
   /**
     * @return the behaviour to have before entering the game
