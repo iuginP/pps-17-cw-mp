@@ -1,10 +1,9 @@
 package it.cwmp.client.controller
 
-import akka.actor.{Actor, ActorRef, AddressFromURIString, Props}
+import akka.actor.{Actor, ActorRef, AddressFromURIString, Props, Stash}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
-import it.cwmp.client.GameMain
 import it.cwmp.client.controller.PlayerActor.{EndGame, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.Initialize
@@ -22,7 +21,7 @@ import it.cwmp.utils.Logging
   *
   * @author Eugenio Pierfederici
   */
-case class PlayerActor() extends Actor with Logging {
+case class PlayerActor() extends Actor with Stash with Logging {
 
   // View actor
   private var gameViewActor: ActorRef = _
@@ -71,6 +70,7 @@ case class PlayerActor() extends Actor with Logging {
         // first player injects start world
         distributedState.initialize(worldGenerationStrategy(participants))
       }
+    case _ => stash() // stash distributed change until all players enter the room
   }
 
   /**
@@ -94,7 +94,7 @@ case class PlayerActor() extends Actor with Logging {
   private def startGame(): Unit = {
     context.become(inGameBehaviour)
     gameViewActor ! ShowGUI
-    gameViewActor ! NewWorld(GameMain.debugWorld) // TODO: set generated world
+    unstashAll() // un-stash distributed change messages
   }
 
   /**
