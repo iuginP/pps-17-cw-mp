@@ -6,6 +6,7 @@ import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.GameMain
 import it.cwmp.client.controller.PlayerActor.{EndGame, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
@@ -38,7 +39,8 @@ case class PlayerActor() extends Actor with Logging {
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")
-    gameViewActor = context.system.actorOf(Props(classOf[GameViewActor], self), GameViewActor.getClass.getName)
+    gameViewActor = context.system.actorOf(Props[GameViewActor], GameViewActor.getClass.getName)
+    gameViewActor ! Initialize
 
     log.info(s"Subscribing to cluster changes...")
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
@@ -74,12 +76,21 @@ case class PlayerActor() extends Actor with Logging {
     case MemberUp(member) =>
       log.info("Member is Up: {}", member.address)
       log.debug("Cluster size: " + cluster.state.members.size)
-      if (cluster.state.members.size == roomSize) startGameAction()
+      if (cluster.state.members.size == roomSize) startGame()
     case UnreachableMember(member) =>
       log.info("Member detected as unreachable: {}", member)
     case MemberRemoved(member, previousStatus) =>
       log.info("Member is Removed: {} after {}", member.address, previousStatus)
     case _: MemberEvent => // ignore
+  }
+
+  /**
+    * Starts the game
+    */
+  private def startGame(): Unit = {
+    context.become(inGameBehaviour)
+    gameViewActor ! ShowGUI
+    gameViewActor ! NewWorld(GameMain.debugWorld)
   }
 
   /**
@@ -89,12 +100,6 @@ case class PlayerActor() extends Actor with Logging {
     distributedState.distributedStateBehaviour orElse {
       case EndGame => backToLobbyAction()
     }
-
-  private def startGameAction(): Unit = {
-    context.become(clusterBehaviour orElse inGameBehaviour)
-    gameViewActor ! ShowGUI
-    gameViewActor ! NewWorld(GameMain.debugWorld)
-  }
 
   private def backToLobbyAction(): Unit = context.become(clusterBehaviour orElse beforeInGameBehaviour)
 

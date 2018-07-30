@@ -2,6 +2,7 @@ package it.cwmp.client.view.game
 
 import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.game.GameEngine
+import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl._
@@ -16,15 +17,18 @@ import scala.concurrent.duration._
   *
   * @author contributor Enrico Siboni
   */
-class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
+class GameViewActor extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
 
+  private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
 
-  override def receive: Receive = showGUIBehaviour
+  override def receive: Receive = showGUIBehaviour orElse {
+    case Initialize => parentActor = sender()
+  }
 
   /**
     * The behaviour of opening the view
