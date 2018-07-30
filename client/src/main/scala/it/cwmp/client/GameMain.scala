@@ -4,6 +4,7 @@ import java.time.{Duration, Instant}
 
 import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
+import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.model.User
@@ -15,10 +16,11 @@ object GameMain extends App {
 
   val system = ActorSystem(APP_NAME, config)
 
-  val gameActor = system.actorOf(Props(classOf[GameViewActor], null), GameViewActor.getClass.getName)
+  val gameActor = system.actorOf(Props[GameViewActor], GameViewActor.getClass.getName)
 
   import GameViewActor._
 
+  gameActor ! Initialize
   gameActor ! ShowGUI
   gameActor ! NewWorld(debugWorld)
 

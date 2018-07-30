@@ -27,7 +27,7 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
       writeDistributed(state)
   }
 
-  override protected def initialize(state: CellWorld): Unit = writeDistributed(state)
+  override def initialize(state: CellWorld): Unit = writeDistributed(state)
 
   /**
     * Handle method to do a distributed write

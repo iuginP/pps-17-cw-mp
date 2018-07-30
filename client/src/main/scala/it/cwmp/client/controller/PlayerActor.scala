@@ -63,13 +63,14 @@ case class PlayerActor() extends Actor with Stash with Logging {
   private def beforeInGameBehaviour: Receive = {
     case RetrieveAddress =>
       sender() ! RetrieveAddressResponse(getAddress)
+
     case PrepareForGame(participants, worldGenerationStrategy) =>
       roomSize = participants.size
       cluster.join(AddressFromURIString(participants.head.address)) // all join first player cluster
-      if (getAddress == participants.head.address) {
-        // first player injects start world
+      if (getAddress == participants.head.address) { // first player injects start world
         distributedState.initialize(worldGenerationStrategy(participants))
       }
+
     case _ => stash() // stash distributed change until all players enter the room
   }
 
