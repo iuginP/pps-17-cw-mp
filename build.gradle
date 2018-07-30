@@ -10,6 +10,7 @@ def scalaStyleOutputPath = "${buildDir.path}$scalaStyleOutput"
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
+    apply plugin: "com.dorongold.task-tree"
 
     repositories {
         // Repositories where to find libraries
@@ -112,6 +113,8 @@ buildscript {
         }
     }
     dependencies {
+        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3"
+
         classpath "gradle.plugin.org.scoverage:gradle-scoverage:2.3.0"
         classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
 
@@ -121,4 +124,4 @@ buildscript {
     }
 }
 
-defaultTasks 'clean', 'build', 'javadoc', 'scaladoc', 'reportScoverage', 'shadowJar'
+defaultTasks 'clean', 'build', 'javadoc', 'scaladoc', 'reportScoverage'

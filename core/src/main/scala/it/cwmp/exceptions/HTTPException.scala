@@ -6,8 +6,8 @@ package it.cwmp.exceptions
   * @param statusCode the HTTP code of error
   * @param getMessage the error message
   */
-sealed case class HTTPException(statusCode: Int,
-                                override val getMessage: String = null) extends RuntimeException(getMessage) {
+//noinspection ScalaStyle
+sealed case class HTTPException(statusCode: Int, override val getMessage: String = null) extends RuntimeException(getMessage) {
 
   /**
     * @return optionally the message of this Exception

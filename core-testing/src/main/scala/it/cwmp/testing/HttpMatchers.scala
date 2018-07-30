@@ -25,23 +25,28 @@ trait HttpMatchers {
     /**
       * Asserts that the future succeed (the response is returned) and that the server responded with the
       * specified status code.
-      * @param statusCode the status code that the server should return
+      *
+      * @param statusCode       the status code that the server should return
       * @param executionContext the implicit execution context
       * @return the future containing the result of the verification
       */
-    def shouldAnswerWith(statusCode: Int)(implicit executionContext: ExecutionContext): Future[Assertion] = toCheck
-      .map(_.statusCode() shouldBe statusCode)
+    def shouldAnswerWith(statusCode: Int)
+                        (implicit executionContext: ExecutionContext): Future[Assertion] =
+      toCheck.map(_.statusCode() shouldBe statusCode)
 
     /**
       * Asserts that the future succeed (the response is returned) and that the server responded with the
       * specified status code and that the body respects the rule specified in the strategy.
-      * @param statusCode the status code that the server should return
-      * @param strategy the strategy that should be used to validate the body
+      *
+      * @param statusCode       the status code that the server should return
+      * @param strategy         the strategy that should be used to validate the body
       * @param executionContext the implicit execution context
       * @return the future containing the result of the verification
       */
-    def shouldAnswerWith(statusCode: Int, strategy: Option[String] => Boolean)(implicit executionContext: ExecutionContext): Future[Assertion] = toCheck
+    def shouldAnswerWith(statusCode: Int, strategy: Option[String] => Boolean)
+                        (implicit executionContext: ExecutionContext): Future[Assertion] = toCheck
       .map(response => assert(response.statusCode() == statusCode && strategy(response.bodyAsString())))
 
   }
+
 }

@@ -2,6 +2,9 @@ package it.cwmp.utils
 
 import org.scalatest.FunSpec
 
+/**
+  * A test class for HttpUtils
+  */
 class HttpUtilsTest extends FunSpec {
 
   describe("Basic Authentication") {

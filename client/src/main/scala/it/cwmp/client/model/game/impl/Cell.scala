@@ -1,10 +1,10 @@
 package it.cwmp.client.model.game.impl
 
 import java.time.Duration
-import java.util.Objects._
+import java.util.Objects.requireNonNull
 
-import it.cwmp.client.controller.game.GameConstants._
-import it.cwmp.client.model.game._
+import it.cwmp.client.controller.game.GameConstants.{CELL_ENERGY_WHEN_BORN, MILLIS_TO_ENERGY_CONVERSION_RATE}
+import it.cwmp.client.model.game.{Character, EvolutionStrategy, GeometricUtils}
 import it.cwmp.model.User
 
 /**
@@ -17,7 +17,7 @@ import it.cwmp.model.User
   */
 case class Cell(owner: User,
                 position: Point,
-                energy: Double) extends Character[User, Point, Double] {
+                energy: Double = CELL_ENERGY_WHEN_BORN) extends Character[User, Point, Double] {
 
   requireNonNull(owner, "User owner must not be null")
   requireNonNull(position, "Position must not be null")

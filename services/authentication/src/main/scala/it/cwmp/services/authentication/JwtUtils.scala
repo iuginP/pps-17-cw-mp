@@ -5,6 +5,7 @@ import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
 import scala.util.{Failure, Success}
 
+// TODO: add doc to all class methods
 object JwtUtils {
 
   private val secretKey = "secretKey"

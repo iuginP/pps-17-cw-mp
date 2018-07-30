@@ -21,26 +21,26 @@
                             </font>
                         </Label>
                         <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_cr_roomName"
-                                   fx:id="pr_cr_roomName" layoutX="115.0" layoutY="28.0"/>
+                                   fx:id="tfPrivateCreateRoomName" layoutX="115.0" layoutY="28.0"/>
                         <Label GridPane.rowIndex="1" GridPane.columnIndex="0" layoutX="240.0"
                                layoutY="68.0" text="Numero dei giocatori">
                             <font>
                                 <Font size="24.0"/>
                             </font>
                         </Label>
-                        <Spinner fx:id="pr_cr_numPlayer" id="numPlayer" GridPane.rowIndex="1"
+                        <Spinner fx:id="spPrivateCreateNumPlayer" id="numPlayer" GridPane.rowIndex="1"
                                  GridPane.columnIndex="1">
                             <valueFactory>
                                 <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
                             </valueFactory>
                         </Spinner>
-                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
+                        <Button fx:id="btnPrivateCreate" GridPane.rowIndex="4" GridPane.columnIndex="0"
                                 GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
-                                mnemonicParsing="false" onAction="#onClickCreate" prefHeight="25.0"
+                                mnemonicParsing="false" onAction="#onClickCreatePrivate" prefHeight="25.0"
                                 prefWidth="70.0" text="Crea"/>
-                        <Button GridPane.rowIndex="4" GridPane.columnIndex="0"
+                        <Button fx:id="btnPrivateReset" GridPane.rowIndex="4" GridPane.columnIndex="0"
                                 GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                                mnemonicParsing="false" onAction="#onClickReset" prefHeight="25.0"
+                                mnemonicParsing="false" onAction="#onClickResetPrivate" prefHeight="25.0"
                                 prefWidth="70.0" text="Reset"/>
                     </GridPane>
                 </TitledPane>
@@ -55,10 +55,10 @@
                             </font>
                         </Label>
                         <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" id="pr_et_roomID"
-                                   fx:id="pr_et_roomID" layoutX="115.0" layoutY="28.0"/>
-                        <Button GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                   fx:id="tfPrivateEnterRoomID" layoutX="115.0" layoutY="28.0"/>
+                        <Button fx:id="btnPrivateEnter" GridPane.rowIndex="2" GridPane.columnIndex="0"
                                 GridPane.halignment="RIGHT" layoutX="111.0" layoutY="95.0"
-                                mnemonicParsing="false" onAction="#onClickEnter" prefHeight="25.0"
+                                mnemonicParsing="false" onAction="#onClickEnterPrivate" prefHeight="25.0"
                                 prefWidth="70.0" text="Entra"/>
                     </GridPane>
                 </TitledPane>
@@ -69,15 +69,15 @@
                 <!-- Pane per entrare in una stanza pubblica -->
                 <!-- Contenuto pane -->
                 <GridPane hgap="30" vgap="10" alignment="TOP_CENTER">
-                    <Spinner fx:id="pub_et_numPlayer" id="numPlayer" GridPane.rowIndex="1"
+                    <Spinner fx:id="spPublicEnterNumPlayer" id="numPlayer" GridPane.rowIndex="1"
                              GridPane.columnIndex="1">
                         <valueFactory>
                             <SpinnerValueFactory.IntegerSpinnerValueFactory min="2" max="4"/>
                         </valueFactory>
                     </Spinner>
-                    <Button GridPane.rowIndex="1" GridPane.columnIndex="2"
+                    <Button fx:id="btnPublicEnter" GridPane.rowIndex="1" GridPane.columnIndex="2"
                             GridPane.halignment="CENTER" layoutX="111.0" layoutY="95.0"
-                            mnemonicParsing="false" onAction="#onClickRoomPublic" prefHeight="25.0"
+                            mnemonicParsing="false" onAction="#onClickEnterPublic" prefHeight="25.0"
                             text="Entra" />
                 </GridPane>
             </VBox>

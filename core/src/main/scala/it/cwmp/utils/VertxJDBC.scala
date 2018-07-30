@@ -1,10 +1,12 @@
 package it.cwmp.utils
 
+import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient
 import io.vertx.scala.ext.sql.SQLConnection
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
 import scala.util.Success
 
 /**
@@ -21,7 +23,7 @@ trait VertxJDBC {
 
   private val clientFuture: Future[JDBCClient] =
     vertx.fileSystem.readFileFuture(configurationPath)
-      .recoverWith { case _ => vertx.fileSystem.readFileFuture("database/jdbc_config.json") }
+      .recoverWith { case _ => vertx.fileSystem.readFileFuture(DEFAULT_CONFIG_PATH) }
       .map(_.toJsonObject)
       .map(JDBCClient.createShared(vertx, _))
 
@@ -54,6 +56,12 @@ trait VertxJDBC {
   protected def closeAllConnections(): Unit = connectionList.foreach(closeConnection(_))
 
   /**
+    * Closes last opened connection through this client.
+    */
+  protected def closeLastOpenedConnection(): Unit =
+    if (connectionList.nonEmpty) closeConnection(connectionList.last)
+
+  /**
     * This class decorates the future with some utils for the connection management.
     *
     * @param future the future to decorate
@@ -68,9 +76,32 @@ trait VertxJDBC {
       * @return the future itself
       */
     def closeConnections(implicit executionContext: ExecutionContext): Future[F] =
-      future.andThen {
-        case _ => closeAllConnections()
-      }
+      future.andThen { case _ => closeAllConnections() }
+
+    /**
+      * When the future reches this point, it closes the last opened connection till now in the client.
+      *
+      * @param executionContext the execution context in which to execute the operation
+      * @return the future itself
+      */
+    def closeLastConnection(implicit executionContext: ExecutionContext): Future[F] =
+      future.andThen { case _ => closeLastOpenedConnection() }
   }
 
+}
+
+
+/**
+  * Companion object
+  */
+object VertxJDBC {
+
+  /**
+    * Implicit conversion to jsonArray
+    *
+    * @return the converted data
+    */
+  implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
+    arguments.foldLeft(new JsonArray)(_.add(_))
+  }
 }

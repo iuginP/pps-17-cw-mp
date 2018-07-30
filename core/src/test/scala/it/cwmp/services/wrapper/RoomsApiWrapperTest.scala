@@ -6,7 +6,6 @@ import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import org.scalatest.Assertion
 
 import scala.concurrent.Future
-import scala.util.Success
 
 /**
   * Testing class for RoomsApiWrapper
@@ -17,11 +16,12 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   private val apiWrapper = RoomsApiWrapper()
 
+  //noinspection ScalaStyle
   import apiWrapper._
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed returning roomID if parameters are correct") {
-      createRoom(roomName, playersNumber) flatMap (_ should not be empty)
+      for (roomID <- createRoom(roomName, playersNumber)) yield roomID should not be empty
     }
 
     describe("should fail") {
@@ -36,42 +36,41 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   override protected def privateRoomEnteringTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed when the input is valid and room non full") {
-      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, participantList.head, notificationAddress)
-        .flatMap(_ => cleanUpRoom(roomID, succeed)))
+      for (roomID <- createRoom(roomName, playersNumber);
+           _ <- enterRoom(roomID, participantList.head, notificationAddress);
+           _ <- cleanUpRoom(roomID)) yield succeed
     }
 
     describe("should fail") {
       onWrongRoomID(enterRoom(_, participantList.head, notificationAddress))
 
       it("if user is already inside a room") {
-        var createdRoom = ""
-        createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-          .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterRoom(roomID, participantList.head, notificationAddress)))
-          .shouldFailWith[HTTPException]
-          .flatMap(cleanUpRoom(createdRoom, _))
+        for (roomID <- createRoom(roomName, playersNumber);
+             _ <- enterRoom(roomID, participantList.head, notificationAddress);
+             assertion <- enterRoom(roomID, participantList.head, notificationAddress).shouldFailWith[HTTPException];
+             _ <- cleanUpRoom(roomID)) yield assertion
       }
       it("if the room is full") {
         val playersNumber = 2
-        var createdRoom = ""
-        createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-          .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
-            .flatMap(_ => enterRoom(roomID, participantList(1), notificationAddress)(tokenList(1)))
-            .flatMap(_ => enterRoom(roomID, participantList(2), notificationAddress)(tokenList(2))))
-          .shouldFailWith[HTTPException]
+        for (roomID <- createRoom(roomName, playersNumber);
+             _ <- enterRoom(roomID, participantList.head, notificationAddress);
+             _ <- enterRoom(roomID, participantList(1), notificationAddress)(tokenList(1));
+             assertion <- enterRoom(roomID, participantList(2), notificationAddress)(tokenList(2)).shouldFailWith[HTTPException])
+          yield assertion
       }
     }
   }
 
   override protected def privateRoomInfoRetrievalTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomId is correct") {
-      createRoom(roomName, playersNumber) flatMap roomInfo flatMap (_ => succeed)
+      for (roomID <- createRoom(roomName, playersNumber); _ <- roomInfo(roomID)) yield succeed
     }
     it("should show user inside room") {
-      createRoom(roomName, playersNumber) flatMap (roomID => enterRoom(roomID, participantList.head, notificationAddress)
-        .flatMap(_ => roomInfo(roomID))
-        .flatMap(_.participants should contain(participantList.head))
-        .flatMap(cleanUpRoom(roomID, _)))
+      for (roomID <- createRoom(roomName, playersNumber);
+           _ <- enterRoom(roomID, participantList.head, notificationAddress);
+           roomInfo <- roomInfo(roomID);
+           assertion <- roomInfo.participants should contain(participantList.head);
+           _ <- cleanUpRoom(roomID)) yield assertion
     }
 
     describe("should fail") {
@@ -79,47 +78,33 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
     }
   }
 
-  override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
-    it("if roomID is empty") {
-      apiCall("").shouldFailWith[HTTPException]
-    }
-    it("if provided roomID is not present") {
-      apiCall("1233124").shouldFailWith[HTTPException]
-    }
-  }
-
-  /**
-    * Cleans up the provided room, exiting the user with passed token
-    */
-  private def cleanUpRoom(roomID: String, assertion: Assertion)(implicit userToken: String) =
-    exitRoom(roomID)(userToken) map (_ => assertion)
-
   override protected def privateRoomExitingTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed if roomID is correct and user inside") {
-      createRoom(roomName, playersNumber)
-        .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitRoom(roomID))) flatMap (_ => succeed)
+      for (roomID <- createRoom(roomName, playersNumber);
+           _ <- enterRoom(roomID, participantList.head, notificationAddress);
+           _ <- exitRoom(roomID)) yield succeed
     }
     it("user should not be inside after it") {
-      createRoom(roomName, playersNumber)
-        .flatMap(roomID => enterRoom(roomID, participantList.head, notificationAddress)
-          .flatMap(_ => exitRoom(roomID))
-          .flatMap(_ => roomInfo(roomID))) flatMap (_.participants shouldNot contain(participantList.head))
+      for (roomID <- createRoom(roomName, playersNumber);
+           _ <- enterRoom(roomID, participantList.head, notificationAddress);
+           _ <- exitRoom(roomID);
+           roomInfo <- roomInfo(roomID);
+           assertion <- roomInfo.participants shouldNot contain(participantList.head)) yield assertion
     }
 
     describe("should fail") {
       onWrongRoomID(exitRoom)
 
       it("if user is not inside the room") {
-        createRoom(roomName, playersNumber).flatMap(exitRoom).shouldFailWith[HTTPException]
+        for (roomID <- createRoom(roomName, playersNumber);
+             assertion <- exitRoom(roomID).shouldFailWith[HTTPException]) yield assertion
       }
       it("if user is inside another room") {
-        var createdRoom = ""
-        createRoom(roomName, playersNumber)
-          .flatMap(roomID => createRoom(roomName, playersNumber).andThen { case Success(id) => createdRoom = id }
-            .flatMap(otherRoomID => enterRoom(otherRoomID, participantList.head, notificationAddress)) flatMap (_ => exitRoom(roomID)))
-          .shouldFailWith[HTTPException]
-          .flatMap(cleanUpRoom(createdRoom, _))
+        for (roomID <- createRoom(roomName, playersNumber);
+             otherRoomID <- createRoom(roomName, playersNumber);
+             _ <- enterRoom(otherRoomID, participantList.head, notificationAddress);
+             assertion <- exitRoom(roomID).shouldFailWith[HTTPException];
+             _ <- cleanUpRoom(otherRoomID)) yield assertion
       }
     }
   }
@@ -127,21 +112,22 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
   override protected def publicRoomEnteringTests(playersNumber: Int): Unit = {
     describe("should succeed") {
       it("if room with such players number exists") {
-        enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => cleanUpRoom(playersNumber, succeed))
+        for (_ <- enterPublicRoom(playersNumber, participantList.head, notificationAddress);
+             _ <- cleanUpRoom(playersNumber)) yield succeed
       }
       it("and the user should be inside it") {
-        enterPublicRoom(playersNumber, participantList.head, notificationAddress)
-          .flatMap(_ => publicRoomInfo(playersNumber))
-          .flatMap(_.participants should contain(participantList.head))
-          .flatMap(cleanUpRoom(playersNumber, _))
+        for (_ <- enterPublicRoom(playersNumber, participantList.head, notificationAddress);
+             roomInfo <- publicRoomInfo(playersNumber);
+             assertion <- roomInfo.participants should contain(participantList.head);
+             _ <- cleanUpRoom(playersNumber)) yield assertion
       }
       it("even when the room was filled in past") {
-        enterPublicRoom(2, participantList.head, notificationAddress)
-          .flatMap(_ => enterPublicRoom(2, participantList(1), notificationAddress)(tokenList(1)))
-          .flatMap(_ => enterPublicRoom(2, participantList(2), notificationAddress)(tokenList(2)))
-          .flatMap(_ => publicRoomInfo(2))
-          .flatMap(_.participants should contain only participantList(2))
-          .flatMap(cleanUpRoom(2, _)(tokenList(2)))
+        for (_ <- enterPublicRoom(2, participantList.head, notificationAddress);
+             _ <- enterPublicRoom(2, participantList(1), notificationAddress)(tokenList(1));
+             _ <- enterPublicRoom(2, participantList(2), notificationAddress)(tokenList(2));
+             roomInfo <- publicRoomInfo(2);
+             assertion <- roomInfo.participants should contain only participantList(2);
+             _ <- cleanUpRoom(2)(tokenList(2))) yield assertion
       }
     }
 
@@ -149,32 +135,16 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
       onWrongPlayersNumber(enterPublicRoom(_, participantList.head, notificationAddress))
 
       it("if same user is already inside a room") {
-        enterPublicRoom(2, participantList.head, notificationAddress)
-          .flatMap(_ => enterPublicRoom(3, participantList.head, notificationAddress))
-          .shouldFailWith[HTTPException]
-          .flatMap(cleanUpRoom(2, _))
+        for (_ <- enterPublicRoom(2, participantList.head, notificationAddress);
+             assertion <- enterPublicRoom(3, participantList.head, notificationAddress).shouldFailWith[HTTPException];
+             _ <- cleanUpRoom(2)) yield assertion
       }
     }
   }
 
-  override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
-    it("if players number provided less than 2") {
-      apiCall(0).shouldFailWith[HTTPException]
-    }
-    it("if room with such players number doesn't exist") {
-      apiCall(20).shouldFailWith[HTTPException]
-    }
-  }
-
-  /**
-    * Cleans up the provided public room, exiting player with passed token
-    */
-  private def cleanUpRoom(playersNumber: Int, assertion: Assertion)(implicit userToken: String) =
-    exitPublicRoom(playersNumber)(userToken) map (_ => assertion)
-
   override protected def publicRoomListingTests(playersNumber: Int): Unit = {
     it("should be non empty") {
-      listPublicRooms() flatMap (_ should not be empty)
+      for (rooms <- listPublicRooms(); assertion <- rooms should not be empty) yield assertion
     }
   }
 
@@ -241,12 +211,13 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   override protected def publicRoomInfoRetrievalTests(playersNumber: Int): Unit = {
     it("should succeed if provided playersNumber is correct") {
-      publicRoomInfo(playersNumber) flatMap (_ => succeed)
+      for (_ <- publicRoomInfo(playersNumber)) yield succeed
     }
     it("should show entered players") {
-      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => publicRoomInfo(playersNumber)))
-        .flatMap(_.participants should contain(participantList.head))
-        .flatMap(cleanUpRoom(playersNumber, _))
+      for (_ <- enterPublicRoom(playersNumber, participantList.head, notificationAddress);
+           roomInfo <- publicRoomInfo(playersNumber);
+           assertion <- roomInfo.participants should contain(participantList.head);
+           _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
     describe("should fail") {
@@ -256,13 +227,14 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   override protected def publicRoomExitingTests(playersNumber: Int): Unit = {
     it("should succeed if players number is correct and user is inside") {
-      (enterPublicRoom(playersNumber, participantList.head, notificationAddress) flatMap (_ => exitPublicRoom(playersNumber))) flatMap (_ => succeed)
+      for (_ <- enterPublicRoom(playersNumber, participantList.head, notificationAddress);
+           _ <- exitPublicRoom(playersNumber)) yield succeed
     }
     it("user should not be inside after it") {
-      enterPublicRoom(playersNumber, participantList.head, notificationAddress)
-        .flatMap(_ => exitPublicRoom(playersNumber))
-        .flatMap(_ => publicRoomInfo(playersNumber))
-        .flatMap(_.participants shouldNot contain(participantList.head))
+      for (_ <- enterPublicRoom(playersNumber, participantList.head, notificationAddress);
+           _ <- exitPublicRoom(playersNumber);
+           roomInfo <- publicRoomInfo(playersNumber);
+           assertion <- roomInfo.participants shouldNot contain(participantList.head)) yield assertion
     }
 
     describe("should fail") {
@@ -272,11 +244,40 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
         exitPublicRoom(playersNumber).shouldFailWith[HTTPException]
       }
       it("if user is inside another room") {
-        enterPublicRoom(2, participantList.head, notificationAddress)
-          .flatMap(_ => exitPublicRoom(3))
-          .shouldFailWith[HTTPException]
-          .flatMap(cleanUpRoom(2, _))
+        for (_ <- enterPublicRoom(2, participantList.head, notificationAddress);
+             assertion <- exitPublicRoom(3).shouldFailWith[HTTPException];
+             _ <- cleanUpRoom(2)) yield assertion
       }
     }
   }
+
+  override protected def onWrongRoomID(apiCall: String => Future[_]): Unit = {
+    it("if roomID is empty") {
+      apiCall("").shouldFailWith[HTTPException]
+    }
+    it("if provided roomID is not present") {
+      apiCall("1233124").shouldFailWith[HTTPException]
+    }
+  }
+
+  override protected def onWrongPlayersNumber(apiCall: Int => Future[_]): Unit = {
+    it("if players number provided less than 2") {
+      apiCall(0).shouldFailWith[HTTPException]
+    }
+    it("if room with such players number doesn't exist") {
+      apiCall(TOO_BIG_PLAYERS_NUMBER).shouldFailWith[HTTPException]
+    }
+  }
+
+  /**
+    * Cleans up the provided room, exiting the user with passed token
+    */
+  override protected def cleanUpRoom(roomID: String)(implicit userToken: String): Future[Unit] =
+    for (_ <- exitRoom(roomID)(userToken)) yield ()
+
+  /**
+    * Cleans up the provided public room, exiting player with passed token
+    */
+  override protected def cleanUpRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] =
+    for (_ <- exitPublicRoom(playersNumber)(userToken)) yield ()
 }

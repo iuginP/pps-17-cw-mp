@@ -1,9 +1,11 @@
 package it.cwmp.utils
 
+import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{HttpRequest, HttpResponse, WebClient, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
 
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scala.util.{Failure, Success}
 
 /**
@@ -52,10 +54,7 @@ trait VertxClient {
   /**
     * An implicit class to provide the [[HttpRequest]] with some more useful utilities.
     */
-
-  import io.netty.handler.codec.http.HttpHeaderNames
-
-  implicit class richHttpRequest[T](request: HttpRequest[T]) {
+  implicit class RichHttpRequest[T](request: HttpRequest[T]) {
 
     /**
       * Simplified way to add the basic Authorization header with the provided username and password
@@ -66,7 +65,7 @@ trait VertxClient {
       */
     def addAuthentication(username: String, password: String): HttpRequest[T] =
       HttpUtils.buildBasicAuthentication(username, password)
-        .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
+        .map(putRequestAuthorizationHeader(request, _))
         .getOrElse(request)
 
     /**
@@ -77,14 +76,33 @@ trait VertxClient {
       */
     def addAuthentication(implicit token: String): HttpRequest[T] =
       HttpUtils.buildJwtAuthentication(token)
-        .map(request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, _))
+        .map(putRequestAuthorizationHeader(request, _))
         .getOrElse(request)
+
+    /**
+      * Simplified way to add an authorization header as is in request
+      *
+      * @param authenticationHeader the authorization header to add as is
+      * @return the same [[HttpRequest]] enriched, with the authorization header
+      */
+    def addAuthenticationHeader(implicit authenticationHeader: String): HttpRequest[T] =
+      putRequestAuthorizationHeader(request, authenticationHeader)
+
+    /**
+      * Utility mthod to put the authorization header in request
+      *
+      * @param request             the request
+      * @param authorizationHeader the authorization header to put
+      * @return the request with provided header
+      */
+    private def putRequestAuthorizationHeader(request: HttpRequest[T], authorizationHeader: String): HttpRequest[T] =
+      request.putHeader(HttpHeaderNames.AUTHORIZATION.toString, authorizationHeader)
   }
 
   /**
     * An implicit class to provide the <code>Future[HttpResponse]</code> with some more useful utilities.
     */
-  implicit class richHttpResponse[T](response: Future[HttpResponse[T]]) {
+  implicit class RichHttpResponse[T](response: Future[HttpResponse[T]]) {
 
     /**
       * Causes the future to fail if the status code if different from one of those passed
@@ -95,7 +113,7 @@ trait VertxClient {
     def expectStatus(statusCode: Int*): Future[HttpResponse[T]] = {
       response.transform {
         case s@Success(res) if statusCode.contains(res.statusCode()) => s
-        case Success(res) => Failure(HTTPException(res.statusCode(), "Invalid response code"))
+        case Success(res) => Failure(HTTPException(res.statusCode(), s"Error code: ${res.statusCode()}"))
         case f@Failure(_) => f
       }
     }

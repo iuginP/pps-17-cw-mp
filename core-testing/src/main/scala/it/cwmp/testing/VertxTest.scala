@@ -8,5 +8,4 @@ import org.scalatest.AsyncFunSpec
   *
   * @author Enrico Siboni
   */
-abstract class VertxTest extends AsyncFunSpec with VertxInstance {
-}
+abstract class VertxTest extends AsyncFunSpec with VertxInstance

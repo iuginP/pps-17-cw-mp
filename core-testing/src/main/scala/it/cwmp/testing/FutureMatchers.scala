@@ -16,12 +16,22 @@ import scala.util.{Failure, Success}
 trait FutureMatchers {
   this: Matchers =>
 
+  /**
+    * An exception thrown by FutureMatchers when failed
+    */
   case object FutureTestingException extends Exception
 
+  /**
+    * A class that enables to rapidly test futures
+    *
+    * @param future the future to test
+    * @tparam T the type of future result
+    */
   implicit class RichFutureTesting[T](future: Future[T]) extends Matchers {
 
     /**
       * Asserts that the future has any sort of failure.
+      *
       * @param executionContext the implicit execution context
       * @return the future containing the result of the verification
       */
@@ -33,11 +43,12 @@ trait FutureMatchers {
 
     /**
       * Asserts that the future has the failure requested
+      *
       * @param executionContext the implicit execution context
       * @tparam A the type of failure that should be obtained
       * @return the future containing the result of the verification
       */
-    def shouldFailWith[A <: Exception: ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = future
+    def shouldFailWith[A <: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = future
       .transform {
         case Failure(e) if classTag[A].runtimeClass.isInstance(e) => Success(succeed)
         case _ => Failure(FutureTestingException)
@@ -45,10 +56,12 @@ trait FutureMatchers {
 
     /**
       * Asserts that the future succeed.
+      *
       * @param executionContext the implicit execution context
       * @return the future containing the result of the verification
       */
     def shouldSucceed(implicit executionContext: ExecutionContext): Future[Assertion] = future
       .map(_ => succeed)
   }
+
 }

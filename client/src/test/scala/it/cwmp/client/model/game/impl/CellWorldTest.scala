@@ -7,6 +7,8 @@ import org.scalatest.FunSpec
 
 /**
   * A test class for CellWorld
+  *
+  * @author Enrico Siboni
   */
 class CellWorldTest extends FunSpec {
 
@@ -47,7 +49,7 @@ class CellWorldTest extends FunSpec {
         assert(newWorld.attacks contains tentacle)
       }
 
-      it("can remove tntacle from world") {
+      it("can remove tentacle from world") {
         val newWorld = myCellWorld -- tentacles.head
 
         assert(!(newWorld.attacks contains tentacles.head))

@@ -3,6 +3,9 @@ package it.cwmp.services.authentication
 import org.scalatest.FunSpec
 import pdi.jwt.JwtClaim
 
+/**
+  * A test class for JwtUtils
+  */
 class JwtUtilsTest extends FunSpec {
 
   describe("Generic") {

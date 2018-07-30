@@ -2,42 +2,42 @@ package it.cwmp.services.authentication
 
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
-import it.cwmp.services.authentication.storage.StorageAsync
+import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.utils.Utils.stringToOption
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+/**
+  * Class that implements the Authentication micro-service
+  */
 case class AuthenticationServiceVerticle() extends VertxServer with Logging {
-
-  import it.cwmp.services.authentication.ServerParameters._
 
   override protected val serverPort: Int = DEFAULT_PORT
 
-  import it.cwmp.services.authentication.ServerParameters._
-
-  private var storageFuture: Future[StorageAsync] = _
+  private var storageFuture: Future[AuthenticationDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_SIGNUP handler handlerSignup
-    router post API_SIGNOUT handler handlerSignout
+    router post API_SIGNUP handler handlerSignUp
+    router post API_SIGNOUT handler handlerSignOut
     router get API_LOGIN handler handlerLogin
     router get API_VALIDATE handler handlerValidation
   }
 
   override protected def initServer: Future[_] = {
-    val storage = StorageAsync()
-    storageFuture = storage.init().map(_ => storage)
+    val storage = AuthenticationLocalDAO()
+    storageFuture = storage.initialize().map(_ => storage)
     storageFuture
   }
 
-  private def handlerSignup: Handler[RoutingContext] = implicit routingContext => {
+  private def handlerSignUp: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign up request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
-      storageFuture flatMap (_.signupFuture(username, password)) onComplete {
+      storageFuture flatMap (_.signUpFuture(username, password)) onComplete {
         case Success(_) =>
           log.info(s"User $username signed up.")
           JwtUtils
@@ -48,15 +48,15 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
     }) orElse Some(sendResponse(400))
   }
 
-  private def handlerSignout: Handler[RoutingContext] = implicit routingContext => {
+  private def handlerSignOut: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received sign out request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {
       // If every check pass, username contains the username contained in the token and we can check it exists
-      storageFuture.map(_.signoutFuture(username).onComplete {
+      storageFuture.map(_.signOutFuture(username).onComplete {
         case Success(_) =>
           log.info(s"User $username signed out.")
           sendResponse(202)
@@ -68,7 +68,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerLogin: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received login request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       (username, password) <- HttpUtils.readBasicAuthentication(authorizationHeader)
     ) yield {
       storageFuture flatMap (_.loginFuture(username, password)) onComplete {
@@ -85,7 +85,7 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private def handlerValidation: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received token validation request.")
     (for (
-      authorizationHeader <- request.getAuthentication;
+      authorizationHeader <- request.getAuthenticationHeader;
       token <- HttpUtils.readJwtAuthentication(authorizationHeader);
       username <- JwtUtils.decodeUsernameToken(token)
     ) yield {

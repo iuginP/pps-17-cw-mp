@@ -1,11 +1,14 @@
-package it.cwmp.client.model.game.impl
+package it.cwmp.client.model.game
 
-import it.cwmp.client.model.game.impl.GeometricUtils.RichDouble
+import it.cwmp.client.model.game.GeometricUtils.RichDouble
+import it.cwmp.client.model.game.impl.Point
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 
 /**
   * A test class for GeometricUtils
+  *
+  * @author Enrico Siboni
   */
 class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
 
@@ -77,7 +80,7 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
     assert(GeometricUtils.deltaXYFromFirstPoint(firstPoint, Point(-3, -4), 2.5) == (-1.5, -2))
 
     forAnyTwoPoints { (point1, point2) =>
-      forAll { (distance: Int) =>
+      forAll { (distance: Double) =>
         whenever(distance > 0) {
           val deltaXY = GeometricUtils.deltaXYFromFirstPoint(point1, point2, distance)
 
@@ -103,18 +106,75 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
     }
   }
 
+  property("Method pointDistanceFromStraightLine() should calculate the distance of a point from a straight line " +
+    "passing through two other points") {
+
+    val myPoint = Point(3, 4)
+    assert(GeometricUtils.pointDistanceFromStraightLine(myPoint, Point(5, 2), Point(8, 2)) == 2)
+
+    forAnyPoint { myPoint =>
+      forAnyTwoPoints { (point1, point2) =>
+
+        if (point1.x == point2.x) {
+          assert(GeometricUtils.pointDistanceFromStraightLine(myPoint, point1, point2) == Math.abs(point2.x - myPoint.x))
+        } else {
+          val angularCoefficient = GeometricUtils.angularCoefficient(point1, point2)
+          val distanceFromStraightLine =
+            Math.abs(myPoint.y.toDouble - (angularCoefficient * myPoint.x.toDouble + GeometricUtils.ordinateAtOrigin(point1, point2))) /
+              Math.sqrt(angularCoefficient.squared + 1)
+
+          assert(GeometricUtils.pointDistanceFromStraightLine(myPoint, point1, point2) == distanceFromStraightLine)
+        }
+      }
+    }
+
+  }
+
+  property("Method isWithinCircumference() should tell if a point is inside a circumference") {
+
+    val myPoint = Point(1, 1)
+    val centerPoint = Point(0, 0)
+    val myRadius = 1
+
+    intercept[IllegalArgumentException](GeometricUtils.isWithinCircumference(myPoint, centerPoint, -1))
+
+    assert(!GeometricUtils.isWithinCircumference(myPoint, centerPoint, myRadius))
+    assert(GeometricUtils.isWithinCircumference(Point(1, 0), centerPoint, myRadius))
+    assert(GeometricUtils.isWithinCircumference(myPoint, centerPoint, 2))
+
+    forAnyTwoPoints { (myPoint, centerPoint) =>
+      forAll { (radius: Double) =>
+        whenever(radius > 0) {
+          if ((myPoint.x - centerPoint.x).squared + (myPoint.y - centerPoint.y).squared <= radius.squared)
+            assert(GeometricUtils.isWithinCircumference(myPoint, centerPoint, radius))
+          else
+            assert(!GeometricUtils.isWithinCircumference(myPoint, centerPoint, radius))
+        }
+      }
+    }
+  }
+
   /**
-    * A property check that should be valid for any two points that satisfy the provided condition
+    * A property check that should be valid for any two points
     *
     * @param test the test to run
     */
   private def forAnyTwoPoints(test: (Point, Point) => Unit): Unit = {
-    forAll { (x1: Int, y1: Int, x2: Int, y2: Int) =>
-      val firstPoint = Point(x1, y1)
-      val secondPoint = Point(x2, y2)
-
-      test(firstPoint, secondPoint)
+    forAnyPoint { firstPoint =>
+      forAnyPoint { secondPoint =>
+        test(firstPoint, secondPoint)
+      }
     }
   }
 
+  /**
+    * A property check that should be valid for any point
+    *
+    * @param test the test to run
+    */
+  private def forAnyPoint(test: Point => Unit): Unit = {
+    forAll { (x1: Int, y1: Int) =>
+      test(Point(x1, y1))
+    }
+  }
 }

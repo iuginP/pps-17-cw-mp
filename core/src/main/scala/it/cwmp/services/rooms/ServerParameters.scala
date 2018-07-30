@@ -2,6 +2,9 @@ package it.cwmp.services.rooms
 
 import it.cwmp.model.Room
 
+/**
+  * An object containing Rooms Service info
+  */
 object ServerParameters {
 
   val DEFAULT_PORT = 8667
