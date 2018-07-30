@@ -43,10 +43,12 @@ case class RoomViewActor() extends FXServiceViewActor {
   }
 
   override def receive: Receive = super.receive orElse {
-    case ShowToken(roomToken) => runOnUIThread(() => {
+    case ShowToken(roomToken) =>
       onServiceResponseReceived()
       fxController showTokenDialog roomToken
-    })
+
+    case FoundOpponents => onServiceResponseReceived()
+
     case WaitingForOthers =>
       fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () => {
         controllerActor ! (roomEnteringMessage match {
@@ -81,5 +83,10 @@ object RoomViewActor {
     * Shows a loading while waiting for others participants
     */
   case object WaitingForOthers
+
+  /**
+    * Tells View actor that opponents have been found
+    */
+  case object FoundOpponents
 
 }
