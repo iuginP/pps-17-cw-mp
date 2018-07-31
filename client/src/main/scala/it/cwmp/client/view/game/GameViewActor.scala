@@ -39,8 +39,7 @@ case class GameViewActor() extends Actor with Logging {
     case ShowGUIWithName(name) =>
       playerName = name
       gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE)
-      context.become(hideGUIBehaviour orElse
-        newWorldBehaviour orElse guiWorldModificationsBehaviour)
+      context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -57,13 +56,13 @@ case class GameViewActor() extends Actor with Logging {
     */
   private def newWorldBehaviour: Receive = {
     case NewWorld(world) =>
-      if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
-      updatingSchedule = context.system.scheduler
-        .schedule(0.millis, TIME_BETWEEN_FRAMES, self, UpdateLocalWorld)(context.dispatcher)
+      if (updatingSchedule == null) {
+        updatingSchedule = context.system.scheduler
+          .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)
+      }
 
-    case UpdateLocalWorld =>
-      //  log.info(s"World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}")
+    case UpdateGUI =>
       gameFX.updateWorld(tempWorld)
 
       // is that to heavy computation here ???
@@ -126,9 +125,9 @@ object GameViewActor {
   case class NewWorld(world: CellWorld)
 
   /**
-    * Updates local version of the world making it "move"
+    * Updates GUI of the world making it "move"
     */
-  case object UpdateLocalWorld
+  case object UpdateGUI
 
   /**
     * A message stating that an attack has been launched from one point to another
