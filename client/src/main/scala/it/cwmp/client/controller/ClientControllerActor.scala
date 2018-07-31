@@ -1,16 +1,18 @@
 package it.cwmp.client.controller
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import it.cwmp.client.controller.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.ClientControllerActor._
-import it.cwmp.client.controller.PlayerActor.{RetrieveAddress, RetrieveAddressResponse, StartGame}
+import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
+import it.cwmp.client.controller.game.CellWorldGenerationStrategy
 import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.view.authentication.AuthenticationViewActor
+import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.room.RoomViewActor
 import it.cwmp.client.view.room.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.model.{Address, Participant}
@@ -22,12 +24,11 @@ import scala.util.{Failure, Success}
 /**
   * This class is client controller actor, that will manage interactions between client parts
   *
-  * @param system the system of this actors
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class ClientControllerActor(system: ActorSystem) extends Actor with ParticipantListReceiver with Logging {
+case class ClientControllerActor() extends Actor with ParticipantListReceiver with Logging {
 
   private val UNKNOWN_ERROR = "Unknown Error"
 
@@ -59,21 +60,21 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     super.preStart()
 
     log.info(s"Initializing the player actor...")
-    playerActor = system.actorOf(Props(classOf[PlayerActor], system), PlayerActor.getClass.getName)
+    playerActor = context.system.actorOf(Props[PlayerActor], PlayerActor.getClass.getName)
     playerActor ! RetrieveAddress
 
     log.info(s"Initializing the API client actor...")
-    apiClientActor = system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
+    apiClientActor = context.system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
 
     log.info(s"Initializing the authentication view actor...")
-    authenticationViewActor = system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
+    authenticationViewActor = context.system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
     authenticationViewActor ! Initialize
 
     log.info(s"Displaying the view...")
     authenticationViewActor ! Show
 
     log.info(s"Initializing the room view actor...")
-    roomViewActor = system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
+    roomViewActor = context.system.actorOf(Props[RoomViewActor], RoomViewActor.getClass.getName)
     roomViewActor ! Initialize
   }
 
@@ -149,7 +150,7 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
       log.info(s"Exiting room $roomID")
     case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
       log.info(s"Exiting public room with $playersNumber")
-    case GUILogOut() =>
+    case GUILogOut =>
       log.info("Return to authentication view")
       onLogOut()
   }
@@ -169,6 +170,16 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     case ExitPublicSuccess => onRoomExitingSuccess()
     case ExitPrivateFailure(errorMessage) => onRoomExitingFailure(errorMessage)
     case ExitPublicFailure(errorMessage) => onRoomExitingFailure(errorMessage)
+  }
+
+  /**
+    * Action to execute when logout occurs
+    */
+  private def onLogOut(): Unit = {
+    log.info(s"Setting the behaviour 'authentication-manager'")
+    context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
+    roomViewActor ! Hide
+    authenticationViewActor ! Show
   }
 
   /**
@@ -235,17 +246,8 @@ case class ClientControllerActor(system: ActorSystem) extends Actor with Partici
     log.info(s"Setting the behaviour 'in-game'")
     context.become(inGameBehaviour)
     roomViewActor ! Hide
-    playerActor ! StartGame(participants)
-  }
-
-  /**
-    * Action to execute when logout occurs
-    */
-  private def onLogOut(): Unit = {
-    log.info(s"Setting the behaviour 'authentication-manager'")
-    context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
-    roomViewActor ! Hide
-    authenticationViewActor ! Show
+    playerActor ! PrepareForGame(participants,
+      CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE))
   }
 }
 

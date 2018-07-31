@@ -1,8 +1,10 @@
 package it.cwmp.client.view.game
 
 import akka.actor.{Actor, ActorRef, Cancellable}
+import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameEngine
-import it.cwmp.client.model.DistributedState
+import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.model.DistributedState.UpdateState
 import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
@@ -16,22 +18,27 @@ import scala.concurrent.duration._
   *
   * @author contributor Enrico Siboni
   */
-class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
+case class GameViewActor() extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
 
+  private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
+  private var playerName: String = _
 
-  override def receive: Receive = showGUIBehaviour
+  override def receive: Receive = showGUIBehaviour orElse {
+    case Initialize => parentActor = sender()
+  }
 
   /**
     * The behaviour of opening the view
     */
   private def showGUIBehaviour: Receive = {
-    case ShowGUI =>
-      gameFX.start(VIEW_TITLE, VIEW_SIZE)
+    case ShowGUIWithName(name) =>
+      playerName = name
+      gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE)
       context.become(hideGUIBehaviour orElse
         newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
@@ -40,7 +47,7 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
     * The behaviour of closing the view
     */
   private def hideGUIBehaviour: Receive = {
-    case HideGUI =>
+    case Hide =>
       gameFX.close()
       context.become(showGUIBehaviour)
   }
@@ -73,20 +80,20 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
       (fromCell, toCell) match {
-        case (Some(attacker), Some(attacked)) if attacker != attacked =>
+        case (Some(attacker), Some(attacked)) if attacker != attacked && attacker.owner.username == playerName =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
-          parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
-        case tmp@_ => log.debug(s"No cells detected or auto-attack $tmp")
+          parentActor ! UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
+        case tmp@_ => log.debug(s"No cells detected or auto-attack or not $playerName cell $tmp")
       }
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
       val attack = findTentacleNearTo(pointOnAttackView, tempWorld.attacks)
       attack match {
-        case Some(tentacle) =>
+        case Some(tentacle) if tentacle.from.owner.username == playerName =>
           log.debug(s"Removing this attack: $tentacle ...")
-          parentActor ! DistributedState.UpdateState(tempWorld -- tentacle)
-        case tmp@_ => log.debug(s"No attack detected $tmp")
+          parentActor ! UpdateState(tempWorld -- tentacle)
+        case tmp@_ => log.debug(s"No attack detected or not $playerName attack $tmp")
       }
   }
 }
@@ -95,27 +102,21 @@ class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
   * Companion object, containing actor messages
   */
 object GameViewActor {
-  def apply(parentActor: ActorRef): GameViewActor = new GameViewActor(parentActor)
 
   /**
     * The title of game view
     */
-  val VIEW_TITLE = "CellWars"
+  val VIEW_TITLE_PREFIX = "CellWars: "
 
   /**
     * The size of the squared view
     */
-  val VIEW_SIZE = 512 // TODO: sarebbe buono forse fare una dimensione diversa in base alla dimensione dello schermo
+  val VIEW_SIZE = 512
 
   /**
     * Shows the GUI
     */
-  case object ShowGUI
-
-  /**
-    * Hides the GUI
-    */
-  case object HideGUI
+  case class ShowGUIWithName(playerName: String)
 
   /**
     * Sets a new world to display

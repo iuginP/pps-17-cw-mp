@@ -43,6 +43,13 @@ abstract class DistributedState[T](onDistributedStateUpdate: T => Unit)
   def distributedStateBehaviour: Receive = passiveBehaviour orElse activeBehaviour
 
   /**
+    * Initializes the distributed state with provided one
+    *
+    * @param state the initial state
+    */
+  def initialize(state: T)
+
+  /**
     * @return the behaviour enabling to listen for modification in the distributed state
     */
   protected def passiveBehaviour: Receive = {

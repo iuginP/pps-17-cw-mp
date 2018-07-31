@@ -32,9 +32,8 @@ object AuthenticationRequests {
 
   /**
     * Request to log-out
-    *
     */
-  sealed case class GUILogOut() extends AuthenticationRequest
+  case object GUILogOut extends AuthenticationRequest
 
 }
 

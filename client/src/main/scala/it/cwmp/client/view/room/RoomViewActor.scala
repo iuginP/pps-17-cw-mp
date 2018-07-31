@@ -42,7 +42,7 @@ case class RoomViewActor() extends FXServiceViewActor {
         }
 
         override def onClosingRoomView(): Unit = {
-          controllerActor ! GUILogOut()
+          controllerActor ! GUILogOut
         }
       }))
   }
@@ -93,4 +93,5 @@ object RoomViewActor {
     * Tells View actor that opponents have been found
     */
   case object FoundOpponents
+
 }
