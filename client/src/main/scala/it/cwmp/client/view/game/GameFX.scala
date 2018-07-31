@@ -5,13 +5,15 @@ import it.cwmp.client.model.game.impl.{CellWorld, Point}
 import it.cwmp.client.view.FXRunOnUIThread
 import it.cwmp.client.view.game.model.CellView._
 import it.cwmp.client.view.game.model.TentacleView
+import it.cwmp.utils.Logging
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.input.MouseEvent
-import javafx.scene.{Group, Scene}
+import javafx.scene.{Group, Node, Scene}
 import javafx.stage.Stage
 
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 /**
@@ -71,14 +73,18 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with
     * @param world the new world to draw
     */
   def updateWorld(world: CellWorld): Unit = {
-    runOnUIThread(() => {
-      implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
-      root.getChildren.clear()
+    implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
+    val graphicElementsToDraw: Seq[Node] =
+      Seq(
+        world.attacks.map(tentacle => drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))),
+        world.characters.map(cell => drawCell(cell)),
+        world.characters.map(cell => drawCellEnergy(cell)),
+        Seq(drawInstant(world.instant))
+      ).flatten
 
-      world.attacks.foreach(tentacle => root.getChildren.add(drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))
-      world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
-      world.characters.foreach(cell => root.getChildren.add(drawCellEnergy(cell)))
-      root.getChildren.add(drawInstant(world.instant))
+    runOnUIThread(() => {
+      root.getChildren.clear()
+      root.getChildren.addAll(graphicElementsToDraw.asJava)
     })
   }
 

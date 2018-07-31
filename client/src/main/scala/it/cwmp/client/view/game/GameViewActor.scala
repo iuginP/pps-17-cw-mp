@@ -11,7 +11,10 @@ import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.utils.Logging
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 /**
   * The actor that deals with Game View
@@ -21,7 +24,7 @@ import scala.concurrent.duration._
 case class GameViewActor() extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
-  private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
+  private val TIME_BETWEEN_FRAMES: FiniteDuration = 350.millis
 
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
@@ -63,10 +66,15 @@ case class GameViewActor() extends Actor with Logging {
       }
 
     case UpdateGUI =>
-      gameFX.updateWorld(tempWorld)
-
-      // is that to heavy computation here ???
-      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+      Future {
+        tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+        tempWorld
+      } andThen {
+        case Success(cellWorld) => gameFX.updateWorld(cellWorld)
+        case Failure(ex) =>
+          updatingSchedule.cancel()
+          log.error("Error calculating next CellWorld", ex)
+      }
   }
 
   /**
