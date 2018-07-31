@@ -206,8 +206,8 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     * Action to do on room exiting success
     */
   private def onRoomExitingSuccess(): Unit = {
-    println("ClientControllerActor onRoomExitingSuccess()")
-  } // TODO:
+    log.info("Exiting from room with success")
+  }
 
   /**
     * Action to do on room exiting failure
@@ -215,8 +215,8 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     * @param errorMessage optionally an error message
     */
   private def onRoomExitingFailure(errorMessage: Option[String]): Unit = {
-    println("ClientControllerActor onRoomExitingFailure()")
-  } // TODO:
+    log.info("Exiting from room with failure")
+  }
 
   private def inGameBehaviour: Receive = {
     case _ => // TODO
