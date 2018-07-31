@@ -1,6 +1,7 @@
 package it.cwmp.client.view.room
 
 import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
+import it.cwmp.client.controller.messages.GUIRequest
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.view.FXServiceViewActor
 import it.cwmp.client.view.room.RoomViewActor._

@@ -70,12 +70,14 @@ case class ApiClientActor() extends Actor {
         ))
       case ServiceExitPrivate(roomID, jwtToken) =>
         val senderTmp = sender
-        exitRoom(roomID)(jwtToken).onComplete(replyWith(_ => senderTmp ! ExitPrivateSuccess,
+        exitRoom(roomID)(jwtToken).onComplete(replyWith(
+          _ => senderTmp ! ExitPrivateSuccess,
           exception => senderTmp ! ExitPrivateFailure(exception.getMessage)
         ))
       case ServiceExitPublic(playersNumber, jwtToken) =>
         val senderTmp = sender
-        exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(_ => senderTmp ! ExitPublicSuccess,
+        exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
+          _ => senderTmp ! ExitPublicSuccess,
           exception => senderTmp ! ExitPublicFailure(exception.getMessage)
         ))
     }

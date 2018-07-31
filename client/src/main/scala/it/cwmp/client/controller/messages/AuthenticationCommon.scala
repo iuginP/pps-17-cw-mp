@@ -5,35 +5,28 @@ package it.cwmp.client.controller.messages
   */
 object AuthenticationRequests {
 
-  sealed trait AuthenticationRequest
+  sealed trait AuthenticationRequest extends Request
 
   /**
-    * Request to log-in
+    * Request to log-in to online service
     *
     * @param username the player username
     * @param password the player password
     */
-  sealed case class LogIn(username: String, password: String) extends AuthenticationRequest
+  sealed case class LogIn(username: String, password: String) extends AuthenticationRequest with ToServiceRequest
 
   /**
-    * Request to sign-up
+    * Request to sign-up to online service
     *
     * @param username the player username
     * @param password the player password
     */
-  sealed case class SignUp(username: String, password: String) extends AuthenticationRequest
+  sealed case class SignUp(username: String, password: String) extends AuthenticationRequest with ToServiceRequest
 
   /**
-    * Request to log-out
-    *
-    * @param username the player username that's signing-out
+    * Request to log-out from GUI
     */
-  sealed case class LogOut(username: String) extends AuthenticationRequest
-
-  /**
-    * Request to log-out
-    */
-  case object GUILogOut extends AuthenticationRequest
+  case object GUILogOut extends AuthenticationRequest with GUIRequest
 
 }
 
@@ -42,7 +35,7 @@ object AuthenticationRequests {
   */
 object AuthenticationResponses {
 
-  sealed trait AuthenticationResponse
+  sealed trait AuthenticationResponse extends Response
 
   sealed trait LogInResponse extends AuthenticationResponse
 
