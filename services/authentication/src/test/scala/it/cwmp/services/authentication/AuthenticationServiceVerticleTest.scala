@@ -31,31 +31,22 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     }
 
     it("when empty header should fail") {
-      client.post(API_SIGNUP)
-        .sendFuture()
-        .shouldAnswerWith(BAD_REQUEST)
+      client.post(API_SIGNUP) sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when invalid header should fail") {
-      val token = invalidToken
-      client.post(API_SIGNUP)
-        .addAuthentication(token)
-        .sendFuture()
-        .shouldAnswerWith(BAD_REQUEST)
+      client.post(API_SIGNUP) addAuthentication invalidToken sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when username already exist should fail") {
       val username = nextUsername
       val password = nextPassword
 
-      client.post(API_SIGNUP)
-        .addAuthentication(username, password)
-        .sendFuture()
-        .flatMap(_ =>
-          client.post(API_SIGNUP)
-            .addAuthentication(username, password)
-            .sendFuture())
-        .shouldAnswerWith(BAD_REQUEST)
+      for (
+        _ <- client.post(API_SIGNUP) addAuthentication(username, password) sendFuture();
+        apiRequest = client.post(API_SIGNUP) addAuthentication(username, password) sendFuture();
+        assertion <- apiRequest shouldAnswerWith BAD_REQUEST
+      ) yield assertion
     }
   }
 
@@ -68,38 +59,26 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post(API_SIGNUP)
-        .addAuthentication(username, password)
-        .sendFuture()
-        .flatMap(_ =>
-          client.get(API_LOGIN)
-            .addAuthentication(username, password)
-            .sendFuture())
-        .shouldAnswerWith(OK, _.exists(_.nonEmpty))
+      for (
+        _ <- client.post(API_SIGNUP) addAuthentication(username, password) sendFuture();
+        apiRequest = client.get(API_LOGIN) addAuthentication(username, password) sendFuture();
+        assertion <- apiRequest shouldAnswerWith(OK, _.exists(_.nonEmpty))
+      ) yield assertion
     }
 
     it("when empty header should fail") {
-      client.get(API_LOGIN)
-        .sendFuture()
-        .shouldAnswerWith(BAD_REQUEST)
+      client.get(API_LOGIN) sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when invalid header should fail") {
-      val token = invalidToken
-      client.get(API_LOGIN)
-        .addAuthentication(token)
-        .sendFuture()
-        .shouldAnswerWith(BAD_REQUEST)
+      client.get(API_LOGIN) addAuthentication invalidToken sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when user does not exists should fail") {
       val username = nextUsername
       val password = nextPassword
 
-      client.get(API_LOGIN)
-        .addAuthentication(username, password)
-        .sendFuture()
-        .shouldAnswerWith(UNAUTHORIZED)
+      client.get(API_LOGIN) addAuthentication(username, password) sendFuture() shouldAnswerWith UNAUTHORIZED
     }
 
     it("when password is wrong should fail") {
@@ -107,14 +86,11 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val password = nextPassword
       val passwordWrong = nextPassword
 
-      client.post(API_SIGNUP)
-        .addAuthentication(username, password)
-        .sendFuture()
-        .flatMap(_ =>
-          client.get(API_LOGIN)
-            .addAuthentication(username, passwordWrong)
-            .sendFuture())
-        .shouldAnswerWith(UNAUTHORIZED)
+      for (
+        _ <- client.post(API_SIGNUP) addAuthentication(username, password) sendFuture();
+        apiRequest = client.get(API_LOGIN) addAuthentication(username, passwordWrong) sendFuture();
+        assertion <- apiRequest shouldAnswerWith UNAUTHORIZED
+      ) yield assertion
     }
   }
 
@@ -123,14 +99,11 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       val username = nextUsername
       val password = nextPassword
 
-      client.post(API_SIGNUP)
-        .addAuthentication(username, password)
-        .sendFuture()
-        .flatMap(response =>
-          client.get(API_VALIDATE)
-            .addAuthentication(response.bodyAsString().get)
-            .sendFuture())
-        .shouldAnswerWith(OK, _.exists(_.nonEmpty))
+      for (
+        response <- client.post(API_SIGNUP) addAuthentication(username, password) sendFuture();
+        apiRequest = client.get(API_VALIDATE) addAuthentication response.bodyAsString().get sendFuture();
+        assertion <- apiRequest shouldAnswerWith(OK, _.exists(_.nonEmpty))
+      ) yield assertion
     }
 
     it("when missing token should fail") {
@@ -138,21 +111,12 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     }
 
     it("when invalid token should fail") {
-      val myToken = invalidToken
-
-      client.get(API_VALIDATE)
-        .addAuthentication(myToken)
-        .sendFuture()
-        .shouldAnswerWith(BAD_REQUEST)
+      client.get(API_VALIDATE) addAuthentication invalidToken sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when unauthorized token should fail") {
       val myToken = nextToken
-
-      client.get(API_VALIDATE)
-        .addAuthentication(myToken)
-        .sendFuture()
-        .shouldAnswerWith(UNAUTHORIZED)
+      client.get(API_VALIDATE) addAuthentication myToken sendFuture() shouldAnswerWith UNAUTHORIZED
     }
   }
 }
