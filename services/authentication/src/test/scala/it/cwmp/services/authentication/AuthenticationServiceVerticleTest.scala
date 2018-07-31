@@ -27,7 +27,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
       client.post(API_SIGNUP)
         .addAuthentication(username, password)
         .sendFuture()
-        .shouldAnswerWith(CREATED, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(CREATED, _.exists(_.nonEmpty))
     }
 
     it("when empty header should fail") {
@@ -75,7 +75,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
           client.get(API_LOGIN)
             .addAuthentication(username, password)
             .sendFuture())
-        .shouldAnswerWith(OK, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(OK, _.exists(_.nonEmpty))
     }
 
     it("when empty header should fail") {
@@ -130,13 +130,11 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
           client.get(API_VALIDATE)
             .addAuthentication(response.bodyAsString().get)
             .sendFuture())
-        .shouldAnswerWith(OK, _.exists(body => body.nonEmpty))
+        .shouldAnswerWith(OK, _.exists(_.nonEmpty))
     }
 
     it("when missing token should fail") {
-      client.get(API_VALIDATE)
-        .sendFuture()
-        .map(res => res statusCode() should equal(BAD_REQUEST))
+      client.get(API_VALIDATE).sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when invalid token should fail") {
