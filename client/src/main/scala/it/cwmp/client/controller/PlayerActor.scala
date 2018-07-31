@@ -6,7 +6,7 @@ import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.controller.PlayerActor.{EndGame, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.game.GenerationStrategy
-import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.DistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
@@ -134,7 +134,7 @@ object PlayerActor {
   /**
     * Message to retrieve address of this player
     */
-  case object RetrieveAddress
+  case object RetrieveAddress extends Request
 
   /**
     * Message to prepare to game with provided participants
@@ -151,10 +151,10 @@ object PlayerActor {
   case object EndGame
 
   /**
-    * Message to respons to request of retrieving address
+    * Message to response to request of retrieving address
     *
     * @param address the address of player actor
     */
-  case class RetrieveAddressResponse(address: String)
+  case class RetrieveAddressResponse(address: String) extends Response
 
 }

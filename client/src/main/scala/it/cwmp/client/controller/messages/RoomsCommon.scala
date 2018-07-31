@@ -7,17 +7,12 @@ import it.cwmp.model.Address
   */
 object RoomsRequests {
 
-  sealed trait RoomRequest
+  sealed trait RoomRequest extends Request
 
 
-  sealed trait GUIRequest
+  sealed trait RoomPrivateRequest extends RoomRequest
 
-  sealed trait ServiceRequest
-
-
-  sealed trait RoomPrivateRequest
-
-  sealed trait RoomPublicRequest
+  sealed trait RoomPublicRequest extends RoomRequest
 
 
   sealed trait RoomCreationRequest extends RoomRequest
@@ -69,7 +64,7 @@ object RoomsRequests {
     * @param playersNumber the players number
     * @param token         the user token
     */
-  sealed case class ServiceCreate(name: String, playersNumber: Int, token: String) extends RoomCreationRequest with ServiceRequest
+  sealed case class ServiceCreate(name: String, playersNumber: Int, token: String) extends RoomCreationRequest with ToServiceRequest
 
   /**
     * Enter a private room; request for online service
@@ -80,7 +75,7 @@ object RoomsRequests {
     * @param token         the user token
     */
   sealed case class ServiceEnterPrivate(roomID: String, playerAddress: Address, webAddress: Address, token: String)
-    extends RoomEnteringRequest with RoomPrivateRequest with ServiceRequest
+    extends RoomEnteringRequest with RoomPrivateRequest with ToServiceRequest
 
   /**
     * Enter a public room; request for online service
@@ -91,7 +86,7 @@ object RoomsRequests {
     * @param token         the user token
     */
   sealed case class ServiceEnterPublic(playersNumber: Int, playerAddress: Address, webAddress: Address, token: String)
-    extends RoomEnteringRequest with RoomPublicRequest with ServiceRequest
+    extends RoomEnteringRequest with RoomPublicRequest with ToServiceRequest
 
   /**
     * Exits a private room; request from GUI
@@ -99,7 +94,7 @@ object RoomsRequests {
     * @param roomID the room id of room to exit
     * @param token  the user token
     */
-  sealed case class ServiceExitPrivate(roomID: String, token: String) extends RoomExitingRequest with RoomPrivateRequest with ServiceRequest
+  sealed case class ServiceExitPrivate(roomID: String, token: String) extends RoomExitingRequest with RoomPrivateRequest with ToServiceRequest
 
   /**
     * Exits a public room; request from GUI
@@ -107,7 +102,7 @@ object RoomsRequests {
     * @param playersNumber the players number of public room to exit
     * @param token         the user token
     */
-  sealed case class ServiceExitPublic(playersNumber: Int, token: String) extends RoomExitingRequest with RoomPublicRequest with ServiceRequest
+  sealed case class ServiceExitPublic(playersNumber: Int, token: String) extends RoomExitingRequest with RoomPublicRequest with ToServiceRequest
 
 }
 
@@ -116,16 +111,18 @@ object RoomsRequests {
   */
 object RoomsResponses {
 
-  sealed trait RoomPrivateResponse
+  sealed trait RoomResponse extends Response
 
-  sealed trait RoomPublicResponse
+  sealed trait RoomPrivateResponse extends RoomResponse
+
+  sealed trait RoomPublicResponse extends RoomResponse
 
 
-  sealed trait RoomCreationResponse
+  sealed trait RoomCreationResponse extends RoomResponse
 
-  sealed trait RoomEnteringResponse
+  sealed trait RoomEnteringResponse extends RoomResponse
 
-  sealed trait RoomExitingResponse
+  sealed trait RoomExitingResponse extends RoomResponse
 
   /**
     * Creation successful
