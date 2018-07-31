@@ -2,6 +2,7 @@ package it.cwmp.client.view.game
 
 import akka.actor.ActorRef
 import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.view.FXRunOnUIThread
 import it.cwmp.client.view.game.model.CellView._
 import it.cwmp.client.view.game.model.TentacleView
 import javafx.application.Platform
@@ -20,7 +21,7 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
+case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with FXRunOnUIThread {
 
   private var stage: Stage = _
   private var root: Group = _
@@ -34,7 +35,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
     */
   def start(title: String, size: Int): Unit = {
     new JFXPanel() // initializes JavaFX
-    Platform.runLater(() => {
+    runOnUIThread(() => {
       stage = new Stage
       root = new Group
       canvas = new Canvas(size, size)
@@ -59,7 +60,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
     * Closes the GUI
     */
   def close(): Unit = {
-    Platform.runLater(() => {
+    runOnUIThread(() => {
       stage.close()
     })
   }
@@ -70,7 +71,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
     * @param world the new world to draw
     */
   def updateWorld(world: CellWorld): Unit = {
-    Platform.runLater(() => {
+    runOnUIThread(() => {
       implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
       root.getChildren.clear()
 
