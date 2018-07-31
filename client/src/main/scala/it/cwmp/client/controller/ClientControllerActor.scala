@@ -146,14 +146,14 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
       log.info(s"Entering the public room with $playersNumber players")
       openOneTimeServerAndGetAddress()
         .map(url => apiClientActor ! ServiceEnterPublic(playersNumber, Address(playerAddress), url, jwtToken))
-    case GUIExitPrivate(roomID) => // TODO: exiting behaviour
+    case GUIExitPrivate(roomID) =>
       log.info(s"Exiting room $roomID")
       apiClientActor ! ServiceExitPrivate(roomID, jwtToken)
-    case GUIExitPublic(playersNumber) => // TODO: exiting behaviour (close one-time server)
+    case GUIExitPublic(playersNumber) =>
       log.info(s"Exiting public room with $playersNumber")
       apiClientActor ! ServiceExitPublic(playersNumber, jwtToken)
     case GUILogOut =>
-      log.info("Return to authentication view")
+      log.info("Logging-out")
       onLogOut()
   }
 
@@ -206,7 +206,8 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     * Action to do on room exiting success
     */
   private def onRoomExitingSuccess(): Unit = {
-    log.info("Exiting from room with success")
+    log.info("Succeeded exiting from the room, now stopping one-time server participant receiver")
+    stopListeningForParticipants()
   }
 
   /**
@@ -215,7 +216,8 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     * @param errorMessage optionally an error message
     */
   private def onRoomExitingFailure(errorMessage: Option[String]): Unit = {
-    log.info("Exiting from room with failure")
+    log.warn("Failed exiting the room, maybe participant number reached while trying to exit")
+    log.error(s"${errorMessage.getOrElse(UNKNOWN_ERROR)}")
   }
 
   private def inGameBehaviour: Receive = {
