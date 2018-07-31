@@ -150,7 +150,7 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
       log.info(s"Exiting room $roomID")
       apiClientActor ! ServiceExitPrivate(roomID, jwtToken)
     case GUIExitPublic(playersNumber) =>
-      log.info(s"Exiting public room with $playersNumber")
+      log.info(s"Exiting public room with $playersNumber players")
       apiClientActor ! ServiceExitPublic(playersNumber, jwtToken)
     case GUILogOut =>
       log.info("Logging-out")
