@@ -1,12 +1,13 @@
 package it.cwmp.utils
 
 import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerResponse}
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
-import it.cwmp.utils.Utils.stringToOption
+import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
 
 import scala.concurrent.Future
@@ -118,7 +119,7 @@ trait VertxServer extends ScalaVerticle {
                             routingContext: RoutingContext): Future[User] = getAuthenticationHeader match {
       case None =>
         log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
-        Future.failed(HTTPException(400, NO_AUTH_HEADER_IN_REQUEST_ERROR))
+        Future.failed(HTTPException(BAD_REQUEST, NO_AUTH_HEADER_IN_REQUEST_ERROR))
       case Some(authenticationHeader) => strategy.validate(authenticationHeader)
     }
 

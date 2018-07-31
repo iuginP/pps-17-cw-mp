@@ -1,11 +1,13 @@
 package it.cwmp.testing.rooms
 
+import io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
 import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
 import it.cwmp.services.rooms.RoomsServiceVerticle
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.testing.VerticleBeforeAndAfterEach
+import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.{HttpUtils, Validation}
 
 import scala.concurrent.Future
@@ -51,9 +53,9 @@ abstract class RoomsWebServiceTesting extends RoomsTesting with VerticleBeforeAn
     override def validate(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
       case Some(token) => participants.get(token) match {
         case Some(participant) => Future.successful(participant)
-        case _ => Future.failed(HTTPException(401))
+        case _ => Future.failed(HTTPException(UNAUTHORIZED))
       }
-      case _ => Future.failed(HTTPException(401))
+      case _ => Future.failed(HTTPException(UNAUTHORIZED))
     }
   }
 

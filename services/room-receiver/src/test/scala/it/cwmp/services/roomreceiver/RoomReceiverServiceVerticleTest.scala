@@ -1,5 +1,6 @@
 package it.cwmp.services.roomreceiver
 
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, NOT_FOUND}
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
@@ -7,6 +8,7 @@ import it.cwmp.model.Participant.Converters._
 import it.cwmp.services.roomreceiver.ServerParameters._
 import it.cwmp.services.testing.roomreceiver.RoomReceiverWebTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
+import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.VertxClient
 
 import scala.util.{Failure, Success}
@@ -23,20 +25,20 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
 
   describe("RoomReceiver") {
     describe("Receiving partecipants list") {
-      it("When wrong url should 404") {
+      it("When wrong url should NOT_FOUND") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(wrongToken)).port(port)
-          .sendFuture() shouldAnswerWith 404
+          .sendFuture() shouldAnswerWith NOT_FOUND
       }
 
-      it("When right url and empty body should 400") {
+      it("When right url and empty body should BAD_REQUEST") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
-          .sendFuture() shouldAnswerWith 400
+          .sendFuture() shouldAnswerWith BAD_REQUEST
       }
 
-      it("When right url and body should 201") {
+      it("When right url and body should CREATED") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
-          .shouldAnswerWith(201)
+          .shouldAnswerWith(CREATED)
       }
 
       it("When right url and body should obtain the correct list") {
@@ -50,7 +52,7 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
           .sendFuture()
           .transform({
-            case Success(res) if res.statusCode() == 201 => Success(Unit)
+            case Success(res) if res.statusCode() == CREATED.code() => Success(())
             case Success(res) => Failure(HTTPException(res.statusCode(), res.statusMessage()))
             case failure@Failure(_) => failure
           })
