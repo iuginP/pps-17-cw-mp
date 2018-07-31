@@ -25,27 +25,25 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
     describe("Receiving partecipants list") {
       it("When wrong url should 404") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(wrongToken)).port(port)
-          .sendFuture()
-          .map(res => res statusCode() should equal(404))
+          .sendFuture() shouldAnswerWith 404
       }
 
       it("When right url and empty body should 400") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
+          .sendFuture() shouldAnswerWith 400
       }
 
       it("When right url and body should 201") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
-          .map(res => res statusCode() should equal(201))
+          .shouldAnswerWith(201)
       }
 
       it("When right url and body should obtain the correct list") {
         client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
           .flatMap(_ => participantsPromise.future)
-          .map(l => l should equal(participants))
+          .map(_ should equal(participants))
       }
 
       it("When right, after response should close") {
@@ -54,7 +52,7 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
           .transform({
             case Success(res) if res.statusCode() == 201 => Success(Unit)
             case Success(res) => Failure(HTTPException(res.statusCode(), res.statusMessage()))
-            case Failure(f) => Failure(f)
+            case failure@Failure(_) => failure
           })
           .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))
             .sendFuture()

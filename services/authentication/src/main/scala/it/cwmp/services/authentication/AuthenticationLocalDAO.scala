@@ -81,7 +81,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         _ <- connection.updateWithParamsFuture(
           insertNewUserSql, Seq(username, password, "SALT"))
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR)))
   }
 
   override def signOutFuture(usernameP: String): Future[Unit] = {
@@ -96,7 +96,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.updateWithParamsFuture(signOutUserSql, Seq(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_NOT_PROVIDED_ERROR)))
   }
 
   override def loginFuture(usernameP: String, passwordP: String): Future[Unit] = {
@@ -112,7 +112,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.queryWithParamsFuture(loginUserSql, Seq(username, password)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR)))
   }
 
   override def existsFuture(usernameP: String): Future[Unit] = {
@@ -127,7 +127,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.queryWithParamsFuture(existFutureUserSql, Seq(username)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_NOT_PROVIDED_ERROR)))
   }
 }
 
@@ -135,6 +135,9 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
   * Companion Object
   */
 object AuthenticationLocalDAO {
+
+  private val USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR = "Username or password not provided!"
+  private val USERNAME_NOT_PROVIDED_ERROR = "Username not provided!"
 
   private val FIELD_AUTH_USERNAME = "auth_username"
   private val FIELD_AUTH_PASSWORD = "auth_password"
