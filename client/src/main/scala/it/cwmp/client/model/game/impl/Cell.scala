@@ -110,11 +110,6 @@ object Cell {
     val NO_OWNER: User = User("_NO_OWNER_")
 
     /**
-      * Energy of a passive cell when born
-      */
-    val CELL_ENERGY_WHEN_BORN = 40
-
-    /**
       * Default evolution strategy for a passive cell
       *
       * Does nothing

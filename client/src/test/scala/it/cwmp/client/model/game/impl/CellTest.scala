@@ -2,6 +2,7 @@ package it.cwmp.client.model.game.impl
 
 import java.time.Duration
 
+import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.model.User
 import org.scalatest.FunSpec
@@ -98,7 +99,7 @@ class CellTest extends FunSpec {
     }
 
     describe("When Passive") {
-      val passiveCell = Cell(Cell.Passive.NO_OWNER, position, Cell.Passive.CELL_ENERGY_WHEN_BORN)
+      val passiveCell = Cell(Cell.Passive.NO_OWNER, position, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
       it("should have no owner") {
         assert(passiveCell.owner == Cell.Passive.NO_OWNER)
       }
