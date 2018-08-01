@@ -53,4 +53,9 @@ object GameConstants {
     * Amount of time expressed in milliseconds that will be converted in 1 energy reduction on under attack character
     */
   val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000d
+
+  /**
+    * The number of passive cells in generated world
+    */
+  val PASSIVE_CELLS_NUMBER = 5
 }

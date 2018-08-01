@@ -5,7 +5,7 @@ import it.cwmp.client.controller.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.ClientControllerActor._
 import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
-import it.cwmp.client.controller.game.CellWorldGenerationStrategy
+import it.cwmp.client.controller.game.{CellWorldGenerationStrategy, GameConstants}
 import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.Initialize
@@ -255,7 +255,7 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     context.become(inGameBehaviour)
     roomViewActor ! Hide
     playerActor ! PrepareForGame(participants,
-      CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE))
+      CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE, GameConstants.PASSIVE_CELLS_NUMBER))
   }
 }
 

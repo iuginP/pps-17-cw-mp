@@ -109,6 +109,9 @@ class GameEngineTest extends FunSpec {
         it("on conquer of cell") {
           assert(!afterConquerOfCellWorld.characters.exists(_.owner.username == "Enrico"))
         }
+        it("conquering passive cells") {
+          assert(!afterConquerOfCellWorld.characters.exists(_.owner == NO_OWNER))
+        }
       }
 
       describe("Removing tentacles") {

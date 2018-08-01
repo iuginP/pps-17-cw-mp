@@ -47,12 +47,12 @@ object CellView {
   /**
     * Pair of CellView min radius and energy for that radius
     */
-  val CELL_MINIMUM_RADIUS_FOR_ENERGY = (25d, 20d)
+  val CELL_MINIMUM_RADIUS_FOR_ENERGY: (Double, Double) = (25d, 20d)
 
   /**
     * Pair of CellView max radius and energy for that radius
     */
-  val CELL_MAX_RADIUS_FOR_ENERGY = (45d, 100d)
+  val CELL_MAX_RADIUS_FOR_ENERGY: (Double, Double) = (45d, 100d)
 
   private val CELL_VIEW_COLOR_OPACITY = 1
   private val CELL_DYING_FONT_COLOR = Color.DARKRED
