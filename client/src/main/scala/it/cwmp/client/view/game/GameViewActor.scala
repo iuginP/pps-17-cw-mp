@@ -11,7 +11,10 @@ import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.utils.Logging
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 /**
   * The actor that deals with Game View
@@ -21,7 +24,7 @@ import scala.concurrent.duration._
 case class GameViewActor() extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
-  private val TIME_BETWEEN_FRAMES: FiniteDuration = 500.millis
+  private val TIME_BETWEEN_FRAMES: FiniteDuration = 350.millis
 
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
@@ -39,8 +42,7 @@ case class GameViewActor() extends Actor with Logging {
     case ShowGUIWithName(name) =>
       playerName = name
       gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE)
-      context.become(hideGUIBehaviour orElse
-        newWorldBehaviour orElse guiWorldModificationsBehaviour)
+      context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -57,17 +59,22 @@ case class GameViewActor() extends Actor with Logging {
     */
   private def newWorldBehaviour: Receive = {
     case NewWorld(world) =>
-      if (updatingSchedule != null) updatingSchedule.cancel()
       tempWorld = world
-      updatingSchedule = context.system.scheduler
-        .schedule(0.millis, TIME_BETWEEN_FRAMES, self, UpdateLocalWorld)(context.dispatcher)
+      if (updatingSchedule == null) {
+        updatingSchedule = context.system.scheduler
+          .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)
+      }
 
-    case UpdateLocalWorld =>
-      //  log.info(s"World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}")
-      gameFX.updateWorld(tempWorld)
-
-      // is that to heavy computation here ???
-      tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+    case UpdateGUI =>
+      Future {
+        tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+        tempWorld
+      } andThen {
+        case Success(cellWorld) => gameFX.updateWorld(cellWorld)
+        case Failure(ex) =>
+          updatingSchedule.cancel()
+          log.error("Error calculating next CellWorld", ex)
+      }
   }
 
   /**
@@ -126,9 +133,9 @@ object GameViewActor {
   case class NewWorld(world: CellWorld)
 
   /**
-    * Updates local version of the world making it "move"
+    * Updates GUI of the world making it "move"
     */
-  case object UpdateLocalWorld
+  case object UpdateGUI
 
   /**
     * A message stating that an attack has been launched from one point to another
