@@ -5,7 +5,6 @@ import it.cwmp.client.model.game.impl.{CellWorld, Point}
 import it.cwmp.client.view.FXRunOnUIThread
 import it.cwmp.client.view.game.model.CellView._
 import it.cwmp.client.view.game.model.TentacleView
-import it.cwmp.utils.Logging
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -61,11 +60,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with
   /**
     * Closes the GUI
     */
-  def close(): Unit = {
-    runOnUIThread(() => {
-      stage.close()
-    })
-  }
+  def close(): Unit = runOnUIThread { () => stage.close() } // TODO: useless, the gui will be closed by user X press
 
   /**
     * Updates the GUI with the newly provided world
