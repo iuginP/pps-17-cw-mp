@@ -2,7 +2,8 @@ package it.cwmp.client.controller.game
 
 import java.time.Instant
 
-import it.cwmp.client.controller.game.CellWorldGenerationStrategy.{MINIMUM_DISTANCE_BETWEEN_CELLS, MINIMUM_DISTANCE_FROM_BORDER, randomMutatePoint, randomPoint}
+import it.cwmp.client.controller.game.CellWorldGenerationStrategy.{MINIMUM_DISTANCE_BETWEEN_CELLS, MINIMUM_DISTANCE_FROM_BORDER, randomPoint}
+import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
 import it.cwmp.client.view.game.model.CellView
 import it.cwmp.model.User
@@ -34,7 +35,7 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
   /**
     * A method to generate world cells in a way that they don't overlap
     *
-    * @param players              the participants to game for wich to generate cells
+    * @param players              the participants to game for which to generate cells
     * @param numberOfPassiveCells the number of passive cells to generate among others
     * @return generated cells
     */
@@ -50,10 +51,10 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
     * @return the cells assigned to participants
     */
   def getParticipantCells(players: Seq[User]): Seq[Cell] = {
-    var selectedPoints: Seq[Point] = Seq()
+    var assignedPoints: Seq[Point] = Seq()
     for (player <- players) yield {
-      val validPoint = getValidPoint(selectedPoints)
-      selectedPoints = selectedPoints :+ validPoint
+      val validPoint = getValidPoint(assignedPoints)
+      assignedPoints = assignedPoints :+ validPoint
       Cell(player, validPoint)
     }
   }
@@ -66,10 +67,10 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
     * @return the passive cells placed
     */
   def randomPassiveCells(numberOfPassiveCells: Int, alreadyOccupiedPlaces: Seq[Point]): Seq[Cell] = {
-    var selectedPoints: Seq[Point] = alreadyOccupiedPlaces
+    var assignedPoints: Seq[Point] = alreadyOccupiedPlaces
     for (_ <- 0 until numberOfPassiveCells) yield {
-      val validPoint = getValidPoint(selectedPoints)
-      selectedPoints = selectedPoints :+ validPoint
+      val validPoint = getValidPoint(assignedPoints)
+      assignedPoints = assignedPoints :+ validPoint
       Cell(Cell.Passive.NO_OWNER, validPoint, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
     }
   }
@@ -83,7 +84,7 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
     */
   private def getValidPoint(alreadySelectedPoints: Seq[Point]): Point = {
     var point = randomPoint(worldWidth, worldHeight)
-    while (!pointValid(point, alreadySelectedPoints)) point = randomMutatePoint(point, worldWidth, worldHeight)
+    while (!pointValid(point, alreadySelectedPoints)) point = randomPoint(worldWidth, worldHeight)
     point
   }
 
@@ -99,17 +100,15 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
   private def pointValid(toCheck: Point, alreadySelected: Seq[Point]): Boolean =
     toCheck.x >= MINIMUM_DISTANCE_FROM_BORDER && toCheck.x <= worldWidth - MINIMUM_DISTANCE_FROM_BORDER &&
       toCheck.y >= MINIMUM_DISTANCE_FROM_BORDER && toCheck.y <= worldHeight - MINIMUM_DISTANCE_FROM_BORDER &&
-      alreadySelected.forall(point =>
-        (toCheck.x >= point.x + MINIMUM_DISTANCE_BETWEEN_CELLS || toCheck.x <= point.x - MINIMUM_DISTANCE_BETWEEN_CELLS)
-          && (toCheck.y >= point.y + MINIMUM_DISTANCE_BETWEEN_CELLS || toCheck.y <= point.y - MINIMUM_DISTANCE_BETWEEN_CELLS))
+      alreadySelected.forall(point => !GeometricUtils.isWithinCircumference(toCheck, point, MINIMUM_DISTANCE_BETWEEN_CELLS))
 }
 
 /**
   * Companion object
   */
 object CellWorldGenerationStrategy {
-  private val MINIMUM_DISTANCE_FROM_BORDER = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1 / 2
-  private val MINIMUM_DISTANCE_BETWEEN_CELLS = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1 / 2
+  private val MINIMUM_DISTANCE_FROM_BORDER = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1
+  private val MINIMUM_DISTANCE_BETWEEN_CELLS = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1
 
   /**
     * Returns a random point with coordinates between 0 and max values (inclusive)
@@ -119,17 +118,4 @@ object CellWorldGenerationStrategy {
     * @return the generated point
     */
   private def randomPoint(maxX: Int, maxY: Int): Point = Point(Random.nextInt(maxX + 1), Random.nextInt(maxY + 1))
-
-  /**
-    * Mutates a point randomly in x or y component, leaving other as is
-    *
-    * @param point the point to mutate
-    * @param maxX  the max x coordinate value
-    * @param maxY  the max y coordinate value
-    * @return the mutated point
-    */
-  private def randomMutatePoint(point: Point, maxX: Int, maxY: Int): Point = Random.nextInt() match {
-    case randomInt: Int if randomInt % 2 == 0 => Point((point.x * randomInt) % maxX, point.y)
-    case randomInt: Int => Point(point.x, (point.y * randomInt) % maxY)
-  }
 }

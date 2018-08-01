@@ -13,7 +13,7 @@ class CellWorldGenerationStrategyTest extends FunSpec {
 
   private val worldWidth = 500
   private val worldHeight = 500
-  private val passiveCells = 0
+  private val passiveCells = 5
 
   private val negativeValue = -5
 
