@@ -108,7 +108,7 @@ case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiv
   */
 object CellWorldGenerationStrategy {
   private val MINIMUM_DISTANCE_FROM_BORDER = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1
-  private val MINIMUM_DISTANCE_BETWEEN_CELLS = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1
+  private val MINIMUM_DISTANCE_BETWEEN_CELLS = CellView.CELL_MAX_RADIUS_FOR_ENERGY._1 * 2
 
   /**
     * Returns a random point with coordinates between 0 and max values (inclusive)
