@@ -24,7 +24,7 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
     .setKeepAlive(false)
 
   describe("RoomReceiver") {
-    describe("Receiving partecipants list") {
+    describe("Receiving participants list") {
       it("When wrong url should NOT_FOUND") {
         client.post(createParticipantReceiverUrl(wrongToken)).port(port)
           .sendFuture() shouldAnswerWith NOT_FOUND
