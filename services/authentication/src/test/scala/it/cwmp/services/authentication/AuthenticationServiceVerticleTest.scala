@@ -20,7 +20,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
     .setKeepAlive(false)
 
   override protected def singUpTests(): Unit = {
-    it("when right should succeed") {
+    it("when parameters right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -55,7 +55,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
   }
 
   override protected def loginTests(): Unit = {
-    it("when right should succeed") {
+    it("when username and password right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -95,7 +95,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
   }
 
   override protected def validationTests(): Unit = {
-    it("when right should succed") {
+    it("when token right should succeed") {
       val username = nextUsername
       val password = nextPassword
 

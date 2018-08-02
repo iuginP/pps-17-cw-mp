@@ -23,7 +23,7 @@ trait AuthenticationDAO {
   def signUpFuture(username: String, password: String): Future[Unit]
 
   /**
-    * Performs user deregistration, that is a cancellation of its credentials from database
+    * Performs user de-registration, that is a cancellation of its credentials from database
     *
     * @param username the username of user to delete
     * @return the Future that completes when signOut completes
