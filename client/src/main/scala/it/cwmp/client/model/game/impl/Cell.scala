@@ -99,4 +99,23 @@ object Cell {
 
   }
 
+  /**
+    * Constants for cells that are passive... that is with no owner
+    */
+  object Passive {
+
+    /**
+      * Placeholder User for cells with no owner
+      */
+    val NO_OWNER: User = User("_NO_OWNER_")
+
+    /**
+      * Default evolution strategy for a passive cell
+      *
+      * Does nothing
+      */
+    val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell, _) => cell
+
+  }
+
 }

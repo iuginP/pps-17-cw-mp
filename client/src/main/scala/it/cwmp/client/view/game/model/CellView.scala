@@ -47,12 +47,12 @@ object CellView {
   /**
     * Pair of CellView min radius and energy for that radius
     */
-  val CELL_MINIMUM_RADIUS_FOR_ENERGY = (25d, 20d)
+  val CELL_MINIMUM_RADIUS_FOR_ENERGY: (Double, Double) = (25d, 20d)
 
   /**
     * Pair of CellView max radius and energy for that radius
     */
-  val CELL_MAX_RADIUS_FOR_ENERGY = (45d, 100d)
+  val CELL_MAX_RADIUS_FOR_ENERGY: (Double, Double) = (45d, 100d)
 
   private val CELL_VIEW_COLOR_OPACITY = 1
   private val CELL_DYING_FONT_COLOR = Color.DARKRED
@@ -60,6 +60,8 @@ object CellView {
   private val CELL_BORDER_COLOR = Color.BLACK
   private val CELL_BORDER =
     new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+
+  private val PASSIVE_CELL_COLOR = Color.LIGHTGREY
 
   /**
     * Implicit Conversion from Cell to CellView
@@ -76,16 +78,22 @@ object CellView {
     * Color based on the username hash value
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
-    implicit def colorFromRGB(userColor: Rgb): Color =
-      new Color(userColor.red / RGB_RANGE, userColor.green / RGB_RANGE, userColor.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
+    if (cell.owner == Cell.Passive.NO_OWNER) {
+      PASSIVE_CELL_COLOR
+    } else {
+      implicit def colorFromRGB(userColor: Rgb): Color =
+        new Color(userColor.red / RGB_RANGE, userColor.green / RGB_RANGE, userColor.blue / RGB_RANGE, CELL_VIEW_COLOR_OPACITY)
 
-    val colorHash = new ColorHash()
-    val username = cell.owner.username
-    val userColor: Color = colorHash.rgb(username)
-    // if userName hash gives a color used in GUI take another color
-    if (Seq(GAME_DEFAULT_FONT_COLOR, CELL_DYING_FONT_COLOR, GAME_TIME_TEXT_COLOR).contains(userColor)) {
-      colorHash.rgb(username.substring(username.length / 2))
-    } else userColor
+      val colorHash = new ColorHash()
+      val username = cell.owner.username
+      val userColor: Color = colorHash.rgb(username)
+      // if userName hash gives a color used in GUI take another color
+      if (Seq(GAME_DEFAULT_FONT_COLOR, CELL_DYING_FONT_COLOR, GAME_TIME_TEXT_COLOR, PASSIVE_CELL_COLOR).contains(userColor)) {
+        colorHash.rgb(username.substring(username.length / 2))
+      } else {
+        userColor
+      }
+    }
   }
 
   /**

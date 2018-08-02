@@ -5,6 +5,7 @@ import java.util.Objects.requireNonNull
 
 import it.cwmp.client.model.game.EvolutionStrategy
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
+import it.cwmp.utils.Logging
 
 /**
   * Singleton of Game Engine
@@ -13,7 +14,7 @@ import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
   *
   * @author Enrico Siboni
   */
-object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
+object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
 
   /**
     * Evolves the world using default evolution strategies
@@ -30,7 +31,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
     implicit val oldWorldInstant: Instant = oldToEvolve.instant
 
     val evolvedCellsAndCanAttack =
-      oldToEvolve.characters.map(_.evolve(elapsedTime)) // natural energy evolution
+      oldToEvolve.characters.map(naturallyEvolveCell(_, elapsedTime)) // natural energy evolution
         .map(attackConsequencesOnAttackers(_, oldToEvolve.attacks)) // attackers reduction of energy, and not enough energy calculation
 
     var tempWorld = checkCellCanAttackAndRemoveNotPossibleAttacks(oldToEvolve, evolvedCellsAndCanAttack)
@@ -45,48 +46,18 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
   }
 
   /**
-    * Calculation of attack consequences on attacked cells
+    * Naturally evolves cell according to elapsed time
     *
-    * If attacked cell is property of attacker the attack heals the cell
-    * If attacked cell is property of other player the attack damages the cell
-    *
-    * @return the updated cell
+    * @param cell        the cell to evolve
+    * @param elapsedTime the time elapsed
+    * @return the evolved cell
     */
-  private def attackConsequencesOnAttacked(cell: Cell, allTentacles: Seq[Tentacle])
-                                          (implicit oldWorldInstant: Instant, elapsedTime: Duration): Cell = {
-
-    var toReturnCell = cell
-    for (tentacle <- allTentacles if Cell.ownerAndPositionMatch(tentacle.to, toReturnCell); // all tentacles arriving to cell
-         actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime));
-         oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant);
-         addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)) {
-
-      val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
-
-      // owner of the cell is attacking his own cells -> heals the cell
-      if (cell.owner == tentacle.from.owner) toReturnCell = toReturnCell ++ energyDelta
-      // attacking others cell -> damages the cell
-      else {
-        if (toReturnCell.energy - energyDelta <= 0) { // if cell reaches 0 energy is conquered
-          toReturnCell = cellAfterConquer(cell, allTentacles, energyDelta - toReturnCell.energy)
-        } else toReturnCell = toReturnCell -- energyDelta
-      }
+  private def naturallyEvolveCell(cell: Cell, elapsedTime: Duration): Cell = {
+    if (cell.owner == Cell.Passive.NO_OWNER) {
+      cell.evolve(elapsedTime, Cell.Passive.defaultEvolutionStrategy)
+    } else {
+      cell.evolve(elapsedTime)
     }
-    toReturnCell
-  }
-
-  /**
-    * Defines how to behave after a cell conquer
-    *
-    * @param cell         the cell that has been conquered
-    * @param allTentacles the active tentacles
-    * @return the new cell after conquer
-    */
-  private def cellAfterConquer(cell: Cell,
-                               allTentacles: Seq[Tentacle],
-                               maturedEnergy: Double): Cell = {
-    val firstAttackerOfCell = allTentacles.min(Tentacle.orderByLaunchInstant).from.owner
-    Cell(firstAttackerOfCell, cell.position, GameConstants.CELL_ENERGY_WHEN_BORN + maturedEnergy)
   }
 
   /**
@@ -106,14 +77,14 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
          addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant);
          attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)) {
 
-      if (cellAndCanAttack._1.energy <= attackerEnergyReduction)
+      if (cellAndCanAttack._1.energy <= attackerEnergyReduction) {
         cellAndCanAttack = (cellAndCanAttack._1, false) // if no more energy, the cell should not attack anymore
-      else
+      } else {
         cellAndCanAttack = (cellAndCanAttack._1 -- attackerEnergyReduction, cellAndCanAttack._2)
+      }
     }
     cellAndCanAttack
   }
-
 
   /**
     * A method that takes a world in input and a specification of which cells can attack an which not,
@@ -135,9 +106,71 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] {
       tempWorld = tempWorld -- world.attacks
         .filter(t => Cell.ownerAndPositionMatch(t.from, poorCell))
         .max(Tentacle.orderByLaunchInstant)
-      // println(s"poorCell: $poorCell, removing ${world.attacks.filter(t => Cell.ownerAndPositionMatch(t.from, poorCell)).max(Tentacle.orderByLaunchInstant)}, after: $tempWorld")
+      // log.info(s"poorCell: $poorCell, removing ${world.attacks.filter(t => Cell.ownerAndPositionMatch(t.from, poorCell))
+      // .max(Tentacle.orderByLaunchInstant)}, after: $tempWorld")
     }
     tempWorld
+  }
+
+  /**
+    * Calculation of attack consequences on attacked cells
+    *
+    * If attacked cell is property of attacker the attack heals the cell
+    * If attacked cell is property of other player the attack damages the cell
+    *
+    * @return the updated cell
+    */
+  private def attackConsequencesOnAttacked(cell: Cell, allTentacles: Seq[Tentacle])
+                                          (implicit oldWorldInstant: Instant, elapsedTime: Duration): Cell = {
+    var toReturnCell = cell
+    val tentaclesToAttackedCell = allTentacles.filter(tentacle => Cell.ownerAndPositionMatch(tentacle.to, toReturnCell))
+
+    for (tentacle <- tentaclesToAttackedCell;
+         actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime));
+         oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant);
+         addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)) {
+
+      val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
+
+      if (toReturnCell.owner == tentacle.from.owner) {
+        // owner of the cell is attacking his own cells -> heals the cell
+        toReturnCell = toReturnCell ++ energyDelta
+
+      } else if (toReturnCell.owner != Cell.Passive.NO_OWNER) {
+        // attacking others cell -> damages the cell
+
+        if (toReturnCell.energy - energyDelta <= 0) {
+          // if cell reaches 0 energy is conquered
+
+          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell,
+            GameConstants.CELL_ENERGY_WHEN_BORN + (energyDelta - toReturnCell.energy))
+        } else {
+          toReturnCell = toReturnCell -- energyDelta
+        }
+      } else {
+        // attacking passive cell
+        if (actualAttackDuration.toMillis >= GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER) {
+          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+        }
+      }
+    }
+    toReturnCell
+  }
+
+
+  /**
+    * Defines how to behave after a cell conquer
+    *
+    * @param cell                    the cell that has been conquered
+    * @param tentaclesToAttackedCell the active tentacles attacking provided cell
+    * @param newEnergy               the energy the cell should have
+    * @return the new cell after conquer
+    */
+  private def cellAfterConquer(cell: Cell,
+                               tentaclesToAttackedCell: Seq[Tentacle],
+                               newEnergy: Double): Cell = {
+    val firstAttackerOfCell = tentaclesToAttackedCell.min(Tentacle.orderByLaunchInstant).from.owner
+    Cell(firstAttackerOfCell, cell.position, newEnergy)
   }
 
   /**

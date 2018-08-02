@@ -87,7 +87,7 @@ case class GameViewActor() extends Actor with Logging {
       val fromCell = findCellNearTo(from, worldCharacters)
       val toCell = findCellNearTo(to, worldCharacters)
       (fromCell, toCell) match {
-        case (Some(attacker), Some(attacked)) if attacker != attacked && attacker.owner.username == playerName =>
+        case (Some(attacker), Some(attacked)) if canAddAttack(attacker, attacked, tempWorld.attacks) =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           parentActor ! UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
         case tmp@_ => log.debug(s"No cells detected or auto-attack or not $playerName cell $tmp")
@@ -102,6 +102,22 @@ case class GameViewActor() extends Actor with Logging {
           parentActor ! UpdateState(tempWorld -- tentacle)
         case tmp@_ => log.debug(s"No attack detected or not $playerName attack $tmp")
       }
+  }
+
+  /**
+    * Utility method to know if can add attack
+    *
+    * @param attacker       the attacker cell
+    * @param attacked       the attacked cell
+    * @param currentAttacks the current game attacks
+    * @return true if attack can be added, false otherwise
+    */
+  private def canAddAttack(attacker: Cell, attacked: Cell, currentAttacks: Seq[Tentacle]): Boolean = {
+    !Cell.ownerAndPositionMatch(attacker, attacked) && // no auto-attack
+      attacker.owner.username == playerName && // control only your cells
+      !currentAttacks.exists(tentacle => // no already present attacks
+        Cell.ownerAndPositionMatch(tentacle.from, attacker) &&
+          Cell.ownerAndPositionMatch(tentacle.to, attacked))
   }
 }
 
