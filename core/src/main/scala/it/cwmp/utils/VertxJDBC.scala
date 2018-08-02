@@ -22,9 +22,11 @@ trait VertxJDBC {
   private val DEFAULT_CONFIG_PATH: String = "database/jdbc_config.json"
 
   private val clientFuture: Future[JDBCClient] =
-    vertx.fileSystem.readFileFuture(configurationPath.getOrElse(DEFAULT_CONFIG_PATH))
-      .map(_.toJsonObject)
-      .map(JDBCClient.createShared(vertx, _))
+    for (
+      configPath <- Future(configurationPath.getOrElse(DEFAULT_CONFIG_PATH));
+      configExists <- vertx.fileSystem.existsFuture(configPath);
+      configFileBuffer <- vertx.fileSystem.readFileFuture(if (configExists) configPath else DEFAULT_CONFIG_PATH)
+    ) yield JDBCClient.createShared(vertx, configFileBuffer.toJsonObject)
 
   private var connectionList: ListBuffer[SQLConnection] = ListBuffer()
 
