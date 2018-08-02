@@ -129,7 +129,7 @@ trait RoomDAO {
   *
   * @author Enrico Siboni
   */
-case class RoomsLocalDAO(override val configurationPath: String = "rooms/database.json") extends RoomDAO
+case class RoomsLocalDAO(override val configurationPath: Option[String] = Some("rooms/database.json")) extends RoomDAO
   with VertxInstance with VertxJDBC with Logging {
 
   private var notInitialized = true
@@ -144,6 +144,11 @@ case class RoomsLocalDAO(override val configurationPath: String = "rooms/databas
   private val NOT_INSIDE_USER_ERROR = "The user is not inside that room: "
   private val DELETING_NON_FULL_ROOM_ERROR = "Cannot delete room if it's not full"
 
+  /**
+    * Initializes LocalDAO
+    *
+    * @return a Future that completes when DAO is initialized, or fails if an error occurs
+    */
   def initialize(): Future[Unit] = {
     log.info("Initializing RoomLocalDAO...")
 

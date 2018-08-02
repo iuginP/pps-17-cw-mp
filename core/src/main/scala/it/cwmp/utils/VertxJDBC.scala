@@ -17,13 +17,12 @@ import scala.util.Success
 trait VertxJDBC {
   this: VertxInstance =>
 
-  def configurationPath: String = null
+  def configurationPath: Option[String] = None
 
   private val DEFAULT_CONFIG_PATH: String = "database/jdbc_config.json"
 
   private val clientFuture: Future[JDBCClient] =
-    vertx.fileSystem.readFileFuture(configurationPath)
-      .recoverWith { case _ => vertx.fileSystem.readFileFuture(DEFAULT_CONFIG_PATH) }
+    vertx.fileSystem.readFileFuture(configurationPath.getOrElse(DEFAULT_CONFIG_PATH))
       .map(_.toJsonObject)
       .map(JDBCClient.createShared(vertx, _))
 
@@ -79,7 +78,7 @@ trait VertxJDBC {
       future.andThen { case _ => closeAllConnections() }
 
     /**
-      * When the future reches this point, it closes the last opened connection till now in the client.
+      * When the future reaches this point, it closes the last opened connection till now in the client.
       *
       * @param executionContext the execution context in which to execute the operation
       * @return the future itself

@@ -27,8 +27,11 @@ object User {
   }
 
   def unapply(toExtract: User): Option[String] =
-    if (toExtract eq null) None else Some(toExtract.username)
+    if (toExtract == null) None else Some(toExtract.username)
 
+  /**
+    * User default implementation
+    */
   private case class UserDefault(username: String) extends User
 
   /**

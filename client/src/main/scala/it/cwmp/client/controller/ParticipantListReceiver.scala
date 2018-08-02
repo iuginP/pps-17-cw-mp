@@ -31,7 +31,7 @@ trait ParticipantListReceiver extends VertxInstance with Logging {
     vertx.deployVerticleFuture(verticle)
       .andThen { case Success(id) => deploymentID = id }
       .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}"
-        + API_RECEIVE_PARTICIPANTS_URL(token)))
+        + createParticipantReceiverUrl(token)))
   }
 
   /**

@@ -20,8 +20,8 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private var storageFuture: Future[AuthenticationDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_SIGNUP handler handlerSignUp
-    router post API_SIGNOUT handler handlerSignOut
+    router post API_SIGN_UP handler handlerSignUp
+    router post API_SIGN_OUT handler handlerSignOut
     router get API_LOGIN handler handlerLogin
     router get API_VALIDATE handler handlerValidation
   }

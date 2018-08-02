@@ -5,5 +5,11 @@ package it.cwmp.services.roomreceiver
   */
 object ServerParameters {
 
-  def API_RECEIVE_PARTICIPANTS_URL(token: String) = s"/api/client/$token/room/participants"
+  /**
+    * Generates a one-time url with provided token
+    *
+    * @param token the toke to use generating the url
+    * @return the one-time url to receive participants
+    */
+  def createParticipantReceiverUrl(token: String): String = s"/api/client/$token/room/participants"
 }

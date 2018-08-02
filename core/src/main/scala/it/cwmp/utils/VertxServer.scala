@@ -60,7 +60,7 @@ trait VertxServer extends ScalaVerticle {
   /**
     * Utility method to send back responses
     *
-    * @param routingContext the routing context in wich to send the error
+    * @param routingContext the routing context in which to send the error
     * @param httpCode       the http code
     * @param message        the message to send back
     */
@@ -152,7 +152,7 @@ trait VertxServer extends ScalaVerticle {
 }
 
 /**
-  * Comppanion object
+  * Companion object
   */
 object VertxServer {
   private val NO_AUTH_HEADER_IN_REQUEST_ERROR = "No authorization header in request!"

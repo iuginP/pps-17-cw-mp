@@ -26,37 +26,37 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
   describe("RoomReceiver") {
     describe("Receiving partecipants list") {
       it("When wrong url should NOT_FOUND") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(wrongToken)).port(port)
+        client.post(createParticipantReceiverUrl(wrongToken)).port(port)
           .sendFuture() shouldAnswerWith NOT_FOUND
       }
 
       it("When right url and empty body should BAD_REQUEST") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendFuture() shouldAnswerWith BAD_REQUEST
       }
 
       it("When right url and body should CREATED") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
           .shouldAnswerWith(CREATED)
       }
 
       it("When right url and body should obtain the correct list") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
           .flatMap(_ => participantsPromise.future)
           .map(_ should equal(participants))
       }
 
       it("When right, after response should close") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendFuture()
           .transform({
             case Success(res) if res.statusCode() == CREATED.code() => Success(())
             case Success(res) => Failure(HTTPException(res.statusCode(), res.statusMessage()))
             case failure@Failure(_) => failure
           })
-          .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))
+          .flatMap(_ => client.post(createParticipantReceiverUrl(rightToken))
             .sendFuture()
             .map(_ => fail))
           .shouldFailWith[HTTPException]

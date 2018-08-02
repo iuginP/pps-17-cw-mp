@@ -21,7 +21,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
   protected def nextHeader: String = HttpUtils.buildJwtAuthentication(super.nextToken).get
 
   override protected def singUpTests(): Unit = {
-    it("when right should succeed") {
+    it("when username and password ok should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -48,7 +48,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
   }
 
   override protected def loginTests(): Unit = {
-    it("when right should succeed") {
+    it("when username and password right should succeed") {
       val username = nextUsername
       val password = nextPassword
 
@@ -87,7 +87,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
   }
 
   override protected def validationTests(): Unit = {
-    it("when right should succeed") {
+    it("when token right should succeed") {
       val username = nextUsername
       val password = nextPassword
 

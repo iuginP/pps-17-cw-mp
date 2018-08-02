@@ -89,7 +89,7 @@ trait VertxClient {
       putRequestAuthorizationHeader(request, authenticationHeader)
 
     /**
-      * Utility mthod to put the authorization header in request
+      * Utility method to put the authorization header in request
       *
       * @param request             the request
       * @param authorizationHeader the authorization header to put

@@ -24,7 +24,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   def port: Int = server.actualPort()
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_RECEIVE_PARTICIPANTS_URL(token) handler createParticipantReceiverHandler
+    router post createParticipantReceiverUrl(token) handler createParticipantReceiverHandler
     log.info(s"Starting the RoomReceiver service with the token: $token ...")
   }
 
