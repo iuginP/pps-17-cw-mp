@@ -96,7 +96,7 @@ trait RoomDAO {
     *
     * @param playersNumber the number of players that the public room has to have
     * @param user          the user that wants to exit
-    * @return the future taht completes when the user has exited,
+    * @return the future that completes when the user has exited,
     *         or fails if players number is not correct,
     *         or user not inside that room
     */
@@ -508,7 +508,7 @@ object RoomsLocalDAO {
     /**
       * Extracts a map of roomIds to Room participant list from the resultSet passed in
       *
-      * @param resultSet      the result set to use extracting informations
+      * @param resultSet      the result set to use extracting information
       * @param roomIDPos      the position of roomID in result rows
       * @param userNamePos    the position of userName in result rows
       * @param userAddressPos the position of userAddress in result rows
