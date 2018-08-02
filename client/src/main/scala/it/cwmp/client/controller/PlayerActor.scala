@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, AddressFromURIString, Props, Stash}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
-import it.cwmp.client.controller.PlayerActor.{EndGame, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.PlayerActor.{GameEnded, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.DistributedState
@@ -62,8 +62,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
     * @return the behaviour to have before entering the game
     */
   private def beforeInGameBehaviour: Receive = {
-    case RetrieveAddress =>
-      sender() ! RetrieveAddressResponse(getAddress)
+    case RetrieveAddress => sender() ! RetrieveAddressResponse(getAddress)
 
     case PrepareForGame(participants, worldGenerationStrategy) =>
       roomSize = participants.size
@@ -105,7 +104,8 @@ case class PlayerActor() extends Actor with Stash with Logging {
     */
   private def inGameBehaviour: Receive =
     distributedState.distributedStateBehaviour orElse {
-      case EndGame => backToLobbyAction() // TODO: is gui to send this? and need to be hidden or is the contrary
+      // TODO: remove this part of receive because we cannot come back to rooms view without stopping acotrSystem
+      case GameEnded => backToLobbyAction()
     }
 
   /**
@@ -146,9 +146,9 @@ object PlayerActor {
                             worldGenerationStrategy: GenerationStrategy[Seq[Participant], CellWorld])
 
   /**
-    * Message to end game
+    * Message to say game ended
     */
-  case object EndGame
+  case object GameEnded
 
   /**
     * Message to response to request of retrieving address

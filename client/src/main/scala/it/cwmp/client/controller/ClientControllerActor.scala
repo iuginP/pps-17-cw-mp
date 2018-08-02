@@ -117,10 +117,17 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
   private def onAuthenticationSuccess(token: String): Unit = {
     authenticationViewActor ! Info(AUTHENTICATION_SUCCEEDED_TITLE, AUTHENTICATION_SUCCEEDED_MESSAGE)
     jwtToken = token
+    setRoomBehaviourAndShowRoomsView()
+    authenticationViewActor ! Hide
+  }
+
+  /**
+    * Changes behaviour to listen for rooms commands and shows room GUI
+    */
+  private def setRoomBehaviourAndShowRoomsView(): Unit = {
     log.info(s"Setting the behaviour 'room-manager'")
     context.become(roomsGUIBehaviour orElse roomsApiReceiverBehaviour)
     roomViewActor ! Show
-    authenticationViewActor ! Hide
   }
 
   /**
@@ -178,9 +185,16 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     * Action to execute when logout occurs
     */
   private def onLogOut(): Unit = {
+    roomViewActor ! Hide
+    setAuthenticationBehaviourAndShowGUI()
+  }
+
+  /**
+    * Sets the authentication behaviour and shows the authentication GUI
+    */
+  private def setAuthenticationBehaviourAndShowGUI(): Unit = {
     log.info(s"Setting the behaviour 'authentication-manager'")
     context.become(authenticationGUIBehaviour orElse authenticationApiReceiverBehaviour)
-    roomViewActor ! Hide
     authenticationViewActor ! Show
   }
 
@@ -220,9 +234,10 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     log.error(s"${errorMessage.getOrElse(UNKNOWN_ERROR)}")
   }
 
-  private def inGameBehaviour: Receive = {
-    case _ => // TODO
-  }
+  /**
+    * @return the behaviour to enable when user is playing
+    */
+  private def inGameBehaviour: Receive = Actor.emptyBehavior // TODO: we can remove thi behaviour, after starting the game there's nothing more to do
 
   /**
     * @return the Future containing the address of one-time server that will receive the participants
@@ -235,13 +250,13 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
 
     log.debug(s"Starting the local one-time receiver server...")
     listenForParticipantListFuture(onListReceived)
-      .andThen({
+      .andThen {
         case Success(address) =>
           log.debug(s"Server started and listening at the address: $address")
         case Failure(error) =>
           log.error(s"Problem starting the server: ${error.getMessage}")
           roomViewActor ! Error(RECEIVING_PARTICIPANT_LIST_ERROR_TITLE, error.getMessage)
-      })
+      }
   }
 
   /**

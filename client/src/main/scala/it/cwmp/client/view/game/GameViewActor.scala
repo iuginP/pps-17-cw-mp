@@ -48,8 +48,9 @@ case class GameViewActor() extends Actor with Logging {
   /**
     * The behaviour of closing the view
     */
-  private def hideGUIBehaviour: Receive = {
+  private def hideGUIBehaviour: Receive = { // TODO: remove, no-one ever sends this message here
     case Hide =>
+      if (updatingSchedule != null) updatingSchedule.cancel()
       gameFX.close()
       context.become(showGUIBehaviour)
   }
