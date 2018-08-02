@@ -1,5 +1,5 @@
 <scalastyle commentFilter="enabled">
-    <name>Scalastyle configuration</name>
+    <name>ScalaStyle configuration</name>
     <check level="warning" class="org.scalastyle.file.FileTabChecker" enabled="true"/>
     <check level="warning" class="org.scalastyle.file.FileLengthChecker" enabled="true">
         <parameters>
@@ -131,29 +131,30 @@
     <check level="warning" class="org.scalastyle.scalariform.WhileChecker" enabled="false"/>
     <check level="warning" class="org.scalastyle.scalariform.VarFieldChecker" enabled="false"/>
     <check level="warning" class="org.scalastyle.scalariform.VarLocalChecker" enabled="false"/>
-    <check level="warning" class="org.scalastyle.scalariform.RedundantIfChecker" enabled="false"/>
+    <check level="warning" class="org.scalastyle.scalariform.RedundantIfChecker" enabled="true"/>
     <check level="warning" class="org.scalastyle.scalariform.TokenChecker" enabled="false">
         <parameters>
             <parameter name="regex"><![CDATA[println]]></parameter>
         </parameters>
+        <customMessage>Use logger instead of println</customMessage>
     </check>
     <check level="warning" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true"/>
     <check level="warning" class="org.scalastyle.scalariform.EmptyClassChecker" enabled="true"/>
     <check level="warning" class="org.scalastyle.scalariform.ClassTypeParameterChecker"
            enabled="true">
         <parameters>
-            <parameter name="regex"><![CDATA[^[A-Z_]$]]></parameter>
+            <parameter name="regex"><![CDATA[^([A-Z_]|([A-Z][a-z]+)+)$]]></parameter>
         </parameters>
     </check>
     <check level="warning" class="org.scalastyle.scalariform.UnderscoreImportChecker"
-           enabled="true"/>
+           enabled="false"/>
     <check level="warning" class="org.scalastyle.scalariform.LowercasePatternMatchChecker"
            enabled="true"/>
     <check level="warning" class="org.scalastyle.scalariform.MultipleStringLiteralsChecker"
            enabled="true">
         <parameters>
             <parameter name="allowed"><![CDATA[2]]></parameter>
-            <parameter name="ignoreRegex"><![CDATA[^""$]]></parameter>
+            <parameter name="ignoreRegex"><![CDATA[^"+$]]></parameter>
         </parameters>
     </check>
     <check level="warning" class="org.scalastyle.scalariform.ImportGroupingChecker" enabled="true"/>
