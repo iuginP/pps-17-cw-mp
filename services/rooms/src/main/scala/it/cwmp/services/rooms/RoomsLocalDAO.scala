@@ -210,9 +210,8 @@ case class RoomsLocalDAO(override val configurationPath: Option[String] = Some("
       _ <- stringCheckFuture(roomID, EMPTY_ROOM_ID_ERROR);
       conn <- openConnection();
       _ <- checkRoomPresence(roomID, conn, NOT_PRESENT_ROOM_ID_ERROR);
-      roomResult <- conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID));
-      roomAndAddresses = resultOfJoinToRooms(roomResult).head
-    ) yield roomAndAddresses).closeLastConnection
+      roomResult <- conn.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
+    ) yield RoomsDatabaseResultsManager.resultOfJoinToRoomsWithAddresses(roomResult).head).closeLastConnection
   }
 
   override def exitRoom(roomID: String)
@@ -239,9 +238,8 @@ case class RoomsLocalDAO(override val configurationPath: Option[String] = Some("
     (for (
       _ <- checkInitialization(notInitialized);
       conn <- openConnection();
-      roomsResult <- conn.queryFuture(selectAllPublicRoomsSql);
-      roomsList = resultOfJoinToRooms(roomsResult).map(_._1)
-    ) yield roomsList).closeLastConnection
+      roomsResult <- conn.queryFuture(selectAllPublicRoomsSql)
+    ) yield RoomsDatabaseResultsManager.resultOfJoinToRooms(roomsResult)).closeLastConnection
   }
 
   override def enterPublicRoom(playersNumber: Int)
@@ -397,53 +395,7 @@ object RoomsLocalDAO {
   private def getRoomOfUser(connection: SQLConnection, user: User)
                            (implicit executionContext: ExecutionContext) = {
     connection.queryWithParamsFuture(selectRoomByUserSql, Seq(user.username))
-      .map(resultOfJoinToRooms(_).headOption.map(_._1))
-  }
-
-  /**
-    * Utility method to convert a result set to a room sequence and relative addresses
-    */
-  private def resultOfJoinToRooms(resultSet: ResultSet): Seq[(Room, Seq[Address])] = {
-    val roomsUsers: mutable.Map[String, Seq[Participant]] = mutable.HashMap()
-    val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap()
-    val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
-    val roomIDPos = 0
-    val roomNamePos = 1
-    val roomPlayersPos = 2
-    val userNamePos = 3
-    val userAddressPos = 4
-    val userNotificationAddressPos = 5
-
-    for (resultRow <- resultSet.getResults) {
-      val roomID = resultRow getString roomIDPos
-      val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
-      val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
-      val userNotificationAddress = if (resultRow hasNull userNotificationAddressPos) None else Some(resultRow getString userNotificationAddressPos)
-
-      if (roomsUsers contains roomID) {
-        userName.foreach(name => roomsUsers(roomID) = roomsUsers(roomID) :+ Participant(name, userAddress.get))
-        userNotificationAddress.foreach(notificationAddress => roomsAddresses(roomID) = roomsAddresses(roomID) :+ Address(notificationAddress))
-      } else {
-        val roomName = resultRow getString roomNamePos
-        val roomNeededPlayers = resultRow getInteger roomPlayersPos
-        roomsInfo(roomID) = (roomName, roomNeededPlayers)
-        userName match {
-          case Some(name) =>
-            roomsUsers(roomID) = Seq(Participant(name, userAddress.get))
-            roomsAddresses(roomID) = Seq(Address(userNotificationAddress.get))
-          case None =>
-            roomsUsers(roomID) = Seq()
-            roomsAddresses(roomID) = Seq()
-        }
-      }
-    }
-
-    (for (
-      roomUsers <- roomsUsers;
-      roomAddresses <- roomsAddresses if roomUsers._1 == roomAddresses._1;
-      roomInfo <- roomsInfo if roomUsers._1 == roomInfo._1;
-      output = (Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2), roomAddresses._2)
-    ) yield output).toSeq
+      .map(RoomsDatabaseResultsManager.resultOfJoinToRooms(_).headOption)
   }
 
   /**
@@ -492,7 +444,7 @@ object RoomsLocalDAO {
   private def checkRoomSpaceAvailable(roomID: String, connection: SQLConnection, errorMessage: String)
                                      (implicit executionContext: ExecutionContext): Future[Unit] = {
     connection.queryWithParamsFuture(selectRoomByIDSql, Seq(roomID))
-      .map(resultOfJoinToRooms(_).map(_._1))
+      .map(RoomsDatabaseResultsManager.resultOfJoinToRooms)
       .flatMap(_.head match {
         case Room(_, _, playersNumber, actualParticipants)
           if playersNumber > actualParticipants.size => Future.successful(())
@@ -511,4 +463,131 @@ object RoomsLocalDAO {
       publicRoomID <- getNotAlreadyPresentRoomID(connection, s"$publicPrefix${generateRandomRoomID()}");
       _ <- connection.updateWithParamsFuture(insertNewRoomSql, Seq(publicRoomID, s"$publicPrefix$playersNumber", playersNumber.toString))
     ) yield ()
+
+
+  /**
+    * An object to contain management of results from database
+    *
+    * @author Enrico Siboni
+    */
+  private object RoomsDatabaseResultsManager {
+
+    private val ROOM_ID_JOIN_POSITION = 0
+    private val ROOM_NAME_JOIN_POSITION = 1
+    private val ROOM_PLAYERS_JOIN_POSITION = 2
+    private val USER_USERNAME_JOIN_POSITION = 3
+    private val USER_ADDRESS_JOIN_POSITION = 4
+    private val USER_NOTIFICATION_ADDRESS_JOIN_POSITION = 5
+
+    /**
+      * Utility method to convert a result set to a room sequence and relative addresses
+      */
+    def resultOfJoinToRoomsWithAddresses(resultSet: ResultSet): Seq[(Room, Seq[Address])] = {
+      val rooms = resultOfJoinToRooms(resultSet)
+      val roomsAddresses = roomsAndNotificationAddresses(resultSet, ROOM_ID_JOIN_POSITION, USER_NOTIFICATION_ADDRESS_JOIN_POSITION)
+
+      for (
+        room <- rooms;
+        roomAddresses <- roomsAddresses if room.identifier == roomAddresses._1
+      ) yield (room, roomAddresses._2)
+    }
+
+    /**
+      * Utility method to convert a result set to a room sequence
+      */
+    def resultOfJoinToRooms(resultSet: ResultSet): Seq[Room] = {
+      val roomsUsers = roomsAndUsersInside(resultSet, ROOM_ID_JOIN_POSITION, USER_USERNAME_JOIN_POSITION, USER_ADDRESS_JOIN_POSITION)
+      val roomsInfo = roomsAndInformation(resultSet, ROOM_ID_JOIN_POSITION, ROOM_NAME_JOIN_POSITION, ROOM_PLAYERS_JOIN_POSITION)
+
+      (for (
+        roomUsers <- roomsUsers;
+        roomInfo <- roomsInfo if roomUsers._1 == roomInfo._1
+      ) yield Room(roomInfo._1, roomInfo._2._1, roomInfo._2._2, roomUsers._2)).toSeq
+    }
+
+    /**
+      * Extracts a map of roomIds to Room participant list from the resultSet passed in
+      *
+      * @param resultSet      the result set to use extracting informations
+      * @param roomIDPos      the position of roomID in result rows
+      * @param userNamePos    the position of userName in result rows
+      * @param userAddressPos the position of userAddress in result rows
+      * @return the map that has roomId as key and room participants as value
+      */
+    private def roomsAndUsersInside(resultSet: ResultSet,
+                                    roomIDPos: Int,
+                                    userNamePos: Int,
+                                    userAddressPos: Int): mutable.Map[String, Seq[Participant]] = {
+      val roomsUsers: mutable.Map[String, Seq[Participant]] = mutable.HashMap()
+      for (resultRow <- resultSet.getResults) {
+        val roomID = resultRow getString roomIDPos
+        val userName = if (resultRow hasNull userNamePos) None else Some(resultRow getString userNamePos)
+        val userAddress = if (resultRow hasNull userAddressPos) None else Some(resultRow getString userAddressPos)
+
+        if (roomsUsers contains roomID) {
+          userName.foreach(name => roomsUsers(roomID) = roomsUsers(roomID) :+ Participant(name, userAddress.get))
+        } else {
+          (userName, userAddress) match {
+            case (Some(name), Some(address)) => roomsUsers(roomID) = Seq(Participant(name, address))
+            case _ => roomsUsers(roomID) = Seq()
+          }
+        }
+      }
+      roomsUsers
+    }
+
+    /**
+      * Extracts a map of roomId to player notification addresses list from resultSet passed in
+      *
+      * @param resultSet                  the result set to extract information
+      * @param roomIDPos                  the roomID Position in result rows
+      * @param userNotificationAddressPos the user notification address in result row
+      * @return the map that has roomId as key and list of notification addresses as value
+      */
+    private def roomsAndNotificationAddresses(resultSet: ResultSet,
+                                              roomIDPos: Int,
+                                              userNotificationAddressPos: Int): mutable.Map[String, Seq[Address]] = {
+      val roomsAddresses: mutable.Map[String, Seq[Address]] = mutable.HashMap()
+      for (resultRow <- resultSet.getResults) {
+        val roomID = resultRow getString roomIDPos
+        val userNotificationAddress = if (resultRow hasNull userNotificationAddressPos) None else Some(resultRow getString userNotificationAddressPos)
+
+        if (roomsAddresses contains roomID) {
+          userNotificationAddress.foreach(notificationAddress => roomsAddresses(roomID) = roomsAddresses(roomID) :+ Address(notificationAddress))
+        } else {
+          userNotificationAddress match {
+            case Some(notificationAddress) => roomsAddresses(roomID) = Seq(Address(notificationAddress))
+            case None => roomsAddresses(roomID) = Seq()
+          }
+        }
+      }
+      roomsAddresses
+    }
+
+    /**
+      * Extracts a map of roomId to room Information from resultSet passed in
+      *
+      * @param resultSet      the result set to use extracting information
+      * @param roomIDPos      the roomID Position in result rows
+      * @param roomNamePos    the roomName position in result row
+      * @param roomPlayersPos the room players position in result row
+      * @return the map that has roomId as key and room information as value
+      */
+    private def roomsAndInformation(resultSet: ResultSet,
+                                    roomIDPos: Int,
+                                    roomNamePos: Int,
+                                    roomPlayersPos: Int): mutable.Map[String, (String, Int)] = {
+      val roomsInfo: mutable.Map[String, (String, Int)] = mutable.HashMap()
+      for (resultRow <- resultSet.getResults) {
+        val roomID = resultRow getString roomIDPos
+        if (!(roomsInfo contains roomID)) {
+          val roomName = resultRow getString roomNamePos
+          val roomNeededPlayers = resultRow getInteger roomPlayersPos
+          roomsInfo(roomID) = (roomName, roomNeededPlayers)
+        }
+      }
+      roomsInfo
+    }
+  }
+
 }
