@@ -16,8 +16,9 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   private val apiWrapper = RoomsApiWrapper()
 
-  //noinspection ScalaStyle
+  // scalastyle:off import.grouping
   import apiWrapper._
+  // scalastyle:on import.grouping
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed returning roomID if parameters are correct") {

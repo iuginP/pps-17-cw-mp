@@ -167,19 +167,22 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
   /**
     * @return the behaviour that manages room API responses
     */
-  //noinspection ScalaStyle
+  // scalastyle:off cyclomatic.complexity
   private def roomsApiReceiverBehaviour: Receive = {
     case CreateSuccess(token) => roomViewActor ! ShowToken(token)
     case CreateFailure(errorMessage) => roomViewActor ! Error(CREATE_ERROR_TITLE, errorMessage.getOrElse(UNKNOWN_ERROR))
+
     case EnterPrivateSuccess => onRoomEnteringSuccess()
     case EnterPublicSuccess => onRoomEnteringSuccess()
     case EnterPrivateFailure(errorMessage) => onRoomEnteringFailure(errorMessage)
     case EnterPublicFailure(errorMessage) => onRoomEnteringFailure(errorMessage)
+
     case ExitPrivateSuccess => onRoomExitingSuccess()
     case ExitPublicSuccess => onRoomExitingSuccess()
     case ExitPrivateFailure(errorMessage) => onRoomExitingFailure(errorMessage)
     case ExitPublicFailure(errorMessage) => onRoomExitingFailure(errorMessage)
   }
+  // scalastyle:on cyclomatic.complexity
 
   /**
     * Action to execute when logout occurs

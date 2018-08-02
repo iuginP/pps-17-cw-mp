@@ -380,8 +380,9 @@ object RoomsLocalDAO {
   private def getNotAlreadyPresentRoomID(connection: SQLConnection, generator: => String)
                                         (implicit executionContext: ExecutionContext): Future[String] = {
 
-    //noinspection ScalaStyle
+    // scalastyle:off method.name
     def _getNotAlreadyPresentRoomID(toCheckID: String, connection: SQLConnection): Future[String] =
+    // scalastyle:on method.name
       checkRoomPresence(toCheckID, connection, "")
         .flatMap(_ => _getNotAlreadyPresentRoomID(generator, connection))
         .fallbackTo(Future.successful(toCheckID))
