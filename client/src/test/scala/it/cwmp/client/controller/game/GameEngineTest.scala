@@ -5,6 +5,7 @@ import java.time.{Duration, Instant}
 import it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
 import it.cwmp.model.User
+import it.cwmp.utils.Logging
 import org.scalatest.FunSpec
 
 /**
@@ -12,10 +13,13 @@ import org.scalatest.FunSpec
   *
   * @author Enrico Siboni
   */
-class GameEngineTest extends FunSpec {
+class GameEngineTest extends FunSpec with Logging {
 
   private val worldInstant = Instant.now
-  private val cells = Cell(User("Enrico"), Point(0, 0), 20) ::
+  private val enricoUsername = "Enrico"
+
+  // scalastyle:off magic.number
+  private val cells = Cell(User(enricoUsername), Point(0, 0), 20) ::
     Cell(User("Elia"), Point(30, 40), 40) ::
     Cell(User("Davide"), Point(40, 30), 40) ::
     Cell(NO_OWNER, Point(40, 40), GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN) ::
@@ -31,17 +35,21 @@ class GameEngineTest extends FunSpec {
   // Davide will conquer a passive cell near him
   private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
 
+
   private val notEnoughTimeToReachCell = Duration.ofSeconds(1)
   private val enoughTimeToAttackCell = Duration.ofSeconds(10)
   private val enoughTimeToConquerCell = Duration.ofSeconds(100)
+  // scalastyle:on magic.number
 
   private def durationOfAttackOnAttackedCell(elapsedTime: Duration) =
     tentacles.head.hasReachedDestinationFor(myCellWorld.instant.plus(elapsedTime))
 
   describe("GameEngine") {
     describe("should complain if") {
+      // scalastyle:off null
       it("bad actualWorld")(intercept[NullPointerException](GameEngine(null, Duration.ZERO)))
       it("bad timeToEvolveTo")(intercept[NullPointerException](GameEngine(CellWorld(Instant.now(), Seq(), Seq()), null)))
+      // scalastyle:on null
     }
 
     describe("Evolves the world") {
@@ -52,11 +60,11 @@ class GameEngineTest extends FunSpec {
       val afterReachingVictimCellWorld = GameEngine(myCellWorld, enoughTimeToAttackCell)
       val afterConquerOfCellWorld = GameEngine(myCellWorld, enoughTimeToConquerCell)
 
-      //      println(s"Start: \t\t\t\t${myCellWorld.characters} - ${myCellWorld.attacks}")
-      //      println(s"BeforeEliaReaching: ${beforeAttackWorld.characters} - ${beforeAttackWorld.attacks}")
-      //      println(s"EliaJustReached: \t${justReachedAttackedCellWorld.characters} - ${justReachedAttackedCellWorld.attacks}")
-      //      println(s"AfterEliaReaching: \t${afterReachingVictimCellWorld.characters} - ${afterReachingVictimCellWorld.attacks}")
-      //      println(s"AfterEliaConquer: \t${afterConquerOfCellWorld.characters} - ${afterConquerOfCellWorld.attacks}")
+      //      log.info(s"Start: \t\t\t\t${myCellWorld.characters} - ${myCellWorld.attacks}")
+      //      log.info(s"BeforeEliaReaching: ${beforeAttackWorld.characters} - ${beforeAttackWorld.attacks}")
+      //      log.info(s"EliaJustReached: \t${justReachedAttackedCellWorld.characters} - ${justReachedAttackedCellWorld.attacks}")
+      //      log.info(s"AfterEliaReaching: \t${afterReachingVictimCellWorld.characters} - ${afterReachingVictimCellWorld.attacks}")
+      //      log.info(s"AfterEliaConquer: \t${afterConquerOfCellWorld.characters} - ${afterConquerOfCellWorld.attacks}")
 
       def attackedEnergy(cellWorld: CellWorld): Double = cellWorld.characters.head.energy
 
@@ -100,14 +108,14 @@ class GameEngineTest extends FunSpec {
         }
         it("healing it if attacker is the same user as the owner of attacked cell") {
           assert(afterConquerOfCellWorld.characters.head.owner.username == "Elia")
-          assert(attackedEnergy(GameEngine(afterConquerOfCellWorld, Duration.ofMillis(1000))) >
+          assert(attackedEnergy(GameEngine(afterConquerOfCellWorld, notEnoughTimeToReachCell)) >
             attackedEnergy(afterConquerOfCellWorld))
         }
       }
 
       describe("Modifying cell owner") {
         it("on conquer of cell") {
-          assert(!afterConquerOfCellWorld.characters.exists(_.owner.username == "Enrico"))
+          assert(!afterConquerOfCellWorld.characters.exists(_.owner.username == enricoUsername))
         }
         it("conquering passive cells") {
           assert(!afterConquerOfCellWorld.characters.exists(_.owner == NO_OWNER))
@@ -116,11 +124,12 @@ class GameEngineTest extends FunSpec {
 
       describe("Removing tentacles") {
         it("when cannot reach destination, but only last launched") {
+          // scalastyle:off magic.number
           val myWeakCell = Cell(User("Test"), Point(200, 500), 5)
           val worldWithWeakCell = CellWorld(worldInstant, cells :+ myWeakCell,
             tentacles ++ (Tentacle(myWeakCell, cells.head, worldInstant)
               :: Tentacle(myWeakCell, cells.head, worldInstant.minusMillis(5)) :: Nil))
-
+          // scalastyle:on magic.number
           val worldWithWeakCellEvolved = GameEngine(worldWithWeakCell, enoughTimeToConquerCell)
 
           assert(worldWithWeakCell.attacks.size - 1 == worldWithWeakCellEvolved.attacks.size)
@@ -131,14 +140,14 @@ class GameEngineTest extends FunSpec {
           val conqueredCellWorld = GameEngine(worldWithTentacleOfConqueredCell, enoughTimeToConquerCell)
 
           assert(conqueredCellWorld.attacks.size < worldWithTentacleOfConqueredCell.attacks.size
-            && !conqueredCellWorld.attacks.exists(_.from.owner.username == "Enrico"))
+            && !conqueredCellWorld.attacks.exists(_.from.owner.username == enricoUsername))
         }
       }
 
       describe("Modifying destination of tentacles") {
         it("when a destination cell is conquered by someone") {
-          assert(afterReachingVictimCellWorld.attacks.exists(_.to.owner.username == "Enrico"))
-          assert(!afterConquerOfCellWorld.attacks.exists(_.to.owner.username == "Enrico"))
+          assert(afterReachingVictimCellWorld.attacks.exists(_.to.owner.username == enricoUsername))
+          assert(!afterConquerOfCellWorld.attacks.exists(_.to.owner.username == enricoUsername))
         }
       }
     }

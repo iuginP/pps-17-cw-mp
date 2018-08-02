@@ -12,7 +12,7 @@ trait RoomStrategy {
     * Invoked when user wants to create a room
     *
     * @param roomName      the room name
-    * @param playersNumber the palyers number
+    * @param playersNumber the players number
     */
   def onCreate(roomName: String, playersNumber: Int): Unit
 

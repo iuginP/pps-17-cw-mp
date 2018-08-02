@@ -14,7 +14,7 @@ import scala.language.implicitConversions
   *
   * @param startPoint   the starting point for this tentacle View
   * @param reachedPoint the arrive point for this tentacle View
-  * @param color        the color of this tetacle
+  * @param color        the color of this tentacle
   * @author Enrico Siboni
   */
 case class TentacleView(startPoint: Point, reachedPoint: Point, color: Color, thickness: Double)

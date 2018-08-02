@@ -1,12 +1,11 @@
 package it.cwmp.client.model.game.impl
 
 /**
-  * Classe che rappresenta una coppia di valori che identificano un punto
+  * Represents a Point on a plane
   *
+  * @param x the x coordinate
+  * @param y the y coordinate
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
-  * @param x coordinata x del punto
-  * @param y coordinata y del punto
-  *
   */
 case class Point(x: Int, y: Int)
