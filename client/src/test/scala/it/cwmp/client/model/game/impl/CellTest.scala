@@ -15,7 +15,11 @@ import org.scalatest.FunSpec
 class CellTest extends FunSpec {
 
   private val user = User("Enrico")
+
+  // scalastyle:off magic.number
   private val position = Point(3, 4)
+  // scalastyle:on magic.number
+
   private val energy = 50
 
   private val negativeNumber = -5
@@ -35,8 +39,10 @@ class CellTest extends FunSpec {
       }
 
       describe("should complain") {
+        // scalastyle:off null
         it("on bad owner")(intercept[NullPointerException](Cell(null, position, energy)))
         it("on bad position")(intercept[NullPointerException](Cell(user, null, energy)))
+        // scalastyle:on null
         it("on bad energy value")(intercept[IllegalArgumentException](Cell(user, position, negativeNumber)))
       }
     }

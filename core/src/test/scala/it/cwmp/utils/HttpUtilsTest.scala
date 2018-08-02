@@ -16,8 +16,9 @@ class HttpUtilsTest extends FunSpec {
         assert(HttpUtils.buildBasicAuthentication("", "").isEmpty)
       }
       it("should fail if arguments null") {
-        //scalastyle:off null
+        // scalastyle:off null
         assert(HttpUtils.buildBasicAuthentication(null, null).isEmpty)
+        // scalastyle:on null
       }
     }
 
@@ -41,8 +42,9 @@ class HttpUtilsTest extends FunSpec {
         assert(HttpUtils.readBasicAuthentication("").isEmpty)
       }
       it("should fail if argument null") {
-        //scalastyle:off null
+        // scalastyle:off null
         assert(HttpUtils.readBasicAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
   }
@@ -56,8 +58,9 @@ class HttpUtilsTest extends FunSpec {
         assert(HttpUtils.buildJwtAuthentication("").isEmpty)
       }
       it("should fail if argument is null") {
-        //scalastyle:off null
+        // scalastyle:off null
         assert(HttpUtils.buildJwtAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
 
@@ -80,8 +83,9 @@ class HttpUtilsTest extends FunSpec {
         assert(HttpUtils.readJwtAuthentication("").isEmpty)
       }
       it("should fail if argument is null") {
-        //scalastyle:off null
+        // scalastyle:off null
         assert(HttpUtils.readJwtAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
   }
