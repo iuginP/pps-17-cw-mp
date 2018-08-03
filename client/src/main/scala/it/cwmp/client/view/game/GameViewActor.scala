@@ -182,7 +182,7 @@ object GameViewActor {
   /**
     * A method to find the tentacle near to a clicked point on view, according to actual tentacle sizing
     *
-    * @param clickedPoint the cliked point on view
+    * @param clickedPoint the clicked point on view
     * @param tentacles    the collection of attacks on screen
     * @return optionally the tentacle near the clicked point
     */

@@ -12,7 +12,7 @@ import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.{Logging, VertxServer}
 
 /**
-  * A class implementing a one-time service provided by clients to receive room infromation
+  * A class implementing a one-time service provided by clients to receive room information
   *
   * @param token             the token on which to listen for an authorized response
   * @param receptionStrategy the strategy to use when the data has been received
@@ -24,7 +24,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   def port: Int = server.actualPort()
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_RECEIVE_PARTICIPANTS_URL(token) handler createParticipantReceiverHandler
+    router post createParticipantReceiverUrl(token) handler createParticipantReceiverHandler
     log.info(s"Starting the RoomReceiver service with the token: $token ...")
   }
 

@@ -24,8 +24,9 @@ case class ApiClientActor() extends Actor {
     */
   private def authenticationBehaviour: Receive = {
     val authenticationApiWrapper = AuthenticationApiWrapper()
-    //noinspection ScalaStyle
+    // scalastyle:off import.grouping
     import authenticationApiWrapper._
+    // scalastyle:on import.grouping
     {
       case LogIn(username, password) =>
         val senderTmp = sender
@@ -47,8 +48,9 @@ case class ApiClientActor() extends Actor {
     */
   private def roomsBehaviour: Receive = {
     val roomApiWrapper = RoomsApiWrapper()
-    //noinspection ScalaStyle
+    // scalastyle:off import.grouping
     import roomApiWrapper._
+    // scalastyle:on import.grouping
     {
       case ServiceCreate(roomName, playersNumber, token) =>
         val senderTmp = sender

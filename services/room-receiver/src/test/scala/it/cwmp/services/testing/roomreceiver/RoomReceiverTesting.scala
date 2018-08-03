@@ -20,8 +20,8 @@ abstract class RoomReceiverTesting extends VertxTest with Matchers with BeforeAn
   protected val wrongToken: String = Utils.randomString(TOKEN_LENGTH)
 
   protected val participants: List[Participant] = List(
-    Participant("Nome", "Indirizzo"),
-    Participant("Nome1", "Indirizzo1")
+    Participant("FirstName", "FirstAddress"),
+    Participant("SecondName", "SecondAddress")
   )
 
   protected var participantsPromise: Promise[Seq[Participant]] = _

@@ -25,6 +25,8 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
     .setDefaultHost("localhost")
     .setDefaultPort(DEFAULT_PORT)
 
+  private val badContentForBody = "Ciao"
+
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     val creationApi = API_CREATE_PRIVATE_ROOM_URL
 
@@ -33,12 +35,12 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
            assertion <- assert(response.statusCode() == CREATED.code() && response.bodyAsString().isDefined)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       it("if no room is sent with request") {
         client.post(creationApi).addAuthentication.sendFuture() shouldAnswerWith BAD_REQUEST
       }
       it("if body is malformed") {
-        client.post(creationApi).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith BAD_REQUEST
+        client.post(creationApi).addAuthentication.sendJsonFuture(badContentForBody) shouldAnswerWith BAD_REQUEST
       }
       it("if the roomName sent is empty") {
         createPrivateRoomRequest("", playersNumber) shouldAnswerWith BAD_REQUEST
@@ -56,14 +58,14 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
            _ <- cleanUpRoom(roomID)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(enterPrivateRoomRequest(_, participantList.head, notificationAddress))
 
       it("if address not provided") {
         client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendFuture() shouldAnswerWith BAD_REQUEST
       }
       it("if address message malformed") {
-        client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith BAD_REQUEST
+        client.put(API_ENTER_PRIVATE_ROOM_URL).addAuthentication.sendJsonFuture(badContentForBody) shouldAnswerWith BAD_REQUEST
       }
       it("if user is already inside a room") {
         for (roomID <- createAPrivateRoomAndGetID(roomName, playersNumber);
@@ -91,7 +93,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(privateRoomInfoRequest)
     }
   }
@@ -111,7 +113,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(exitPrivateRoomRequest)
 
       it("if user is not inside the room") {
@@ -153,14 +155,14 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
       }
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(enterPublicRoomRequest(_, participantList.head, notificationAddress))
 
       it("if address not provided") {
         client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendFuture() shouldAnswerWith BAD_REQUEST
       }
       it("if address message malformed") {
-        client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendJsonFuture("Ciao") shouldAnswerWith BAD_REQUEST
+        client.put(API_ENTER_PUBLIC_ROOM_URL).addAuthentication.sendJsonFuture(badContentForBody) shouldAnswerWith BAD_REQUEST
       }
       it("if same user is already inside a room") {
         for (_ <- enterPublicRoomRequest(2, participantList.head, notificationAddress);
@@ -189,7 +191,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
            _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(publicRoomInfoRequest)
     }
   }
@@ -207,7 +209,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(exitPublicRoomRequest)
 
       it("if user is not inside the room") {
@@ -234,7 +236,7 @@ class RoomsServiceVerticleTest extends RoomsWebServiceTesting with RoomApiWrappe
         (DELETE, API_EXIT_PUBLIC_ROOM_URL))
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       for (apiCall <- roomApiInteractions) {
         it(s"if token not provided, doing ${apiCall._1.toString} on ${apiCall._2}") {
           client.request(apiCall._1, apiCall._2).sendFuture() shouldAnswerWith BAD_REQUEST

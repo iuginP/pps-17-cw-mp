@@ -1,6 +1,7 @@
 package it.cwmp.model
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import it.cwmp.model.Participant.Converters._
 import it.cwmp.utils.Utils._
 
 /**
@@ -43,7 +44,7 @@ object Room {
   }
 
   def unapply(toExtract: Room): Option[(String, String, Int, Seq[Participant])] =
-    if (toExtract eq null) None
+    if (toExtract == null) None
     else Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)
 
   /**
@@ -70,7 +71,6 @@ object Room {
       */
     implicit class RichRoom(room: Room) {
       def toJson: JsonObject = {
-        import Participant.Converters._
         Json.obj(
           (FIELD_IDENTIFIER, room.identifier),
           (FIELD_NAME, room.name),
@@ -89,10 +89,8 @@ object Room {
           && (jsonObject containsKey FIELD_NEEDED_PLAYERS) && (jsonObject containsKey FIELD_PARTICIPANTS)) {
 
           var userSeq = Seq[Participant]()
-          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser => {
-            import Participant.Converters._
-            userSeq = Json.fromObjectString(jsonUser.toString).toParticipant +: userSeq
-          })
+          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser =>
+            userSeq = Json.fromObjectString(jsonUser.toString).toParticipant +: userSeq)
 
           Room(
             jsonObject getString FIELD_IDENTIFIER,

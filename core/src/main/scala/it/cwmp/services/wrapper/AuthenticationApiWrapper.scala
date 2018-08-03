@@ -46,7 +46,7 @@ object AuthenticationApiWrapper {
     extends AuthenticationApiWrapper with VertxInstance with VertxClient {
 
     def signUp(username: String, password: String): Future[String] =
-      client.post(API_SIGNUP)
+      client.post(API_SIGN_UP)
         .addAuthentication(username, password)
         .sendFuture()
         .expectStatus(CREATED)

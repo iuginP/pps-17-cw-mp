@@ -51,6 +51,11 @@ abstract class RoomsTesting extends VertxTest with Matchers {
     }
   }
 
+  /**
+    * @return the should fail description
+    */
+  protected def shouldFail = "Should fail"
+
   protected def privateRoomCreationTests(roomName: String, playersNumber: Int)
 
   protected def privateRoomEnteringTests(roomName: String, playersNumber: Int)

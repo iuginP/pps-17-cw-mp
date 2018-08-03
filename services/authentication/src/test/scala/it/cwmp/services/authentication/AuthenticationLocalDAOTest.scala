@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfterEach, Matchers}
 import scala.concurrent.Future
 
 /**
-  * Test per la classe AuthenticationLocalDAO
+  * A class for AuthenticationLocalDAO tests
   *
   * @author Davide Borficchia
   */
@@ -29,9 +29,9 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
   }
 
   describe("AuthenticationLocalDAO") {
-    describe("sign up") {
-      describe("should fail with error") {
-        it("when username empty") {
+    describe("Sign up") {
+      describe("should fail") {
+        it("when username not provided") {
           for (dao <- daoFuture; assertion <- dao.signUpFuture("", password).shouldFail) yield assertion
         }
         it("when password empty") {
@@ -43,8 +43,8 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
                assertion <- dao.signUpFuture(username, password).shouldFail) yield assertion
         }
       }
-      describe("should succeed") {
-        it("when all right") {
+      describe("should have success") {
+        it("when parameters are ok") {
           for (dao <- daoFuture;
                _ <- dao.signUpFuture(username, password);
                assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
@@ -52,9 +52,9 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
       }
     }
 
-    describe("sign out") {
+    describe("Sign out") {
       describe("should fail with error") {
-        it("when username empty") {
+        it("when username is empty") {
           for (dao <- daoFuture; assertion <- dao.signOutFuture("").shouldFail) yield assertion
         }
         it("when username doesn't exists") {
@@ -62,14 +62,14 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
         }
       }
       describe("should succeed") {
-        it("when all right") {
+        it("when all parameters right") {
           for (dao <- daoFuture; _ <- dao.signUpFuture(username, password);
                assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
         }
       }
     }
 
-    describe("login") {
+    describe("Login") {
       describe("should fail with error") {
         it("when username empty") {
           for (dao <- daoFuture; assertion <- dao.loginFuture("", password).shouldFail) yield assertion
@@ -85,7 +85,7 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
         }
       }
       describe("should succeed") {
-        it("when all right") {
+        it("when all parameters right") {
           for (dao <- daoFuture; _ <- dao.signUpFuture(username, password);
                _ <- dao.loginFuture(username, password);
                assertion <- dao.signOutFuture(username).shouldSucceed) yield assertion
@@ -97,13 +97,13 @@ class AuthenticationLocalDAOTest extends VertxTest with Matchers with FutureMatc
   describe("The Helper shouldn't work") {
     describe("if not initialized") {
 
-      it("sign up") {
+      it("Sign up") {
         AuthenticationLocalDAO().signUpFuture(username, password).shouldFailWith[IllegalStateException]
       }
-      it("sign out") {
+      it("Sign out") {
         AuthenticationLocalDAO().signOutFuture(username).shouldFailWith[IllegalStateException]
       }
-      it("login") {
+      it("Login") {
         AuthenticationLocalDAO().loginFuture(username, password).shouldFailWith[IllegalStateException]
       }
     }

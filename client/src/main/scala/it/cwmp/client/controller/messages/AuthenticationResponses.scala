@@ -1,37 +1,9 @@
 package it.cwmp.client.controller.messages
 
 /**
-  * Collection of Authentication request messages
-  */
-object AuthenticationRequests {
-
-  sealed trait AuthenticationRequest extends Request
-
-  /**
-    * Request to log-in to online service
-    *
-    * @param username the player username
-    * @param password the player password
-    */
-  sealed case class LogIn(username: String, password: String) extends AuthenticationRequest with ToServiceRequest
-
-  /**
-    * Request to sign-up to online service
-    *
-    * @param username the player username
-    * @param password the player password
-    */
-  sealed case class SignUp(username: String, password: String) extends AuthenticationRequest with ToServiceRequest
-
-  /**
-    * Request to log-out from GUI
-    */
-  case object GUILogOut extends AuthenticationRequest with GUIRequest
-
-}
-
-/**
   * Collection of Authentication response messages
+  *
+  * @author Enrico Sbioni
   */
 object AuthenticationResponses {
 

@@ -16,15 +16,16 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
 
   private val apiWrapper = RoomsApiWrapper()
 
-  //noinspection ScalaStyle
+  // scalastyle:off import.grouping
   import apiWrapper._
+  // scalastyle:on import.grouping
 
   override protected def privateRoomCreationTests(roomName: String, playersNumber: Int): Unit = {
     it("should succeed returning roomID if parameters are correct") {
       for (roomID <- createRoom(roomName, playersNumber)) yield roomID should not be empty
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       it("if roomName empty") {
         createRoom("", playersNumber).shouldFailWith[HTTPException]
       }
@@ -41,7 +42,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
            _ <- cleanUpRoom(roomID)) yield succeed
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(enterRoom(_, participantList.head, notificationAddress))
 
       it("if user is already inside a room") {
@@ -73,7 +74,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
            _ <- cleanUpRoom(roomID)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(roomInfo)
     }
   }
@@ -92,7 +93,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
            assertion <- roomInfo.participants shouldNot contain(participantList.head)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(exitRoom)
 
       it("if user is not inside the room") {
@@ -131,7 +132,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
       }
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(enterPublicRoom(_, participantList.head, notificationAddress))
 
       it("if same user is already inside a room") {
@@ -153,7 +154,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
     val fakePlayersNumber = 3
     val fakeRoomID = "12342134"
 
-    describe("should fail calling") {
+    describe(shouldFail + " calling") {
       describe("createRoom") {
         shouldThrowExceptionOnBadToken { token: String =>
           createRoom(fakeRoomName, fakePlayersNumber)(token).shouldFailWith[HTTPException]
@@ -220,7 +221,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
            _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(publicRoomInfo)
     }
   }
@@ -237,7 +238,7 @@ class RoomsApiWrapperTest extends RoomsWebServiceTesting with FutureMatchers {
            assertion <- roomInfo.participants shouldNot contain(participantList.head)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(exitPublicRoom)
 
       it("if user is not inside the room") {

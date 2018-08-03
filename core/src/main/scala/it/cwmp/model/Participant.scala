@@ -1,6 +1,8 @@
 package it.cwmp.model
 
 import io.vertx.lang.scala.json.JsonObject
+import it.cwmp.model.Address.Converters._
+import it.cwmp.model.User.Converters._
 import it.cwmp.utils.Utils._
 
 /**
@@ -22,8 +24,11 @@ object Participant {
   }
 
   def unapply(toExtract: Participant): Option[(String, String)] =
-    if (toExtract eq null) None else Some(toExtract.username, toExtract.address)
+    if (toExtract == null) None else Some(toExtract.username, toExtract.address)
 
+  /**
+    * Default participant implementation
+    */
   private case class ParticipantImpl(username: String, address: String) extends Participant
 
   /**
@@ -39,10 +44,7 @@ object Participant {
       */
     implicit class RichParticipant(participant: Participant) {
       def toJson: JsonObject = {
-        import Address.Converters._
         val json = participant.asInstanceOf[Address].toJson
-
-        import User.Converters._
         participant.asInstanceOf[User].toJson.mergeIn(json)
       }
     }
@@ -53,16 +55,11 @@ object Participant {
     implicit class JsonParticipantConverter(json: JsonObject) {
       def toParticipant: Participant =
         if ((json containsKey Address.FIELD_ADDRESS) && (json containsKey User.FIELD_USERNAME)) {
-          val address = {
-            import Address.Converters._
-            json.toAddress
-          }
-          val user = {
-            import User.Converters._
-            json.toUser
-          }
-          Participant(user.username, address.address)
-        } else throw parseException("Participant JsonParsing", s"The input doesn't contain ${Address.FIELD_ADDRESS} or ${User.FIELD_USERNAME} --> ${json encodePrettily()}")
+          Participant(json.toUser.username, json.toAddress.address)
+        } else {
+          throw parseException("Participant JsonParsing",
+            s"The input doesn't contain ${Address.FIELD_ADDRESS} or ${User.FIELD_USERNAME} --> ${json encodePrettily()}")
+        }
     }
 
   }

@@ -109,7 +109,7 @@ trait RoomsApiWrapper {
     *
     * @param playersNumber the number of players that the public room has to have
     * @param userToken     the token to be authenticated against api
-    * @return the future taht completes when the user has exited,
+    * @return the future that completes when the user has exited,
     *         or fails if players number is not correct,
     *         or user not inside that room
     */

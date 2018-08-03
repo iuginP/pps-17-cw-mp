@@ -29,7 +29,7 @@ trait CellWorldObjectDrawer {
     */
   def drawCell(cell: CellView): Region = {
     val svg = new SVGPath
-    svg.setContent(CellView.CELL_VIEW_DEFAULT_SHAPE)
+    svg.setContent(CellView.CELL_VIEW_DEFAULT_SVG_SHAPE)
     val svgShape = new Region
     svgShape.setShape(svg)
     svgShape.setBorder(cell.border)

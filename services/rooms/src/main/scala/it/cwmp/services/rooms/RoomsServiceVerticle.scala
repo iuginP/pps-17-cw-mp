@@ -68,9 +68,11 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     def extractIncomingRoomFromBody(body: Buffer): Option[(String, Int)] = {
       try {
         val jsonObject = body.toJsonObject
-        if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS))
+        if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS)) {
           Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
-        else None
+        } else {
+          None
+        }
       } catch {
         case _: Throwable => None
       }
@@ -114,7 +116,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
   }
 
   /**
-    * Handles exititng a private room
+    * Handles exiting a private room
     */
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Exit Private Room Request received...")
