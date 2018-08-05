@@ -12,5 +12,8 @@ dependencies {
 
     implementation 'com.github.tkqubo:color-hash:0.2.0'
 
+    testImplementation project(':services:authentication').sourceSets.test.output
+    testImplementation project(':services:rooms').sourceSets.test.output
+
     testImplementation 'org.scalacheck:scalacheck_2.12:1.14.0'
 }
