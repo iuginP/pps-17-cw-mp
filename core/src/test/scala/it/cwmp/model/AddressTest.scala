@@ -14,7 +14,7 @@ import it.cwmp.model.Address.Converters._
   */
 class AddressTest extends FunSpec {
 
-  private val addressValue = "general_address";
+  private val addressValue = "general_address"
   private val address = Address(addressValue)
 
 
