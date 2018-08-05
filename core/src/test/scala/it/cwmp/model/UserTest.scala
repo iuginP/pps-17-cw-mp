@@ -3,8 +3,8 @@ package it.cwmp.model
 import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import it.cwmp.model.User.Converters._
 import org.scalatest.FunSpec
-import it.cwmp.model.Address.Converters._
 
 
 /**
@@ -12,26 +12,26 @@ import it.cwmp.model.Address.Converters._
   *
   * @author Elia Di Pasquale
   */
-class AddressTest extends FunSpec {
+class UserTest extends FunSpec {
 
-  private val addressValue = "general_address"
-  private val address = Address(addressValue)
+  private val userName = "general_name"
+  private val user = User(userName)
 
 
-  describe("An address") {
+  describe("An user") {
     describe("on declaration") {
 
       it("should match the given input") {
-        assert(address.address == addressValue)
+        assert(user.username == userName)
       }
 
       describe("should complain") {
         it("with an empty input")(
           // scalastyle:off null
-          intercept[IllegalArgumentException](Address(null)),
+          intercept[IllegalArgumentException](User(null)),
           // scalastyle:on null
-          intercept[IllegalArgumentException](Address("")),
-          intercept[IllegalArgumentException](Address("   "))
+          intercept[IllegalArgumentException](User("")),
+          intercept[IllegalArgumentException](User("   "))
         )
       }
     }
@@ -39,32 +39,32 @@ class AddressTest extends FunSpec {
     describe("in case of conversion") {
 
       describe("the resulting JsonObject") {
-        it("contains the parameter FIELD_ADDRESS") {
-          assert(address.toJson.containsKey(Address.FIELD_ADDRESS))
+        it("contains the parameter FIELD_USERNAME") {
+          assert(user.toJson.containsKey(User.FIELD_USERNAME))
         }
 
-        it("contains the same address value") {
-          assert(address.toJson.getString(Address.FIELD_ADDRESS) == addressValue)
+        it("contains the same name value") {
+          assert(user.toJson.getString(User.FIELD_USERNAME) == userName)
         }
       }
 
       describe("if it is obtained from a JsonObject") {
 
-        val correctJson: JsonObject = Json.obj((Address.FIELD_ADDRESS, addressValue))
+        val correctJson: JsonObject = Json.obj((User.FIELD_USERNAME, userName))
         it("should succeed if it contains the required parameter") {
-          assert(correctJson.toAddress.address == addressValue)
+          assert(correctJson.toUser.username == userName)
         }
 
         describe("should complain") {
           val wrongJson: JsonObject = Json.obj()
 
           it("if the JsonObject is empty") {
-            intercept[ParseException](wrongJson.toAddress.address == addressValue)
+            intercept[ParseException](wrongJson.toUser.username == userName)
           }
 
           wrongJson.put("random_parameter", "random_value")
           it("if it not contains the required parameter") {
-            intercept[ParseException](wrongJson.toAddress.address)
+            intercept[ParseException](wrongJson.toUser.username)
           }
         }
       }
