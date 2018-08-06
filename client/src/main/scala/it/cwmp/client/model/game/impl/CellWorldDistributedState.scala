@@ -37,3 +37,19 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
   private def writeDistributed(state: CellWorld): Unit =
     replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
 }
+
+/**
+  * Companion Object, containing actor messages
+  */
+object CellWorldDistributedState {
+
+  private val DISTRIBUTED_KEY_NAME = "distributedKey"
+
+  /**
+    * The message to send to update distributed state
+    *
+    * @param state the new state
+    */
+  case class UpdateState[T](state: T)
+
+}
