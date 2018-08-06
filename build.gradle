@@ -87,7 +87,7 @@ subprojects {
     build.finalizedBy scalaStyle
 }
 
-configure(subprojects.findAll { it.name == 'core' || it.parent.name == 'services' }) {
+configure(subprojects.findAll { it.name == 'core' || it.name == 'server' || it.parent.name == 'services' }) {
 
     dependencies {
         implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
