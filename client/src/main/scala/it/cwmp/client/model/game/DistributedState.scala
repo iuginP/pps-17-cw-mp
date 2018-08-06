@@ -5,9 +5,7 @@ package it.cwmp.client.model.game
   *
   * @author Enrico Siboni
   */
-trait DistributedState {
-  type State
-  type Subscriber
+trait DistributedState[State, Subscriber] {
 
   /**
     * Initializes the distributed state

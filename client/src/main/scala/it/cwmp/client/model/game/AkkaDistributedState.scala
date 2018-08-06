@@ -13,10 +13,9 @@ import it.cwmp.utils.Logging
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class AkkaDistributedState(implicit replicatorActor: ActorRef, cluster: Cluster)
-  extends DistributedState with Logging {
-
-  override type Subscriber = ActorRef
+abstract class AkkaDistributedState[State, DistributedData <: ReplicatedData](onDistributedStateUpdate: State => Unit)
+                                                                             (implicit replicatorActor: ActorRef, cluster: Cluster)
+  extends DistributedState[State, ActorRef] with Logging {
 
   /**
     * Subscribes the provided actor to receive changes in this distributed state
@@ -47,7 +46,9 @@ abstract class AkkaDistributedState(implicit replicatorActor: ActorRef, cluster:
     // Called when notified of the distributed data change
     case msg@Changed(key) =>
       log.debug("Being notified that distributed state has changed")
-      onDistributedStateUpdate(convertFromDistributed(msg.get(key)))
+      onDistributedStateUpdate(
+        convertFromDistributed(
+          msg.get(key).asInstanceOf[DistributedData]))
   }
 
   /**
@@ -58,7 +59,7 @@ abstract class AkkaDistributedState(implicit replicatorActor: ActorRef, cluster:
   /**
     * @return the key to access distributed state
     */
-  protected def distributedKey[A <: ReplicatedData]: Key[A]
+  protected def distributedKey: Key[_ <: ReplicatedData]
 
   /**
     * @return the consistency policy to adopt when writing updates in distributed state
@@ -66,27 +67,18 @@ abstract class AkkaDistributedState(implicit replicatorActor: ActorRef, cluster:
   protected def consistencyPolicy: Replicator.WriteConsistency
 
   /**
-    * The action to do when a distributed update has been received
-    *
-    * @param state the state received
-    */
-  protected def onDistributedStateUpdate(state: State): Unit
-
-  /**
     * Implicit conversion from State to distributed state
     *
     * @param state the state to convert to distributed
-    * @tparam A the type of distributed state
     * @return the distributed version of the given state
     */
-  protected implicit def convertToDistributed[A <: ReplicatedData](state: State): A
+  protected implicit def convertToDistributed(state: State): DistributedData
 
   /**
     * Implicit conversion from distributed state to application State
     *
     * @param distributedData the distributed data to convert
-    * @tparam A the type of distributed state
     * @return the application version of state
     */
-  protected implicit def convertFromDistributed[A <: ReplicatedData](distributedData: A): State
+  protected implicit def convertFromDistributed(distributedData: DistributedData): State
 }
