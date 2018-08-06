@@ -2,9 +2,11 @@ package it.cwmp.client.model
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
-import akka.cluster.ddata.Replicator.{Subscribe, Unsubscribe}
+import akka.cluster.ddata.Replicator.{Subscribe, Unsubscribe, WriteMajority}
 import akka.cluster.ddata.{Key, ReplicatedData, Replicator}
 import it.cwmp.utils.Logging
+
+import scala.concurrent.duration._
 
 /**
   * A base class to represent a distributed state in Akka
@@ -33,6 +35,11 @@ abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
     replicatorActor ! Unsubscribe(distributedKey, subscriber)
 
   /**
+    * @return the consistency policy to adopt when writing updates in distributed state
+    */
+  protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
+
+  /**
     * This behaviour provides an easy way to make the interested actor,
     * able to receive updates and make changes in this distributed state
     */
@@ -52,11 +59,6 @@ abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
     * @return the key to access distributed state
     */
   protected def distributedKey: Key[_ <: ReplicatedData]
-
-  /**
-    * @return the consistency policy to adopt when writing updates in distributed state
-    */
-  protected def consistencyPolicy: Replicator.WriteConsistency
 }
 
 /**

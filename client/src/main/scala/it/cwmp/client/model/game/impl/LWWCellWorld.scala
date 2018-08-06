@@ -3,13 +3,11 @@ package it.cwmp.client.model.game.impl
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator.{Changed, Update, WriteMajority}
+import akka.cluster.ddata.Replicator.{Changed, Update}
 import akka.cluster.ddata._
 import it.cwmp.client.model.AkkaDistributedState
 import it.cwmp.client.model.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
-
-import scala.concurrent.duration._
 
 /**
   * Distributed representation of the world where "Latest Write Wins"
@@ -40,8 +38,6 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
       log.debug("Updating distributed state")
       writeDistributed(state)
   }
-
-  override protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
 
   /**
     * Handle method to do a distributed write
