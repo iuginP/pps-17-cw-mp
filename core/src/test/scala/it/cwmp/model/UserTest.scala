@@ -59,12 +59,12 @@ class UserTest extends FunSpec {
           val wrongJson: JsonObject = Json.obj()
 
           it("if the JsonObject is empty") {
-            intercept[ParseException](wrongJson.toUser.username == userName)
+            intercept[ParseException](wrongJson.toUser)
           }
 
           wrongJson.put("random_parameter", "random_value")
           it("if it not contains the required parameter") {
-            intercept[ParseException](wrongJson.toUser.username)
+            intercept[ParseException](wrongJson.toUser)
           }
         }
       }

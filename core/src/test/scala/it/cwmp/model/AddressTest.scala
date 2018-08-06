@@ -59,12 +59,12 @@ class AddressTest extends FunSpec {
           val wrongJson: JsonObject = Json.obj()
 
           it("if the JsonObject is empty") {
-            intercept[ParseException](wrongJson.toAddress.address == addressValue)
+            intercept[ParseException](wrongJson.toAddress)
           }
 
           wrongJson.put("random_parameter", "random_value")
           it("if it not contains the required parameter") {
-            intercept[ParseException](wrongJson.toAddress.address)
+            intercept[ParseException](wrongJson.toAddress)
           }
         }
       }
