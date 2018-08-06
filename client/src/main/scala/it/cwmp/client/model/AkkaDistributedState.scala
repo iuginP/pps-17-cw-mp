@@ -1,4 +1,4 @@
-package it.cwmp.client.model.game
+package it.cwmp.client.model
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef

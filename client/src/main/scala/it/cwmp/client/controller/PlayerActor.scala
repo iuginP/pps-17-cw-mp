@@ -7,7 +7,7 @@ import akka.cluster.ddata.DistributedData
 import it.cwmp.client.controller.PlayerActor.{GameEnded, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.{Initialize, Request, Response}
-import it.cwmp.client.model.game.{AkkaDistributedState, DistributedState}
+import it.cwmp.client.model.AkkaDistributedState
 import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._

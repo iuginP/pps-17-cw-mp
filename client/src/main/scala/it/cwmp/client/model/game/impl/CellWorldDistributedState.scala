@@ -5,7 +5,7 @@ import akka.actor.ActorRef
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.{Changed, Update, WriteMajority}
 import akka.cluster.ddata._
-import it.cwmp.client.model.game.AkkaDistributedState
+import it.cwmp.client.model.AkkaDistributedState
 import it.cwmp.client.model.game.impl.CellWorldDistributedState.{DISTRIBUTED_KEY_NAME, UpdateState}
 
 import scala.concurrent.duration._
