@@ -3,18 +3,21 @@ package it.cwmp.client.model.game
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator.{Changed, Subscribe, Unsubscribe}
+import akka.cluster.ddata.Replicator.{Subscribe, Unsubscribe}
 import akka.cluster.ddata.{Key, ReplicatedData, Replicator}
 import it.cwmp.utils.Logging
 
 /**
   * A base class to represent a distributed state in Akka
   *
+  * @param onDistributedStateUpdate the strategy to adopt on state changes
+  * @param replicatorActor          the actor that will distribute the data
+  * @param cluster                  the cluster where this distributed data are exchanged
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class AkkaDistributedState[State, DistributedData <: ReplicatedData](onDistributedStateUpdate: State => Unit)
-                                                                             (implicit replicatorActor: ActorRef, cluster: Cluster)
+abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Unit)
+                                          (implicit replicatorActor: ActorRef, cluster: Cluster) // TODO: remove unnecessary parameters from here
   extends DistributedState[State, ActorRef] with Logging {
 
   /**
@@ -42,14 +45,7 @@ abstract class AkkaDistributedState[State, DistributedData <: ReplicatedData](on
   /**
     * @return the behaviour enabling to listen for modification in the distributed state
     */
-  protected def passiveBehaviour: Receive = {
-    // Called when notified of the distributed data change
-    case msg@Changed(key) =>
-      log.debug("Being notified that distributed state has changed")
-      onDistributedStateUpdate(
-        convertFromDistributed(
-          msg.get(key).asInstanceOf[DistributedData]))
-  }
+  protected def passiveBehaviour: Receive
 
   /**
     * @return the behaviour enabling to modify distributed state
@@ -59,26 +55,10 @@ abstract class AkkaDistributedState[State, DistributedData <: ReplicatedData](on
   /**
     * @return the key to access distributed state
     */
-  protected def distributedKey: Key[DistributedData]
+  protected def distributedKey: Key[_ <: ReplicatedData]
 
   /**
     * @return the consistency policy to adopt when writing updates in distributed state
     */
   protected def consistencyPolicy: Replicator.WriteConsistency
-
-  /**
-    * Implicit conversion from State to distributed state
-    *
-    * @param state the state to convert to distributed
-    * @return the distributed version of the given state
-    */
-  protected implicit def convertToDistributed(state: State): DistributedData
-
-  /**
-    * Implicit conversion from distributed state to application State
-    *
-    * @param distributedData the distributed data to convert
-    * @return the application version of state
-    */
-  protected implicit def convertFromDistributed(distributedData: DistributedData): State
 }

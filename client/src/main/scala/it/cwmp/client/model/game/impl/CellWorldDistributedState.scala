@@ -3,10 +3,10 @@ package it.cwmp.client.model.game.impl
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator.{Update, WriteMajority}
-import akka.cluster.ddata.{LWWRegister, Replicator}
-import it.cwmp.client.model.DistributedState
-import it.cwmp.client.model.DistributedState.UpdateState
+import akka.cluster.ddata.Replicator.{Changed, Update, WriteMajority}
+import akka.cluster.ddata._
+import it.cwmp.client.model.game.AkkaDistributedState
+import it.cwmp.client.model.game.impl.CellWorldDistributedState.{DISTRIBUTED_KEY_NAME, UpdateState}
 
 import scala.concurrent.duration._
 
@@ -17,9 +17,20 @@ import scala.concurrent.duration._
   * @author contributor Enrico Siboni
   */
 case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
-                                    (implicit replicatorActor: ActorRef, cluster: Cluster) extends DistributedState[CellWorld](onWorldUpdate) {
+                                    (implicit replicatorActor: ActorRef, cluster: Cluster)
+  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
 
-  override def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
+  override protected val distributedKey: LWWRegisterKey[CellWorld] =
+    LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
+
+  override def initialize(initialState: CellWorld): Unit = writeDistributed(initialState)
+
+  override protected def passiveBehaviour: Receive = {
+    // Called when notified of the distributed data change
+    case msg@Changed(`distributedKey`) =>
+      log.debug("Being notified that distributed state has changed")
+      onWorldUpdate(msg.get(distributedKey).value)
+  }
 
   override protected def activeBehaviour: Receive = {
     case UpdateState(state: CellWorld) =>
@@ -27,7 +38,25 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
       writeDistributed(state)
   }
 
-  override def initialize(state: CellWorld): Unit = writeDistributed(state)
+  override protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
+
+  //
+  //  /**
+  //    * Implicit conversion from State to distributed state
+  //    *
+  //    * @param state the state to convert to distributed
+  //    * @return the distributed version of the given state
+  //    */
+  //  protected implicit def convertToDistributed(state: State): DistributedData
+  //
+  //  /**
+  //    * Implicit conversion from distributed state to application State
+  //    *
+  //    * @param distributedData the distributed data to convert
+  //    * @return the application version of state
+  //    */
+  //  protected implicit def convertFromDistributed(distributedData: DistributedData): State
+
 
   /**
     * Handle method to do a distributed write
@@ -35,7 +64,7 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
     * @param state the state to write
     */
   private def writeDistributed(state: CellWorld): Unit =
-    replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
+    replicatorActor ! Update(distributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
 }
 
 /**
@@ -48,8 +77,8 @@ object CellWorldDistributedState {
   /**
     * The message to send to update distributed state
     *
-    * @param state the new state
+    * @param cellWorld the new cellWorld state
     */
-  case class UpdateState[T](state: T)
+  case class UpdateState(cellWorld: CellWorld)
 
 }
