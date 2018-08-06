@@ -25,76 +25,76 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.model
 </span>2 <span style=''>
 </span>3 <span style=''>import io.vertx.lang.scala.json.{Json, JsonObject}
-</span>4 <span style=''>import it.cwmp.utils.Utils._
-</span>5 <span style=''>
-</span>6 <span style=''>/**
-</span>7 <span style=''>  * Trait that describes the Room
-</span>8 <span style=''>  *
-</span>9 <span style=''>  * @author Enrico Siboni
-</span>10 <span style=''>  */
-</span>11 <span style=''>sealed trait Room {
-</span>12 <span style=''>  def identifier: String
-</span>13 <span style=''>
-</span>14 <span style=''>  def name: String
-</span>15 <span style=''>
-</span>16 <span style=''>  def neededPlayersNumber: Int
-</span>17 <span style=''>
-</span>18 <span style=''>  def participants: Seq[Participant]
-</span>19 <span style=''>}
-</span>20 <span style=''>
-</span>21 <span style=''>/**
-</span>22 <span style=''>  * Companion object
-</span>23 <span style=''>  *
-</span>24 <span style=''>  * @author Enrico Siboni
-</span>25 <span style=''>  */
-</span>26 <span style=''>object Room {
-</span>27 <span style=''>
-</span>28 <span style=''>  val FIELD_IDENTIFIER = </span><span style='background: #AEF1AE'>&quot;room_identifier&quot;</span><span style=''>
-</span>29 <span style=''>  val FIELD_NAME = </span><span style='background: #AEF1AE'>&quot;room_name&quot;</span><span style=''>
-</span>30 <span style=''>  val FIELD_NEEDED_PLAYERS = </span><span style='background: #AEF1AE'>&quot;room_players&quot;</span><span style=''>
-</span>31 <span style=''>  val FIELD_PARTICIPANTS = </span><span style='background: #AEF1AE'>&quot;room_participants&quot;</span><span style=''>
-</span>32 <span style=''>
-</span>33 <span style=''>  def apply(roomID: String,
-</span>34 <span style=''>            roomName: String,
-</span>35 <span style=''>            neededPlayersNumber: Int,
-</span>36 <span style=''>            participants: Seq[Participant] = Seq()): Room = {
-</span>37 <span style=''>
-</span>38 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(roomID), </span><span style='background: #F0ADAD'>&quot;Room ID empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>39 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(roomName), </span><span style='background: #F0ADAD'>&quot;Room name empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>40 <span style=''>    if (</span><span style='background: #AEF1AE'>neededPlayersNumber &lt; 1</span><span style=''>) </span><span style='background: #F0ADAD'>throw new IllegalArgumentException(&quot;Room needed players less than one&quot;)</span><span style=''>
-</span>41 <span style=''>
-</span>42 <span style=''>    </span><span style='background: #AEF1AE'>RoomDefault(roomID, roomName, neededPlayersNumber, participants)</span><span style=''>
-</span>43 <span style=''>  }
-</span>44 <span style=''>
-</span>45 <span style=''>  def unapply(toExtract: Room): Option[(String, String, Int, Seq[Participant])] =
-</span>46 <span style=''>    if (</span><span style='background: #AEF1AE'>toExtract eq null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>47 <span style=''>    else </span><span style='background: #AEF1AE'>Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)</span><span style=''>
-</span>48 <span style=''>
-</span>49 <span style=''>  /**
-</span>50 <span style=''>    * Default implementation for Room
-</span>51 <span style=''>    *
-</span>52 <span style=''>    * @author Enrico Siboni
-</span>53 <span style=''>    */
-</span>54 <span style=''>  private case class RoomDefault(identifier: String,
-</span>55 <span style=''>                                 name: String,
-</span>56 <span style=''>                                 neededPlayersNumber: Int,
-</span>57 <span style=''>                                 participants: Seq[Participant]) extends Room
-</span>58 <span style=''>
-</span>59 <span style=''>  /**
-</span>60 <span style=''>    * Converters for Room
-</span>61 <span style=''>    *
-</span>62 <span style=''>    * @author Enrico Siboni
-</span>63 <span style=''>    */
-</span>64 <span style=''>  object Converters {
-</span>65 <span style=''>
-</span>66 <span style=''>    /**
-</span>67 <span style=''>      * A class that enables Room to be converted to Json
-</span>68 <span style=''>      *
-</span>69 <span style=''>      * @param room the room to convert
-</span>70 <span style=''>      */
-</span>71 <span style=''>    implicit class RichRoom(room: Room) {
-</span>72 <span style=''>      def toJson: JsonObject = {
-</span>73 <span style=''>        import Participant.Converters._
+</span>4 <span style=''>import it.cwmp.model.Participant.Converters._
+</span>5 <span style=''>import it.cwmp.utils.Utils._
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * Trait that describes the Room
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * @author Enrico Siboni
+</span>11 <span style=''>  */
+</span>12 <span style=''>sealed trait Room {
+</span>13 <span style=''>  def identifier: String
+</span>14 <span style=''>
+</span>15 <span style=''>  def name: String
+</span>16 <span style=''>
+</span>17 <span style=''>  def neededPlayersNumber: Int
+</span>18 <span style=''>
+</span>19 <span style=''>  def participants: Seq[Participant]
+</span>20 <span style=''>}
+</span>21 <span style=''>
+</span>22 <span style=''>/**
+</span>23 <span style=''>  * Companion object
+</span>24 <span style=''>  *
+</span>25 <span style=''>  * @author Enrico Siboni
+</span>26 <span style=''>  */
+</span>27 <span style=''>object Room {
+</span>28 <span style=''>
+</span>29 <span style=''>  val FIELD_IDENTIFIER = </span><span style='background: #AEF1AE'>&quot;room_identifier&quot;</span><span style=''>
+</span>30 <span style=''>  val FIELD_NAME = </span><span style='background: #AEF1AE'>&quot;room_name&quot;</span><span style=''>
+</span>31 <span style=''>  val FIELD_NEEDED_PLAYERS = </span><span style='background: #AEF1AE'>&quot;room_players&quot;</span><span style=''>
+</span>32 <span style=''>  val FIELD_PARTICIPANTS = </span><span style='background: #AEF1AE'>&quot;room_participants&quot;</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  def apply(roomID: String,
+</span>35 <span style=''>            roomName: String,
+</span>36 <span style=''>            neededPlayersNumber: Int,
+</span>37 <span style=''>            participants: Seq[Participant] = Seq()): Room = {
+</span>38 <span style=''>
+</span>39 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(roomID), &quot;Room ID empty&quot;)</span><span style=''>
+</span>40 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(roomName), &quot;Room name empty&quot;)</span><span style=''>
+</span>41 <span style=''>    if (</span><span style='background: #AEF1AE'>neededPlayersNumber &lt; 1</span><span style=''>) </span><span style='background: #AEF1AE'>throw new IllegalArgumentException(&quot;Room needed players less than one&quot;)</span><span style=''>
+</span>42 <span style=''>
+</span>43 <span style=''>    </span><span style='background: #AEF1AE'>RoomDefault(roomID, roomName, neededPlayersNumber, participants)</span><span style=''>
+</span>44 <span style=''>  }
+</span>45 <span style=''>
+</span>46 <span style=''>  def unapply(toExtract: Room): Option[(String, String, Int, Seq[Participant])] =
+</span>47 <span style=''>    if (</span><span style='background: #AEF1AE'>toExtract == null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>48 <span style=''>    else </span><span style='background: #AEF1AE'>Some(toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants)</span><span style=''>
+</span>49 <span style=''>
+</span>50 <span style=''>  /**
+</span>51 <span style=''>    * Default implementation for Room
+</span>52 <span style=''>    *
+</span>53 <span style=''>    * @author Enrico Siboni
+</span>54 <span style=''>    */
+</span>55 <span style=''>  private case class RoomDefault(identifier: String,
+</span>56 <span style=''>                                 name: String,
+</span>57 <span style=''>                                 neededPlayersNumber: Int,
+</span>58 <span style=''>                                 participants: Seq[Participant]) extends Room
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * Converters for Room
+</span>62 <span style=''>    *
+</span>63 <span style=''>    * @author Enrico Siboni
+</span>64 <span style=''>    */
+</span>65 <span style=''>  object Converters {
+</span>66 <span style=''>
+</span>67 <span style=''>    /**
+</span>68 <span style=''>      * A class that enables Room to be converted to Json
+</span>69 <span style=''>      *
+</span>70 <span style=''>      * @param room the room to convert
+</span>71 <span style=''>      */
+</span>72 <span style=''>    implicit class RichRoom(room: Room) {
+</span>73 <span style=''>      def toJson: JsonObject = {
 </span>74 <span style=''>        </span><span style='background: #AEF1AE'>Json.obj(
 </span>75 <span style=''></span><span style='background: #AEF1AE'>          (FIELD_IDENTIFIER, room.identifier),
 </span>76 <span style=''></span><span style='background: #AEF1AE'>          (FIELD_NAME, room.name),
@@ -113,26 +113,24 @@
 </span>89 <span style=''></span><span style='background: #AEF1AE'>          &amp;&amp; (jsonObject containsKey FIELD_NEEDED_PLAYERS) &amp;&amp; (jsonObject containsKey FIELD_PARTICIPANTS)</span><span style=''>) </span><span style='background: #AEF1AE'>{
 </span>90 <span style=''></span><span style='background: #AEF1AE'>
 </span>91 <span style=''></span><span style='background: #AEF1AE'>          var userSeq = Seq[Participant]()
-</span>92 <span style=''></span><span style='background: #AEF1AE'>          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser =&gt; {
-</span>93 <span style=''></span><span style='background: #AEF1AE'>            import Participant.Converters._
-</span>94 <span style=''></span><span style='background: #AEF1AE'>            userSeq = Json.fromObjectString(jsonUser.toString).toParticipant +: userSeq
-</span>95 <span style=''></span><span style='background: #AEF1AE'>          })
-</span>96 <span style=''></span><span style='background: #AEF1AE'>
-</span>97 <span style=''></span><span style='background: #AEF1AE'>          Room(
-</span>98 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getString FIELD_IDENTIFIER,
-</span>99 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getString FIELD_NAME,
-</span>100 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getInteger FIELD_NEEDED_PLAYERS,
-</span>101 <span style=''></span><span style='background: #AEF1AE'>            userSeq)
-</span>102 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''> else {
-</span>103 <span style=''>          </span><span style='background: #F0ADAD'>throw parseException(&quot;Room Parsing&quot;, s&quot;The input doesn't contain one or more of: &quot; +
-</span>104 <span style=''></span><span style='background: #F0ADAD'>            s&quot;$FIELD_IDENTIFIER, $FIELD_NAME, $FIELD_NEEDED_PLAYERS, $FIELD_PARTICIPANTS --&gt; ${jsonObject.encodePrettily()}&quot;)</span><span style=''>
-</span>105 <span style=''>        }
-</span>106 <span style=''>      }
-</span>107 <span style=''>    }
+</span>92 <span style=''></span><span style='background: #AEF1AE'>          jsonObject.getJsonArray(FIELD_PARTICIPANTS) forEach (jsonUser =&gt;
+</span>93 <span style=''></span><span style='background: #AEF1AE'>            userSeq = Json.fromObjectString(jsonUser.toString).toParticipant +: userSeq)
+</span>94 <span style=''></span><span style='background: #AEF1AE'>
+</span>95 <span style=''></span><span style='background: #AEF1AE'>          Room(
+</span>96 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getString FIELD_IDENTIFIER,
+</span>97 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getString FIELD_NAME,
+</span>98 <span style=''></span><span style='background: #AEF1AE'>            jsonObject getInteger FIELD_NEEDED_PLAYERS,
+</span>99 <span style=''></span><span style='background: #AEF1AE'>            userSeq)
+</span>100 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''> else {
+</span>101 <span style=''>          </span><span style='background: #AEF1AE'>throw parseException(&quot;Room Parsing&quot;, s&quot;The input doesn't contain one or more of: &quot; +
+</span>102 <span style=''></span><span style='background: #AEF1AE'>            s&quot;$FIELD_IDENTIFIER, $FIELD_NAME, $FIELD_NEEDED_PLAYERS, $FIELD_PARTICIPANTS --&gt; ${jsonObject.encodePrettily()}&quot;)</span><span style=''>
+</span>103 <span style=''>        }
+</span>104 <span style=''>      }
+</span>105 <span style=''>    }
+</span>106 <span style=''>
+</span>107 <span style=''>  }
 </span>108 <span style=''>
-</span>109 <span style=''>  }
-</span>110 <span style=''>
-</span>111 <span style=''>}
+</span>109 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -146,15 +144,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          28
+          29
         </td>
         <td>
-          58
+          56
         </td>
         <td>
-          415
+          461
           -
-          432
+          478
         </td>
         <td>
           Literal
@@ -167,15 +165,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          59
+          57
         </td>
         <td>
-          452
+          498
           -
-          463
+          509
         </td>
         <td>
           Literal
@@ -188,15 +186,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          31
         </td>
         <td>
-          60
+          58
         </td>
         <td>
-          493
+          539
           -
-          507
+          553
         </td>
         <td>
           Literal
@@ -209,15 +207,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
-          61
+          59
         </td>
         <td>
-          535
+          581
           -
-          554
+          600
         </td>
         <td>
           Literal
@@ -230,36 +228,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
           62
         </td>
         <td>
-          727
-          -
-          747
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Boolean.unary_!
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.utils.Utils.emptyString(roomID).unary_!
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          64
-        </td>
-        <td>
-          719
-          -
           765
+          -
+          811
         </td>
         <td>
           Apply
@@ -272,15 +249,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
-          63
+          61
         </td>
         <td>
-          749
+          795
           -
-          764
+          810
         </td>
         <td>
           Literal
@@ -288,7 +265,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Room ID empty&quot;
         </td>
       </tr><tr>
@@ -296,12 +273,12 @@
           39
         </td>
         <td>
-          65
+          60
         </td>
         <td>
-          778
+          773
           -
-          800
+          793
         </td>
         <td>
           Select
@@ -310,19 +287,19 @@
           scala.Boolean.unary_!
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.utils.Utils.emptyString(roomName).unary_!
+          it.cwmp.utils.Utils.emptyString(roomID).unary_!
         </td>
       </tr><tr>
         <td>
-          39
+          40
         </td>
         <td>
-          67
+          65
         </td>
         <td>
-          770
+          816
           -
-          820
+          866
         </td>
         <td>
           Apply
@@ -335,15 +312,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          40
         </td>
         <td>
-          66
+          64
         </td>
         <td>
-          802
+          848
           -
-          819
+          865
         </td>
         <td>
           Literal
@@ -351,7 +328,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Room name empty&quot;
         </td>
       </tr><tr>
@@ -359,12 +336,117 @@
           40
         </td>
         <td>
+          63
+        </td>
+        <td>
+          824
+          -
+          846
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.Utils.emptyString(roomName).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
           68
         </td>
         <td>
-          829
+          900
           -
-          852
+          971
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;Room needed players less than one&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          67
+        </td>
+        <td>
+          900
+          -
+          971
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;Room needed players less than one&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          70
+        </td>
+        <td>
+          871
+          -
+          871
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          69
+        </td>
+        <td>
+          871
+          -
+          871
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          66
+        </td>
+        <td>
+          875
+          -
+          898
         </td>
         <td>
           Apply
@@ -377,99 +459,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          43
         </td>
         <td>
           71
         </td>
         <td>
-          825
+          977
           -
-          825
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          70
-        </td>
-        <td>
-          854
-          -
-          925
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw new scala.`package`.IllegalArgumentException(&quot;Room needed players less than one&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          69
-        </td>
-        <td>
-          854
-          -
-          925
-        </td>
-        <td>
-          Throw
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw new scala.`package`.IllegalArgumentException(&quot;Room needed players less than one&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          72
-        </td>
-        <td>
-          825
-          -
-          825
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          73
-        </td>
-        <td>
-          931
-          -
-          995
+          1041
         </td>
         <td>
           Apply
@@ -482,36 +480,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
           74
         </td>
         <td>
-          1091
+          1156
           -
-          1108
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.eq
-        </td>
-        <td style="background: #AEF1AE">
-          toExtract.eq(null)
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          76
-        </td>
-        <td>
-          1110
-          -
-          1114
+          1160
         </td>
         <td>
           Block
@@ -524,15 +501,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          75
+          73
         </td>
         <td>
-          1110
+          1156
           -
-          1114
+          1160
         </td>
         <td>
           Select
@@ -548,96 +525,33 @@
           47
         </td>
         <td>
-          83
+          72
         </td>
         <td>
-          1124
+          1137
           -
-          1221
+          1154
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
-          scala.Some.apply
+          java.lang.Object.==
         </td>
         <td style="background: #AEF1AE">
-          scala.Some.apply[(String, String, Int, Seq[it.cwmp.model.Participant])](scala.Tuple4.apply[String, String, Int, Seq[it.cwmp.model.Participant]](toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants))
+          toExtract.==(null)
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
           77
         </td>
         <td>
-          1129
+          1213
           -
-          1149
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.identifier
-        </td>
-        <td style="background: #AEF1AE">
-          toExtract.identifier
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          80
-        </td>
-        <td>
-          1198
-          -
-          1220
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.participants
-        </td>
-        <td style="background: #AEF1AE">
-          toExtract.participants
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          82
-        </td>
-        <td>
-          1124
-          -
-          1221
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Some.apply[(String, String, Int, Seq[it.cwmp.model.Participant])](scala.Tuple4.apply[String, String, Int, Seq[it.cwmp.model.Participant]](toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants))
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          79
-        </td>
-        <td>
-          1167
-          -
-          1196
+          1242
         </td>
         <td>
           Select
@@ -650,15 +564,36 @@
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          78
+          80
         </td>
         <td>
-          1151
+          1170
           -
-          1165
+          1267
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[(String, String, Int, Seq[it.cwmp.model.Participant])](scala.Tuple4.apply[String, String, Int, Seq[it.cwmp.model.Participant]](toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          76
+        </td>
+        <td>
+          1197
+          -
+          1211
         </td>
         <td>
           Select
@@ -671,15 +606,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          81
+          79
         </td>
         <td>
-          1124
+          1170
           -
-          1221
+          1267
         </td>
         <td>
           Apply
@@ -692,15 +627,78 @@
         </td>
       </tr><tr>
         <td>
+          48
+        </td>
+        <td>
+          78
+        </td>
+        <td>
+          1244
+          -
+          1266
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.participants
+        </td>
+        <td style="background: #AEF1AE">
+          toExtract.participants
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          81
+        </td>
+        <td>
+          1170
+          -
+          1267
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[(String, String, Int, Seq[it.cwmp.model.Participant])](scala.Tuple4.apply[String, String, Int, Seq[it.cwmp.model.Participant]](toExtract.identifier, toExtract.name, toExtract.neededPlayersNumber, toExtract.participants))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          75
+        </td>
+        <td>
+          1175
+          -
+          1195
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.identifier
+        </td>
+        <td style="background: #AEF1AE">
+          toExtract.identifier
+        </td>
+      </tr><tr>
+        <td>
           74
         </td>
         <td>
-          98
+          96
         </td>
         <td>
-          1888
+          1894
           -
-          2145
+          2151
         </td>
         <td>
           Apply
@@ -709,40 +707,19 @@
           io.vertx.lang.scala.json.Json.obj
         </td>
         <td style="background: #AEF1AE">
-          io.vertx.lang.scala.json.Json.obj(scala.Tuple2.apply[String, String](Room.this.FIELD_IDENTIFIER, RichRoom.this.room.identifier), scala.Tuple2.apply[String, String](Room.this.FIELD_NAME, RichRoom.this.room.name), scala.Tuple2.apply[String, Int](Room.this.FIELD_NEEDED_PLAYERS, RichRoom.this.room.neededPlayersNumber), scala.Tuple2.apply[String, Any](Room.this.FIELD_PARTICIPANTS, RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject])))
+          io.vertx.lang.scala.json.Json.obj(scala.Tuple2.apply[String, String](Room.this.FIELD_IDENTIFIER, RichRoom.this.room.identifier), scala.Tuple2.apply[String, String](Room.this.FIELD_NAME, RichRoom.this.room.name), scala.Tuple2.apply[String, Int](Room.this.FIELD_NEEDED_PLAYERS, RichRoom.this.room.neededPlayersNumber), scala.Tuple2.apply[String, Any](Room.this.FIELD_PARTICIPANTS, RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; it.cwmp.model.Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject])))
         </td>
       </tr><tr>
         <td>
           75
         </td>
         <td>
-          86
+          83
         </td>
         <td>
-          1908
+          1933
           -
-          1943
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple2.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Tuple2.apply[String, String](Room.this.FIELD_IDENTIFIER, RichRoom.this.room.identifier)
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          85
-        </td>
-        <td>
-          1927
-          -
-          1942
+          1948
         </td>
         <td>
           Select
@@ -758,12 +735,12 @@
           75
         </td>
         <td>
-          84
+          82
         </td>
         <td>
-          1909
+          1915
           -
-          1925
+          1931
         </td>
         <td>
           Select
@@ -776,15 +753,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          75
         </td>
         <td>
-          89
+          84
         </td>
         <td>
-          1955
+          1914
           -
-          1978
+          1949
         </td>
         <td>
           Apply
@@ -793,19 +770,19 @@
           scala.Tuple2.apply
         </td>
         <td style="background: #AEF1AE">
-          scala.Tuple2.apply[String, String](Room.this.FIELD_NAME, RichRoom.this.room.name)
+          scala.Tuple2.apply[String, String](Room.this.FIELD_IDENTIFIER, RichRoom.this.room.identifier)
         </td>
       </tr><tr>
         <td>
           76
         </td>
         <td>
-          88
+          86
         </td>
         <td>
-          1968
+          1974
           -
-          1977
+          1983
         </td>
         <td>
           Select
@@ -821,12 +798,12 @@
           76
         </td>
         <td>
-          87
+          85
         </td>
         <td>
-          1956
+          1962
           -
-          1966
+          1972
         </td>
         <td>
           Select
@@ -839,15 +816,15 @@
         </td>
       </tr><tr>
         <td>
-          77
+          76
         </td>
         <td>
-          92
+          87
         </td>
         <td>
-          1990
+          1961
           -
-          2038
+          1984
         </td>
         <td>
           Apply
@@ -856,19 +833,19 @@
           scala.Tuple2.apply
         </td>
         <td style="background: #AEF1AE">
-          scala.Tuple2.apply[String, Int](Room.this.FIELD_NEEDED_PLAYERS, RichRoom.this.room.neededPlayersNumber)
+          scala.Tuple2.apply[String, String](Room.this.FIELD_NAME, RichRoom.this.room.name)
         </td>
       </tr><tr>
         <td>
           77
         </td>
         <td>
-          91
+          89
         </td>
         <td>
-          2013
+          2019
           -
-          2037
+          2043
         </td>
         <td>
           Select
@@ -884,12 +861,12 @@
           77
         </td>
         <td>
-          90
+          88
         </td>
         <td>
-          1991
+          1997
           -
-          2011
+          2017
         </td>
         <td>
           Select
@@ -902,57 +879,15 @@
         </td>
       </tr><tr>
         <td>
-          78
+          77
         </td>
         <td>
-          95
+          90
         </td>
         <td>
-          2088
+          1996
           -
-          2088
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject]
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          94
-        </td>
-        <td>
-          2116
-          -
-          2134
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Participant.Converters.RichParticipant.toJson
-        </td>
-        <td style="background: #AEF1AE">
-          Participant.Converters.RichParticipant(participant).toJson
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          97
-        </td>
-        <td>
-          2050
-          -
-          2135
+          2044
         </td>
         <td>
           Apply
@@ -961,40 +896,61 @@
           scala.Tuple2.apply
         </td>
         <td style="background: #AEF1AE">
-          scala.Tuple2.apply[String, Any](Room.this.FIELD_PARTICIPANTS, RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject]))
+          scala.Tuple2.apply[String, Int](Room.this.FIELD_NEEDED_PLAYERS, RichRoom.this.room.neededPlayersNumber)
         </td>
       </tr><tr>
         <td>
           78
         </td>
         <td>
-          96
+          92
         </td>
         <td>
-          2071
+          2122
           -
-          2134
+          2140
         </td>
         <td>
-          ApplyToImplicitArgs
+          Select
         </td>
         <td>
-          scala.collection.TraversableLike.map
+          it.cwmp.model.Participant.Converters.RichParticipant.toJson
         </td>
         <td style="background: #AEF1AE">
-          RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject])
+          it.cwmp.model.Participant.Converters.RichParticipant(participant).toJson
         </td>
       </tr><tr>
         <td>
           78
         </td>
         <td>
-          93
+          95
         </td>
         <td>
-          2051
+          2056
           -
-          2069
+          2141
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, Any](Room.this.FIELD_PARTICIPANTS, RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; it.cwmp.model.Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject]))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          2057
+          -
+          2075
         </td>
         <td>
           Select
@@ -1007,36 +963,57 @@
         </td>
       </tr><tr>
         <td>
-          88
+          78
         </td>
         <td>
-          101
+          94
         </td>
         <td>
-          2357
+          2077
           -
-          2390
+          2140
         </td>
         <td>
-          Apply
+          ApplyToImplicitArgs
         </td>
         <td>
-          io.vertx.core.json.JsonObject.containsKey
+          scala.collection.TraversableLike.map
         </td>
         <td style="background: #AEF1AE">
-          JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NAME)
+          RichRoom.this.room.participants.map[io.vertx.lang.scala.json.JsonObject, Any](((participant: it.cwmp.model.Participant) =&gt; it.cwmp.model.Participant.Converters.RichParticipant(participant).toJson))(collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject])
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          2094
+          -
+          2094
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[io.vertx.lang.scala.json.JsonObject]
         </td>
       </tr><tr>
         <td>
           88
         </td>
         <td>
-          100
+          98
         </td>
         <td>
-          2380
+          2386
           -
-          2390
+          2396
         </td>
         <td>
           Select
@@ -1052,12 +1029,12 @@
           88
         </td>
         <td>
-          99
+          97
         </td>
         <td>
-          2335
+          2341
           -
-          2351
+          2357
         </td>
         <td>
           Select
@@ -1070,57 +1047,36 @@
         </td>
       </tr><tr>
         <td>
-          89
+          88
         </td>
         <td>
-          104
+          99
         </td>
         <td>
-          2478
+          2363
           -
-          2496
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_PARTICIPANTS
-        </td>
-        <td style="background: #AEF1AE">
-          Room.this.FIELD_PARTICIPANTS
-        </td>
-      </tr><tr>
-        <td>
-          89
-        </td>
-        <td>
-          106
-        </td>
-        <td>
-          2311
-          -
-          2497
+          2396
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Boolean.&amp;&amp;
+          io.vertx.core.json.JsonObject.containsKey
         </td>
         <td style="background: #AEF1AE">
-          JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_IDENTIFIER).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NAME)).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NEEDED_PLAYERS)).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_PARTICIPANTS))
+          JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NAME)
         </td>
       </tr><tr>
         <td>
           89
         </td>
         <td>
-          103
+          101
         </td>
         <td>
-          2406
+          2412
           -
-          2449
+          2455
         </td>
         <td>
           Apply
@@ -1136,12 +1092,33 @@
           89
         </td>
         <td>
-          120
+          104
         </td>
         <td>
-          2499
+          2317
           -
-          2966
+          2503
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #AEF1AE">
+          JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_IDENTIFIER).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NAME)).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_NEEDED_PLAYERS)).&amp;&amp;(JsonRoomConverter.this.jsonObject.containsKey(Room.this.FIELD_PARTICIPANTS))
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          2505
+          -
+          2914
         </td>
         <td>
           Block
@@ -1152,12 +1129,9 @@
         <td style="background: #AEF1AE">
           {
   var userSeq: Seq[it.cwmp.model.Participant] = scala.collection.Seq.apply[it.cwmp.model.Participant]();
-  JsonRoomConverter.this.jsonObject.getJsonArray(Room.this.FIELD_PARTICIPANTS).forEach(((jsonUser: Object) =&gt; {
-    import Participant.Converters._;
-    userSeq = {
-      &lt;synthetic&gt; &lt;artifact&gt; val x$1: it.cwmp.model.Participant = Participant.Converters.JsonParticipantConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonUser.toString())).toParticipant;
-      userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
-    }
+  JsonRoomConverter.this.jsonObject.getJsonArray(Room.this.FIELD_PARTICIPANTS).forEach(((jsonUser: Object) =&gt; userSeq = {
+    &lt;synthetic&gt; &lt;artifact&gt; val x$1: it.cwmp.model.Participant = it.cwmp.model.Participant.Converters.JsonParticipantConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonUser.toString())).toParticipant;
+    userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
   }));
   Room.apply(JsonRoomConverter.this.jsonObject.getString(Room.this.FIELD_IDENTIFIER), JsonRoomConverter.this.jsonObject.getString(Room.this.FIELD_NAME), scala.Predef.Integer2int(JsonRoomConverter.this.jsonObject.getInteger(Room.this.FIELD_NEEDED_PLAYERS)), userSeq)
 }
@@ -1167,12 +1141,33 @@
           89
         </td>
         <td>
-          105
+          100
         </td>
         <td>
-          2455
+          2435
           -
-          2496
+          2455
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          Room.this.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          2461
+          -
+          2502
         </td>
         <td>
           Apply
@@ -1191,30 +1186,30 @@
           102
         </td>
         <td>
-          2429
+          2484
           -
-          2449
+          2502
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          it.cwmp.model.Room.FIELD_PARTICIPANTS
         </td>
         <td style="background: #AEF1AE">
-          Room.this.FIELD_NEEDED_PLAYERS
+          Room.this.FIELD_PARTICIPANTS
         </td>
       </tr><tr>
         <td>
           91
         </td>
         <td>
-          107
+          105
         </td>
         <td>
-          2526
+          2532
           -
-          2544
+          2550
         </td>
         <td>
           Apply
@@ -1230,12 +1225,12 @@
           92
         </td>
         <td>
-          108
+          106
         </td>
         <td>
-          2579
+          2585
           -
-          2597
+          2603
         </td>
         <td>
           Select
@@ -1251,12 +1246,12 @@
           92
         </td>
         <td>
-          111
+          109
         </td>
         <td>
-          2555
+          2561
           -
-          2766
+          2714
         </td>
         <td>
           Apply
@@ -1265,46 +1260,22 @@
           java.lang.Iterable.forEach
         </td>
         <td style="background: #AEF1AE">
-          JsonRoomConverter.this.jsonObject.getJsonArray(Room.this.FIELD_PARTICIPANTS).forEach(((jsonUser: Object) =&gt; {
-  import Participant.Converters._;
-  userSeq = {
-    &lt;synthetic&gt; &lt;artifact&gt; val x$1: it.cwmp.model.Participant = Participant.Converters.JsonParticipantConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonUser.toString())).toParticipant;
-    userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
-  }
+          JsonRoomConverter.this.jsonObject.getJsonArray(Room.this.FIELD_PARTICIPANTS).forEach(((jsonUser: Object) =&gt; userSeq = {
+  &lt;synthetic&gt; &lt;artifact&gt; val x$1: it.cwmp.model.Participant = it.cwmp.model.Participant.Converters.JsonParticipantConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonUser.toString())).toParticipant;
+  userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
 }))
         </td>
       </tr><tr>
         <td>
-          94
+          93
         </td>
         <td>
-          110
+          107
         </td>
         <td>
-          2743
+          2703
           -
-          2753
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.SeqLike.+:
-        </td>
-        <td style="background: #AEF1AE">
-          userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          109
-        </td>
-        <td>
-          2743
-          -
-          2743
+          2703
         </td>
         <td>
           TypeApply
@@ -1317,15 +1288,36 @@
         </td>
       </tr><tr>
         <td>
-          97
+          93
         </td>
         <td>
-          119
+          108
         </td>
         <td>
-          2778
+          2703
           -
-          2956
+          2713
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SeqLike.+:
+        </td>
+        <td style="background: #AEF1AE">
+          userSeq.+:[it.cwmp.model.Participant, Seq[it.cwmp.model.Participant]](x$1)(collection.this.Seq.canBuildFrom[it.cwmp.model.Participant])
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          2726
+          -
+          2904
         </td>
         <td>
           Apply
@@ -1338,36 +1330,15 @@
         </td>
       </tr><tr>
         <td>
-          98
+          96
         </td>
         <td>
-          113
+          110
         </td>
         <td>
-          2796
+          2765
           -
-          2833
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.core.json.JsonObject.getString
-        </td>
-        <td style="background: #AEF1AE">
-          JsonRoomConverter.this.jsonObject.getString(Room.this.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          98
-        </td>
-        <td>
-          112
-        </td>
-        <td>
-          2817
-          -
-          2833
+          2781
         </td>
         <td>
           Select
@@ -1380,15 +1351,36 @@
         </td>
       </tr><tr>
         <td>
-          99
+          96
         </td>
         <td>
-          115
+          111
         </td>
         <td>
-          2847
+          2744
           -
-          2878
+          2781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getString
+        </td>
+        <td style="background: #AEF1AE">
+          JsonRoomConverter.this.jsonObject.getString(Room.this.FIELD_IDENTIFIER)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          2795
+          -
+          2826
         </td>
         <td>
           Apply
@@ -1401,15 +1393,15 @@
         </td>
       </tr><tr>
         <td>
-          99
+          97
         </td>
         <td>
-          114
+          112
         </td>
         <td>
-          2868
+          2816
           -
-          2878
+          2826
         </td>
         <td>
           Select
@@ -1422,36 +1414,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          98
         </td>
         <td>
           116
         </td>
         <td>
-          2914
+          2840
           -
-          2934
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-        <td style="background: #AEF1AE">
-          Room.this.FIELD_NEEDED_PLAYERS
-        </td>
-      </tr><tr>
-        <td>
-          100
-        </td>
-        <td>
-          118
-        </td>
-        <td>
-          2892
-          -
-          2934
+          2882
         </td>
         <td>
           ApplyImplicitView
@@ -1464,15 +1435,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          98
         </td>
         <td>
-          117
+          115
         </td>
         <td>
-          2892
+          2840
           -
-          2934
+          2882
         </td>
         <td>
           Apply
@@ -1485,36 +1456,36 @@
         </td>
       </tr><tr>
         <td>
-          103
+          98
         </td>
         <td>
-          122
+          114
         </td>
         <td>
-          2984
+          2862
           -
-          3194
+          2882
         </td>
         <td>
-          Block
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
         </td>
-        <td style="background: #F0ADAD">
-          throw it.cwmp.utils.Utils.parseException(&quot;Room Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain one or more of: &quot;).s().+(scala.StringContext.apply(&quot;&quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Room.this.FIELD_IDENTIFIER, Room.this.FIELD_NAME, Room.this.FIELD_NEEDED_PLAYERS, Room.this.FIELD_PARTICIPANTS, JsonRoomConverter.this.jsonObject.encodePrettily())))
+        <td style="background: #AEF1AE">
+          Room.this.FIELD_NEEDED_PLAYERS
         </td>
       </tr><tr>
         <td>
-          103
+          101
         </td>
         <td>
-          121
+          119
         </td>
         <td>
-          2984
+          2932
           -
-          3194
+          3142
         </td>
         <td>
           Throw
@@ -1522,7 +1493,28 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
+          throw it.cwmp.utils.Utils.parseException(&quot;Room Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain one or more of: &quot;).s().+(scala.StringContext.apply(&quot;&quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Room.this.FIELD_IDENTIFIER, Room.this.FIELD_NAME, Room.this.FIELD_NEEDED_PLAYERS, Room.this.FIELD_PARTICIPANTS, JsonRoomConverter.this.jsonObject.encodePrettily())))
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          2932
+          -
+          3142
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
           throw it.cwmp.utils.Utils.parseException(&quot;Room Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain one or more of: &quot;).s().+(scala.StringContext.apply(&quot;&quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Room.this.FIELD_IDENTIFIER, Room.this.FIELD_NAME, Room.this.FIELD_NEEDED_PLAYERS, Room.this.FIELD_PARTICIPANTS, JsonRoomConverter.this.jsonObject.encodePrettily())))
         </td>
       </tr>

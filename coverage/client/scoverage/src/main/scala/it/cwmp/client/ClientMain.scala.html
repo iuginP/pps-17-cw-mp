@@ -36,7 +36,7 @@
 </span>12 <span style=''>
 </span>13 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
 </span>14 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
-</span>15 <span style=''>  val clientControllerActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[ClientControllerActor], system), ClientControllerActor.getClass.getName)</span><span style=''>
+</span>15 <span style=''>  val clientControllerActor = </span><span style='background: #F0ADAD'>system.actorOf(Props[ClientControllerActor], ClientControllerActor.getClass.getName)</span><span style=''>
 </span>16 <span style=''>}
 </span></pre>
           </div>
@@ -204,39 +204,18 @@
           8
         </td>
         <td>
-          475
+          469
           -
-          505
+          497
         </td>
         <td>
-          Literal
+          ApplyToImplicitArgs
         </td>
         <td>
-          &lt;nosymbol&gt;
+          akka.actor.Props.apply
         </td>
         <td style="background: #F0ADAD">
-          classOf[it.cwmp.client.controller.ClientControllerActor]
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          11
-        </td>
-        <td>
-          516
-          -
-          554
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Class.getName
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerActor.getClass().getName()
+          akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor]()((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor]))
         </td>
       </tr><tr>
         <td>
@@ -246,18 +225,18 @@
           10
         </td>
         <td>
-          469
+          454
           -
-          514
+          538
         </td>
         <td>
           Apply
         </td>
         <td>
-          akka.actor.Props.apply
+          akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          akka.actor.Props.apply(classOf[it.cwmp.client.controller.ClientControllerActor], ClientMain.this.system)
+          ClientMain.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor]()((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor])), it.cwmp.client.controller.ClientControllerActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
@@ -267,39 +246,18 @@
           9
         </td>
         <td>
-          507
+          499
           -
-          513
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.ClientMain.system
-        </td>
-        <td style="background: #F0ADAD">
-          ClientMain.this.system
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          12
-        </td>
-        <td>
-          454
-          -
-          555
+          537
         </td>
         <td>
           Apply
         </td>
         <td>
-          akka.actor.ActorRefFactory.actorOf
+          java.lang.Class.getName
         </td>
         <td style="background: #F0ADAD">
-          ClientMain.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.controller.ClientControllerActor], ClientMain.this.system), it.cwmp.client.controller.ClientControllerActor.getClass().getName())
+          it.cwmp.client.controller.ClientControllerActor.getClass().getName()
         </td>
       </tr>
     </table>

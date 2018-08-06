@@ -44,12 +44,12 @@
 </span>20 <span style=''>  val FIELD_ADDRESS = </span><span style='background: #AEF1AE'>&quot;user_address&quot;</span><span style=''>
 </span>21 <span style=''>
 </span>22 <span style=''>  def apply(address: String): Address = {
-</span>23 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(address), </span><span style='background: #F0ADAD'>&quot;Address should not be empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(address), &quot;Address should not be empty&quot;)</span><span style=''>
 </span>24 <span style=''>    </span><span style='background: #AEF1AE'>AddressDefault(address)</span><span style=''>
 </span>25 <span style=''>  }
 </span>26 <span style=''>
 </span>27 <span style=''>  def unapply(toExtract: Address): Option[String] =
-</span>28 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract eq null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.address)</span><span style=''>
+</span>28 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract == null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.address)</span><span style=''>
 </span>29 <span style=''>
 </span>30 <span style=''>  /**
 </span>31 <span style=''>    * Default implementation of Address
@@ -76,7 +76,7 @@
 </span>52 <span style=''>    implicit class JsonToAddressConverter(json: JsonObject) {
 </span>53 <span style=''>      def toAddress: Address = {
 </span>54 <span style=''>        if (</span><span style='background: #AEF1AE'>json containsKey FIELD_ADDRESS</span><span style=''>) </span><span style='background: #AEF1AE'>Address(json.getString(FIELD_ADDRESS))</span><span style=''>
-</span>55 <span style=''>        else </span><span style='background: #F0ADAD'>throw parseException(&quot;Address Parsing&quot;, s&quot;The input doesn't contain $FIELD_ADDRESS --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
+</span>55 <span style=''>        else </span><span style='background: #AEF1AE'>throw parseException(&quot;Address Parsing&quot;, s&quot;The input doesn't contain $FIELD_ADDRESS --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
 </span>56 <span style=''>      }
 </span>57 <span style=''>    }
 </span>58 <span style=''>
@@ -133,7 +133,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Address should not be empty&quot;
         </td>
       </tr><tr>
@@ -215,10 +215,10 @@
           Apply
         </td>
         <td>
-          java.lang.Object.eq
+          java.lang.Object.==
         </td>
         <td style="background: #F0ADAD">
-          toExtract.eq(null)
+          toExtract.==(null)
         </td>
       </tr><tr>
         <td>
@@ -553,7 +553,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           throw it.cwmp.utils.Utils.parseException(&quot;Address Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.this.FIELD_ADDRESS, JsonToAddressConverter.this.json.encodePrettily()))
         </td>
       </tr><tr>
@@ -574,7 +574,7 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           throw it.cwmp.utils.Utils.parseException(&quot;Address Parsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.this.FIELD_ADDRESS, JsonToAddressConverter.this.json.encodePrettily()))
         </td>
       </tr>

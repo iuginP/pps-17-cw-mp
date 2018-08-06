@@ -53,7 +53,7 @@
 </span>29 <span style=''>    */
 </span>30 <span style=''>  def drawCell(cell: CellView): Region = {
 </span>31 <span style=''>    val svg = </span><span style='background: #F0ADAD'>new SVGPath</span><span style=''>
-</span>32 <span style=''>    </span><span style='background: #F0ADAD'>svg.setContent(CellView.CELL_VIEW_DEFAULT_SHAPE)</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>svg.setContent(CellView.CELL_VIEW_DEFAULT_SVG_SHAPE)</span><span style=''>
 </span>33 <span style=''>    val svgShape = </span><span style='background: #F0ADAD'>new Region</span><span style=''>
 </span>34 <span style=''>    </span><span style='background: #F0ADAD'>svgShape.setShape(svg)</span><span style=''>
 </span>35 <span style=''>    </span><span style='background: #F0ADAD'>svgShape.setBorder(cell.border)</span><span style=''>
@@ -158,7 +158,7 @@
           22
         </td>
         <td>
-          1019
+          1152
         </td>
         <td>
           547
@@ -179,7 +179,7 @@
           31
         </td>
         <td>
-          1020
+          1153
         </td>
         <td>
           729
@@ -200,12 +200,33 @@
           32
         </td>
         <td>
-          1022
+          1154
+        </td>
+        <td>
+          760
+          -
+          796
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SVG_SHAPE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SVG_SHAPE
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1155
         </td>
         <td>
           745
           -
-          793
+          797
         </td>
         <td>
           Apply
@@ -214,40 +235,19 @@
           javafx.scene.shape.SVGPath.setContent
         </td>
         <td style="background: #F0ADAD">
-          svg.setContent(it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SHAPE)
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          1021
-        </td>
-        <td>
-          760
-          -
-          792
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SHAPE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SHAPE
+          svg.setContent(it.cwmp.client.view.game.model.CellView.CELL_VIEW_DEFAULT_SVG_SHAPE)
         </td>
       </tr><tr>
         <td>
           33
         </td>
         <td>
-          1023
+          1156
         </td>
         <td>
-          813
+          817
           -
-          823
+          827
         </td>
         <td>
           Apply
@@ -263,12 +263,12 @@
           34
         </td>
         <td>
-          1024
+          1157
         </td>
         <td>
-          828
+          832
           -
-          850
+          854
         </td>
         <td>
           Apply
@@ -284,33 +284,12 @@
           35
         </td>
         <td>
-          1025
+          1159
         </td>
         <td>
-          874
+          859
           -
-          885
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.border
-        </td>
-        <td style="background: #F0ADAD">
-          cell.border
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          1026
-        </td>
-        <td>
-          855
-          -
-          886
+          890
         </td>
         <td>
           Apply
@@ -323,15 +302,36 @@
         </td>
       </tr><tr>
         <td>
+          35
+        </td>
+        <td>
+          1158
+        </td>
+        <td>
+          878
+          -
+          889
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.CellView.border
+        </td>
+        <td style="background: #F0ADAD">
+          cell.border
+        </td>
+      </tr><tr>
+        <td>
           36
         </td>
         <td>
-          1028
+          1160
         </td>
         <td>
-          929
+          916
           -
-          944
+          931
         </td>
         <td>
           Apply
@@ -347,33 +347,12 @@
           36
         </td>
         <td>
-          1027
+          1162
         </td>
         <td>
-          912
+          895
           -
-          927
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.*
-        </td>
-        <td style="background: #F0ADAD">
-          cell.radius.*(2)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1029
-        </td>
-        <td>
-          891
-          -
-          945
+          949
         </td>
         <td>
           Apply
@@ -386,36 +365,57 @@
         </td>
       </tr><tr>
         <td>
-          37
+          36
         </td>
         <td>
-          1031
+          1161
         </td>
         <td>
-          1015
+          933
           -
-          1025
+          948
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.color
+          scala.Double.*
         </td>
         <td style="background: #F0ADAD">
-          cell.color
+          cell.radius.*(2)
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          1034
+          1165
         </td>
         <td>
-          950
+          1000
           -
-          1027
+          1030
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellWorldObjectDrawer.getHexDecimalColor
+        </td>
+        <td style="background: #F0ADAD">
+          CellWorldObjectDrawer.this.getHexDecimalColor(cell.color)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1167
+        </td>
+        <td>
+          954
+          -
+          1031
         </td>
         <td>
           Apply
@@ -431,33 +431,33 @@
           37
         </td>
         <td>
-          1033
+          1164
         </td>
         <td>
-          968
+          1019
           -
-          1026
+          1029
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          java.lang.String.+
+          it.cwmp.client.view.game.model.CellView.color
         </td>
         <td style="background: #F0ADAD">
-          &quot;-fx-background-color: #&quot;.+(CellWorldObjectDrawer.this.getHexDecimalColor(cell.color))
+          cell.color
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          1030
+          1163
         </td>
         <td>
-          968
+          972
           -
-          993
+          997
         </td>
         <td>
           Literal
@@ -473,54 +473,33 @@
           37
         </td>
         <td>
-          1032
+          1166
         </td>
         <td>
-          996
+          972
           -
-          1026
+          1030
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.CellWorldObjectDrawer.getHexDecimalColor
+          java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          CellWorldObjectDrawer.this.getHexDecimalColor(cell.color)
+          &quot;-fx-background-color: #&quot;.+(CellWorldObjectDrawer.this.getHexDecimalColor(cell.color))
         </td>
       </tr><tr>
         <td>
           38
         </td>
         <td>
-          1037
+          1169
         </td>
         <td>
-          1032
+          1056
           -
-          1080
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.Node.setLayoutX
-        </td>
-        <td style="background: #F0ADAD">
-          svgShape.setLayoutX(cell.center.x.-(cell.radius))
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          1036
-        </td>
-        <td>
-          1052
-          -
-          1079
+          1083
         </td>
         <td>
           Apply
@@ -536,12 +515,54 @@
           38
         </td>
         <td>
-          1035
+          1168
         </td>
         <td>
-          1068
+          1072
           -
-          1079
+          1083
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.CellView.radius
+        </td>
+        <td style="background: #F0ADAD">
+          cell.radius
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          1170
+        </td>
+        <td>
+          1036
+          -
+          1084
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setLayoutX
+        </td>
+        <td style="background: #F0ADAD">
+          svgShape.setLayoutX(cell.center.x.-(cell.radius))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1171
+        </td>
+        <td>
+          1125
+          -
+          1136
         </td>
         <td>
           Select
@@ -557,12 +578,12 @@
           39
         </td>
         <td>
-          1040
+          1173
         </td>
         <td>
-          1085
+          1089
           -
-          1133
+          1137
         </td>
         <td>
           Apply
@@ -578,12 +599,12 @@
           39
         </td>
         <td>
-          1039
+          1172
         </td>
         <td>
-          1105
+          1109
           -
-          1132
+          1136
         </td>
         <td>
           Apply
@@ -596,57 +617,15 @@
         </td>
       </tr><tr>
         <td>
-          39
-        </td>
-        <td>
-          1038
-        </td>
-        <td>
-          1121
-          -
-          1132
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.radius
-        </td>
-        <td style="background: #F0ADAD">
-          cell.radius
-        </td>
-      </tr><tr>
-        <td>
           50
         </td>
         <td>
-          1042
+          1174
         </td>
         <td>
-          1375
+          1388
           -
-          1411
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.text.Text.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.scene.text.Text(cell.energy.toInt.toString())
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          1041
-        </td>
-        <td>
-          1384
-          -
-          1410
+          1414
         </td>
         <td>
           Apply
@@ -659,36 +638,36 @@
         </td>
       </tr><tr>
         <td>
-          51
+          50
         </td>
         <td>
-          1043
+          1175
         </td>
         <td>
-          1435
+          1379
           -
-          1463
+          1415
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.ENERGY_DEFAULT_FONT
+          javafx.scene.text.Text.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.CellView.ENERGY_DEFAULT_FONT
+          new javafx.scene.text.Text(cell.energy.toInt.toString())
         </td>
       </tr><tr>
         <td>
           51
         </td>
         <td>
-          1044
+          1177
         </td>
         <td>
-          1416
+          1420
           -
-          1464
+          1468
         </td>
         <td>
           Apply
@@ -701,36 +680,36 @@
         </td>
       </tr><tr>
         <td>
-          52
+          51
         </td>
         <td>
-          1046
+          1176
         </td>
         <td>
-          1469
+          1439
           -
-          1509
+          1467
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          javafx.scene.shape.Shape.setFill
+          it.cwmp.client.view.game.model.CellView.ENERGY_DEFAULT_FONT
         </td>
         <td style="background: #F0ADAD">
-          energyText.setFill(cell.energyTextColor)
+          it.cwmp.client.view.game.model.CellView.ENERGY_DEFAULT_FONT
         </td>
       </tr><tr>
         <td>
           52
         </td>
         <td>
-          1045
+          1178
         </td>
         <td>
-          1488
+          1492
           -
-          1508
+          1512
         </td>
         <td>
           Select
@@ -743,15 +722,57 @@
         </td>
       </tr><tr>
         <td>
+          52
+        </td>
+        <td>
+          1179
+        </td>
+        <td>
+          1473
+          -
+          1513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.shape.Shape.setFill
+        </td>
+        <td style="background: #F0ADAD">
+          energyText.setFill(cell.energyTextColor)
+        </td>
+      </tr><tr>
+        <td>
           53
         </td>
         <td>
-          1049
+          1180
         </td>
         <td>
-          1514
+          1551
           -
-          1588
+          1590
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double./
+        </td>
+        <td style="background: #F0ADAD">
+          energyText.getLayoutBounds().getWidth()./(2)
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          1182
+        </td>
+        <td>
+          1518
+          -
+          1592
         </td>
         <td>
           Apply
@@ -767,12 +788,12 @@
           53
         </td>
         <td>
-          1048
+          1181
         </td>
         <td>
-          1530
+          1534
           -
-          1587
+          1591
         </td>
         <td>
           Apply
@@ -785,15 +806,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          54
         </td>
         <td>
-          1047
+          1183
         </td>
         <td>
-          1547
+          1630
           -
-          1586
+          1670
         </td>
         <td>
           Apply
@@ -802,19 +823,19 @@
           scala.Double./
         </td>
         <td style="background: #F0ADAD">
-          energyText.getLayoutBounds().getWidth()./(2)
+          energyText.getLayoutBounds().getHeight()./(2)
         </td>
       </tr><tr>
         <td>
           54
         </td>
         <td>
-          1052
+          1185
         </td>
         <td>
-          1593
+          1597
           -
-          1668
+          1672
         </td>
         <td>
           Apply
@@ -830,12 +851,12 @@
           54
         </td>
         <td>
-          1051
+          1184
         </td>
         <td>
-          1609
+          1613
           -
-          1667
+          1671
         </td>
         <td>
           Apply
@@ -848,36 +869,15 @@
         </td>
       </tr><tr>
         <td>
-          54
-        </td>
-        <td>
-          1050
-        </td>
-        <td>
-          1626
-          -
-          1666
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double./
-        </td>
-        <td style="background: #F0ADAD">
-          energyText.getLayoutBounds().getHeight()./(2)
-        </td>
-      </tr><tr>
-        <td>
           65
         </td>
         <td>
-          1053
+          1186
         </td>
         <td>
-          1902
+          1906
           -
-          1912
+          1916
         </td>
         <td>
           Apply
@@ -893,33 +893,12 @@
           66
         </td>
         <td>
-          1055
+          1187
         </td>
         <td>
-          1917
+          1936
           -
-          1947
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.shape.Shape.setStroke
-        </td>
-        <td style="background: #F0ADAD">
-          line.setStroke(tentacle.color)
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          1054
-        </td>
-        <td>
-          1932
-          -
-          1946
+          1950
         </td>
         <td>
           Select
@@ -932,36 +911,36 @@
         </td>
       </tr><tr>
         <td>
-          67
+          66
         </td>
         <td>
-          1057
+          1188
         </td>
         <td>
-          1952
+          1921
           -
-          1991
+          1951
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.scene.shape.Shape.setStrokeWidth
+          javafx.scene.shape.Shape.setStroke
         </td>
         <td style="background: #F0ADAD">
-          line.setStrokeWidth(tentacle.thickness)
+          line.setStroke(tentacle.color)
         </td>
       </tr><tr>
         <td>
           67
         </td>
         <td>
-          1056
+          1189
         </td>
         <td>
-          1972
+          1976
           -
-          1990
+          1994
         </td>
         <td>
           Select
@@ -974,15 +953,36 @@
         </td>
       </tr><tr>
         <td>
+          67
+        </td>
+        <td>
+          1190
+        </td>
+        <td>
+          1956
+          -
+          1995
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.shape.Shape.setStrokeWidth
+        </td>
+        <td style="background: #F0ADAD">
+          line.setStrokeWidth(tentacle.thickness)
+        </td>
+      </tr><tr>
+        <td>
           69
         </td>
         <td>
-          1058
+          1191
         </td>
         <td>
-          2020
+          2024
           -
-          2039
+          2043
         </td>
         <td>
           Select
@@ -998,12 +998,12 @@
           70
         </td>
         <td>
-          1059
+          1192
         </td>
         <td>
-          2071
+          2075
           -
-          2092
+          2096
         </td>
         <td>
           Select
@@ -1019,12 +1019,12 @@
           71
         </td>
         <td>
-          1061
+          1194
         </td>
         <td>
-          2097
+          2101
           -
-          2131
+          2135
         </td>
         <td>
           Apply
@@ -1040,12 +1040,12 @@
           71
         </td>
         <td>
-          1060
+          1193
         </td>
         <td>
-          2112
+          2116
           -
-          2130
+          2134
         </td>
         <td>
           Select
@@ -1061,12 +1061,12 @@
           72
         </td>
         <td>
-          1063
+          1196
         </td>
         <td>
-          2136
+          2140
           -
-          2170
+          2174
         </td>
         <td>
           Apply
@@ -1082,12 +1082,12 @@
           72
         </td>
         <td>
-          1062
+          1195
         </td>
         <td>
-          2151
+          2155
           -
-          2169
+          2173
         </td>
         <td>
           Select
@@ -1103,33 +1103,12 @@
           73
         </td>
         <td>
-          1064
+          1198
         </td>
         <td>
-          2188
+          2179
           -
-          2210
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Int.toDouble
-        </td>
-        <td style="background: #F0ADAD">
-          tentacleReachedPoint.x.toDouble
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          1065
-        </td>
-        <td>
-          2175
-          -
-          2211
+          2215
         </td>
         <td>
           Apply
@@ -1142,15 +1121,36 @@
         </td>
       </tr><tr>
         <td>
+          73
+        </td>
+        <td>
+          1197
+        </td>
+        <td>
+          2192
+          -
+          2214
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          tentacleReachedPoint.x.toDouble
+        </td>
+      </tr><tr>
+        <td>
           74
         </td>
         <td>
-          1067
+          1200
         </td>
         <td>
-          2216
+          2220
           -
-          2252
+          2256
         </td>
         <td>
           Apply
@@ -1166,12 +1166,12 @@
           74
         </td>
         <td>
-          1066
+          1199
         </td>
         <td>
-          2229
+          2233
           -
-          2251
+          2255
         </td>
         <td>
           Select
@@ -1187,12 +1187,12 @@
           87
         </td>
         <td>
-          1068
+          1201
         </td>
         <td>
-          2649
+          2653
           -
-          2672
+          2676
         </td>
         <td>
           Select
@@ -1208,12 +1208,12 @@
           88
         </td>
         <td>
-          1069
+          1202
         </td>
         <td>
-          2719
+          2723
           -
-          2774
+          2778
         </td>
         <td>
           Apply
@@ -1229,33 +1229,12 @@
           90
         </td>
         <td>
-          1070
+          1204
         </td>
         <td>
-          2828
+          2806
           -
-          2852
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Some.apply[java.time.Instant](actualWorldInstant)
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          1071
-        </td>
-        <td>
-          2802
-          -
-          2852
+          2856
         </td>
         <td>
           Apply
@@ -1268,15 +1247,36 @@
         </td>
       </tr><tr>
         <td>
+          90
+        </td>
+        <td>
+          1203
+        </td>
+        <td>
+          2832
+          -
+          2856
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Some.apply[java.time.Instant](actualWorldInstant)
+        </td>
+      </tr><tr>
+        <td>
           91
         </td>
         <td>
-          1072
+          1205
         </td>
         <td>
-          2861
+          2865
           -
-          2882
+          2886
         </td>
         <td>
           Apply
@@ -1292,12 +1292,12 @@
           93
         </td>
         <td>
-          1073
+          1206
         </td>
         <td>
-          2907
+          2911
           -
-          2947
+          2951
         </td>
         <td>
           Apply
@@ -1313,12 +1313,12 @@
           94
         </td>
         <td>
-          1074
+          1207
         </td>
         <td>
-          2966
+          2970
           -
-          3006
+          3010
         </td>
         <td>
           Apply
@@ -1334,12 +1334,12 @@
           95
         </td>
         <td>
-          1076
+          1209
         </td>
         <td>
-          3029
+          3033
           -
-          3103
+          3107
         </td>
         <td>
           Apply
@@ -1355,12 +1355,12 @@
           95
         </td>
         <td>
-          1075
+          1208
         </td>
         <td>
-          3038
+          3042
           -
-          3102
+          3106
         </td>
         <td>
           Apply
@@ -1376,33 +1376,12 @@
           96
         </td>
         <td>
-          1078
+          1210
         </td>
         <td>
-          3108
+          3132
           -
-          3166
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.text.Text.setFont
-        </td>
-        <td style="background: #F0ADAD">
-          instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
-        </td>
-      </tr><tr>
-        <td>
-          96
-        </td>
-        <td>
-          1077
-        </td>
-        <td>
-          3128
-          -
-          3165
+          3169
         </td>
         <td>
           Select
@@ -1415,36 +1394,36 @@
         </td>
       </tr><tr>
         <td>
-          97
+          96
         </td>
         <td>
-          1079
+          1211
         </td>
         <td>
-          3191
+          3112
           -
-          3229
+          3170
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewConstants.GAME_TIME_TEXT_COLOR
+          javafx.scene.text.Text.setFont
         </td>
         <td style="background: #F0ADAD">
-          GameViewConstants.GAME_TIME_TEXT_COLOR
+          instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
         </td>
       </tr><tr>
         <td>
           97
         </td>
         <td>
-          1080
+          1213
         </td>
         <td>
-          3171
+          3175
           -
-          3230
+          3234
         </td>
         <td>
           Apply
@@ -1457,57 +1436,36 @@
         </td>
       </tr><tr>
         <td>
-          98
+          97
         </td>
         <td>
-          1082
+          1212
         </td>
         <td>
-          3296
+          3195
           -
-          3336
+          3233
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.Double./
+          it.cwmp.client.view.game.GameViewConstants.GAME_TIME_TEXT_COLOR
         </td>
         <td style="background: #F0ADAD">
-          instantText.getLayoutBounds().getWidth()./(2)
+          GameViewConstants.GAME_TIME_TEXT_COLOR
         </td>
       </tr><tr>
         <td>
           98
         </td>
         <td>
-          1084
+          1214
         </td>
         <td>
-          3235
+          3294
           -
-          3338
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.text.Text.setX
-        </td>
-        <td style="background: #F0ADAD">
-          instantText.setX(graphicsContext.getCanvas().getWidth()./(2).-(instantText.getLayoutBounds().getWidth()./(2)))
-        </td>
-      </tr><tr>
-        <td>
-          98
-        </td>
-        <td>
-          1081
-        </td>
-        <td>
-          3290
-          -
-          3291
+          3295
         </td>
         <td>
           Literal
@@ -1523,12 +1481,12 @@
           98
         </td>
         <td>
-          1083
+          1216
         </td>
         <td>
-          3252
+          3256
           -
-          3337
+          3341
         </td>
         <td>
           Apply
@@ -1541,36 +1499,57 @@
         </td>
       </tr><tr>
         <td>
-          99
+          98
         </td>
         <td>
-          1085
+          1215
         </td>
         <td>
-          3360
+          3300
           -
-          3397
+          3340
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.geometry.Bounds.getHeight
+          scala.Double./
         </td>
         <td style="background: #F0ADAD">
-          instantText.getLayoutBounds().getHeight()
+          instantText.getLayoutBounds().getWidth()./(2)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          1217
+        </td>
+        <td>
+          3239
+          -
+          3342
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.text.Text.setX
+        </td>
+        <td style="background: #F0ADAD">
+          instantText.setX(graphicsContext.getCanvas().getWidth()./(2).-(instantText.getLayoutBounds().getWidth()./(2)))
         </td>
       </tr><tr>
         <td>
           99
         </td>
         <td>
-          1086
+          1219
         </td>
         <td>
-          3343
+          3347
           -
-          3398
+          3402
         </td>
         <td>
           Apply
@@ -1583,15 +1562,57 @@
         </td>
       </tr><tr>
         <td>
+          99
+        </td>
+        <td>
+          1218
+        </td>
+        <td>
+          3364
+          -
+          3401
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.geometry.Bounds.getHeight
+        </td>
+        <td style="background: #F0ADAD">
+          instantText.getLayoutBounds().getHeight()
+        </td>
+      </tr><tr>
+        <td>
           110
         </td>
         <td>
-          1088
+          1222
         </td>
         <td>
-          3724
+          3754
           -
-          3748
+          3777
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Double.toFloat
+        </td>
+        <td style="background: #F0ADAD">
+          fxColor.getBlue().toFloat
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          1221
+        </td>
+        <td>
+          3728
+          -
+          3752
         </td>
         <td>
           Select
@@ -1607,12 +1628,12 @@
           110
         </td>
         <td>
-          1091
+          1224
         </td>
         <td>
-          3681
+          3685
           -
-          3802
+          3806
         </td>
         <td>
           Apply
@@ -1628,33 +1649,12 @@
           110
         </td>
         <td>
-          1087
+          1223
         </td>
         <td>
-          3700
+          3779
           -
-          3722
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Double.toFloat
-        </td>
-        <td style="background: #F0ADAD">
-          fxColor.getRed().toFloat
-        </td>
-      </tr><tr>
-        <td>
-          110
-        </td>
-        <td>
-          1090
-        </td>
-        <td>
-          3775
-          -
-          3801
+          3805
         </td>
         <td>
           Select
@@ -1670,12 +1670,12 @@
           110
         </td>
         <td>
-          1089
+          1220
         </td>
         <td>
-          3750
+          3704
           -
-          3773
+          3726
         </td>
         <td>
           Select
@@ -1684,19 +1684,19 @@
           scala.Double.toFloat
         </td>
         <td style="background: #F0ADAD">
-          fxColor.getBlue().toFloat
+          fxColor.getRed().toFloat
         </td>
       </tr><tr>
         <td>
           119
         </td>
         <td>
-          1092
+          1225
         </td>
         <td>
-          4059
+          4063
           -
-          4105
+          4109
         </td>
         <td>
           Apply

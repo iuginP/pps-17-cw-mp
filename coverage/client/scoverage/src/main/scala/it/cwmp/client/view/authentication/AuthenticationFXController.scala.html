@@ -57,77 +57,78 @@
 </span>33 <span style=''>    </span><span style='background: #F0ADAD'>super.showGUI()</span><span style=''>
 </span>34 <span style=''>    // adds a listener to reset fields on tab change
 </span>35 <span style=''>    </span><span style='background: #F0ADAD'>tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) =&gt; resetFields())</span><span style=''>
-</span>36 <span style=''>  }
-</span>37 <span style=''>
-</span>38 <span style=''>  override def resetFields(): Unit = {
-</span>39 <span style=''>    </span><span style='background: #F0ADAD'>tfSignInUsername setText &quot;&quot;</span><span style=''>
-</span>40 <span style=''>    </span><span style='background: #F0ADAD'>pfSignInPassword setText &quot;&quot;</span><span style=''>
-</span>41 <span style=''>    </span><span style='background: #F0ADAD'>tfSignUpUsername setText &quot;&quot;</span><span style=''>
-</span>42 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpPassword setText &quot;&quot;</span><span style=''>
-</span>43 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpConfirmPassword setText &quot;&quot;</span><span style=''>
-</span>44 <span style=''>  }
-</span>45 <span style=''>
-</span>46 <span style=''>  override def disableViewComponents(): Unit = {
-</span>47 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(true)</span><span style=''>
-</span>48 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(true)</span><span style=''>
-</span>49 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(true)</span><span style=''>
-</span>50 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(true)</span><span style=''>
-</span>51 <span style=''>  }
-</span>52 <span style=''>
-</span>53 <span style=''>  override def enableViewComponents(): Unit = {
-</span>54 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(false)</span><span style=''>
-</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(false)</span><span style=''>
-</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(false)</span><span style=''>
-</span>57 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(false)</span><span style=''>
-</span>58 <span style=''>  }
-</span>59 <span style=''>
-</span>60 <span style=''>  @FXML private def onClickSignIn(): Unit =
-</span>61 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
-</span>62 <span style=''></span><span style='background: #F0ADAD'>      for (
-</span>63 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
-</span>64 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignInPassword, PASSWORD_EMPTY_ERROR)
-</span>65 <span style=''></span><span style='background: #F0ADAD'>      ) yield
-</span>66 <span style=''></span><span style='background: #F0ADAD'>        strategy.performLogIn(username, password)
-</span>67 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>68 <span style=''>
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDefaultButton(true)</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  override def resetFields(): Unit = {
+</span>40 <span style=''>    </span><span style='background: #F0ADAD'>tfSignInUsername setText &quot;&quot;</span><span style=''>
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>pfSignInPassword setText &quot;&quot;</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>tfSignUpUsername setText &quot;&quot;</span><span style=''>
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpPassword setText &quot;&quot;</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>pfSignUpConfirmPassword setText &quot;&quot;</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  override def disableViewComponents(): Unit = {
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(true)</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(true)</span><span style=''>
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(true)</span><span style=''>
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(true)</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  override def enableViewComponents(): Unit = {
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnSignInReset.setDisable(false)</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnSignIn.setDisable(false)</span><span style=''>
+</span>57 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUpReset.setDisable(false)</span><span style=''>
+</span>58 <span style=''>    </span><span style='background: #F0ADAD'>btnSignUp.setDisable(false)</span><span style=''>
+</span>59 <span style=''>  }
+</span>60 <span style=''>
+</span>61 <span style=''>  @FXML private def onClickSignIn(): Unit =
+</span>62 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>64 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignInUsername, USERNAME_EMPTY_ERROR);
+</span>65 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignInPassword, PASSWORD_EMPTY_ERROR)
+</span>66 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>67 <span style=''></span><span style='background: #F0ADAD'>        strategy.performLogIn(username, password)
+</span>68 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
 </span>69 <span style=''>
-</span>70 <span style=''>  @FXML private def onClickSignUp(): Unit =
-</span>71 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
-</span>72 <span style=''></span><span style='background: #F0ADAD'>      for (
-</span>73 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
-</span>74 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignUpPassword, PASSWORD_EMPTY_ERROR);
-</span>75 <span style=''></span><span style='background: #F0ADAD'>        confirmPassword &lt;- getTextFieldValue(pfSignUpConfirmPassword, REPEAT_PASSWORD_EMPTY_ERROR)
-</span>76 <span style=''></span><span style='background: #F0ADAD'>      ) yield
-</span>77 <span style=''></span><span style='background: #F0ADAD'>        if (strategy.performPasswordCheck(password, confirmPassword)) {
-</span>78 <span style=''></span><span style='background: #F0ADAD'>          strategy.performSignUp(username, password)
-</span>79 <span style=''></span><span style='background: #F0ADAD'>        } else {
-</span>80 <span style=''></span><span style='background: #F0ADAD'>          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOES_NOT_MATCH)
-</span>81 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>82 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>83 <span style=''>
-</span>84 <span style=''>  @FXML private def onClickSignInReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
-</span>85 <span style=''>
-</span>86 <span style=''>  @FXML private def onClickSignUpReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
-</span>87 <span style=''>}
-</span>88 <span style=''>
-</span>89 <span style=''>/**
-</span>90 <span style=''>  * Companion object
-</span>91 <span style=''>  *
-</span>92 <span style=''>  * @author Elia Di Pasquale
-</span>93 <span style=''>  */
-</span>94 <span style=''>object AuthenticationFXController {
-</span>95 <span style=''>  def apply(strategy: AuthenticationStrategy): AuthenticationFXController = {
-</span>96 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The authentication strategy cannot be null&quot;)</span><span style=''>
-</span>97 <span style=''>    </span><span style='background: #F0ADAD'>new AuthenticationFXController(strategy)</span><span style=''>
-</span>98 <span style=''>  }
-</span>99 <span style=''>
-</span>100 <span style=''>  private val USERNAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire lo username&quot;</span><span style=''>
-</span>101 <span style=''>  private val PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire la password&quot;</span><span style=''>
-</span>102 <span style=''>  private val REPEAT_PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire nuovamente la password&quot;</span><span style=''>
-</span>103 <span style=''>  private val GIVEN_PASSWORD_DOES_NOT_MATCH = </span><span style='background: #F0ADAD'>&quot;Le password inserite non sono uguali!&quot;</span><span style=''>
-</span>104 <span style=''>
-</span>105 <span style=''>  private val ATTENTION_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Attenzione&quot;</span><span style=''>
-</span>106 <span style=''>}
+</span>70 <span style=''>
+</span>71 <span style=''>  @FXML private def onClickSignUp(): Unit =
+</span>72 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>74 <span style=''></span><span style='background: #F0ADAD'>        username &lt;- getTextFieldValue(tfSignUpUsername, USERNAME_EMPTY_ERROR);
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        password &lt;- getTextFieldValue(pfSignUpPassword, PASSWORD_EMPTY_ERROR);
+</span>76 <span style=''></span><span style='background: #F0ADAD'>        confirmPassword &lt;- getTextFieldValue(pfSignUpConfirmPassword, REPEAT_PASSWORD_EMPTY_ERROR)
+</span>77 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>78 <span style=''></span><span style='background: #F0ADAD'>        if (strategy.performPasswordCheck(password, confirmPassword)) {
+</span>79 <span style=''></span><span style='background: #F0ADAD'>          strategy.performSignUp(username, password)
+</span>80 <span style=''></span><span style='background: #F0ADAD'>        } else {
+</span>81 <span style=''></span><span style='background: #F0ADAD'>          showError(ATTENTION_MESSAGE, GIVEN_PASSWORD_DOES_NOT_MATCH)
+</span>82 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>83 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>84 <span style=''>
+</span>85 <span style=''>  @FXML private def onClickSignInReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>86 <span style=''>
+</span>87 <span style=''>  @FXML private def onClickSignUpReset(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>88 <span style=''>}
+</span>89 <span style=''>
+</span>90 <span style=''>/**
+</span>91 <span style=''>  * Companion object
+</span>92 <span style=''>  *
+</span>93 <span style=''>  * @author Elia Di Pasquale
+</span>94 <span style=''>  */
+</span>95 <span style=''>object AuthenticationFXController {
+</span>96 <span style=''>  def apply(strategy: AuthenticationStrategy): AuthenticationFXController = {
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The authentication strategy cannot be null&quot;)</span><span style=''>
+</span>98 <span style=''>    </span><span style='background: #F0ADAD'>new AuthenticationFXController(strategy)</span><span style=''>
+</span>99 <span style=''>  }
+</span>100 <span style=''>
+</span>101 <span style=''>  private val USERNAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire lo username&quot;</span><span style=''>
+</span>102 <span style=''>  private val PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire la password&quot;</span><span style=''>
+</span>103 <span style=''>  private val REPEAT_PASSWORD_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;È necessario inserire nuovamente la password&quot;</span><span style=''>
+</span>104 <span style=''>  private val GIVEN_PASSWORD_DOES_NOT_MATCH = </span><span style='background: #F0ADAD'>&quot;Le password inserite non sono uguali!&quot;</span><span style=''>
+</span>105 <span style=''>
+</span>106 <span style=''>  private val ATTENTION_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Attenzione&quot;</span><span style=''>
+</span>107 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -144,7 +145,7 @@
           17
         </td>
         <td>
-          934
+          1066
         </td>
         <td>
           642
@@ -165,7 +166,7 @@
           18
         </td>
         <td>
-          935
+          1067
         </td>
         <td>
           705
@@ -186,7 +187,7 @@
           33
         </td>
         <td>
-          936
+          1068
         </td>
         <td>
           1313
@@ -207,7 +208,7 @@
           35
         </td>
         <td>
-          938
+          1070
         </td>
         <td>
           1386
@@ -228,7 +229,7 @@
           35
         </td>
         <td>
-          937
+          1069
         </td>
         <td>
           1457
@@ -246,15 +247,36 @@
         </td>
       </tr><tr>
         <td>
-          39
+          36
         </td>
         <td>
-          939
+          1071
         </td>
         <td>
-          1520
+          1476
           -
-          1547
+          1508
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Button.setDefaultButton
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.btnSignIn.setDefaultButton(true)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          1072
+        </td>
+        <td>
+          1557
+          -
+          1584
         </td>
         <td>
           Apply
@@ -267,15 +289,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          41
         </td>
         <td>
-          940
+          1073
         </td>
         <td>
-          1552
+          1589
           -
-          1579
+          1616
         </td>
         <td>
           Apply
@@ -288,15 +310,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          42
         </td>
         <td>
-          941
+          1074
         </td>
         <td>
-          1584
+          1621
           -
-          1611
+          1648
         </td>
         <td>
           Apply
@@ -309,15 +331,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          43
         </td>
         <td>
-          942
+          1075
         </td>
         <td>
-          1616
+          1653
           -
-          1643
+          1680
         </td>
         <td>
           Apply
@@ -330,15 +352,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          44
         </td>
         <td>
-          943
+          1076
         </td>
         <td>
-          1648
+          1685
           -
-          1682
+          1719
         </td>
         <td>
           Apply
@@ -351,15 +373,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          944
+          1077
         </td>
         <td>
-          1741
+          1778
           -
-          1772
+          1809
         </td>
         <td>
           Apply
@@ -372,15 +394,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          945
+          1078
         </td>
         <td>
-          1777
+          1814
           -
-          1803
+          1840
         </td>
         <td>
           Apply
@@ -393,15 +415,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          946
+          1079
         </td>
         <td>
-          1808
+          1845
           -
-          1839
+          1876
         </td>
         <td>
           Apply
@@ -414,15 +436,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
-          947
+          1080
         </td>
         <td>
-          1844
+          1881
           -
-          1870
+          1907
         </td>
         <td>
           Apply
@@ -435,15 +457,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          55
         </td>
         <td>
-          948
+          1081
         </td>
         <td>
-          1928
+          1965
           -
-          1960
+          1997
         </td>
         <td>
           Apply
@@ -456,15 +478,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          56
         </td>
         <td>
-          949
+          1082
         </td>
         <td>
-          1965
+          2002
           -
-          1992
+          2029
         </td>
         <td>
           Apply
@@ -477,15 +499,15 @@
         </td>
       </tr><tr>
         <td>
-          56
+          57
         </td>
         <td>
-          950
+          1083
         </td>
         <td>
-          1997
+          2034
           -
-          2029
+          2066
         </td>
         <td>
           Apply
@@ -498,15 +520,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          58
         </td>
         <td>
-          951
+          1084
         </td>
         <td>
-          2034
+          2071
           -
-          2061
+          2098
         </td>
         <td>
           Apply
@@ -519,15 +541,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          62
         </td>
         <td>
-          960
+          1093
         </td>
         <td>
-          2115
+          2152
           -
-          2376
+          2413
         </td>
         <td>
           Apply
@@ -543,57 +565,15 @@
         </td>
       </tr><tr>
         <td>
-          63
+          64
         </td>
         <td>
-          959
+          1091
         </td>
         <td>
-          2166
+          2180
           -
-          2166
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          953
-        </td>
-        <td>
-          2205
-          -
-          2225
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          958
-        </td>
-        <td>
-          2143
-          -
-          2369
+          2406
         </td>
         <td>
           Apply
@@ -606,15 +586,15 @@
         </td>
       </tr><tr>
         <td>
-          63
+          64
         </td>
         <td>
-          952
+          1085
         </td>
         <td>
-          2187
+          2224
           -
-          2203
+          2240
         </td>
         <td>
           Select
@@ -630,12 +610,54 @@
           64
         </td>
         <td>
-          955
+          1092
         </td>
         <td>
-          2284
+          2203
           -
-          2304
+          2203
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1086
+        </td>
+        <td>
+          2242
+          -
+          2262
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1088
+        </td>
+        <td>
+          2321
+          -
+          2341
         </td>
         <td>
           Select
@@ -648,15 +670,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          65
         </td>
         <td>
-          954
+          1087
         </td>
         <td>
-          2266
+          2303
           -
-          2282
+          2319
         </td>
         <td>
           Select
@@ -669,15 +691,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          65
         </td>
         <td>
-          957
+          1090
         </td>
         <td>
-          2236
+          2273
           -
-          2369
+          2406
         </td>
         <td>
           Apply
@@ -690,15 +712,15 @@
         </td>
       </tr><tr>
         <td>
-          66
+          67
         </td>
         <td>
-          956
+          1089
         </td>
         <td>
-          2328
+          2365
           -
-          2369
+          2406
         </td>
         <td>
           Apply
@@ -711,15 +733,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          72
         </td>
         <td>
-          979
+          1112
         </td>
         <td>
-          2427
+          2464
           -
-          2960
+          2997
         </td>
         <td>
           Apply
@@ -738,60 +760,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          74
         </td>
         <td>
-          977
+          1094
         </td>
         <td>
-          2455
+          2536
           -
-          2953
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
-  AuthenticationFXController.this.strategy.performSignUp(username, password)
-else
-  AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))))))
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          962
-        </td>
-        <td>
-          2517
-          -
-          2537
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          961
-        </td>
-        <td>
-          2499
-          -
-          2515
+          2552
         </td>
         <td>
           Select
@@ -804,15 +781,15 @@ else
         </td>
       </tr><tr>
         <td>
-          73
+          74
         </td>
         <td>
-          978
+          1111
         </td>
         <td>
-          2478
+          2515
           -
-          2478
+          2515
         </td>
         <td>
           Literal
@@ -828,12 +805,57 @@ else
           74
         </td>
         <td>
-          964
+          1110
         </td>
         <td>
-          2596
+          2492
           -
-          2616
+          2990
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.tfSignUpUsername, it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR).flatMap[Unit](((username: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpPassword, it.cwmp.client.view.authentication.AuthenticationFXController.PASSWORD_EMPTY_ERROR).flatMap[Unit](((password: String) =&gt; AuthenticationFXController.this.getTextFieldValue(AuthenticationFXController.this.pfSignUpConfirmPassword, it.cwmp.client.view.authentication.AuthenticationFXController.REPEAT_PASSWORD_EMPTY_ERROR).map[Unit](((confirmPassword: String) =&gt; if (AuthenticationFXController.this.strategy.performPasswordCheck(password, confirmPassword))
+  AuthenticationFXController.this.strategy.performSignUp(username, password)
+else
+  AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)))))))
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1095
+        </td>
+        <td>
+          2554
+          -
+          2574
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.USERNAME_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1097
+        </td>
+        <td>
+          2633
+          -
+          2653
         </td>
         <td>
           Select
@@ -846,15 +868,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          75
         </td>
         <td>
-          976
+          1109
         </td>
         <td>
-          2548
+          2585
           -
-          2953
+          2990
         </td>
         <td>
           Apply
@@ -870,15 +892,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          75
         </td>
         <td>
-          963
+          1096
         </td>
         <td>
-          2578
+          2615
           -
-          2594
+          2631
         </td>
         <td>
           Select
@@ -891,36 +913,15 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          76
         </td>
         <td>
-          965
+          1108
         </td>
         <td>
           2664
           -
-          2687
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpConfirmPassword
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.pfSignUpConfirmPassword
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          975
-        </td>
-        <td>
-          2627
-          -
-          2953
+          2990
         </td>
         <td>
           Apply
@@ -936,15 +937,15 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          76
         </td>
         <td>
-          966
+          1099
         </td>
         <td>
-          2689
+          2726
           -
-          2716
+          2753
         </td>
         <td>
           Select
@@ -957,15 +958,36 @@ else
         </td>
       </tr><tr>
         <td>
-          77
+          76
         </td>
         <td>
-          967
+          1098
         </td>
         <td>
-          2744
+          2701
           -
-          2800
+          2724
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.pfSignUpConfirmPassword
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.pfSignUpConfirmPassword
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          1100
+        </td>
+        <td>
+          2781
+          -
+          2837
         </td>
         <td>
           Apply
@@ -978,36 +1000,15 @@ else
         </td>
       </tr><tr>
         <td>
-          78
+          79
         </td>
         <td>
-          968
+          1102
         </td>
         <td>
-          2814
+          2851
           -
-          2856
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationStrategy.performSignUp
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.strategy.performSignUp(username, password)
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          969
-        </td>
-        <td>
-          2814
-          -
-          2856
+          2893
         </td>
         <td>
           Block
@@ -1020,57 +1021,36 @@ else
         </td>
       </tr><tr>
         <td>
-          80
+          79
         </td>
         <td>
-          971
+          1101
         </td>
         <td>
-          2913
+          2851
           -
-          2942
+          2893
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+          it.cwmp.client.view.authentication.AuthenticationStrategy.performSignUp
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+          AuthenticationFXController.this.strategy.performSignUp(username, password)
         </td>
       </tr><tr>
         <td>
-          80
+          81
         </td>
         <td>
-          974
+          1106
         </td>
         <td>
-          2884
+          2921
           -
-          2943
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlertsController.showError
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)
-        </td>
-      </tr><tr>
-        <td>
-          80
-        </td>
-        <td>
-          973
-        </td>
-        <td>
-          2884
-          -
-          2943
+          2980
         </td>
         <td>
           Apply
@@ -1083,36 +1063,15 @@ else
         </td>
       </tr><tr>
         <td>
-          80
+          81
         </td>
         <td>
-          970
+          1105
         </td>
         <td>
-          2894
+          2921
           -
-          2911
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
-        </td>
-      </tr><tr>
-        <td>
-          80
-        </td>
-        <td>
-          972
-        </td>
-        <td>
-          2884
-          -
-          2884
+          2921
         </td>
         <td>
           Select
@@ -1125,36 +1084,78 @@ else
         </td>
       </tr><tr>
         <td>
-          84
+          81
         </td>
         <td>
-          980
+          1107
         </td>
         <td>
-          3033
+          2921
           -
-          3046
+          2980
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.resetFields
+          it.cwmp.client.view.FXAlertsController.showError
         </td>
         <td style="background: #F0ADAD">
-          AuthenticationFXController.this.resetFields()
+          AuthenticationFXController.this.showError(it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE, it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH, AuthenticationFXController.this.showError$default$3)
         </td>
       </tr><tr>
         <td>
-          84
+          81
         </td>
         <td>
-          981
+          1104
         </td>
         <td>
-          3011
+          2950
           -
+          2979
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.GIVEN_PASSWORD_DOES_NOT_MATCH
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1103
+        </td>
+        <td>
+          2931
+          -
+          2948
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.authentication.AuthenticationFXController.ATTENTION_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1114
+        </td>
+        <td>
           3048
+          -
+          3085
         </td>
         <td>
           Apply
@@ -1167,36 +1168,15 @@ else
         </td>
       </tr><tr>
         <td>
-          86
+          85
         </td>
         <td>
-          983
+          1113
         </td>
         <td>
-          3099
+          3070
           -
-          3136
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.this.runOnUIThread((() =&gt; AuthenticationFXController.this.resetFields()))
-        </td>
-      </tr><tr>
-        <td>
-          86
-        </td>
-        <td>
-          982
-        </td>
-        <td>
-          3121
-          -
-          3134
+          3083
         </td>
         <td>
           Apply
@@ -1209,36 +1189,57 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          87
         </td>
         <td>
-          986
+          1115
         </td>
         <td>
-          3321
+          3158
           -
-          3392
+          3171
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Predef.require
+          it.cwmp.client.view.authentication.AuthenticationFXController.resetFields
         </td>
         <td style="background: #F0ADAD">
-          scala.Predef.require(strategy.!=(null), &quot;The authentication strategy cannot be null&quot;)
+          AuthenticationFXController.this.resetFields()
         </td>
       </tr><tr>
         <td>
-          96
+          87
         </td>
         <td>
-          985
+          1116
         </td>
         <td>
-          3347
+          3136
           -
-          3391
+          3173
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.this.runOnUIThread((() =&gt; AuthenticationFXController.this.resetFields()))
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          1118
+        </td>
+        <td>
+          3384
+          -
+          3428
         </td>
         <td>
           Literal
@@ -1251,15 +1252,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          97
         </td>
         <td>
-          984
+          1117
         </td>
         <td>
-          3329
+          3366
           -
-          3345
+          3382
         </td>
         <td>
           Apply
@@ -1275,12 +1276,33 @@ else
           97
         </td>
         <td>
-          987
+          1119
         </td>
         <td>
-          3397
+          3358
           -
-          3437
+          3429
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.require(strategy.!=(null), &quot;The authentication strategy cannot be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          1120
+        </td>
+        <td>
+          3434
+          -
+          3474
         </td>
         <td>
           Apply
@@ -1293,15 +1315,15 @@ else
         </td>
       </tr><tr>
         <td>
-          100
+          101
         </td>
         <td>
-          988
+          1121
         </td>
         <td>
-          3480
+          3517
           -
-          3515
+          3552
         </td>
         <td>
           Literal
@@ -1314,15 +1336,15 @@ else
         </td>
       </tr><tr>
         <td>
-          101
+          102
         </td>
         <td>
-          989
+          1122
         </td>
         <td>
-          3553
+          3590
           -
-          3588
+          3625
         </td>
         <td>
           Literal
@@ -1335,15 +1357,15 @@ else
         </td>
       </tr><tr>
         <td>
-          102
+          103
         </td>
         <td>
-          990
+          1123
         </td>
         <td>
-          3633
+          3670
           -
-          3679
+          3716
         </td>
         <td>
           Literal
@@ -1356,15 +1378,15 @@ else
         </td>
       </tr><tr>
         <td>
-          103
+          104
         </td>
         <td>
-          991
+          1124
         </td>
         <td>
-          3726
+          3763
           -
-          3765
+          3802
         </td>
         <td>
           Literal
@@ -1377,15 +1399,15 @@ else
         </td>
       </tr><tr>
         <td>
-          105
+          106
         </td>
         <td>
-          992
+          1125
         </td>
         <td>
-          3801
+          3838
           -
-          3813
+          3850
         </td>
         <td>
           Literal

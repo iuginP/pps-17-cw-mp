@@ -67,41 +67,48 @@
 </span>43 <span style=''>  def distributedStateBehaviour: Receive = </span><span style='background: #F0ADAD'>passiveBehaviour orElse activeBehaviour</span><span style=''>
 </span>44 <span style=''>
 </span>45 <span style=''>  /**
-</span>46 <span style=''>    * @return the behaviour enabling to listen for modification in the distributed state
-</span>47 <span style=''>    */
-</span>48 <span style=''>  protected def passiveBehaviour: Receive = {
-</span>49 <span style=''>    // Called when notified of the distributed data change
-</span>50 <span style=''>    case c@Changed(DistributedKey) =&gt;
-</span>51 <span style=''>      log.debug(&quot;Being notified that distributed state has changed&quot;)
-</span>52 <span style=''>      </span><span style='background: #F0ADAD'>onDistributedStateUpdate(c.get(DistributedKey).getValue)</span><span style=''>
-</span>53 <span style=''>  }
-</span>54 <span style=''>
-</span>55 <span style=''>  /**
-</span>56 <span style=''>    * @return the behaviour enabling to modify distributed state
-</span>57 <span style=''>    */
-</span>58 <span style=''>  protected def activeBehaviour: Receive
-</span>59 <span style=''>
-</span>60 <span style=''>  /**
-</span>61 <span style=''>    * @return the consistency policy to adopt when writing updates in distributed state
-</span>62 <span style=''>    */
-</span>63 <span style=''>  protected def consistencyPolicy: Replicator.WriteConsistency
-</span>64 <span style=''>}
-</span>65 <span style=''>
-</span>66 <span style=''>/**
-</span>67 <span style=''>  * Companion Object, containing actor messages
-</span>68 <span style=''>  */
-</span>69 <span style=''>object DistributedState {
-</span>70 <span style=''>
-</span>71 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
+</span>46 <span style=''>    * Initializes the distributed state with provided one
+</span>47 <span style=''>    *
+</span>48 <span style=''>    * @param state the initial state
+</span>49 <span style=''>    */
+</span>50 <span style=''>  def initialize(state: T)
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * @return the behaviour enabling to listen for modification in the distributed state
+</span>54 <span style=''>    */
+</span>55 <span style=''>  protected def passiveBehaviour: Receive = {
+</span>56 <span style=''>    // Called when notified of the distributed data change
+</span>57 <span style=''>    case c@Changed(DistributedKey) =&gt;
+</span>58 <span style=''>      log.debug(&quot;Being notified that distributed state has changed&quot;)
+</span>59 <span style=''>      </span><span style='background: #F0ADAD'>onDistributedStateUpdate(c.get(DistributedKey).getValue)</span><span style=''>
+</span>60 <span style=''>  }
+</span>61 <span style=''>
+</span>62 <span style=''>  /**
+</span>63 <span style=''>    * @return the behaviour enabling to modify distributed state
+</span>64 <span style=''>    */
+</span>65 <span style=''>  protected def activeBehaviour: Receive
+</span>66 <span style=''>
+</span>67 <span style=''>  /**
+</span>68 <span style=''>    * @return the consistency policy to adopt when writing updates in distributed state
+</span>69 <span style=''>    */
+</span>70 <span style=''>  protected def consistencyPolicy: Replicator.WriteConsistency
+</span>71 <span style=''>}
 </span>72 <span style=''>
-</span>73 <span style=''>  /**
-</span>74 <span style=''>    * The message to send to update distributed state
-</span>75 <span style=''>    *
-</span>76 <span style=''>    * @param state the new state
-</span>77 <span style=''>    */
-</span>78 <span style=''>  case class UpdateState[T](state: T)
+</span>73 <span style=''>/**
+</span>74 <span style=''>  * Companion Object, containing actor messages
+</span>75 <span style=''>  */
+</span>76 <span style=''>object DistributedState {
+</span>77 <span style=''>
+</span>78 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
 </span>79 <span style=''>
-</span>80 <span style=''>}
+</span>80 <span style=''>  /**
+</span>81 <span style=''>    * The message to send to update distributed state
+</span>82 <span style=''>    *
+</span>83 <span style=''>    * @param state the new state
+</span>84 <span style=''>    */
+</span>85 <span style=''>  case class UpdateState[T](state: T)
+</span>86 <span style=''>
+</span>87 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -118,28 +125,7 @@
           21
         </td>
         <td>
-          487
-        </td>
-        <td>
-          760
-          -
-          780
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          488
+          617
         </td>
         <td>
           742
@@ -157,31 +143,31 @@
         </td>
       </tr><tr>
         <td>
-          29
+          21
         </td>
         <td>
-          490
+          616
         </td>
         <td>
-          1008
+          760
           -
-          1022
+          780
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.DistributedKey
+          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.DistributedKey
+          it.cwmp.client.model.DistributedState.DISTRIBUTED_KEY_NAME
         </td>
       </tr><tr>
         <td>
           29
         </td>
         <td>
-          489
+          618
         </td>
         <td>
           980
@@ -202,7 +188,7 @@
           29
         </td>
         <td>
-          492
+          621
         </td>
         <td>
           996
@@ -223,7 +209,7 @@
           29
         </td>
         <td>
-          491
+          620
         </td>
         <td>
           998
@@ -244,7 +230,7 @@
           29
         </td>
         <td>
-          493
+          622
         </td>
         <td>
           980
@@ -262,31 +248,31 @@
         </td>
       </tr><tr>
         <td>
-          37
+          29
         </td>
         <td>
-          496
+          619
         </td>
         <td>
-          1251
+          1008
           -
-          1290
+          1022
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          akka.cluster.ddata.Replicator.Unsubscribe.apply
+          it.cwmp.client.model.DistributedState.DistributedKey
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.Unsubscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber)
+          DistributedState.this.DistributedKey
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          498
+          627
         </td>
         <td>
           1233
@@ -307,7 +293,7 @@
           37
         </td>
         <td>
-          495
+          624
         </td>
         <td>
           1263
@@ -328,7 +314,28 @@
           37
         </td>
         <td>
-          497
+          623
+        </td>
+        <td>
+          1233
+          -
+          1248
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          626
         </td>
         <td>
           1249
@@ -349,49 +356,28 @@
           37
         </td>
         <td>
-          494
+          625
         </td>
         <td>
-          1233
+          1251
           -
-          1248
+          1290
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.replicatorActor
+          akka.cluster.ddata.Replicator.Unsubscribe.apply
         </td>
         <td style="background: #F0ADAD">
-          DistributedState.this.replicatorActor
+          akka.cluster.ddata.Replicator.Unsubscribe.apply[akka.cluster.ddata.LWWRegister[T]](DistributedState.this.DistributedKey, subscriber)
         </td>
       </tr><tr>
         <td>
           43
         </td>
         <td>
-          499
-        </td>
-        <td>
-          1517
-          -
-          1532
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.DistributedState.activeBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          DistributedState.this.activeBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          500
+          629
         </td>
         <td>
           1493
@@ -409,15 +395,36 @@
         </td>
       </tr><tr>
         <td>
-          48
+          43
         </td>
         <td>
-          503
+          628
         </td>
         <td>
-          1680
+          1517
           -
-          1680
+          1532
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.activeBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          DistributedState.this.activeBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          1822
+          -
+          1822
         </td>
         <td>
           Apply
@@ -430,15 +437,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          59
         </td>
         <td>
-          501
+          630
         </td>
         <td>
-          1879
+          2021
           -
-          1909
+          2051
         </td>
         <td>
           Apply
@@ -451,15 +458,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          59
         </td>
         <td>
-          502
+          631
         </td>
         <td>
-          1854
+          1996
           -
-          1910
+          2052
         </td>
         <td>
           Apply
@@ -472,15 +479,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          78
         </td>
         <td>
-          504
+          633
         </td>
         <td>
-          2324
+          2466
           -
-          2340
+          2482
         </td>
         <td>
           Literal

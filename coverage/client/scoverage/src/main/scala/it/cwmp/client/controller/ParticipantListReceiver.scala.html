@@ -55,7 +55,7 @@
 </span>31 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(verticle)
 </span>32 <span style=''></span><span style='background: #F0ADAD'>      .andThen { case Success(id) =&gt; deploymentID = id }
 </span>33 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; Address(s&quot;http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}&quot;
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        + API_RECEIVE_PARTICIPANTS_URL(token)))</span><span style=''>
+</span>34 <span style=''></span><span style='background: #F0ADAD'>        + createParticipantReceiverUrl(token)))</span><span style=''>
 </span>35 <span style=''>  }
 </span>36 <span style=''>
 </span>37 <span style=''>  /**
@@ -89,7 +89,7 @@
           20
         </td>
         <td>
-          260
+          290
         </td>
         <td>
           673
@@ -110,7 +110,7 @@
           29
         </td>
         <td>
-          262
+          292
         </td>
         <td>
           1005
@@ -131,7 +131,7 @@
           29
         </td>
         <td>
-          261
+          291
         </td>
         <td>
           1024
@@ -152,7 +152,7 @@
           30
         </td>
         <td>
-          264
+          294
         </td>
         <td>
           1065
@@ -173,7 +173,7 @@
           30
         </td>
         <td>
-          263
+          293
         </td>
         <td>
           1116
@@ -194,7 +194,7 @@
           32
         </td>
         <td>
-          265
+          295
         </td>
         <td>
           1239
@@ -215,7 +215,7 @@
           32
         </td>
         <td>
-          268
+          298
         </td>
         <td>
           1202
@@ -236,7 +236,7 @@
           32
         </td>
         <td>
-          267
+          297
         </td>
         <td>
           1202
@@ -257,7 +257,7 @@
           32
         </td>
         <td>
-          266
+          296
         </td>
         <td>
           1224
@@ -278,28 +278,7 @@
           33
         </td>
         <td>
-          271
-        </td>
-        <td>
-          1336
-          -
-          1337
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          277
+          307
         </td>
         <td>
           1254
@@ -320,28 +299,28 @@
           33
         </td>
         <td>
-          276
+          301
         </td>
         <td>
-          1260
+          1336
           -
-          1384
+          1337
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          it.cwmp.model.Address.apply
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)))
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
           33
         </td>
         <td>
-          270
+          300
         </td>
         <td>
           1319
@@ -362,7 +341,7 @@
           33
         </td>
         <td>
-          273
+          303
         </td>
         <td>
           1322
@@ -383,28 +362,28 @@
           33
         </td>
         <td>
-          272
+          306
         </td>
         <td>
-          1279
+          1260
           -
-          1318
+          1384
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.net.InetAddress.getHostAddress
+          it.cwmp.model.Address.apply
         </td>
         <td style="background: #F0ADAD">
-          java.net.InetAddress.getLocalHost().getHostAddress()
+          it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)))
         </td>
       </tr><tr>
         <td>
           33
         </td>
         <td>
-          269
+          299
         </td>
         <td>
           1270
@@ -425,7 +404,7 @@
           33
         </td>
         <td>
-          278
+          308
         </td>
         <td>
           1150
@@ -455,14 +434,35 @@
     }
   };
   new $anonfun()
-}: PartialFunction[scala.util.Try[String],Unit]))(ParticipantListReceiver.this.vertxExecutionContext).map[it.cwmp.model.Address](((x$1: String) =&gt; it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)))))(ParticipantListReceiver.this.vertxExecutionContext)
+}: PartialFunction[scala.util.Try[String],Unit]))(ParticipantListReceiver.this.vertxExecutionContext).map[it.cwmp.model.Address](((x$1: String) =&gt; it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)))))(ParticipantListReceiver.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          302
+        </td>
+        <td>
+          1279
+          -
+          1318
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.net.InetAddress.getHostAddress
+        </td>
+        <td style="background: #F0ADAD">
+          java.net.InetAddress.getLocalHost().getHostAddress()
         </td>
       </tr><tr>
         <td>
           34
         </td>
         <td>
-          274
+          304
         </td>
         <td>
           1348
@@ -473,17 +473,17 @@
           Apply
         </td>
         <td>
-          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL
+          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token)
+          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)
         </td>
       </tr><tr>
         <td>
           34
         </td>
         <td>
-          275
+          305
         </td>
         <td>
           1268
@@ -497,14 +497,14 @@
           java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(token))
+          scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token))
         </td>
       </tr><tr>
         <td>
           42
         </td>
         <td>
-          280
+          310
         </td>
         <td>
           1609
@@ -527,7 +527,7 @@
           42
         </td>
         <td>
-          279
+          309
         </td>
         <td>
           1630
@@ -548,7 +548,7 @@
           50
         </td>
         <td>
-          281
+          311
         </td>
         <td>
           1753

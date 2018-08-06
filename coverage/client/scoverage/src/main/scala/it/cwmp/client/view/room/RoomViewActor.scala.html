@@ -24,89 +24,102 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.room
 </span>2 <span style=''>
-</span>3 <span style=''>import it.cwmp.client.controller.messages.RoomsRequests._
-</span>4 <span style=''>import it.cwmp.client.view.FXServiceViewActor
-</span>5 <span style=''>import it.cwmp.client.view.room.RoomViewActor._
-</span>6 <span style=''>
-</span>7 <span style=''>/**
-</span>8 <span style=''>  * This class represents the actor that manages the rooms
-</span>9 <span style=''>  *
-</span>10 <span style=''>  * @author Davide Borficchia
-</span>11 <span style=''>  * @author contributor Enrico Siboni
-</span>12 <span style=''>  */
-</span>13 <span style=''>case class RoomViewActor() extends FXServiceViewActor {
-</span>14 <span style=''>
-</span>15 <span style=''>  protected var fxController: RoomFXController = _
+</span>3 <span style=''>import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
+</span>4 <span style=''>import it.cwmp.client.controller.messages.GUIRequest
+</span>5 <span style=''>import it.cwmp.client.controller.messages.RoomsRequests._
+</span>6 <span style=''>import it.cwmp.client.view.FXServiceViewActor
+</span>7 <span style=''>import it.cwmp.client.view.room.RoomViewActor._
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''>  * This class represents the actor that manages the rooms
+</span>11 <span style=''>  *
+</span>12 <span style=''>  * @author Davide Borficchia
+</span>13 <span style=''>  * @author contributor Enrico Siboni
+</span>14 <span style=''>  */
+</span>15 <span style=''>case class RoomViewActor() extends FXServiceViewActor {
 </span>16 <span style=''>
-</span>17 <span style=''>  private var roomEnteringMessage: RoomEnteringRequest with GUIRequest = _
+</span>17 <span style=''>  protected var fxController: RoomFXController = _
 </span>18 <span style=''>
-</span>19 <span style=''>  override def preStart(): Unit = {
-</span>20 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
-</span>22 <span style=''></span><span style='background: #F0ADAD'>      fxController = RoomFXController(new RoomStrategy {
-</span>23 <span style=''></span><span style='background: #F0ADAD'>        override def onCreate(roomName: String, playersNumber: Int): Unit = {
-</span>24 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
-</span>25 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading CREATING_PRIVATE_ROOM_MESSAGE
-</span>26 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! GUICreate(roomName, playersNumber)
-</span>27 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>28 <span style=''></span><span style='background: #F0ADAD'>
-</span>29 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPrivate(roomID: String): Unit = {
-</span>30 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
-</span>31 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
-</span>32 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPrivate(roomID)
-</span>33 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>35 <span style=''></span><span style='background: #F0ADAD'>
-</span>36 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPublic(playersNumber: Int): Unit = {
-</span>37 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
-</span>38 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
-</span>39 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPublic(playersNumber)
-</span>40 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
-</span>41 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>42 <span style=''></span><span style='background: #F0ADAD'>      }))</span><span style=''>
-</span>43 <span style=''>  }
-</span>44 <span style=''>
-</span>45 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>super.receive orElse {
-</span>46 <span style=''></span><span style='background: #F0ADAD'>    case ShowToken(roomToken) =&gt; runOnUIThread(() =&gt; {
-</span>47 <span style=''></span><span style='background: #F0ADAD'>      onServiceResponseReceived()
-</span>48 <span style=''></span><span style='background: #F0ADAD'>      fxController showTokenDialog roomToken
-</span>49 <span style=''></span><span style='background: #F0ADAD'>    })
-</span>50 <span style=''></span><span style='background: #F0ADAD'>    case WaitingForOthers =&gt;
-</span>51 <span style=''></span><span style='background: #F0ADAD'>      fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () =&gt; {
-</span>52 <span style=''></span><span style='background: #F0ADAD'>        controllerActor ! (roomEnteringMessage match {
-</span>53 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPrivate(roomID) =&gt; GUIExitPrivate(roomID)
-</span>54 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPublic(playersNumber) =&gt; GUIExitPublic(playersNumber)
-</span>55 <span style=''></span><span style='background: #F0ADAD'>        })
-</span>56 <span style=''></span><span style='background: #F0ADAD'>      })
-</span>57 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
-</span>58 <span style=''>}
-</span>59 <span style=''>
-</span>60 <span style=''>/**
-</span>61 <span style=''>  * Companion object, with actor messages
-</span>62 <span style=''>  */
-</span>63 <span style=''>object RoomViewActor {
-</span>64 <span style=''>
-</span>65 <span style=''>  private val CREATING_PRIVATE_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo creando la stanza privata&quot;</span><span style=''>
-</span>66 <span style=''>
-</span>67 <span style=''>  private val ENTERING_ROOM_TITLE = </span><span style='background: #F0ADAD'>&quot;Entrata in stanza&quot;</span><span style=''>
-</span>68 <span style=''>  private val ENTERING_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stai per entrare nella stanza scelta&quot;</span><span style=''>
-</span>69 <span style=''>
-</span>70 <span style=''>  private val WAITING_FOR_PARTICIPANTS_TITLE = </span><span style='background: #F0ADAD'>&quot;In attesa di giocatori&quot;</span><span style=''>
-</span>71 <span style=''>  private val WAITING_FOR_PARTICIPANTS_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiungere il numero stabilito&quot;</span><span style=''>
+</span>19 <span style=''>  private var roomEnteringMessage: RoomEnteringRequest with GUIRequest = _
+</span>20 <span style=''>
+</span>21 <span style=''>  override def preStart(): Unit = {
+</span>22 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
+</span>24 <span style=''></span><span style='background: #F0ADAD'>      fxController = RoomFXController(new RoomStrategy {
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        override def onCreate(roomName: String, playersNumber: Int): Unit = {
+</span>26 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>27 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading CREATING_PRIVATE_ROOM_MESSAGE
+</span>28 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! GUICreate(roomName, playersNumber)
+</span>29 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>30 <span style=''></span><span style='background: #F0ADAD'>
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPrivate(roomID: String): Unit = {
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+</span>34 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPrivate(roomID)
+</span>35 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>37 <span style=''></span><span style='background: #F0ADAD'>
+</span>38 <span style=''></span><span style='background: #F0ADAD'>        override def onEnterPublic(playersNumber: Int): Unit = {
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          fxController disableViewComponents()
+</span>40 <span style=''></span><span style='background: #F0ADAD'>          fxController showLoading(ENTERING_ROOM_MESSAGE, ENTERING_ROOM_TITLE)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>          roomEnteringMessage = GUIEnterPublic(playersNumber)
+</span>42 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! roomEnteringMessage
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>44 <span style=''></span><span style='background: #F0ADAD'>
+</span>45 <span style=''></span><span style='background: #F0ADAD'>        override def onClosingRoomView(): Unit = {
+</span>46 <span style=''></span><span style='background: #F0ADAD'>          controllerActor ! GUILogOut
+</span>47 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      }))</span><span style=''>
+</span>49 <span style=''>  }
+</span>50 <span style=''>
+</span>51 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>super.receive orElse {
+</span>52 <span style=''></span><span style='background: #F0ADAD'>    case ShowToken(roomToken) =&gt;
+</span>53 <span style=''></span><span style='background: #F0ADAD'>      onServiceResponseReceived()
+</span>54 <span style=''></span><span style='background: #F0ADAD'>      fxController showTokenDialog roomToken
+</span>55 <span style=''></span><span style='background: #F0ADAD'>
+</span>56 <span style=''></span><span style='background: #F0ADAD'>    case FoundOpponents =&gt; onServiceResponseReceived()
+</span>57 <span style=''></span><span style='background: #F0ADAD'>
+</span>58 <span style=''></span><span style='background: #F0ADAD'>    case WaitingForOthers =&gt;
+</span>59 <span style=''></span><span style='background: #F0ADAD'>      fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () =&gt; {
+</span>60 <span style=''></span><span style='background: #F0ADAD'>        controllerActor ! (roomEnteringMessage match {
+</span>61 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPrivate(roomID) =&gt; GUIExitPrivate(roomID)
+</span>62 <span style=''></span><span style='background: #F0ADAD'>          case GUIEnterPublic(playersNumber) =&gt; GUIExitPublic(playersNumber)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>        })
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      })
+</span>65 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>66 <span style=''>}
+</span>67 <span style=''>
+</span>68 <span style=''>/**
+</span>69 <span style=''>  * Companion object, with actor messages
+</span>70 <span style=''>  */
+</span>71 <span style=''>object RoomViewActor {
 </span>72 <span style=''>
-</span>73 <span style=''>  /**
-</span>74 <span style=''>    * Shows the room token on screen
-</span>75 <span style=''>    *
-</span>76 <span style=''>    * @param roomToken the private room token to spread among friends
-</span>77 <span style=''>    */
-</span>78 <span style=''>  case class ShowToken(roomToken: String)
-</span>79 <span style=''>
-</span>80 <span style=''>  /**
-</span>81 <span style=''>    * Shows a loading while waiting for others participants
-</span>82 <span style=''>    */
-</span>83 <span style=''>  case object WaitingForOthers
-</span>84 <span style=''>
-</span>85 <span style=''>}
+</span>73 <span style=''>  private val CREATING_PRIVATE_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo creando la stanza privata&quot;</span><span style=''>
+</span>74 <span style=''>
+</span>75 <span style=''>  private val ENTERING_ROOM_TITLE = </span><span style='background: #F0ADAD'>&quot;Entrata in stanza&quot;</span><span style=''>
+</span>76 <span style=''>  private val ENTERING_ROOM_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stai per entrare nella stanza scelta&quot;</span><span style=''>
+</span>77 <span style=''>
+</span>78 <span style=''>  private val WAITING_FOR_PARTICIPANTS_TITLE = </span><span style='background: #F0ADAD'>&quot;In attesa di giocatori&quot;</span><span style=''>
+</span>79 <span style=''>  private val WAITING_FOR_PARTICIPANTS_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Stiamo attendendo che altri giocatori si uniscano alla stessa stanza per raggiungere il numero stabilito&quot;</span><span style=''>
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * Shows the room token on screen
+</span>83 <span style=''>    *
+</span>84 <span style=''>    * @param roomToken the private room token to spread among friends
+</span>85 <span style=''>    */
+</span>86 <span style=''>  case class ShowToken(roomToken: String)
+</span>87 <span style=''>
+</span>88 <span style=''>  /**
+</span>89 <span style=''>    * Shows a loading while waiting for others participants
+</span>90 <span style=''>    */
+</span>91 <span style=''>  case object WaitingForOthers
+</span>92 <span style=''>
+</span>93 <span style=''>  /**
+</span>94 <span style=''>    * Tells View actor that opponents have been found
+</span>95 <span style=''>    */
+</span>96 <span style=''>  case object FoundOpponents
+</span>97 <span style=''>
+</span>98 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -120,15 +133,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          20
+          22
         </td>
         <td>
-          1428
+          1598
         </td>
         <td>
-          552
+          680
           -
-          568
+          696
         </td>
         <td>
           Apply
@@ -141,15 +154,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          23
         </td>
         <td>
-          1461
+          1635
         </td>
         <td>
-          573
+          701
           -
-          1537
+          1765
         </td>
         <td>
           Apply
@@ -185,73 +198,23 @@
       RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
       RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
       actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
-    }
+    };
+    override def onClosingRoomView(): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut)(RoomViewActor.this.self)
   };
   new $anon()
 }))))
         </td>
       </tr><tr>
         <td>
-          22
+          24
         </td>
         <td>
-          1459
+          1632
         </td>
         <td>
-          614
+          759
           -
-          1536
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.apply
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.apply({
-  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomStrategy {
-    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomStrategy&gt; = {
-      $anon.super.&lt;init&gt;();
-      ()
-    };
-    override def onCreate(roomName: String, playersNumber: Int): Unit = {
-      RoomViewActor.this.fxController.disableViewComponents();
-      {
-        &lt;artifact&gt; val qual$1: it.cwmp.client.view.room.RoomFXController = RoomViewActor.this.fxController;
-        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE;
-        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
-        qual$1.showLoading(x$1, x$2)
-      };
-      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
-    };
-    override def onEnterPrivate(roomID: String): Unit = {
-      RoomViewActor.this.fxController.disableViewComponents();
-      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
-      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID));
-      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
-    };
-    override def onEnterPublic(playersNumber: Int): Unit = {
-      RoomViewActor.this.fxController.disableViewComponents();
-      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
-      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
-      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
-    }
-  };
-  new $anon()
-})
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          1458
-        </td>
-        <td>
-          631
-          -
-          634
+          762
         </td>
         <td>
           Apply
@@ -264,15 +227,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          24
         </td>
         <td>
-          1460
+          1634
         </td>
         <td>
-          599
+          727
           -
-          1536
+          1764
         </td>
         <td>
           Apply
@@ -308,7 +271,8 @@
       RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
       RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
       actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
-    }
+    };
+    override def onClosingRoomView(): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut)(RoomViewActor.this.self)
   };
   new $anon()
 }))
@@ -318,12 +282,64 @@
           24
         </td>
         <td>
-          1429
+          1633
         </td>
         <td>
-          738
+          742
           -
-          774
+          1764
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.apply
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.apply({
+  final class $anon extends AnyRef with it.cwmp.client.view.room.RoomStrategy {
+    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.room.RoomStrategy&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    override def onCreate(roomName: String, playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$1: it.cwmp.client.view.room.RoomFXController = RoomViewActor.this.fxController;
+        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.room.RoomViewActor.CREATING_PRIVATE_ROOM_MESSAGE;
+        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
+        qual$1.showLoading(x$1, x$2)
+      };
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
+    };
+    override def onEnterPrivate(roomID: String): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate.apply(roomID));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    };
+    override def onEnterPublic(playersNumber: Int): Unit = {
+      RoomViewActor.this.fxController.disableViewComponents();
+      RoomViewActor.this.fxController.showLoading(it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_MESSAGE, it.cwmp.client.view.room.RoomViewActor.ENTERING_ROOM_TITLE);
+      RoomViewActor.this.roomEnteringMessage_=(it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber));
+      actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+    };
+    override def onClosingRoomView(): Unit = actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut)(RoomViewActor.this.self)
+  };
+  new $anon()
+})
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          1599
+        </td>
+        <td>
+          866
+          -
+          902
         </td>
         <td>
           Apply
@@ -336,15 +352,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          1432
+          1602
         </td>
         <td>
-          798
+          926
           -
-          798
+          926
         </td>
         <td>
           Select
@@ -357,15 +373,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          1431
+          1601
         </td>
         <td>
-          810
+          938
           -
-          839
+          967
         </td>
         <td>
           Select
@@ -378,15 +394,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          1430
+          1600
         </td>
         <td>
-          785
+          913
           -
-          797
+          925
         </td>
         <td>
           Select
@@ -399,15 +415,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          1433
+          1603
         </td>
         <td>
-          785
+          913
           -
-          839
+          967
         </td>
         <td>
           Apply
@@ -420,78 +436,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          28
         </td>
         <td>
-          1434
+          1605
         </td>
         <td>
-          850
+          996
           -
-          865
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.FXServiceViewActor.controllerActor
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.controllerActor
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          1437
-        </td>
-        <td>
-          850
-          -
-          902
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          1436
-        </td>
-        <td>
-          866
-          -
-          866
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          1435
-        </td>
-        <td>
-          868
-          -
-          902
+          1030
         </td>
         <td>
           Apply
@@ -504,15 +457,78 @@
         </td>
       </tr><tr>
         <td>
-          30
+          28
         </td>
         <td>
-          1438
+          1604
         </td>
         <td>
-          986
+          978
           -
-          1022
+          993
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1607
+        </td>
+        <td>
+          978
+          -
+          1030
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.RoomsRequests.GUICreate.apply(roomName, playersNumber))(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          1606
+        </td>
+        <td>
+          994
+          -
+          994
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          1608
+        </td>
+        <td>
+          1114
+          -
+          1150
         </td>
         <td>
           Apply
@@ -525,15 +541,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          1441
+          1611
         </td>
         <td>
-          1033
+          1161
           -
-          1101
+          1229
         </td>
         <td>
           Apply
@@ -546,15 +562,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          1440
+          1610
         </td>
         <td>
-          1081
+          1209
           -
-          1100
+          1228
         </td>
         <td>
           Select
@@ -567,15 +583,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          1439
+          1609
         </td>
         <td>
-          1058
+          1186
           -
-          1079
+          1207
         </td>
         <td>
           Select
@@ -588,15 +604,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          1443
+          1613
         </td>
         <td>
-          1112
+          1240
           -
-          1157
+          1285
         </td>
         <td>
           Apply
@@ -609,15 +625,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          1442
+          1612
         </td>
         <td>
-          1134
+          1262
           -
-          1157
+          1285
         </td>
         <td>
           Apply
@@ -630,78 +646,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          35
         </td>
         <td>
-          1447
+          1614
         </td>
         <td>
-          1168
+          1296
           -
-          1205
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1446
-        </td>
-        <td>
-          1184
-          -
-          1184
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1445
-        </td>
-        <td>
-          1186
-          -
-          1205
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
-        </td>
-        <td style="background: #F0ADAD">
-          RoomViewActor.this.roomEnteringMessage
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          1444
-        </td>
-        <td>
-          1168
-          -
-          1183
+          1311
         </td>
         <td>
           Select
@@ -714,15 +667,78 @@
         </td>
       </tr><tr>
         <td>
-          37
+          35
         </td>
         <td>
-          1448
+          1617
         </td>
         <td>
-          1292
+          1296
           -
-          1328
+          1333
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage)(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1616
+        </td>
+        <td>
+          1312
+          -
+          1312
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1615
+        </td>
+        <td>
+          1314
+          -
+          1333
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          1618
+        </td>
+        <td>
+          1420
+          -
+          1456
         </td>
         <td>
           Apply
@@ -735,15 +751,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          40
         </td>
         <td>
-          1450
+          1620
         </td>
         <td>
-          1387
+          1515
           -
-          1406
+          1534
         </td>
         <td>
           Select
@@ -756,15 +772,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          40
         </td>
         <td>
-          1449
+          1619
         </td>
         <td>
-          1364
+          1492
           -
-          1385
+          1513
         </td>
         <td>
           Select
@@ -777,15 +793,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          40
         </td>
         <td>
-          1451
+          1621
         </td>
         <td>
-          1339
+          1467
           -
-          1407
+          1535
         </td>
         <td>
           Apply
@@ -798,36 +814,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          41
         </td>
         <td>
-          1452
+          1623
         </td>
         <td>
-          1440
+          1546
           -
-          1469
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber)
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          1453
-        </td>
-        <td>
-          1418
-          -
-          1469
+          1597
         </td>
         <td>
           Apply
@@ -840,15 +835,36 @@
         </td>
       </tr><tr>
         <td>
-          40
+          41
         </td>
         <td>
-          1456
+          1622
         </td>
         <td>
-          1496
+          1568
           -
-          1496
+          1597
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic.apply(playersNumber)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1626
+        </td>
+        <td>
+          1624
+          -
+          1624
         </td>
         <td>
           Select
@@ -861,15 +877,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          1455
+          1625
         </td>
         <td>
-          1498
+          1626
           -
-          1517
+          1645
         </td>
         <td>
           Select
@@ -882,15 +898,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          1454
+          1624
         </td>
         <td>
-          1480
+          1608
           -
-          1495
+          1623
         </td>
         <td>
           Select
@@ -903,15 +919,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          1457
+          1627
         </td>
         <td>
-          1480
+          1608
           -
-          1517
+          1645
         </td>
         <td>
           ApplyToImplicitArgs
@@ -924,36 +940,99 @@
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          1474
+          1629
         </td>
         <td>
-          1598
+          1736
           -
-          1598
+          1745
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.view.room.RoomViewActor.$anonfun.&lt;init&gt;
+          it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
         </td>
         <td style="background: #F0ADAD">
-          new $anonfun()
+          it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          1475
+          1628
         </td>
         <td>
-          1577
+          1718
           -
-          2104
+          1733
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.FXServiceViewActor.controllerActor
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.controllerActor
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1631
+        </td>
+        <td>
+          1718
+          -
+          1745
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut)(RoomViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1630
+        </td>
+        <td>
+          1734
+          -
+          1734
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1649
+        </td>
+        <td>
+          1805
+          -
+          2360
         </td>
         <td>
           Apply
@@ -969,10 +1048,11 @@
       ()
     };
     final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
-      case (roomToken: String)it.cwmp.client.view.room.RoomViewActor.ShowToken((roomToken @ _)) =&gt; RoomViewActor.this.runOnUIThread((() =&gt; {
+      case (roomToken: String)it.cwmp.client.view.room.RoomViewActor.ShowToken((roomToken @ _)) =&gt; {
         RoomViewActor.this.onServiceResponseReceived();
         RoomViewActor.this.fxController.showTokenDialog(roomToken)
-      }))
+      }
+      case it.cwmp.client.view.room.RoomViewActor.FoundOpponents =&gt; RoomViewActor.this.onServiceResponseReceived()
       case it.cwmp.client.view.room.RoomViewActor.WaitingForOthers =&gt; RoomViewActor.this.fxController.showCloseableLoading(it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE, it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_TITLE, (() =&gt; actor.this.`package`.actorRef2Scala(RoomViewActor.this.controllerActor).!(RoomViewActor.this.roomEnteringMessage match {
         case (roomID: String)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPrivate((roomID @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPrivate.apply(roomID)
         case (playersNumber: Int)it.cwmp.client.controller.messages.RoomsRequests.GUIEnterPublic((playersNumber @ _)) =&gt; it.cwmp.client.controller.messages.RoomsRequests.GUIExitPublic.apply(playersNumber)
@@ -981,6 +1061,7 @@
     };
     final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
       case (roomToken: String)it.cwmp.client.view.room.RoomViewActor.ShowToken((roomToken @ _)) =&gt; true
+      case it.cwmp.client.view.room.RoomViewActor.FoundOpponents =&gt; true
       case it.cwmp.client.view.room.RoomViewActor.WaitingForOthers =&gt; true
       case (defaultCase$ @ _) =&gt; false
     }
@@ -990,39 +1071,36 @@
         </td>
       </tr><tr>
         <td>
-          46
+          51
         </td>
         <td>
-          1464
+          1648
         </td>
         <td>
-          1633
+          1826
           -
-          1740
+          1826
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+          it.cwmp.client.view.room.RoomViewActor.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.runOnUIThread((() =&gt; {
-  RoomViewActor.this.onServiceResponseReceived();
-  RoomViewActor.this.fxController.showTokenDialog(roomToken)
-}))
+          new $anonfun()
         </td>
       </tr><tr>
         <td>
-          47
+          53
         </td>
         <td>
-          1462
+          1636
         </td>
         <td>
-          1661
+          1867
           -
-          1688
+          1894
         </td>
         <td>
           Apply
@@ -1035,15 +1113,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          54
         </td>
         <td>
-          1463
+          1637
         </td>
         <td>
-          1695
+          1901
           -
-          1733
+          1939
         </td>
         <td>
           Apply
@@ -1056,36 +1134,36 @@
         </td>
       </tr><tr>
         <td>
-          51
+          56
         </td>
         <td>
-          1465
+          1638
         </td>
         <td>
-          1810
+          1968
           -
-          1842
+          1995
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
+          it.cwmp.client.view.FXServiceViewActor.onServiceResponseReceived
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
+          RoomViewActor.this.onServiceResponseReceived()
         </td>
       </tr><tr>
         <td>
-          51
+          59
         </td>
         <td>
-          1473
+          1647
         </td>
         <td>
-          1776
+          2032
           -
-          2100
+          2356
         </td>
         <td>
           Apply
@@ -1101,15 +1179,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          59
         </td>
         <td>
-          1466
+          1640
         </td>
         <td>
-          1844
+          2100
           -
-          1874
+          2130
         </td>
         <td>
           Select
@@ -1122,36 +1200,36 @@
         </td>
       </tr><tr>
         <td>
-          52
+          59
         </td>
         <td>
-          1468
+          1639
         </td>
         <td>
-          1911
+          2066
           -
-          1930
+          2098
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
         </td>
         <td style="background: #F0ADAD">
-          RoomViewActor.this.roomEnteringMessage
+          it.cwmp.client.view.room.RoomViewActor.WAITING_FOR_PARTICIPANTS_MESSAGE
         </td>
       </tr><tr>
         <td>
-          52
+          60
         </td>
         <td>
-          1467
+          1641
         </td>
         <td>
-          1892
+          2148
           -
-          1907
+          2163
         </td>
         <td>
           Select
@@ -1164,15 +1242,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          60
         </td>
         <td>
-          1472
+          1646
         </td>
         <td>
-          1892
+          2148
           -
-          2091
+          2347
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1188,15 +1266,36 @@
         </td>
       </tr><tr>
         <td>
-          52
+          60
         </td>
         <td>
-          1471
+          1642
         </td>
         <td>
-          1908
+          2167
           -
-          1908
+          2186
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomViewActor.roomEnteringMessage
+        </td>
+        <td style="background: #F0ADAD">
+          RoomViewActor.this.roomEnteringMessage
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          1645
+        </td>
+        <td>
+          2164
+          -
+          2164
         </td>
         <td>
           Select
@@ -1209,15 +1308,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          61
         </td>
         <td>
-          1469
+          1643
         </td>
         <td>
-          1981
+          2237
           -
-          2003
+          2259
         </td>
         <td>
           Apply
@@ -1230,15 +1329,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          62
         </td>
         <td>
-          1470
+          1644
         </td>
         <td>
-          2052
+          2308
           -
-          2080
+          2336
         </td>
         <td>
           Apply
@@ -1251,15 +1350,15 @@
         </td>
       </tr><tr>
         <td>
-          65
+          73
         </td>
         <td>
-          1476
+          1650
         </td>
         <td>
-          2229
+          2485
           -
-          2263
+          2519
         </td>
         <td>
           Literal
@@ -1272,15 +1371,15 @@
         </td>
       </tr><tr>
         <td>
-          67
+          75
         </td>
         <td>
-          1477
+          1651
         </td>
         <td>
-          2301
+          2557
           -
-          2320
+          2576
         </td>
         <td>
           Literal
@@ -1293,15 +1392,15 @@
         </td>
       </tr><tr>
         <td>
-          68
+          76
         </td>
         <td>
-          1478
+          1652
         </td>
         <td>
-          2359
+          2615
           -
-          2397
+          2653
         </td>
         <td>
           Literal
@@ -1314,15 +1413,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          78
         </td>
         <td>
-          1479
+          1653
         </td>
         <td>
-          2446
+          2702
           -
-          2470
+          2726
         </td>
         <td>
           Literal
@@ -1335,15 +1434,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          79
         </td>
         <td>
-          1480
+          1654
         </td>
         <td>
-          2520
+          2776
           -
-          2626
+          2882
         </td>
         <td>
           Literal

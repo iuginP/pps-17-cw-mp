@@ -28,38 +28,42 @@
 </span>4 <span style=''>
 </span>5 <span style=''>import akka.actor.{ActorSystem, Props}
 </span>6 <span style=''>import com.typesafe.config.ConfigFactory
-</span>7 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
-</span>8 <span style=''>import it.cwmp.client.view.game.GameViewActor
-</span>9 <span style=''>import it.cwmp.model.User
-</span>10 <span style=''>
-</span>11 <span style=''>object GameMain extends App {
-</span>12 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;ClientApp&quot;</span><span style=''>
-</span>13 <span style=''>
-</span>14 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
+</span>7 <span style=''>import it.cwmp.client.controller.messages.Initialize
+</span>8 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
+</span>9 <span style=''>import it.cwmp.client.view.game.GameViewActor
+</span>10 <span style=''>import it.cwmp.client.view.game.GameViewActor._
+</span>11 <span style=''>import it.cwmp.model.User
+</span>12 <span style=''>
+</span>13 <span style=''>object GameMain extends App {
+</span>14 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;ClientApp&quot;</span><span style=''>
 </span>15 <span style=''>
-</span>16 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
+</span>16 <span style=''>  private val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
 </span>17 <span style=''>
-</span>18 <span style=''>  val gameActor = </span><span style='background: #F0ADAD'>system.actorOf(Props(classOf[GameViewActor], null), GameViewActor.getClass.getName)</span><span style=''>
+</span>18 <span style=''>  val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
 </span>19 <span style=''>
-</span>20 <span style=''>  import GameViewActor._
+</span>20 <span style=''>  val gameActor = </span><span style='background: #F0ADAD'>system.actorOf(Props[GameViewActor], GameViewActor.getClass.getName)</span><span style=''>
 </span>21 <span style=''>
-</span>22 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! ShowGUI</span><span style=''>
-</span>23 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! NewWorld(debugWorld)</span><span style=''>
-</span>24 <span style=''>
-</span>25 <span style=''>  def debugWorld: CellWorld = {
-</span>26 <span style=''>    val cells =
-</span>27 <span style=''>      Cell(User(&quot;Winner&quot;), Point(20, 20), 20) </span><span style='background: #F0ADAD'>::
-</span>28 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Mantis&quot;), Point(90, 400), 40) ::
-</span>29 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Candle&quot;), Point(200, 150), 200) ::
-</span>30 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Enrico&quot;), Point(400, 500), 150) ::
-</span>31 <span style=''></span><span style='background: #F0ADAD'>        Nil</span><span style=''>
-</span>32 <span style=''>    </span><span style='background: #F0ADAD'>CellWorld(Instant.now().plus(Duration.ofSeconds(1)), cells,
-</span>33 <span style=''></span><span style='background: #F0ADAD'>      Tentacle(cells(2), cells(1), Instant.now()) ::
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(1), cells(2), Instant.now()) ::
-</span>35 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(3), cells(1), Instant.now()) ::
-</span>36 <span style=''></span><span style='background: #F0ADAD'>        Nil)</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>}
+</span>22 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! Initialize</span><span style=''>
+</span>23 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! ShowGUIWithName(&quot;Candle&quot;)</span><span style=''>
+</span>24 <span style=''>  </span><span style='background: #F0ADAD'>gameActor ! NewWorld(debugWorld)</span><span style=''>
+</span>25 <span style=''>
+</span>26 <span style=''>  def debugWorld: CellWorld = {
+</span>27 <span style=''>    // scalastyle:off magic.number
+</span>28 <span style=''>    val cells =
+</span>29 <span style=''>      Cell(User(&quot;Winner&quot;), Point(20, 20), 20) </span><span style='background: #F0ADAD'>::
+</span>30 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Mantis&quot;), Point(90, 400), 40) ::
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Candle&quot;), Point(200, 150), 200) ::
+</span>32 <span style=''></span><span style='background: #F0ADAD'>        Cell(User(&quot;Enrico&quot;), Point(400, 500), 150) ::
+</span>33 <span style=''></span><span style='background: #F0ADAD'>        Nil</span><span style=''>
+</span>34 <span style=''>    // scalastyle:on magic.number
+</span>35 <span style=''>
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>CellWorld(Instant.now().plus(Duration.ofSeconds(1)), cells,
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      Tentacle(cells(2), cells(1), Instant.now()) ::
+</span>38 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(1), cells(2), Instant.now()) ::
+</span>39 <span style=''></span><span style='background: #F0ADAD'>        Tentacle(cells(3), cells(1), Instant.now()) ::
+</span>40 <span style=''></span><span style='background: #F0ADAD'>        Nil)</span><span style=''>
+</span>41 <span style=''>  }
+</span>42 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -73,15 +77,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          12
+          14
         </td>
         <td>
-          13
+          11
         </td>
         <td>
-          335
+          436
           -
-          346
+          447
         </td>
         <td>
           Literal
@@ -94,36 +98,15 @@
         </td>
       </tr><tr>
         <td>
-          14
-        </td>
-        <td>
-          14
-        </td>
-        <td>
-          397
-          -
-          427
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;akka.remote.netty.tcp.port=0&quot;
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
           16
         </td>
         <td>
-          371
+          14
+        </td>
+        <td>
+          472
           -
-          463
+          564
         </td>
         <td>
           Apply
@@ -136,15 +119,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          16
         </td>
         <td>
-          15
+          13
         </td>
         <td>
-          442
+          543
           -
-          462
+          563
         </td>
         <td>
           Apply
@@ -160,33 +143,33 @@
           16
         </td>
         <td>
-          17
+          12
         </td>
         <td>
-          492
+          498
           -
-          500
+          528
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          it.cwmp.client.GameMain.APP_NAME
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          GameMain.this.APP_NAME
+          &quot;akka.remote.netty.tcp.port=0&quot;
         </td>
       </tr><tr>
         <td>
-          16
+          18
         </td>
         <td>
-          19
+          17
         </td>
         <td>
-          480
+          581
           -
-          509
+          610
         </td>
         <td>
           Apply
@@ -199,15 +182,15 @@
         </td>
       </tr><tr>
         <td>
-          16
-        </td>
-        <td>
           18
         </td>
         <td>
-          502
+          16
+        </td>
+        <td>
+          603
           -
-          508
+          609
         </td>
         <td>
           Select
@@ -223,33 +206,33 @@
           18
         </td>
         <td>
-          20
+          15
         </td>
         <td>
-          544
+          593
           -
-          579
+          601
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          akka.actor.Props.apply
+          it.cwmp.client.GameMain.APP_NAME
         </td>
         <td style="background: #F0ADAD">
-          akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], null)
+          GameMain.this.APP_NAME
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          22
+          20
         </td>
         <td>
-          529
+          630
           -
-          612
+          698
         </td>
         <td>
           Apply
@@ -258,19 +241,19 @@
           akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          GameMain.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], null), it.cwmp.client.view.game.GameViewActor.getClass().getName())
+          GameMain.this.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.game.GameViewActor]()((ClassTag.apply[it.cwmp.client.view.game.GameViewActor](classOf[it.cwmp.client.view.game.GameViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.game.GameViewActor])), it.cwmp.client.view.game.GameViewActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          21
+          19
         </td>
         <td>
-          581
+          667
           -
-          611
+          697
         </td>
         <td>
           Apply
@@ -283,45 +266,66 @@
         </td>
       </tr><tr>
         <td>
-          22
+          20
         </td>
         <td>
-          23
+          18
         </td>
         <td>
-          642
+          645
           -
-          651
+          665
         </td>
         <td>
-          Select
+          ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.client.GameMain.gameActor
+          akka.actor.Props.apply
         </td>
         <td style="background: #F0ADAD">
-          GameMain.this.gameActor
+          akka.actor.Props.apply[it.cwmp.client.view.game.GameViewActor]()((ClassTag.apply[it.cwmp.client.view.game.GameViewActor](classOf[it.cwmp.client.view.game.GameViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.game.GameViewActor]))
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          26
+          23
         </td>
         <td>
-          652
+          714
           -
-          652
+          724
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          akka.actor.ScalaActorRef.!$default$2
+          it.cwmp.client.controller.messages.Initialize
         </td>
         <td style="background: #F0ADAD">
-          qual$1.!$default$2(x$8)
+          it.cwmp.client.controller.messages.Initialize
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          702
+          -
+          711
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
         </td>
       </tr><tr>
         <td>
@@ -331,30 +335,9 @@
           25
         </td>
         <td>
-          654
+          702
           -
-          661
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.ShowGUI
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.ShowGUI
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          27
-        </td>
-        <td>
-          642
-          -
-          661
+          724
         </td>
         <td>
           ApplyToImplicitArgs
@@ -370,33 +353,33 @@
           22
         </td>
         <td>
-          24
+          21
         </td>
         <td>
-          642
+          702
           -
-          651
+          711
         </td>
         <td>
-          ApplyImplicitView
+          Select
         </td>
         <td>
-          akka.actor.actorRef2Scala
+          it.cwmp.client.GameMain.gameActor
         </td>
         <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
+          GameMain.this.gameActor
         </td>
       </tr><tr>
         <td>
-          23
+          22
         </td>
         <td>
-          32
+          24
         </td>
         <td>
-          674
+          712
           -
-          674
+          712
         </td>
         <td>
           Apply
@@ -405,61 +388,19 @@
           akka.actor.ScalaActorRef.!$default$2
         </td>
         <td style="background: #F0ADAD">
-          qual$2.!$default$2(x$10)
+          qual$1.!$default$2(x$8)
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          29
+          26
         </td>
         <td>
-          664
+          727
           -
-          673
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          akka.actor.actorRef2Scala
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          31
-        </td>
-        <td>
-          676
-          -
-          696
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.NewWorld.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.NewWorld.apply(GameMain.this.debugWorld)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          28
-        </td>
-        <td>
-          664
-          -
-          673
+          736
         </td>
         <td>
           Select
@@ -475,33 +416,75 @@
           23
         </td>
         <td>
-          30
+          29
         </td>
         <td>
-          685
+          737
           -
-          695
+          737
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.GameMain.debugWorld
+          akka.actor.ScalaActorRef.!$default$2
         </td>
         <td style="background: #F0ADAD">
-          GameMain.this.debugWorld
+          qual$2.!$default$2(x$10)
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          33
+          28
         </td>
         <td>
-          664
+          739
           -
-          696
+          764
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.ShowGUIWithName.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.ShowGUIWithName.apply(&quot;Candle&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          727
+          -
+          736
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          727
+          -
+          764
         </td>
         <td>
           ApplyToImplicitArgs
@@ -514,15 +497,141 @@
         </td>
       </tr><tr>
         <td>
-          27
+          24
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          767
+          -
+          776
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameMain.this.gameActor)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          777
+          -
+          777
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          qual$3.!$default$2(x$12)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          767
+          -
+          776
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.gameActor
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.gameActor
+        </td>
+      </tr><tr>
+        <td>
+          24
         </td>
         <td>
           34
         </td>
         <td>
-          792
+          779
           -
-          966
+          799
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.NewWorld.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.NewWorld.apply(GameMain.this.debugWorld)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          767
+          -
+          799
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          qual$3.!(x$12)(x$13)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          788
+          -
+          798
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.GameMain.debugWorld
+        </td>
+        <td style="background: #F0ADAD">
+          GameMain.this.debugWorld
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          930
+          -
+          1104
         </td>
         <td>
           Apply
@@ -544,36 +653,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          36
         </td>
         <td>
-          35
+          41
         </td>
         <td>
-          1000
+          1144
           -
-          1021
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.Duration.ofSeconds
-        </td>
-        <td style="background: #F0ADAD">
-          java.time.Duration.ofSeconds(1L)
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          38
-        </td>
-        <td>
-          971
-          -
-          1206
+          1379
         </td>
         <td>
           Apply
@@ -595,15 +683,36 @@
         </td>
       </tr><tr>
         <td>
-          32
+          36
         </td>
+        <td>
+          38
+        </td>
+        <td>
+          1173
+          -
+          1194
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Duration.ofSeconds
+        </td>
+        <td style="background: #F0ADAD">
+          java.time.Duration.ofSeconds(1L)
+        </td>
+      </tr><tr>
         <td>
           36
         </td>
         <td>
-          981
+          39
+        </td>
+        <td>
+          1154
           -
-          1022
+          1195
         </td>
         <td>
           Apply
@@ -616,15 +725,15 @@
         </td>
       </tr><tr>
         <td>
-          33
-        </td>
-        <td>
           37
         </td>
         <td>
-          1081
+          40
+        </td>
+        <td>
+          1254
           -
-          1205
+          1378
         </td>
         <td>
           Apply

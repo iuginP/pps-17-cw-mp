@@ -30,9 +30,9 @@
 </span>6 <span style=''>  * @param statusCode the HTTP code of error
 </span>7 <span style=''>  * @param getMessage the error message
 </span>8 <span style=''>  */
-</span>9 <span style=''>//noinspection ScalaStyle
+</span>9 <span style=''>// scalastyle:off null
 </span>10 <span style=''>sealed case class HTTPException(statusCode: Int, override val getMessage: String = null) extends RuntimeException(getMessage) {
-</span>11 <span style=''>
+</span>11 <span style=''>  // scalastyle:on null
 </span>12 <span style=''>  /**
 </span>13 <span style=''>    * @return optionally the message of this Exception
 </span>14 <span style=''>    */
@@ -57,9 +57,9 @@
           2
         </td>
         <td>
-          431
+          451
           -
-          449
+          469
         </td>
         <td>
           Apply
@@ -78,9 +78,9 @@
           1
         </td>
         <td>
-          438
+          458
           -
-          448
+          468
         </td>
         <td>
           Select

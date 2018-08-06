@@ -25,161 +25,162 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
 </span>2 <span style=''>
 </span>3 <span style=''>import io.netty.handler.codec.http.HttpHeaderNames
-</span>4 <span style=''>import io.vertx.lang.scala.ScalaVerticle
-</span>5 <span style=''>import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerResponse}
-</span>6 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
-</span>7 <span style=''>import it.cwmp.exceptions.HTTPException
-</span>8 <span style=''>import it.cwmp.model.User
-</span>9 <span style=''>import it.cwmp.utils.Utils.stringToOption
-</span>10 <span style=''>import it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
-</span>11 <span style=''>
-</span>12 <span style=''>import scala.concurrent.Future
-</span>13 <span style=''>import scala.util.{Failure, Success}
-</span>14 <span style=''>
-</span>15 <span style=''>/**
-</span>16 <span style=''>  * This is a Utility trait that simplifies the creation and management of a vertx server.
-</span>17 <span style=''>  *
-</span>18 <span style=''>  * @author Eugenio Pierfederici
-</span>19 <span style=''>  */
-</span>20 <span style=''>trait VertxServer extends ScalaVerticle {
-</span>21 <span style=''>  this: Logging =&gt;
-</span>22 <span style=''>
-</span>23 <span style=''>  protected var server: HttpServer = _
-</span>24 <span style=''>
-</span>25 <span style=''>  override def startFuture(): Future[_] = {
-</span>26 <span style=''>    val router = </span><span style='background: #AEF1AE'>Router.router(vertx)</span><span style=''>
-</span>27 <span style=''>    </span><span style='background: #AEF1AE'>initRouter(router)</span><span style=''>
-</span>28 <span style=''>    </span><span style='background: #AEF1AE'>initServer.flatMap(_ =&gt;
-</span>29 <span style=''></span><span style='background: #AEF1AE'>      vertx.createHttpServer()
-</span>30 <span style=''></span><span style='background: #AEF1AE'>        .requestHandler(router.accept _)
-</span>31 <span style=''></span><span style='background: #AEF1AE'>        .listenFuture(serverPort))
-</span>32 <span style=''></span><span style='background: #AEF1AE'>      .andThen {
-</span>33 <span style=''></span><span style='background: #AEF1AE'>        case Success(s) =&gt;
-</span>34 <span style=''></span><span style='background: #AEF1AE'>          log.info(s&quot;$getClass listening on port: $serverPort&quot;)
-</span>35 <span style=''></span><span style='background: #AEF1AE'>          server = s
-</span>36 <span style=''></span><span style='background: #AEF1AE'>        case Failure(ex) =&gt; log.error(s&quot;Cannot start service on port: $serverPort&quot;, ex)
-</span>37 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
-</span>38 <span style=''>  }
-</span>39 <span style=''>
-</span>40 <span style=''>  /**
-</span>41 <span style=''>    * Initializes the server
-</span>42 <span style=''>    *
-</span>43 <span style=''>    * @return the future that completes when the server is initialized
-</span>44 <span style=''>    */
-</span>45 <span style=''>  protected def initServer: Future[_] = </span><span style='background: #F0ADAD'>Future.successful(())</span><span style=''>
-</span>46 <span style=''>
-</span>47 <span style=''>  /**
-</span>48 <span style=''>    * @return the server port
-</span>49 <span style=''>    */
-</span>50 <span style=''>  protected def serverPort: Int
-</span>51 <span style=''>
-</span>52 <span style=''>  /**
-</span>53 <span style=''>    * Initializes the server router for requests
-</span>54 <span style=''>    *
-</span>55 <span style=''>    * @param router the router to initialize
-</span>56 <span style=''>    */
-</span>57 <span style=''>  protected def initRouter(router: Router): Unit
-</span>58 <span style=''>
-</span>59 <span style=''>  /**
-</span>60 <span style=''>    * Utility method to send back responses
-</span>61 <span style=''>    *
-</span>62 <span style=''>    * @param routingContext the routing context in wich to send the error
-</span>63 <span style=''>    * @param httpCode       the http code
-</span>64 <span style=''>    * @param message        the message to send back
-</span>65 <span style=''>    */
-</span>66 <span style=''>  protected def sendResponse(httpCode: Int,
-</span>67 <span style=''>                             message: Option[String] = None)
-</span>68 <span style=''>                            (implicit routingContext: RoutingContext): Unit = {
-</span>69 <span style=''>    </span><span style='background: #AEF1AE'>response.setStatusCode(httpCode)</span><span style=''>
-</span>70 <span style=''>    message match {
-</span>71 <span style=''>      case Some(messageString) =&gt;
-</span>72 <span style=''>        log.info(s&quot;Sending $httpCode response to client with message: $messageString&quot;)
-</span>73 <span style=''>        </span><span style='background: #AEF1AE'>response.end(messageString)</span><span style=''>
-</span>74 <span style=''>      case None =&gt;
-</span>75 <span style=''>        log.info(s&quot;Sending $httpCode response to client&quot;)
-</span>76 <span style=''>        </span><span style='background: #AEF1AE'>response.end()</span><span style=''>
-</span>77 <span style=''>    }
-</span>78 <span style=''>  }
-</span>79 <span style=''>
-</span>80 <span style=''>  /**
-</span>81 <span style=''>    * Utility method to obtain the response object
-</span>82 <span style=''>    *
-</span>83 <span style=''>    * @param routingContext the implicit routing context
-</span>84 <span style=''>    * @return the response
-</span>85 <span style=''>    */
-</span>86 <span style=''>  protected def response(implicit routingContext: RoutingContext): HttpServerResponse = </span><span style='background: #AEF1AE'>routingContext.response</span><span style=''>
-</span>87 <span style=''>
-</span>88 <span style=''>  /**
-</span>89 <span style=''>    * @param routingContext the routing context on which to extract
-</span>90 <span style=''>    * @return the extracted room name
-</span>91 <span style=''>    */
-</span>92 <span style=''>  protected def getRequestParameter(paramName: String)
-</span>93 <span style=''>                                   (implicit routingContext: RoutingContext): Option[String] =
-</span>94 <span style=''>    </span><span style='background: #AEF1AE'>request.getParam(paramName)</span><span style=''>
-</span>95 <span style=''>
-</span>96 <span style=''>  /**
-</span>97 <span style=''>    * Utility method to obtain the request object
-</span>98 <span style=''>    *
-</span>99 <span style=''>    * @param routingContext the implicit routing context
-</span>100 <span style=''>    * @return the request
-</span>101 <span style=''>    */
-</span>102 <span style=''>  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = </span><span style='background: #AEF1AE'>routingContext.request()</span><span style=''>
-</span>103 <span style=''>
-</span>104 <span style=''>  /**
-</span>105 <span style=''>    * An implicit class to provide the [[HttpServerRequest]] with some more useful utilities.
-</span>106 <span style=''>    */
-</span>107 <span style=''>  implicit class RichHttpRequest(request: HttpServerRequest) {
-</span>108 <span style=''>
-</span>109 <span style=''>    /**
-</span>110 <span style=''>      * This is a utility method that checks if the request is authenticated.
-</span>111 <span style=''>      * For the check it uses the validation strategy given.
-</span>112 <span style=''>      *
-</span>113 <span style=''>      * @param strategy       the validation strategy to use.
-</span>114 <span style=''>      * @param routingContext the routing context in which to execute the check.
-</span>115 <span style=''>      * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
-</span>116 <span style=''>      */
-</span>117 <span style=''>    def checkAuthentication(implicit strategy: Validation[String, User],
-</span>118 <span style=''>                            routingContext: RoutingContext): Future[User] = </span><span style='background: #AEF1AE'>getAuthenticationHeader</span><span style=''> match {
-</span>119 <span style=''>      case None =&gt;
-</span>120 <span style=''>        log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
-</span>121 <span style=''>        </span><span style='background: #F0ADAD'>Future.failed(HTTPException(400, NO_AUTH_HEADER_IN_REQUEST_ERROR))</span><span style=''>
-</span>122 <span style=''>      case Some(authenticationHeader) =&gt; </span><span style='background: #AEF1AE'>strategy.validate(authenticationHeader)</span><span style=''>
-</span>123 <span style=''>    }
-</span>124 <span style=''>
-</span>125 <span style=''>    /**
-</span>126 <span style=''>      * This is a utility method that checks if the request is authenticated.
-</span>127 <span style=''>      * For the check it uses the validation strategy given.
-</span>128 <span style=''>      * If it fails with any [[HTTPException]], then it responds to the request
-</span>129 <span style=''>      * with the status code and message specified in the exception.
-</span>130 <span style=''>      *
-</span>131 <span style=''>      * @param strategy       the validation strategy to use.
-</span>132 <span style=''>      * @param routingContext the routing context in which to execute the check.
-</span>133 <span style=''>      * @return A future containing the authenticated user, if present
-</span>134 <span style=''>      */
-</span>135 <span style=''>    def checkAuthenticationOrReject(implicit strategy: Validation[String, User],
-</span>136 <span style=''>                                    routingContext: RoutingContext): Future[User] =
-</span>137 <span style=''>      </span><span style='background: #AEF1AE'>checkAuthentication(strategy, routingContext).recoverWith {
-</span>138 <span style=''></span><span style='background: #AEF1AE'>        case HTTPException(statusCode, errorMessage) =&gt;
-</span>139 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(statusCode, errorMessage)
-</span>140 <span style=''></span><span style='background: #AEF1AE'>          Future.failed(new IllegalAccessException(errorMessage))
-</span>141 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
-</span>142 <span style=''>
-</span>143 <span style=''>    /**
-</span>144 <span style=''>      * Reads the authorization header (with token) in the request.
-</span>145 <span style=''>      *
-</span>146 <span style=''>      * @return An optional containing the header, if present. Otherwise None
-</span>147 <span style=''>      */
-</span>148 <span style=''>    def getAuthenticationHeader: Option[String] = </span><span style='background: #AEF1AE'>request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)</span><span style=''>
-</span>149 <span style=''>  }
-</span>150 <span style=''>
-</span>151 <span style=''>}
-</span>152 <span style=''>
-</span>153 <span style=''>/**
-</span>154 <span style=''>  * Comppanion object
-</span>155 <span style=''>  */
-</span>156 <span style=''>object VertxServer {
-</span>157 <span style=''>  private val NO_AUTH_HEADER_IN_REQUEST_ERROR = </span><span style='background: #F0ADAD'>&quot;No authorization header in request!&quot;</span><span style=''>
-</span>158 <span style=''>}
+</span>4 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
+</span>5 <span style=''>import io.vertx.lang.scala.ScalaVerticle
+</span>6 <span style=''>import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerResponse}
+</span>7 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
+</span>8 <span style=''>import it.cwmp.exceptions.HTTPException
+</span>9 <span style=''>import it.cwmp.model.User
+</span>10 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
+</span>11 <span style=''>import it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
+</span>12 <span style=''>
+</span>13 <span style=''>import scala.concurrent.Future
+</span>14 <span style=''>import scala.util.{Failure, Success}
+</span>15 <span style=''>
+</span>16 <span style=''>/**
+</span>17 <span style=''>  * This is a Utility trait that simplifies the creation and management of a vertx server.
+</span>18 <span style=''>  *
+</span>19 <span style=''>  * @author Eugenio Pierfederici
+</span>20 <span style=''>  */
+</span>21 <span style=''>trait VertxServer extends ScalaVerticle {
+</span>22 <span style=''>  this: Logging =&gt;
+</span>23 <span style=''>
+</span>24 <span style=''>  protected var server: HttpServer = _
+</span>25 <span style=''>
+</span>26 <span style=''>  override def startFuture(): Future[_] = {
+</span>27 <span style=''>    val router = </span><span style='background: #AEF1AE'>Router.router(vertx)</span><span style=''>
+</span>28 <span style=''>    </span><span style='background: #AEF1AE'>initRouter(router)</span><span style=''>
+</span>29 <span style=''>    </span><span style='background: #AEF1AE'>initServer.flatMap(_ =&gt;
+</span>30 <span style=''></span><span style='background: #AEF1AE'>      vertx.createHttpServer()
+</span>31 <span style=''></span><span style='background: #AEF1AE'>        .requestHandler(router.accept _)
+</span>32 <span style=''></span><span style='background: #AEF1AE'>        .listenFuture(serverPort))
+</span>33 <span style=''></span><span style='background: #AEF1AE'>      .andThen {
+</span>34 <span style=''></span><span style='background: #AEF1AE'>        case Success(s) =&gt;
+</span>35 <span style=''></span><span style='background: #AEF1AE'>          log.info(s&quot;$getClass listening on port: $serverPort&quot;)
+</span>36 <span style=''></span><span style='background: #AEF1AE'>          server = s
+</span>37 <span style=''></span><span style='background: #AEF1AE'>        case Failure(ex) =&gt; log.error(s&quot;Cannot start service on port: $serverPort&quot;, ex)
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>39 <span style=''>  }
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * Initializes the server
+</span>43 <span style=''>    *
+</span>44 <span style=''>    * @return the future that completes when the server is initialized
+</span>45 <span style=''>    */
+</span>46 <span style=''>  protected def initServer: Future[_] = </span><span style='background: #F0ADAD'>Future.successful(())</span><span style=''>
+</span>47 <span style=''>
+</span>48 <span style=''>  /**
+</span>49 <span style=''>    * @return the server port
+</span>50 <span style=''>    */
+</span>51 <span style=''>  protected def serverPort: Int
+</span>52 <span style=''>
+</span>53 <span style=''>  /**
+</span>54 <span style=''>    * Initializes the server router for requests
+</span>55 <span style=''>    *
+</span>56 <span style=''>    * @param router the router to initialize
+</span>57 <span style=''>    */
+</span>58 <span style=''>  protected def initRouter(router: Router): Unit
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * Utility method to send back responses
+</span>62 <span style=''>    *
+</span>63 <span style=''>    * @param routingContext the routing context in which to send the error
+</span>64 <span style=''>    * @param httpCode       the http code
+</span>65 <span style=''>    * @param message        the message to send back
+</span>66 <span style=''>    */
+</span>67 <span style=''>  protected def sendResponse(httpCode: Int,
+</span>68 <span style=''>                             message: Option[String] = None)
+</span>69 <span style=''>                            (implicit routingContext: RoutingContext): Unit = {
+</span>70 <span style=''>    </span><span style='background: #AEF1AE'>response.setStatusCode(httpCode)</span><span style=''>
+</span>71 <span style=''>    message match {
+</span>72 <span style=''>      case Some(messageString) =&gt;
+</span>73 <span style=''>        log.info(s&quot;Sending $httpCode response to client with message: $messageString&quot;)
+</span>74 <span style=''>        </span><span style='background: #AEF1AE'>response.end(messageString)</span><span style=''>
+</span>75 <span style=''>      case None =&gt;
+</span>76 <span style=''>        log.info(s&quot;Sending $httpCode response to client&quot;)
+</span>77 <span style=''>        </span><span style='background: #AEF1AE'>response.end()</span><span style=''>
+</span>78 <span style=''>    }
+</span>79 <span style=''>  }
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * Utility method to obtain the response object
+</span>83 <span style=''>    *
+</span>84 <span style=''>    * @param routingContext the implicit routing context
+</span>85 <span style=''>    * @return the response
+</span>86 <span style=''>    */
+</span>87 <span style=''>  protected def response(implicit routingContext: RoutingContext): HttpServerResponse = </span><span style='background: #AEF1AE'>routingContext.response</span><span style=''>
+</span>88 <span style=''>
+</span>89 <span style=''>  /**
+</span>90 <span style=''>    * @param routingContext the routing context on which to extract
+</span>91 <span style=''>    * @return the extracted room name
+</span>92 <span style=''>    */
+</span>93 <span style=''>  protected def getRequestParameter(paramName: String)
+</span>94 <span style=''>                                   (implicit routingContext: RoutingContext): Option[String] =
+</span>95 <span style=''>    </span><span style='background: #AEF1AE'>request.getParam(paramName)</span><span style=''>
+</span>96 <span style=''>
+</span>97 <span style=''>  /**
+</span>98 <span style=''>    * Utility method to obtain the request object
+</span>99 <span style=''>    *
+</span>100 <span style=''>    * @param routingContext the implicit routing context
+</span>101 <span style=''>    * @return the request
+</span>102 <span style=''>    */
+</span>103 <span style=''>  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = </span><span style='background: #AEF1AE'>routingContext.request()</span><span style=''>
+</span>104 <span style=''>
+</span>105 <span style=''>  /**
+</span>106 <span style=''>    * An implicit class to provide the [[HttpServerRequest]] with some more useful utilities.
+</span>107 <span style=''>    */
+</span>108 <span style=''>  implicit class RichHttpRequest(request: HttpServerRequest) {
+</span>109 <span style=''>
+</span>110 <span style=''>    /**
+</span>111 <span style=''>      * This is a utility method that checks if the request is authenticated.
+</span>112 <span style=''>      * For the check it uses the validation strategy given.
+</span>113 <span style=''>      *
+</span>114 <span style=''>      * @param strategy       the validation strategy to use.
+</span>115 <span style=''>      * @param routingContext the routing context in which to execute the check.
+</span>116 <span style=''>      * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
+</span>117 <span style=''>      */
+</span>118 <span style=''>    def checkAuthentication(implicit strategy: Validation[String, User],
+</span>119 <span style=''>                            routingContext: RoutingContext): Future[User] = </span><span style='background: #AEF1AE'>getAuthenticationHeader</span><span style=''> match {
+</span>120 <span style=''>      case None =&gt;
+</span>121 <span style=''>        log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
+</span>122 <span style=''>        </span><span style='background: #F0ADAD'>Future.failed(HTTPException(BAD_REQUEST, NO_AUTH_HEADER_IN_REQUEST_ERROR))</span><span style=''>
+</span>123 <span style=''>      case Some(authenticationHeader) =&gt; </span><span style='background: #AEF1AE'>strategy.validate(authenticationHeader)</span><span style=''>
+</span>124 <span style=''>    }
+</span>125 <span style=''>
+</span>126 <span style=''>    /**
+</span>127 <span style=''>      * This is a utility method that checks if the request is authenticated.
+</span>128 <span style=''>      * For the check it uses the validation strategy given.
+</span>129 <span style=''>      * If it fails with any [[HTTPException]], then it responds to the request
+</span>130 <span style=''>      * with the status code and message specified in the exception.
+</span>131 <span style=''>      *
+</span>132 <span style=''>      * @param strategy       the validation strategy to use.
+</span>133 <span style=''>      * @param routingContext the routing context in which to execute the check.
+</span>134 <span style=''>      * @return A future containing the authenticated user, if present
+</span>135 <span style=''>      */
+</span>136 <span style=''>    def checkAuthenticationOrReject(implicit strategy: Validation[String, User],
+</span>137 <span style=''>                                    routingContext: RoutingContext): Future[User] =
+</span>138 <span style=''>      </span><span style='background: #AEF1AE'>checkAuthentication(strategy, routingContext).recoverWith {
+</span>139 <span style=''></span><span style='background: #AEF1AE'>        case HTTPException(statusCode, errorMessage) =&gt;
+</span>140 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(statusCode, errorMessage)
+</span>141 <span style=''></span><span style='background: #AEF1AE'>          Future.failed(new IllegalAccessException(errorMessage))
+</span>142 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>143 <span style=''>
+</span>144 <span style=''>    /**
+</span>145 <span style=''>      * Reads the authorization header (with token) in the request.
+</span>146 <span style=''>      *
+</span>147 <span style=''>      * @return An optional containing the header, if present. Otherwise None
+</span>148 <span style=''>      */
+</span>149 <span style=''>    def getAuthenticationHeader: Option[String] = </span><span style='background: #AEF1AE'>request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)</span><span style=''>
+</span>150 <span style=''>  }
+</span>151 <span style=''>
+</span>152 <span style=''>}
+</span>153 <span style=''>
+</span>154 <span style=''>/**
+</span>155 <span style=''>  * Companion object
+</span>156 <span style=''>  */
+</span>157 <span style=''>object VertxServer {
+</span>158 <span style=''>  private val NO_AUTH_HEADER_IN_REQUEST_ERROR = </span><span style='background: #F0ADAD'>&quot;No authorization header in request!&quot;</span><span style=''>
+</span>159 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -193,36 +194,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          26
+          27
         </td>
         <td>
-          465
+          477
         </td>
         <td>
-          811
+          887
           -
-          816
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.vertx
-        </td>
-        <td style="background: #AEF1AE">
-          VertxServer.this.vertx
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          466
-        </td>
-        <td>
-          797
-          -
-          817
+          907
         </td>
         <td>
           Apply
@@ -238,12 +218,33 @@
           27
         </td>
         <td>
-          467
+          476
         </td>
         <td>
-          822
+          901
           -
-          840
+          906
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.vertx
+        </td>
+        <td style="background: #AEF1AE">
+          VertxServer.this.vertx
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          478
+        </td>
+        <td>
+          912
+          -
+          930
         </td>
         <td>
           Apply
@@ -256,15 +257,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          29
         </td>
         <td>
-          471
+          482
         </td>
         <td>
-          863
+          953
           -
-          863
+          953
         </td>
         <td>
           Select
@@ -277,15 +278,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          31
         </td>
         <td>
-          468
+          479
         </td>
         <td>
-          924
+          1014
           -
-          937
+          1027
         </td>
         <td>
           Apply
@@ -298,36 +299,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
-          469
+          481
         </td>
         <td>
-          963
+          965
           -
-          973
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.serverPort
-        </td>
-        <td style="background: #AEF1AE">
-          VertxServer.this.serverPort
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          470
-        </td>
-        <td>
-          875
-          -
-          974
+          1064
         </td>
         <td>
           Apply
@@ -345,54 +325,33 @@
           32
         </td>
         <td>
-          474
+          480
         </td>
         <td>
-          991
+          1053
           -
-          991
+          1063
         </td>
         <td>
           Select
         </td>
         <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
+          it.cwmp.utils.VertxServer.serverPort
         </td>
         <td style="background: #AEF1AE">
-          VertxServer.this.executionContext
+          VertxServer.this.serverPort
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          473
+          486
         </td>
         <td>
-          991
+          935
           -
-          991
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          475
-        </td>
-        <td>
-          845
-          -
-          1200
+          1290
         </td>
         <td>
           ApplyToImplicitArgs
@@ -434,15 +393,57 @@
         </td>
       </tr><tr>
         <td>
-          35
+          33
         </td>
         <td>
-          472
+          485
         </td>
         <td>
-          1094
+          1081
           -
-          1104
+          1081
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxServer.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          1081
+          -
+          1081
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxServer.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          483
+        </td>
+        <td>
+          1184
+          -
+          1194
         </td>
         <td>
           Apply
@@ -455,15 +456,15 @@
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          476
+          487
         </td>
         <td>
-          1365
+          1455
           -
-          1386
+          1476
         </td>
         <td>
           Apply
@@ -476,15 +477,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          70
         </td>
         <td>
-          477
+          488
         </td>
         <td>
-          2048
+          2139
           -
-          2080
+          2171
         </td>
         <td>
           Apply
@@ -497,15 +498,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          74
         </td>
         <td>
-          478
+          489
         </td>
         <td>
-          2230
+          2321
           -
-          2257
+          2348
         </td>
         <td>
           Apply
@@ -518,15 +519,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          77
         </td>
         <td>
-          479
+          490
         </td>
         <td>
-          2343
+          2434
           -
-          2357
+          2448
         </td>
         <td>
           Apply
@@ -539,15 +540,15 @@
         </td>
       </tr><tr>
         <td>
-          86
+          87
         </td>
         <td>
-          480
+          491
         </td>
         <td>
-          2611
+          2702
           -
-          2634
+          2725
         </td>
         <td>
           Apply
@@ -560,15 +561,15 @@
         </td>
       </tr><tr>
         <td>
-          94
+          95
         </td>
         <td>
-          481
+          492
         </td>
         <td>
-          2909
+          3000
           -
-          2936
+          3027
         </td>
         <td>
           Apply
@@ -581,15 +582,15 @@
         </td>
       </tr><tr>
         <td>
-          102
+          103
         </td>
         <td>
-          482
+          493
         </td>
         <td>
-          3176
+          3267
           -
-          3200
+          3291
         </td>
         <td>
           Apply
@@ -602,15 +603,15 @@
         </td>
       </tr><tr>
         <td>
-          118
+          119
         </td>
         <td>
-          483
+          494
         </td>
         <td>
-          3945
+          4036
           -
-          3968
+          4059
         </td>
         <td>
           Select
@@ -623,15 +624,36 @@
         </td>
       </tr><tr>
         <td>
-          121
+          122
         </td>
         <td>
-          487
+          496
         </td>
         <td>
-          4054
+          4173
           -
-          4120
+          4184
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST)
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          499
+        </td>
+        <td>
+          4145
+          -
+          4219
         </td>
         <td>
           Apply
@@ -640,19 +662,19 @@
           scala.concurrent.Future.failed
         </td>
         <td style="background: #F0ADAD">
-          scala.concurrent.Future.failed[Nothing](it.cwmp.exceptions.HTTPException.apply(400, it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR))
+          scala.concurrent.Future.failed[Nothing](it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR))
         </td>
       </tr><tr>
         <td>
-          121
+          122
         </td>
         <td>
-          486
+          498
         </td>
         <td>
-          4068
+          4159
           -
-          4119
+          4218
         </td>
         <td>
           Apply
@@ -661,19 +683,40 @@
           it.cwmp.exceptions.HTTPException.apply
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.exceptions.HTTPException.apply(400, it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR)
+          it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR)
         </td>
       </tr><tr>
         <td>
-          121
+          122
         </td>
         <td>
-          485
+          495
         </td>
         <td>
-          4087
+          4173
           -
-          4118
+          4184
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
+        </td>
+        <td style="background: #F0ADAD">
+          io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          497
+        </td>
+        <td>
+          4186
+          -
+          4217
         </td>
         <td>
           Select
@@ -686,36 +729,15 @@
         </td>
       </tr><tr>
         <td>
-          121
+          123
         </td>
         <td>
-          484
+          500
         </td>
         <td>
-          4082
+          4261
           -
-          4085
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          400
-        </td>
-      </tr><tr>
-        <td>
-          122
-        </td>
-        <td>
-          488
-        </td>
-        <td>
-          4162
-          -
-          4201
+          4300
         </td>
         <td>
           Apply
@@ -728,15 +750,36 @@
         </td>
       </tr><tr>
         <td>
-          137
+          138
         </td>
         <td>
-          492
+          505
         </td>
         <td>
-          4965
+          5064
           -
-          4965
+          5064
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxServer.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          504
+        </td>
+        <td>
+          5064
+          -
+          5064
         </td>
         <td>
           Apply
@@ -749,15 +792,15 @@
         </td>
       </tr><tr>
         <td>
-          137
+          138
         </td>
         <td>
-          494
+          506
         </td>
         <td>
-          4907
+          5006
           -
-          5145
+          5244
         </td>
         <td>
           ApplyToImplicitArgs
@@ -789,36 +832,15 @@
         </td>
       </tr><tr>
         <td>
-          137
+          140
         </td>
         <td>
-          493
+          501
         </td>
         <td>
-          4965
+          5132
           -
-          4965
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxServer.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          139
-        </td>
-        <td>
-          489
-        </td>
-        <td>
-          5033
-          -
-          5071
+          5170
         </td>
         <td>
           ApplyToImplicitArgs
@@ -831,36 +853,15 @@
         </td>
       </tr><tr>
         <td>
-          140
+          141
         </td>
         <td>
-          490
+          503
         </td>
         <td>
-          5096
+          5181
           -
-          5136
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.IllegalAccessException.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new java.lang.IllegalAccessException(errorMessage)
-        </td>
-      </tr><tr>
-        <td>
-          140
-        </td>
-        <td>
-          491
-        </td>
-        <td>
-          5082
-          -
-          5137
+          5236
         </td>
         <td>
           Apply
@@ -873,15 +874,36 @@
         </td>
       </tr><tr>
         <td>
-          148
+          141
         </td>
         <td>
-          496
+          502
         </td>
         <td>
-          5368
+          5195
           -
-          5425
+          5235
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.IllegalAccessException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.lang.IllegalAccessException(errorMessage)
+        </td>
+      </tr><tr>
+        <td>
+          149
+        </td>
+        <td>
+          508
+        </td>
+        <td>
+          5467
+          -
+          5524
         </td>
         <td>
           Apply
@@ -894,15 +916,15 @@
         </td>
       </tr><tr>
         <td>
-          148
+          149
         </td>
         <td>
-          495
+          507
         </td>
         <td>
-          5386
+          5485
           -
-          5424
+          5523
         </td>
         <td>
           Apply
@@ -915,15 +937,15 @@
         </td>
       </tr><tr>
         <td>
-          157
+          158
         </td>
         <td>
-          497
+          509
         </td>
         <td>
-          5534
+          5632
           -
-          5571
+          5669
         </td>
         <td>
           Literal

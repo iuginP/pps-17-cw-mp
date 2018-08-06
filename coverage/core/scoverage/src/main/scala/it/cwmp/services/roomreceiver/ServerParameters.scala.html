@@ -29,8 +29,14 @@
 </span>5 <span style=''>  */
 </span>6 <span style=''>object ServerParameters {
 </span>7 <span style=''>
-</span>8 <span style=''>  def API_RECEIVE_PARTICIPANTS_URL(token: String) = </span><span style='background: #F0ADAD'>s&quot;/api/client/$token/room/participants&quot;</span><span style=''>
-</span>9 <span style=''>}
+</span>8 <span style=''>  /**
+</span>9 <span style=''>    * Generates a one-time url with provided token
+</span>10 <span style=''>    *
+</span>11 <span style=''>    * @param token the toke to use generating the url
+</span>12 <span style=''>    * @return the one-time url to receive participants
+</span>13 <span style=''>    */
+</span>14 <span style=''>  def createParticipantReceiverUrl(token: String): String = </span><span style='background: #F0ADAD'>s&quot;/api/client/$token/room/participants&quot;</span><span style=''>
+</span>15 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -44,15 +50,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          8
+          14
         </td>
         <td>
-          164
+          162
         </td>
         <td>
-          178
+          365
           -
-          217
+          404
         </td>
         <td>
           Apply

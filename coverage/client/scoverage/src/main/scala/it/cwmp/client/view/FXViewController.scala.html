@@ -87,9 +87,9 @@
 </span>63 <span style=''>    val pane: Pane = </span><span style='background: #F0ADAD'>loader.load()</span><span style=''>
 </span>64 <span style=''>
 </span>65 <span style=''>    </span><span style='background: #F0ADAD'>stage setTitle title</span><span style=''>
-</span>66 <span style=''>    </span><span style='background: #F0ADAD'>stage setResizable false</span><span style=''>
-</span>67 <span style=''>    </span><span style='background: #F0ADAD'>stage.setOnCloseRequest(_ =&gt; onCloseAction())</span><span style=''>
-</span>68 <span style=''>    </span><span style='background: #F0ADAD'>stage setScene new Scene(pane)</span><span style=''>
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>stage setOnCloseRequest (_ =&gt; onCloseAction())</span><span style=''>
+</span>67 <span style=''>    </span><span style='background: #F0ADAD'>stage setScene new Scene(pane)</span><span style=''>
+</span>68 <span style=''>    </span><span style='background: #F0ADAD'>stage setResizable false</span><span style=''>
 </span>69 <span style=''>  }
 </span>70 <span style=''>}
 </span></pre>
@@ -108,7 +108,7 @@
           16
         </td>
         <td>
-          915
+          1047
         </td>
         <td>
           468
@@ -129,7 +129,7 @@
           22
         </td>
         <td>
-          916
+          1048
         </td>
         <td>
           559
@@ -150,7 +150,7 @@
           23
         </td>
         <td>
-          917
+          1049
         </td>
         <td>
           573
@@ -171,7 +171,7 @@
           29
         </td>
         <td>
-          918
+          1050
         </td>
         <td>
           665
@@ -192,7 +192,7 @@
           52
         </td>
         <td>
-          919
+          1051
         </td>
         <td>
           1123
@@ -213,7 +213,7 @@
           53
         </td>
         <td>
-          920
+          1052
         </td>
         <td>
           1143
@@ -234,7 +234,7 @@
           61
         </td>
         <td>
-          923
+          1055
         </td>
         <td>
           1297
@@ -255,7 +255,7 @@
           61
         </td>
         <td>
-          922
+          1054
         </td>
         <td>
           1312
@@ -276,7 +276,7 @@
           61
         </td>
         <td>
-          921
+          1053
         </td>
         <td>
           1333
@@ -297,7 +297,7 @@
           62
         </td>
         <td>
-          925
+          1057
         </td>
         <td>
           1346
@@ -318,7 +318,7 @@
           62
         </td>
         <td>
-          924
+          1056
         </td>
         <td>
           1367
@@ -339,7 +339,7 @@
           63
         </td>
         <td>
-          926
+          1058
         </td>
         <td>
           1400
@@ -360,7 +360,7 @@
           65
         </td>
         <td>
-          928
+          1060
         </td>
         <td>
           1419
@@ -381,7 +381,7 @@
           65
         </td>
         <td>
-          927
+          1059
         </td>
         <td>
           1434
@@ -402,33 +402,33 @@
           66
         </td>
         <td>
-          929
+          1061
         </td>
         <td>
-          1444
+          1474
           -
-          1468
+          1489
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.stage.Stage.setResizable
+          it.cwmp.client.view.FXViewController.onCloseAction
         </td>
         <td style="background: #F0ADAD">
-          FXViewController.this.stage.setResizable(false)
+          FXViewController.this.onCloseAction()
         </td>
       </tr><tr>
         <td>
-          67
+          66
         </td>
         <td>
-          931
+          1062
         </td>
         <td>
-          1473
+          1444
           -
-          1518
+          1490
         </td>
         <td>
           Apply
@@ -444,33 +444,33 @@
           67
         </td>
         <td>
-          930
+          1064
         </td>
         <td>
-          1502
+          1495
           -
-          1517
+          1525
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXViewController.onCloseAction
+          javafx.stage.Stage.setScene
         </td>
         <td style="background: #F0ADAD">
-          FXViewController.this.onCloseAction()
+          FXViewController.this.stage.setScene(new javafx.scene.Scene(pane))
         </td>
       </tr><tr>
         <td>
-          68
+          67
         </td>
         <td>
-          932
+          1063
         </td>
         <td>
-          1538
+          1510
           -
-          1553
+          1525
         </td>
         <td>
           Apply
@@ -486,21 +486,21 @@
           68
         </td>
         <td>
-          933
+          1065
         </td>
         <td>
-          1523
+          1530
           -
-          1553
+          1554
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.stage.Stage.setScene
+          javafx.stage.Stage.setResizable
         </td>
         <td style="background: #F0ADAD">
-          FXViewController.this.stage.setScene(new javafx.scene.Scene(pane))
+          FXViewController.this.stage.setResizable(false)
         </td>
       </tr>
     </table>

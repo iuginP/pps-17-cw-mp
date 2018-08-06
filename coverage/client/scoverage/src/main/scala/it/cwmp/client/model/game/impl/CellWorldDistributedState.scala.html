@@ -48,9 +48,19 @@
 </span>24 <span style=''>  override protected def activeBehaviour: Receive = {
 </span>25 <span style=''>    case UpdateState(state: CellWorld) =&gt;
 </span>26 <span style=''>      log.debug(&quot;Updating distributed state&quot;)
-</span>27 <span style=''>      </span><span style='background: #F0ADAD'>replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))</span><span style=''>
+</span>27 <span style=''>      </span><span style='background: #F0ADAD'>writeDistributed(state)</span><span style=''>
 </span>28 <span style=''>  }
-</span>29 <span style=''>}
+</span>29 <span style=''>
+</span>30 <span style=''>  override def initialize(state: CellWorld): Unit = </span><span style='background: #F0ADAD'>writeDistributed(state)</span><span style=''>
+</span>31 <span style=''>
+</span>32 <span style=''>  /**
+</span>33 <span style=''>    * Handle method to do a distributed write
+</span>34 <span style=''>    *
+</span>35 <span style=''>    * @param state the state to write
+</span>36 <span style=''>    */
+</span>37 <span style=''>  private def writeDistributed(state: CellWorld): Unit =
+</span>38 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))</span><span style=''>
+</span>39 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -67,28 +77,28 @@
           22
         </td>
         <td>
-          738
+          866
         </td>
         <td>
-          810
+          824
           -
-          834
+          833
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          akka.cluster.ddata.Replicator.WriteMajority.apply
+          scala.concurrent.duration.DurationConversions.seconds
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.WriteMajority.apply(scala.concurrent.duration.`package`.DurationInt(1).seconds, akka.cluster.ddata.Replicator.WriteMajority.apply$default$2)
+          scala.concurrent.duration.`package`.DurationInt(1).seconds
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          735
+          865
         </td>
         <td>
           824
@@ -109,49 +119,49 @@
           22
         </td>
         <td>
-          737
+          868
         </td>
         <td>
           810
           -
-          810
+          834
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
+          akka.cluster.ddata.Replicator.WriteMajority.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
+          akka.cluster.ddata.Replicator.WriteMajority.apply(scala.concurrent.duration.`package`.DurationInt(1).seconds, akka.cluster.ddata.Replicator.WriteMajority.apply$default$2)
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          736
+          867
         </td>
         <td>
-          824
+          810
           -
-          833
+          810
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.concurrent.duration.DurationConversions.seconds
+          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
         </td>
         <td style="background: #F0ADAD">
-          scala.concurrent.duration.`package`.DurationInt(1).seconds
+          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          752
+          870
         </td>
         <td>
           888
@@ -172,138 +182,54 @@
           27
         </td>
         <td>
-          747
+          869
         </td>
         <td>
-          1086
+          984
           -
-          1086
+          1007
         </td>
         <td>
           Apply
         </td>
         <td>
-          akka.cluster.ddata.LWWRegister.withValue$default$3
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.writeDistributed
         </td>
         <td style="background: #F0ADAD">
-          x$1.withValue$default$3(x$5)
+          CellWorldDistributedState.this.writeDistributed(state)
         </td>
       </tr><tr>
         <td>
-          27
+          30
         </td>
         <td>
-          741
+          871
         </td>
         <td>
-          1047
+          1065
           -
-          1047
+          1088
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorldDistributedState.cluster
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.writeDistributed
         </td>
         <td style="background: #F0ADAD">
-          CellWorldDistributedState.this.cluster
+          CellWorldDistributedState.this.writeDistributed(state)
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          750
+          873
         </td>
         <td>
-          1000
+          1279
           -
-          1000
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorldDistributedState.replicatorActor
-        </td>
-        <td style="background: #F0ADAD">
-          CellWorldDistributedState.this.replicatorActor
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          744
-        </td>
-        <td>
-          1056
-          -
-          1073
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorldDistributedState.consistencyPolicy
-        </td>
-        <td style="background: #F0ADAD">
-          CellWorldDistributedState.this.consistencyPolicy
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          743
-        </td>
-        <td>
-          1025
-          -
-          1054
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.cluster.ddata.LWWRegister.apply
-        </td>
-        <td style="background: #F0ADAD">
-          akka.cluster.ddata.LWWRegister.apply[it.cwmp.client.model.game.impl.CellWorld](x$2)(x$3, x$4)
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          746
-        </td>
-        <td>
-          1086
-          -
-          1086
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorldDistributedState.cluster
-        </td>
-        <td style="background: #F0ADAD">
-          CellWorldDistributedState.this.cluster
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          740
-        </td>
-        <td>
-          1009
-          -
-          1023
+          1293
         </td>
         <td>
           Select
@@ -316,15 +242,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          749
+          882
         </td>
         <td>
-          1002
+          1272
           -
-          1094
+          1364
         </td>
         <td>
           Apply
@@ -347,15 +273,57 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          742
+          872
         </td>
         <td>
-          1047
+          1254
           -
-          1047
+          1269
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          CellWorldDistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          881
+        </td>
+        <td>
+          1345
+          -
+          1363
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.withValue
+        </td>
+        <td style="background: #F0ADAD">
+          x$1.withValue(x$5)(x$6, x$7)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          875
+        </td>
+        <td>
+          1317
+          -
+          1317
         </td>
         <td>
           Apply
@@ -368,15 +336,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          751
+          884
         </td>
         <td>
-          984
+          1254
           -
-          1094
+          1364
         </td>
         <td>
           ApplyToImplicitArgs
@@ -399,15 +367,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          745
+          878
         </td>
         <td>
-          1002
+          1272
           -
-          1002
+          1272
         </td>
         <td>
           TypeApply
@@ -420,15 +388,57 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          739
+          877
         </td>
         <td>
-          984
+          1326
           -
-          999
+          1343
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.consistencyPolicy
+        </td>
+        <td style="background: #F0ADAD">
+          CellWorldDistributedState.this.consistencyPolicy
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          880
+        </td>
+        <td>
+          1356
+          -
+          1356
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.withValue$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          x$1.withValue$default$3(x$5)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          883
+        </td>
+        <td>
+          1270
+          -
+          1270
         </td>
         <td>
           Select
@@ -441,24 +451,66 @@
         </td>
       </tr><tr>
         <td>
-          27
+          38
         </td>
         <td>
-          748
+          874
         </td>
         <td>
-          1075
+          1317
           -
-          1093
+          1317
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          CellWorldDistributedState.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          876
+        </td>
+        <td>
+          1295
+          -
+          1324
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          akka.cluster.ddata.LWWRegister.withValue
+          akka.cluster.ddata.LWWRegister.apply
         </td>
         <td style="background: #F0ADAD">
-          x$1.withValue(x$5)(x$6, x$7)
+          akka.cluster.ddata.LWWRegister.apply[it.cwmp.client.model.game.impl.CellWorld](x$2)(x$3, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          879
+        </td>
+        <td>
+          1356
+          -
+          1356
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorldDistributedState.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          CellWorldDistributedState.this.cluster
         </td>
       </tr>
     </table>

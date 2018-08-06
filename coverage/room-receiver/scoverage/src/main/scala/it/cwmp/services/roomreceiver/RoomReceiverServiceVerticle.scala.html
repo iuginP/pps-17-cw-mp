@@ -24,65 +24,66 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.roomreceiver
 </span>2 <span style=''>
-</span>3 <span style=''>import io.vertx.core.Handler
-</span>4 <span style=''>import io.vertx.core.buffer.Buffer
-</span>5 <span style=''>import io.vertx.lang.scala.json.JsonObject
-</span>6 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
-</span>7 <span style=''>import it.cwmp.model.Participant
-</span>8 <span style=''>import it.cwmp.model.Participant.Converters._
-</span>9 <span style=''>import it.cwmp.services.roomreceiver.ServerParameters._
-</span>10 <span style=''>import it.cwmp.utils.Utils.stringToOption
-</span>11 <span style=''>import it.cwmp.utils.{Logging, VertxServer}
-</span>12 <span style=''>
-</span>13 <span style=''>/**
-</span>14 <span style=''>  * A class implementing a one-time service provided by clients to receive room infromation
-</span>15 <span style=''>  *
-</span>16 <span style=''>  * @param token             the token on which to listen for an authorized response
-</span>17 <span style=''>  * @param receptionStrategy the strategy to use when the data has been received
-</span>18 <span style=''>  */
-</span>19 <span style=''>case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] =&gt; Unit) extends VertxServer with Logging {
-</span>20 <span style=''>
-</span>21 <span style=''>  override protected val serverPort: Int = </span><span style='background: #AEF1AE'>0</span><span style=''>
-</span>22 <span style=''>
-</span>23 <span style=''>  def port: Int = </span><span style='background: #AEF1AE'>server.actualPort()</span><span style=''>
-</span>24 <span style=''>
-</span>25 <span style=''>  override protected def initRouter(router: Router): Unit = {
-</span>26 <span style=''>    </span><span style='background: #AEF1AE'>router post API_RECEIVE_PARTICIPANTS_URL(token) handler createParticipantReceiverHandler</span><span style=''>
-</span>27 <span style=''>    log.info(s&quot;Starting the RoomReceiver service with the token: $token ...&quot;)
-</span>28 <span style=''>  }
-</span>29 <span style=''>
-</span>30 <span style=''>  /**
-</span>31 <span style=''>    * Handles the reception of list of participants to the room
-</span>32 <span style=''>    */
-</span>33 <span style=''>  private def createParticipantReceiverHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>34 <span style=''>    log.info(&quot;Receiving participant list...&quot;)
-</span>35 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
-</span>36 <span style=''></span><span style='background: #AEF1AE'>      extractIncomingParticipantListFromBody(body) match {
-</span>37 <span style=''></span><span style='background: #AEF1AE'>        case Some(participants) =&gt;
-</span>38 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;List is valid.&quot;)
-</span>39 <span style=''></span><span style='background: #AEF1AE'>          log.debug(&quot;Applying reception strategy...&quot;)
-</span>40 <span style=''></span><span style='background: #AEF1AE'>          receptionStrategy(participants)
-</span>41 <span style=''></span><span style='background: #AEF1AE'>          response.endHandler(_ =&gt; server.close())
-</span>42 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(201)
-</span>43 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
-</span>44 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;Error: List is invalid.&quot;)
-</span>45 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(400, &quot;Invalid parameter: no participant list JSON in body&quot;)
-</span>46 <span style=''></span><span style='background: #AEF1AE'>      })</span><span style=''>
-</span>47 <span style=''>
-</span>48 <span style=''>    def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
-</span>49 <span style=''>      try {
-</span>50 <span style=''>        </span><span style='background: #AEF1AE'>var result = List[Participant]()
-</span>51 <span style=''></span><span style='background: #AEF1AE'>        val jsonArray = body.toJsonArray
-</span>52 <span style=''></span><span style='background: #AEF1AE'>        jsonArray.forEach {
-</span>53 <span style=''></span><span style='background: #AEF1AE'>          case jsonObject: JsonObject =&gt; result = result :+ jsonObject.toParticipant
-</span>54 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>55 <span style=''></span><span style='background: #AEF1AE'>        Some(result)</span><span style=''>
-</span>56 <span style=''>      } catch {
-</span>57 <span style=''>        case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>58 <span style=''>      }
-</span>59 <span style=''>    }
-</span>60 <span style=''>  }
-</span>61 <span style=''>}
+</span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED}
+</span>4 <span style=''>import io.vertx.core.Handler
+</span>5 <span style=''>import io.vertx.core.buffer.Buffer
+</span>6 <span style=''>import io.vertx.lang.scala.json.JsonObject
+</span>7 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
+</span>8 <span style=''>import it.cwmp.model.Participant
+</span>9 <span style=''>import it.cwmp.model.Participant.Converters._
+</span>10 <span style=''>import it.cwmp.services.roomreceiver.ServerParameters._
+</span>11 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
+</span>12 <span style=''>import it.cwmp.utils.{Logging, VertxServer}
+</span>13 <span style=''>
+</span>14 <span style=''>/**
+</span>15 <span style=''>  * A class implementing a one-time service provided by clients to receive room information
+</span>16 <span style=''>  *
+</span>17 <span style=''>  * @param token             the token on which to listen for an authorized response
+</span>18 <span style=''>  * @param receptionStrategy the strategy to use when the data has been received
+</span>19 <span style=''>  */
+</span>20 <span style=''>case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Participant] =&gt; Unit) extends VertxServer with Logging {
+</span>21 <span style=''>
+</span>22 <span style=''>  override protected val serverPort: Int = </span><span style='background: #AEF1AE'>0</span><span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>  def port: Int = </span><span style='background: #AEF1AE'>server.actualPort()</span><span style=''>
+</span>25 <span style=''>
+</span>26 <span style=''>  override protected def initRouter(router: Router): Unit = {
+</span>27 <span style=''>    </span><span style='background: #AEF1AE'>router post createParticipantReceiverUrl(token) handler createParticipantReceiverHandler</span><span style=''>
+</span>28 <span style=''>    log.info(s&quot;Starting the RoomReceiver service with the token: $token ...&quot;)
+</span>29 <span style=''>  }
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * Handles the reception of list of participants to the room
+</span>33 <span style=''>    */
+</span>34 <span style=''>  private def createParticipantReceiverHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>35 <span style=''>    log.info(&quot;Receiving participant list...&quot;)
+</span>36 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
+</span>37 <span style=''></span><span style='background: #AEF1AE'>      extractIncomingParticipantListFromBody(body) match {
+</span>38 <span style=''></span><span style='background: #AEF1AE'>        case Some(participants) =&gt;
+</span>39 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;List is valid.&quot;)
+</span>40 <span style=''></span><span style='background: #AEF1AE'>          log.debug(&quot;Applying reception strategy...&quot;)
+</span>41 <span style=''></span><span style='background: #AEF1AE'>          receptionStrategy(participants)
+</span>42 <span style=''></span><span style='background: #AEF1AE'>          response.endHandler(_ =&gt; server.close())
+</span>43 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(CREATED)
+</span>44 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
+</span>45 <span style=''></span><span style='background: #AEF1AE'>          log.info(&quot;Error: List is invalid.&quot;)
+</span>46 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(BAD_REQUEST, &quot;Invalid parameter: no participant list JSON in body&quot;)
+</span>47 <span style=''></span><span style='background: #AEF1AE'>      })</span><span style=''>
+</span>48 <span style=''>
+</span>49 <span style=''>    def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {
+</span>50 <span style=''>      try {
+</span>51 <span style=''>        </span><span style='background: #AEF1AE'>var result = List[Participant]()
+</span>52 <span style=''></span><span style='background: #AEF1AE'>        val jsonArray = body.toJsonArray
+</span>53 <span style=''></span><span style='background: #AEF1AE'>        jsonArray.forEach {
+</span>54 <span style=''></span><span style='background: #AEF1AE'>          case jsonObject: JsonObject =&gt; result = result :+ jsonObject.toParticipant
+</span>55 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>56 <span style=''></span><span style='background: #AEF1AE'>        Some(result)</span><span style=''>
+</span>57 <span style=''>      } catch {
+</span>58 <span style=''>        case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>59 <span style=''>      }
+</span>60 <span style=''>    }
+</span>61 <span style=''>  }
+</span>62 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -96,15 +97,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          21
+          22
         </td>
         <td>
           1
         </td>
         <td>
-          873
+          974
           -
-          874
+          975
         </td>
         <td>
           Literal
@@ -117,15 +118,15 @@
         </td>
       </tr><tr>
         <td>
-          23
+          24
         </td>
         <td>
           2
         </td>
         <td>
-          894
+          995
           -
-          913
+          1014
         </td>
         <td>
           Apply
@@ -138,15 +139,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          27
         </td>
         <td>
           5
         </td>
         <td>
-          1037
+          1138
           -
-          1069
+          1170
         </td>
         <td>
           Select
@@ -159,36 +160,36 @@
         </td>
       </tr><tr>
         <td>
-          26
+          27
         </td>
         <td>
           4
         </td>
         <td>
-          993
+          1094
           -
-          1028
+          1129
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL
+          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(RoomReceiverServiceVerticle.this.token)
+          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(RoomReceiverServiceVerticle.this.token)
         </td>
       </tr><tr>
         <td>
-          26
+          27
         </td>
         <td>
           3
         </td>
         <td>
-          1022
+          1123
           -
-          1027
+          1128
         </td>
         <td>
           Select
@@ -201,15 +202,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          27
         </td>
         <td>
           6
         </td>
         <td>
-          981
+          1082
           -
-          1069
+          1170
         </td>
         <td>
           Apply
@@ -218,19 +219,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.post(it.cwmp.services.roomreceiver.ServerParameters.API_RECEIVE_PARTICIPANTS_URL(RoomReceiverServiceVerticle.this.token)).handler(RoomReceiverServiceVerticle.this.createParticipantReceiverHandler)
+          router.post(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(RoomReceiverServiceVerticle.this.token)).handler(RoomReceiverServiceVerticle.this.createParticipantReceiverHandler)
         </td>
       </tr><tr>
         <td>
-          35
+          36
         </td>
         <td>
           13
         </td>
         <td>
-          1383
+          1484
           -
-          1875
+          1988
         </td>
         <td>
           Apply
@@ -251,28 +252,28 @@
       (): Unit);
     RoomReceiverServiceVerticle.this.receptionStrategy.apply(participants);
     RoomReceiverServiceVerticle.this.response(routingContext).endHandler(((x$1: Unit) =&gt; RoomReceiverServiceVerticle.this.server.close()));
-    RoomReceiverServiceVerticle.this.sendResponse(201, RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
+    RoomReceiverServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
   }
   case scala.None =&gt; {
     (if (RoomReceiverServiceVerticle.this.log.underlying.isInfoEnabled())
       RoomReceiverServiceVerticle.this.log.underlying.info(&quot;Error: List is invalid.&quot;)
     else
       (): Unit);
-    RoomReceiverServiceVerticle.this.sendResponse(400, it.cwmp.utils.Utils.stringToOption(&quot;Invalid parameter: no participant list JSON in body&quot;))(routingContext)
+    RoomReceiverServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(&quot;Invalid parameter: no participant list JSON in body&quot;))(routingContext)
   }
 }))
         </td>
       </tr><tr>
         <td>
-          36
+          37
         </td>
         <td>
           7
         </td>
         <td>
-          1417
+          1518
           -
-          1461
+          1562
         </td>
         <td>
           Apply
@@ -285,15 +286,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          41
         </td>
         <td>
           8
         </td>
         <td>
-          1606
+          1707
           -
-          1637
+          1738
         </td>
         <td>
           Apply
@@ -306,15 +307,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          42
         </td>
         <td>
           10
         </td>
         <td>
-          1648
+          1749
           -
-          1688
+          1789
         </td>
         <td>
           Apply
@@ -327,15 +328,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          42
         </td>
         <td>
           9
         </td>
         <td>
-          1673
+          1774
           -
-          1687
+          1788
         </td>
         <td>
           Apply
@@ -348,15 +349,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          43
         </td>
         <td>
           11
         </td>
         <td>
-          1699
+          1800
           -
-          1716
+          1821
         </td>
         <td>
           ApplyToImplicitArgs
@@ -365,19 +366,19 @@
           it.cwmp.utils.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
-          RoomReceiverServiceVerticle.this.sendResponse(201, RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
+          RoomReceiverServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), RoomReceiverServiceVerticle.this.sendResponse$default$2)(routingContext)
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
           12
         </td>
         <td>
-          1794
+          1899
           -
-          1866
+          1979
         </td>
         <td>
           ApplyToImplicitArgs
@@ -386,19 +387,19 @@
           it.cwmp.utils.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
-          RoomReceiverServiceVerticle.this.sendResponse(400, it.cwmp.utils.Utils.stringToOption(&quot;Invalid parameter: no participant list JSON in body&quot;))(routingContext)
+          RoomReceiverServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(&quot;Invalid parameter: no participant list JSON in body&quot;))(routingContext)
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
           21
         </td>
         <td>
-          1989
+          2102
           -
-          2206
+          2319
         </td>
         <td>
           Block
@@ -418,15 +419,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
           14
         </td>
         <td>
-          2002
+          2115
           -
-          2021
+          2134
         </td>
         <td>
           Select
@@ -439,15 +440,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          52
         </td>
         <td>
           15
         </td>
         <td>
-          2046
+          2159
           -
-          2062
+          2175
         </td>
         <td>
           Apply
@@ -460,15 +461,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          53
         </td>
         <td>
           19
         </td>
         <td>
-          2071
+          2184
           -
-          2185
+          2298
         </td>
         <td>
           Apply
@@ -483,15 +484,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          54
         </td>
         <td>
           17
         </td>
         <td>
-          2148
+          2261
           -
-          2148
+          2261
         </td>
         <td>
           TypeApply
@@ -504,15 +505,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          54
         </td>
         <td>
           16
         </td>
         <td>
-          2151
+          2264
           -
-          2175
+          2288
         </td>
         <td>
           Select
@@ -525,15 +526,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          54
         </td>
         <td>
           18
         </td>
         <td>
-          2141
+          2254
           -
-          2175
+          2288
         </td>
         <td>
           ApplyToImplicitArgs
@@ -546,15 +547,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          56
         </td>
         <td>
           20
         </td>
         <td>
-          2194
+          2307
           -
-          2206
+          2319
         </td>
         <td>
           Apply
@@ -567,15 +568,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          58
         </td>
         <td>
           22
         </td>
         <td>
-          2252
+          2365
           -
-          2256
+          2369
         </td>
         <td>
           Select
@@ -588,15 +589,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          61
         </td>
         <td>
           23
         </td>
         <td>
-          2273
+          2386
           -
-          2273
+          2386
         </td>
         <td>
           Literal

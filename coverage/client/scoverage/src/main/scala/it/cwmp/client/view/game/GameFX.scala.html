@@ -26,155 +26,158 @@
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.ActorRef
 </span>4 <span style=''>import it.cwmp.client.model.game.impl.{CellWorld, Point}
-</span>5 <span style=''>import it.cwmp.client.view.game.model.CellView._
-</span>6 <span style=''>import it.cwmp.client.view.game.model.TentacleView
-</span>7 <span style=''>import javafx.application.Platform
-</span>8 <span style=''>import javafx.embed.swing.JFXPanel
-</span>9 <span style=''>import javafx.scene.canvas.{Canvas, GraphicsContext}
-</span>10 <span style=''>import javafx.scene.input.MouseEvent
-</span>11 <span style=''>import javafx.scene.{Group, Scene}
-</span>12 <span style=''>import javafx.stage.Stage
-</span>13 <span style=''>
-</span>14 <span style=''>import scala.language.implicitConversions
-</span>15 <span style=''>
-</span>16 <span style=''>/**
-</span>17 <span style=''>  * This class shows the Game GUI
-</span>18 <span style=''>  *
-</span>19 <span style=''>  * @param viewManagerActor the actor that manages view events
-</span>20 <span style=''>  * @author Davide Borficchia
-</span>21 <span style=''>  * @author contributor Enrico Siboni
-</span>22 <span style=''>  */
-</span>23 <span style=''>case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
-</span>24 <span style=''>
-</span>25 <span style=''>  private var stage: Stage = _
-</span>26 <span style=''>  private var root: Group = _
-</span>27 <span style=''>  private var canvas: Canvas = _
-</span>28 <span style=''>
-</span>29 <span style=''>  /**
-</span>30 <span style=''>    * Initializes the GUI
-</span>31 <span style=''>    *
-</span>32 <span style=''>    * @param title the GUI title
-</span>33 <span style=''>    * @param size  the Window size
-</span>34 <span style=''>    */
-</span>35 <span style=''>  def start(title: String, size: Int): Unit = {
-</span>36 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel()</span><span style=''> // initializes JavaFX
-</span>37 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>38 <span style=''></span><span style='background: #F0ADAD'>      stage = new Stage
-</span>39 <span style=''></span><span style='background: #F0ADAD'>      root = new Group
-</span>40 <span style=''></span><span style='background: #F0ADAD'>      canvas = new Canvas(size, size)
-</span>41 <span style=''></span><span style='background: #F0ADAD'>
-</span>42 <span style=''></span><span style='background: #F0ADAD'>      UserEventHandler.initializeEventHandlers(root, viewManagerActor)
+</span>5 <span style=''>import it.cwmp.client.view.FXRunOnUIThread
+</span>6 <span style=''>import it.cwmp.client.view.game.model.CellView._
+</span>7 <span style=''>import it.cwmp.client.view.game.model.TentacleView
+</span>8 <span style=''>import javafx.application.Platform
+</span>9 <span style=''>import javafx.embed.swing.JFXPanel
+</span>10 <span style=''>import javafx.scene.canvas.{Canvas, GraphicsContext}
+</span>11 <span style=''>import javafx.scene.input.MouseEvent
+</span>12 <span style=''>import javafx.scene.{Group, Node, Scene}
+</span>13 <span style=''>import javafx.stage.Stage
+</span>14 <span style=''>
+</span>15 <span style=''>import scala.collection.JavaConverters._
+</span>16 <span style=''>import scala.language.implicitConversions
+</span>17 <span style=''>
+</span>18 <span style=''>/**
+</span>19 <span style=''>  * This class shows the Game GUI
+</span>20 <span style=''>  *
+</span>21 <span style=''>  * @param viewManagerActor the actor that manages view events
+</span>22 <span style=''>  * @author Davide Borficchia
+</span>23 <span style=''>  * @author contributor Enrico Siboni
+</span>24 <span style=''>  */
+</span>25 <span style=''>case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with FXRunOnUIThread {
+</span>26 <span style=''>
+</span>27 <span style=''>  private var stage: Stage = _
+</span>28 <span style=''>  private var root: Group = _
+</span>29 <span style=''>  private var canvas: Canvas = _
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * Initializes the GUI
+</span>33 <span style=''>    *
+</span>34 <span style=''>    * @param title the GUI title
+</span>35 <span style=''>    * @param size  the Window size
+</span>36 <span style=''>    */
+</span>37 <span style=''>  def start(title: String, size: Int): Unit = {
+</span>38 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel()</span><span style=''> // initializes JavaFX
+</span>39 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>40 <span style=''></span><span style='background: #F0ADAD'>      stage = new Stage
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      root = new Group
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      canvas = new Canvas(size, size)
 </span>43 <span style=''></span><span style='background: #F0ADAD'>
-</span>44 <span style=''></span><span style='background: #F0ADAD'>      stage.setTitle(title)
-</span>45 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.add(canvas)
-</span>46 <span style=''></span><span style='background: #F0ADAD'>      stage.setScene(new Scene(root))
-</span>47 <span style=''></span><span style='background: #F0ADAD'>
-</span>48 <span style=''></span><span style='background: #F0ADAD'>      // what to do on window closed
-</span>49 <span style=''></span><span style='background: #F0ADAD'>      stage.setOnCloseRequest(_ =&gt; {
-</span>50 <span style=''></span><span style='background: #F0ADAD'>        Platform.exit()
-</span>51 <span style=''></span><span style='background: #F0ADAD'>        System.exit(0)
-</span>52 <span style=''></span><span style='background: #F0ADAD'>      })
-</span>53 <span style=''></span><span style='background: #F0ADAD'>      stage.show()
-</span>54 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>55 <span style=''>  }
-</span>56 <span style=''>
-</span>57 <span style=''>  /**
-</span>58 <span style=''>    * Closes the GUI
-</span>59 <span style=''>    */
-</span>60 <span style=''>  def close(): Unit = {
-</span>61 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>62 <span style=''></span><span style='background: #F0ADAD'>      stage.close()
-</span>63 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>64 <span style=''>  }
-</span>65 <span style=''>
-</span>66 <span style=''>  /**
-</span>67 <span style=''>    * Updates the GUI with the newly provided world
-</span>68 <span style=''>    *
-</span>69 <span style=''>    * @param world the new world to draw
-</span>70 <span style=''>    */
-</span>71 <span style=''>  def updateWorld(world: CellWorld): Unit = {
-</span>72 <span style=''>    </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
-</span>73 <span style=''></span><span style='background: #F0ADAD'>      implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
-</span>74 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.clear()
-</span>75 <span style=''></span><span style='background: #F0ADAD'>
-</span>76 <span style=''></span><span style='background: #F0ADAD'>      world.attacks.foreach(tentacle =&gt; root.getChildren.add(drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))
-</span>77 <span style=''></span><span style='background: #F0ADAD'>      world.characters.foreach(cell =&gt; root.getChildren.add(drawCell(cell)))
-</span>78 <span style=''></span><span style='background: #F0ADAD'>      world.characters.foreach(cell =&gt; root.getChildren.add(drawCellEnergy(cell)))
-</span>79 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.add(drawInstant(world.instant))
-</span>80 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>81 <span style=''>  }
-</span>82 <span style=''>
-</span>83 <span style=''>  /**
-</span>84 <span style=''>    * An object that wraps logic behind user events un GUI
-</span>85 <span style=''>    *
-</span>86 <span style=''>    * @author Enrico Siboni
-</span>87 <span style=''>    */
-</span>88 <span style=''>  private object UserEventHandler {
-</span>89 <span style=''>
-</span>90 <span style=''>    private var mouseIsDragging = </span><span style='background: #F0ADAD'>false</span><span style=''>
-</span>91 <span style=''>    private var startDragPoint: Point = _
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      UserEventHandler.initializeEventHandlers(root, viewManagerActor)
+</span>45 <span style=''></span><span style='background: #F0ADAD'>
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      stage.setTitle(title)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>      stage.setResizable(false)
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.add(canvas)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>      stage.setScene(new Scene(root))
+</span>50 <span style=''></span><span style='background: #F0ADAD'>
+</span>51 <span style=''></span><span style='background: #F0ADAD'>      // what to do on window closed
+</span>52 <span style=''></span><span style='background: #F0ADAD'>      stage.setOnCloseRequest(_ =&gt; {
+</span>53 <span style=''></span><span style='background: #F0ADAD'>        Platform.exit()
+</span>54 <span style=''></span><span style='background: #F0ADAD'>        System.exit(0)
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      })
+</span>56 <span style=''></span><span style='background: #F0ADAD'>      stage.show()
+</span>57 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>58 <span style=''>  }
+</span>59 <span style=''>
+</span>60 <span style=''>  /**
+</span>61 <span style=''>    * Closes the GUI
+</span>62 <span style=''>    */
+</span>63 <span style=''>  def close(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; stage.close() }</span><span style=''> // TODO: useless, the gui will be closed by user X press
+</span>64 <span style=''>
+</span>65 <span style=''>  /**
+</span>66 <span style=''>    * Updates the GUI with the newly provided world
+</span>67 <span style=''>    *
+</span>68 <span style=''>    * @param world the new world to draw
+</span>69 <span style=''>    */
+</span>70 <span style=''>  def updateWorld(world: CellWorld): Unit = {
+</span>71 <span style=''>    implicit val graphicsContext: GraphicsContext = </span><span style='background: #F0ADAD'>canvas.getGraphicsContext2D</span><span style=''>
+</span>72 <span style=''>    val graphicElementsToDraw: Seq[Node] =
+</span>73 <span style=''>      </span><span style='background: #F0ADAD'>Seq(
+</span>74 <span style=''></span><span style='background: #F0ADAD'>        world.attacks.map(tentacle =&gt; drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))),
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        world.characters.map(cell =&gt; drawCell(cell)),
+</span>76 <span style=''></span><span style='background: #F0ADAD'>        world.characters.map(cell =&gt; drawCellEnergy(cell)),
+</span>77 <span style=''></span><span style='background: #F0ADAD'>        Seq(drawInstant(world.instant))
+</span>78 <span style=''></span><span style='background: #F0ADAD'>      ).flatten</span><span style=''>
+</span>79 <span style=''>
+</span>80 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>81 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.clear()
+</span>82 <span style=''></span><span style='background: #F0ADAD'>      root.getChildren.addAll(graphicElementsToDraw.asJava)
+</span>83 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>84 <span style=''>  }
+</span>85 <span style=''>
+</span>86 <span style=''>  /**
+</span>87 <span style=''>    * An object that wraps logic behind user events un GUI
+</span>88 <span style=''>    *
+</span>89 <span style=''>    * @author Enrico Siboni
+</span>90 <span style=''>    */
+</span>91 <span style=''>  private object UserEventHandler {
 </span>92 <span style=''>
-</span>93 <span style=''>    /**
-</span>94 <span style=''>      * A method to initialize event handlers for GUI user actions
-</span>95 <span style=''>      *
-</span>96 <span style=''>      * @param viewGroup the viewGroup on which to listen for events
-</span>97 <span style=''>      */
-</span>98 <span style=''>    def initializeEventHandlers(viewGroup: Group, viewManagerActor: ActorRef): Unit = {
-</span>99 <span style=''>
-</span>100 <span style=''>      // user pressed mouse
-</span>101 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_PRESSED, (event: MouseEvent) =&gt; startDragPoint = event)</span><span style=''>
+</span>93 <span style=''>    private var mouseIsDragging = </span><span style='background: #F0ADAD'>false</span><span style=''>
+</span>94 <span style=''>    private var startDragPoint: Point = _
+</span>95 <span style=''>
+</span>96 <span style=''>    /**
+</span>97 <span style=''>      * A method to initialize event handlers for GUI user actions
+</span>98 <span style=''>      *
+</span>99 <span style=''>      * @param viewGroup the viewGroup on which to listen for events
+</span>100 <span style=''>      */
+</span>101 <span style=''>    def initializeEventHandlers(viewGroup: Group, viewManagerActor: ActorRef): Unit = {
 </span>102 <span style=''>
-</span>103 <span style=''>      // start of user dragging
-</span>104 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED, (_: MouseEvent) =&gt; mouseIsDragging = true)</span><span style=''>
+</span>103 <span style=''>      // user pressed mouse
+</span>104 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_PRESSED, (event: MouseEvent) =&gt; startDragPoint = event)</span><span style=''>
 </span>105 <span style=''>
-</span>106 <span style=''>      // stop of user dragging
-</span>107 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_RELEASED, (event: MouseEvent) =&gt;
-</span>108 <span style=''></span><span style='background: #F0ADAD'>        if (mouseIsDragging) {
-</span>109 <span style=''></span><span style='background: #F0ADAD'>          val stopDragPoint: Point = event
-</span>110 <span style=''></span><span style='background: #F0ADAD'>          sendAddAttackEvent(startDragPoint, stopDragPoint, viewManagerActor)
-</span>111 <span style=''></span><span style='background: #F0ADAD'>        })</span><span style=''>
-</span>112 <span style=''>
-</span>113 <span style=''>      // user click event
-</span>114 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, (event: MouseEvent) =&gt;
-</span>115 <span style=''></span><span style='background: #F0ADAD'>        // if the user was dragging this event is launched after MOUSE_RELEASED
-</span>116 <span style=''></span><span style='background: #F0ADAD'>        if (mouseIsDragging) {
-</span>117 <span style=''></span><span style='background: #F0ADAD'>          mouseIsDragging = false // reset user dragging state
-</span>118 <span style=''></span><span style='background: #F0ADAD'>        } else {
-</span>119 <span style=''></span><span style='background: #F0ADAD'>          sendRemoveAttackEvent(event, viewManagerActor)
-</span>120 <span style=''></span><span style='background: #F0ADAD'>        }
-</span>121 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
-</span>122 <span style=''>    }
-</span>123 <span style=''>
-</span>124 <span style=''>    /**
-</span>125 <span style=''>      * A method to send the AddAttack message to provided actor
-</span>126 <span style=''>      *
-</span>127 <span style=''>      * @param start the start point of the attack
-</span>128 <span style=''>      * @param stop  the stop point of the attack
-</span>129 <span style=''>      * @param actor the actor responsible of this management
-</span>130 <span style=''>      */
-</span>131 <span style=''>    private def sendAddAttackEvent(start: Point, stop: Point, actor: ActorRef): Unit =
-</span>132 <span style=''>      </span><span style='background: #F0ADAD'>actor ! GameViewActor.AddAttack(start, stop)</span><span style=''>
-</span>133 <span style=''>
-</span>134 <span style=''>    /**
-</span>135 <span style=''>      * A method to send the RemoveAttack messsage to provided actor
-</span>136 <span style=''>      *
-</span>137 <span style=''>      * @param onAttackPoint the point on the Attack View to remove
-</span>138 <span style=''>      * @param actor         the actor responsible of this management
-</span>139 <span style=''>      */
-</span>140 <span style=''>    private def sendRemoveAttackEvent(onAttackPoint: Point, actor: ActorRef): Unit =
-</span>141 <span style=''>      </span><span style='background: #F0ADAD'>actor ! GameViewActor.RemoveAttack(onAttackPoint)</span><span style=''>
-</span>142 <span style=''>
-</span>143 <span style=''>    /**
-</span>144 <span style=''>      * An implicit conversion from mouse event to the point where event was generated
-</span>145 <span style=''>      *
-</span>146 <span style=''>      * @param event the event to convert
-</span>147 <span style=''>      * @return the Point where event was generated
-</span>148 <span style=''>      */
-</span>149 <span style=''>    implicit def eventToPoint(event: MouseEvent): Point =
-</span>150 <span style=''>      </span><span style='background: #F0ADAD'>Point(event.getX.toInt, event.getY.toInt)</span><span style=''>
-</span>151 <span style=''>  }
-</span>152 <span style=''>
-</span>153 <span style=''>}
+</span>106 <span style=''>      // start of user dragging
+</span>107 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.DRAG_DETECTED, (_: MouseEvent) =&gt; mouseIsDragging = true)</span><span style=''>
+</span>108 <span style=''>
+</span>109 <span style=''>      // stop of user dragging
+</span>110 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_RELEASED, (event: MouseEvent) =&gt;
+</span>111 <span style=''></span><span style='background: #F0ADAD'>        if (mouseIsDragging) {
+</span>112 <span style=''></span><span style='background: #F0ADAD'>          val stopDragPoint: Point = event
+</span>113 <span style=''></span><span style='background: #F0ADAD'>          sendAddAttackEvent(startDragPoint, stopDragPoint, viewManagerActor)
+</span>114 <span style=''></span><span style='background: #F0ADAD'>        })</span><span style=''>
+</span>115 <span style=''>
+</span>116 <span style=''>      // user click event
+</span>117 <span style=''>      </span><span style='background: #F0ADAD'>viewGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, (event: MouseEvent) =&gt;
+</span>118 <span style=''></span><span style='background: #F0ADAD'>        // if the user was dragging this event is launched after MOUSE_RELEASED
+</span>119 <span style=''></span><span style='background: #F0ADAD'>        if (mouseIsDragging) {
+</span>120 <span style=''></span><span style='background: #F0ADAD'>          mouseIsDragging = false // reset user dragging state
+</span>121 <span style=''></span><span style='background: #F0ADAD'>        } else {
+</span>122 <span style=''></span><span style='background: #F0ADAD'>          sendRemoveAttackEvent(event, viewManagerActor)
+</span>123 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>124 <span style=''></span><span style='background: #F0ADAD'>      )</span><span style=''>
+</span>125 <span style=''>    }
+</span>126 <span style=''>
+</span>127 <span style=''>    /**
+</span>128 <span style=''>      * A method to send the AddAttack message to provided actor
+</span>129 <span style=''>      *
+</span>130 <span style=''>      * @param start the start point of the attack
+</span>131 <span style=''>      * @param stop  the stop point of the attack
+</span>132 <span style=''>      * @param actor the actor responsible of this management
+</span>133 <span style=''>      */
+</span>134 <span style=''>    private def sendAddAttackEvent(start: Point, stop: Point, actor: ActorRef): Unit =
+</span>135 <span style=''>      </span><span style='background: #F0ADAD'>actor ! GameViewActor.AddAttack(start, stop)</span><span style=''>
+</span>136 <span style=''>
+</span>137 <span style=''>    /**
+</span>138 <span style=''>      * A method to send the RemoveAttack messsage to provided actor
+</span>139 <span style=''>      *
+</span>140 <span style=''>      * @param onAttackPoint the point on the Attack View to remove
+</span>141 <span style=''>      * @param actor         the actor responsible of this management
+</span>142 <span style=''>      */
+</span>143 <span style=''>    private def sendRemoveAttackEvent(onAttackPoint: Point, actor: ActorRef): Unit =
+</span>144 <span style=''>      </span><span style='background: #F0ADAD'>actor ! GameViewActor.RemoveAttack(onAttackPoint)</span><span style=''>
+</span>145 <span style=''>
+</span>146 <span style=''>    /**
+</span>147 <span style=''>      * An implicit conversion from mouse event to the point where event was generated
+</span>148 <span style=''>      *
+</span>149 <span style=''>      * @param event the event to convert
+</span>150 <span style=''>      * @return the Point where event was generated
+</span>151 <span style=''>      */
+</span>152 <span style=''>    implicit def eventToPoint(event: MouseEvent): Point =
+</span>153 <span style=''>      </span><span style='background: #F0ADAD'>Point(event.getX.toInt, event.getY.toInt)</span><span style=''>
+</span>154 <span style=''>  }
+</span>155 <span style=''>
+</span>156 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -188,15 +191,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          36
+          38
         </td>
         <td>
-          1093
+          1226
         </td>
         <td>
-          1000
+          1111
           -
-          1014
+          1125
         </td>
         <td>
           Apply
@@ -209,29 +212,30 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          1115
+          1249
         </td>
         <td>
-          1041
+          1152
           -
-          1482
+          1621
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
+          GameFX.this.runOnUIThread((() =&gt; {
   GameFX.this.stage_=(new javafx.stage.Stage());
   GameFX.this.root_=(new javafx.scene.Group());
   GameFX.this.canvas_=(new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble));
   GameFX.this.UserEventHandler.initializeEventHandlers(GameFX.this.root, GameFX.this.viewManagerActor);
   GameFX.this.stage.setTitle(title);
+  GameFX.this.stage.setResizable(false);
   GameFX.this.root.getChildren().add(GameFX.this.canvas);
   GameFX.this.stage.setScene(new javafx.scene.Scene(GameFX.this.root));
   GameFX.this.stage.setOnCloseRequest(((x$1: javafx.stage.WindowEvent) =&gt; {
@@ -243,36 +247,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          40
         </td>
         <td>
-          1094
+          1228
         </td>
         <td>
-          1081
+          1180
           -
-          1090
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.stage.Stage.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.stage.Stage()
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          1095
-        </td>
-        <td>
-          1073
-          -
-          1090
+          1197
         </td>
         <td>
           Apply
@@ -285,15 +268,36 @@
         </td>
       </tr><tr>
         <td>
-          39
+          40
         </td>
         <td>
-          1097
+          1227
         </td>
         <td>
-          1097
+          1188
           -
-          1113
+          1197
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.stage.Stage()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1230
+        </td>
+        <td>
+          1204
+          -
+          1220
         </td>
         <td>
           Apply
@@ -306,15 +310,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          41
         </td>
         <td>
-          1096
+          1229
         </td>
         <td>
-          1104
+          1211
           -
-          1113
+          1220
         </td>
         <td>
           Apply
@@ -327,36 +331,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          1100
+          1231
         </td>
         <td>
-          1129
+          1247
           -
-          1151
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.canvas.Canvas.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble)
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          1099
-        </td>
-        <td>
-          1146
-          -
-          1150
+          1251
         </td>
         <td>
           Select
@@ -369,36 +352,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          1098
+          1234
         </td>
         <td>
-          1140
+          1227
           -
-          1144
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Int.toDouble
-        </td>
-        <td style="background: #F0ADAD">
-          size.toDouble
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          1101
-        </td>
-        <td>
-          1120
-          -
-          1151
+          1258
         </td>
         <td>
           Apply
@@ -414,33 +376,54 @@
           42
         </td>
         <td>
-          1102
+          1233
         </td>
         <td>
-          1200
+          1236
           -
-          1204
+          1258
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.root
+          javafx.scene.canvas.Canvas.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root
+          new javafx.scene.canvas.Canvas(size.toDouble, size.toDouble)
         </td>
       </tr><tr>
         <td>
           42
         </td>
         <td>
-          1104
+          1232
         </td>
         <td>
-          1159
+          1253
           -
-          1223
+          1257
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toDouble
+        </td>
+        <td style="background: #F0ADAD">
+          size.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1237
+        </td>
+        <td>
+          1266
+          -
+          1330
         </td>
         <td>
           Apply
@@ -453,15 +436,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          44
         </td>
         <td>
-          1103
+          1236
         </td>
         <td>
-          1206
+          1313
           -
-          1222
+          1329
         </td>
         <td>
           Select
@@ -477,96 +460,12 @@
           44
         </td>
         <td>
-          1105
+          1235
         </td>
         <td>
-          1231
+          1307
           -
-          1252
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.stage.Stage.setTitle
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.stage.setTitle(title)
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1106
-        </td>
-        <td>
-          1280
-          -
-          1286
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.canvas
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.canvas
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1107
-        </td>
-        <td>
-          1259
-          -
-          1287
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.List.add
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(GameFX.this.canvas)
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          1109
-        </td>
-        <td>
-          1309
-          -
-          1324
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.Scene.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.scene.Scene(GameFX.this.root)
-        </td>
-      </tr><tr>
-        <td>
-          46
-        </td>
-        <td>
-          1108
-        </td>
-        <td>
-          1319
-          -
-          1323
+          1311
         </td>
         <td>
           Select
@@ -582,12 +481,138 @@
           46
         </td>
         <td>
-          1110
+          1238
         </td>
         <td>
-          1294
+          1338
           -
-          1325
+          1359
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.setTitle(title)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          1239
+        </td>
+        <td>
+          1366
+          -
+          1391
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.stage.Stage.setResizable
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.stage.setResizable(false)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1240
+        </td>
+        <td>
+          1419
+          -
+          1425
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.canvas
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.canvas
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1241
+        </td>
+        <td>
+          1398
+          -
+          1426
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.add
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root.getChildren().add(GameFX.this.canvas)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1243
+        </td>
+        <td>
+          1448
+          -
+          1463
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Scene.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.Scene(GameFX.this.root)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1242
+        </td>
+        <td>
+          1458
+          -
+          1462
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.root
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          1244
+        </td>
+        <td>
+          1433
+          -
+          1464
         </td>
         <td>
           Apply
@@ -600,15 +625,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          52
         </td>
         <td>
-          1113
+          1247
         </td>
         <td>
-          1370
+          1509
           -
-          1456
+          1595
         </td>
         <td>
           Apply
@@ -624,15 +649,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          53
         </td>
         <td>
-          1111
+          1245
         </td>
         <td>
-          1409
+          1548
           -
-          1424
+          1563
         </td>
         <td>
           Apply
@@ -645,15 +670,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          54
         </td>
         <td>
-          1112
+          1246
         </td>
         <td>
-          1433
+          1572
           -
-          1447
+          1586
         </td>
         <td>
           Apply
@@ -666,15 +691,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          56
         </td>
         <td>
-          1114
+          1248
         </td>
         <td>
-          1463
+          1602
           -
-          1475
+          1614
         </td>
         <td>
           Apply
@@ -687,36 +712,36 @@
         </td>
       </tr><tr>
         <td>
-          61
+          63
         </td>
         <td>
-          1117
+          1251
         </td>
         <td>
-          1550
+          1683
           -
-          1602
+          1720
         </td>
         <td>
           Apply
         </td>
         <td>
-          javafx.application.Platform.runLater
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
         </td>
         <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; GameFX.this.stage.close()))
+          GameFX.this.runOnUIThread((() =&gt; GameFX.this.stage.close()))
         </td>
       </tr><tr>
         <td>
-          62
+          63
         </td>
         <td>
-          1116
+          1250
         </td>
         <td>
-          1582
+          1705
           -
-          1595
+          1718
         </td>
         <td>
           Apply
@@ -729,46 +754,15 @@
         </td>
       </tr><tr>
         <td>
-          72
+          71
         </td>
         <td>
-          1136
+          1252
         </td>
         <td>
-          1770
+          1989
           -
-          2261
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.runLater
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.runLater((() =&gt; {
-  implicit val graphicsContext: javafx.scene.canvas.GraphicsContext = GameFX.this.canvas.getGraphicsContext2D();
-  GameFX.this.root.getChildren().clear();
-  world.attacks.foreach[Boolean](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant)))));
-  world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToView(cell)))));
-  world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCellEnergy(it.cwmp.client.view.game.model.CellView.cellToView(cell)))));
-  {
-    GameFX.this.root.getChildren().add(GameFX.this.drawInstant(world.instant)(graphicsContext));
-    ()
-  }
-}))
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          1118
-        </td>
-        <td>
-          1850
-          -
-          1877
+          2016
         </td>
         <td>
           Apply
@@ -784,96 +778,12 @@
           74
         </td>
         <td>
-          1119
+          1255
         </td>
         <td>
-          1884
+          2109
           -
-          1908
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.List.clear
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().clear()
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1124
-        </td>
-        <td>
-          1916
-          -
-          2039
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #F0ADAD">
-          world.attacks.foreach[Boolean](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant)))))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1120
-        </td>
-        <td>
-          2022
-          -
-          2035
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorld.instant
-        </td>
-        <td style="background: #F0ADAD">
-          world.instant
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1123
-        </td>
-        <td>
-          1950
-          -
-          2038
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.List.add
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant)))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          1122
-        </td>
-        <td>
-          1971
-          -
-          2037
+          2175
         </td>
         <td>
           Apply
@@ -886,15 +796,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          74
         </td>
         <td>
-          1121
+          1254
         </td>
         <td>
-          1984
+          2122
           -
-          2036
+          2174
         </td>
         <td>
           Apply
@@ -907,36 +817,141 @@
         </td>
       </tr><tr>
         <td>
-          77
+          74
         </td>
         <td>
-          1127
+          1257
         </td>
         <td>
           2079
           -
-          2115
+          2176
         </td>
         <td>
-          Apply
+          ApplyToImplicitArgs
         </td>
         <td>
-          java.util.List.add
+          scala.collection.TraversableLike.map
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToView(cell)))
+          world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line])
         </td>
       </tr><tr>
         <td>
-          77
+          74
         </td>
         <td>
-          1126
+          1253
         </td>
         <td>
-          2100
+          2160
           -
-          2114
+          2173
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          world.instant
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1256
+        </td>
+        <td>
+          2096
+          -
+          2096
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1258
+        </td>
+        <td>
+          2224
+          -
+          2228
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.CellView.cellToView
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.model.CellView.cellToView(cell)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1261
+        </td>
+        <td>
+          2186
+          -
+          2230
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region])
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1260
+        </td>
+        <td>
+          2206
+          -
+          2206
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #F0ADAD">
+          collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          1259
+        </td>
+        <td>
+          2215
+          -
+          2229
         </td>
         <td>
           Apply
@@ -949,120 +964,36 @@
         </td>
       </tr><tr>
         <td>
-          77
+          76
         </td>
         <td>
-          1125
+          1264
         </td>
         <td>
-          2109
+          2260
           -
-          2113
+          2260
         </td>
         <td>
-          ApplyImplicitView
+          TypeApply
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.cellToView
+          scala.collection.Seq.canBuildFrom
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.CellView.cellToView(cell)
+          collection.this.Seq.canBuildFrom[javafx.scene.text.Text]
         </td>
       </tr><tr>
         <td>
-          77
+          76
         </td>
         <td>
-          1128
+          1263
         </td>
         <td>
-          2046
+          2269
           -
-          2116
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #F0ADAD">
-          world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToView(cell)))))
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1129
-        </td>
-        <td>
-          2192
-          -
-          2196
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.cellToView
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.CellView.cellToView(cell)
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1132
-        </td>
-        <td>
-          2123
-          -
-          2199
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #F0ADAD">
-          world.characters.foreach[Boolean](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.root.getChildren().add(GameFX.this.drawCellEnergy(it.cwmp.client.view.game.model.CellView.cellToView(cell)))))
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1131
-        </td>
-        <td>
-          2156
-          -
-          2198
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.List.add
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(GameFX.this.drawCellEnergy(it.cwmp.client.view.game.model.CellView.cellToView(cell)))
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1130
-        </td>
-        <td>
-          2177
-          -
-          2197
+          2289
         </td>
         <td>
           Apply
@@ -1075,15 +1006,78 @@
         </td>
       </tr><tr>
         <td>
-          79
+          76
         </td>
         <td>
-          1133
+          1262
         </td>
         <td>
-          2227
+          2284
           -
-          2253
+          2288
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.view.game.model.CellView.cellToView
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.model.CellView.cellToView(cell)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1265
+        </td>
+        <td>
+          2240
+          -
+          2290
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCellEnergy(it.cwmp.client.view.game.model.CellView.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text])
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1267
+        </td>
+        <td>
+          2300
+          -
+          2331
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.Seq.apply[javafx.scene.text.Text](GameFX.this.drawInstant(world.instant)(graphicsContext))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          1266
+        </td>
+        <td>
+          2304
+          -
+          2330
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1096,15 +1090,105 @@
         </td>
       </tr><tr>
         <td>
-          79
+          78
         </td>
         <td>
-          1135
+          1269
         </td>
         <td>
-          2226
+          2066
           -
-          2226
+          2347
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.generic.GenericTraversableTemplate.flatten
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.Seq.apply[Seq[javafx.scene.Node]](world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]), world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCell(it.cwmp.client.view.game.model.CellView.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]), world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCellEnergy(it.cwmp.client.view.game.model.CellView.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text]), scala.collection.Seq.apply[javafx.scene.text.Text](GameFX.this.drawInstant(world.instant)(graphicsContext))).flatten[javafx.scene.Node](scala.Predef.$conforms[Seq[javafx.scene.Node]])
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          1268
+        </td>
+        <td>
+          2340
+          -
+          2340
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.$conforms[Seq[javafx.scene.Node]]
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          1274
+        </td>
+        <td>
+          2353
+          -
+          2472
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.runOnUIThread((() =&gt; {
+  GameFX.this.root.getChildren().clear();
+  {
+    GameFX.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava);
+    ()
+  }
+}))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          1270
+        </td>
+        <td>
+          2381
+          -
+          2405
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.clear
+        </td>
+        <td style="background: #F0ADAD">
+          GameFX.this.root.getChildren().clear()
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          1273
+        </td>
+        <td>
+          2435
+          -
+          2435
         </td>
         <td>
           Literal
@@ -1117,36 +1201,57 @@
         </td>
       </tr><tr>
         <td>
-          79
+          82
         </td>
         <td>
-          1134
+          1272
         </td>
         <td>
-          2206
+          2412
           -
-          2254
+          2465
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.util.List.add
+          java.util.List.addAll
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(GameFX.this.drawInstant(world.instant)(graphicsContext))
+          GameFX.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava)
         </td>
       </tr><tr>
         <td>
-          90
+          82
         </td>
         <td>
-          1137
+          1271
         </td>
         <td>
-          2444
+          2436
           -
-          2449
+          2464
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.convert.Decorators.AsJava.asJava
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1275
+        </td>
+        <td>
+          2655
+          -
+          2660
         </td>
         <td>
           Literal
@@ -1159,15 +1264,15 @@
         </td>
       </tr><tr>
         <td>
-          101
+          104
         </td>
         <td>
-          1138
+          1276
         </td>
         <td>
-          2803
+          3014
           -
-          2827
+          3038
         </td>
         <td>
           Select
@@ -1180,15 +1285,15 @@
         </td>
       </tr><tr>
         <td>
-          101
+          104
         </td>
         <td>
-          1141
+          1279
         </td>
         <td>
-          2777
+          2988
           -
-          2875
+          3086
         </td>
         <td>
           Apply
@@ -1201,15 +1306,15 @@
         </td>
       </tr><tr>
         <td>
-          101
+          104
         </td>
         <td>
-          1140
+          1278
         </td>
         <td>
-          2852
+          3063
           -
-          2874
+          3085
         </td>
         <td>
           Apply
@@ -1222,15 +1327,15 @@
         </td>
       </tr><tr>
         <td>
-          101
+          104
         </td>
         <td>
-          1139
+          1277
         </td>
         <td>
-          2869
+          3080
           -
-          2874
+          3085
         </td>
         <td>
           ApplyImplicitView
@@ -1243,36 +1348,15 @@
         </td>
       </tr><tr>
         <td>
-          104
+          107
         </td>
         <td>
-          1142
+          1282
         </td>
         <td>
-          2941
+          3126
           -
-          2965
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          javafx.scene.input.MouseEvent.DRAG_DETECTED
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.scene.input.MouseEvent.DRAG_DETECTED
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          1144
-        </td>
-        <td>
-          2915
-          -
-          3009
+          3220
         </td>
         <td>
           Apply
@@ -1285,15 +1369,15 @@
         </td>
       </tr><tr>
         <td>
-          104
+          107
         </td>
         <td>
-          1143
+          1281
         </td>
         <td>
-          2986
+          3197
           -
-          3008
+          3219
         </td>
         <td>
           Apply
@@ -1309,33 +1393,33 @@
           107
         </td>
         <td>
-          1145
+          1280
         </td>
         <td>
-          3074
+          3152
           -
-          3099
+          3176
         </td>
         <td>
           Select
         </td>
         <td>
-          javafx.scene.input.MouseEvent.MOUSE_RELEASED
+          javafx.scene.input.MouseEvent.DRAG_DETECTED
         </td>
         <td style="background: #F0ADAD">
-          javafx.scene.input.MouseEvent.MOUSE_RELEASED
+          javafx.scene.input.MouseEvent.DRAG_DETECTED
         </td>
       </tr><tr>
         <td>
-          107
+          110
         </td>
         <td>
-          1153
+          1291
         </td>
         <td>
-          3048
+          3259
           -
-          3286
+          3497
         </td>
         <td>
           Apply
@@ -1354,36 +1438,36 @@ else
         </td>
       </tr><tr>
         <td>
-          108
+          110
         </td>
         <td>
-          1151
+          1283
         </td>
         <td>
-          3132
+          3285
           -
-          3132
+          3310
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          javafx.scene.input.MouseEvent.MOUSE_RELEASED
         </td>
         <td style="background: #F0ADAD">
-          ()
+          javafx.scene.input.MouseEvent.MOUSE_RELEASED
         </td>
       </tr><tr>
         <td>
-          108
+          111
         </td>
         <td>
-          1150
+          1288
         </td>
         <td>
-          3153
+          3364
           -
-          3285
+          3496
         </td>
         <td>
           Block
@@ -1399,15 +1483,15 @@ else
         </td>
       </tr><tr>
         <td>
-          108
+          111
         </td>
         <td>
-          1152
+          1290
         </td>
         <td>
-          3132
+          3343
           -
-          3132
+          3343
         </td>
         <td>
           Block
@@ -1420,15 +1504,15 @@ else
         </td>
       </tr><tr>
         <td>
-          108
+          111
         </td>
         <td>
-          1146
+          1284
         </td>
         <td>
-          3136
+          3347
           -
-          3151
+          3362
         </td>
         <td>
           Select
@@ -1441,15 +1525,36 @@ else
         </td>
       </tr><tr>
         <td>
-          109
+          111
         </td>
         <td>
-          1147
+          1289
         </td>
         <td>
-          3192
+          3343
           -
-          3197
+          3343
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          1285
+        </td>
+        <td>
+          3403
+          -
+          3408
         </td>
         <td>
           ApplyImplicitView
@@ -1462,15 +1567,15 @@ else
         </td>
       </tr><tr>
         <td>
-          110
+          113
         </td>
         <td>
-          1149
+          1287
         </td>
         <td>
-          3208
+          3419
           -
-          3275
+          3486
         </td>
         <td>
           Apply
@@ -1483,15 +1588,15 @@ else
         </td>
       </tr><tr>
         <td>
-          110
+          113
         </td>
         <td>
-          1148
+          1286
         </td>
         <td>
-          3227
+          3438
           -
-          3241
+          3452
         </td>
         <td>
           Select
@@ -1504,36 +1609,15 @@ else
         </td>
       </tr><tr>
         <td>
-          114
+          117
         </td>
         <td>
-          1154
+          1299
         </td>
         <td>
-          3346
+          3531
           -
-          3370
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          javafx.scene.input.MouseEvent.MOUSE_CLICKED
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.scene.input.MouseEvent.MOUSE_CLICKED
-        </td>
-      </tr><tr>
-        <td>
-          114
-        </td>
-        <td>
-          1161
-        </td>
-        <td>
-          3320
-          -
-          3660
+          3871
         </td>
         <td>
           Apply
@@ -1549,15 +1633,36 @@ else
         </td>
       </tr><tr>
         <td>
-          116
+          117
         </td>
         <td>
-          1155
+          1292
         </td>
         <td>
-          3487
+          3557
           -
-          3502
+          3581
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.input.MouseEvent.MOUSE_CLICKED
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.input.MouseEvent.MOUSE_CLICKED
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          1293
+        </td>
+        <td>
+          3698
+          -
+          3713
         </td>
         <td>
           Select
@@ -1570,15 +1675,15 @@ else
         </td>
       </tr><tr>
         <td>
-          117
+          120
         </td>
         <td>
-          1156
+          1294
         </td>
         <td>
-          3516
+          3727
           -
-          3539
+          3750
         </td>
         <td>
           Apply
@@ -1591,15 +1696,15 @@ else
         </td>
       </tr><tr>
         <td>
-          117
+          120
         </td>
         <td>
-          1157
+          1295
         </td>
         <td>
-          3516
+          3727
           -
-          3539
+          3750
         </td>
         <td>
           Block
@@ -1612,36 +1717,15 @@ else
         </td>
       </tr><tr>
         <td>
-          119
+          122
         </td>
         <td>
-          1160
+          1297
         </td>
         <td>
-          3596
+          3807
           -
-          3642
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.sendRemoveAttackEvent
-        </td>
-        <td style="background: #F0ADAD">
-          UserEventHandler.this.sendRemoveAttackEvent(UserEventHandler.this.eventToPoint(event), viewManagerActor)
-        </td>
-      </tr><tr>
-        <td>
-          119
-        </td>
-        <td>
-          1159
-        </td>
-        <td>
-          3596
-          -
-          3642
+          3853
         </td>
         <td>
           Apply
@@ -1654,15 +1738,15 @@ else
         </td>
       </tr><tr>
         <td>
-          119
+          122
         </td>
         <td>
-          1158
+          1296
         </td>
         <td>
-          3618
+          3829
           -
-          3623
+          3834
         </td>
         <td>
           ApplyImplicitView
@@ -1675,15 +1759,36 @@ else
         </td>
       </tr><tr>
         <td>
-          132
+          122
         </td>
         <td>
-          1162
+          1298
         </td>
         <td>
-          4014
+          3807
           -
-          4019
+          3853
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.UserEventHandler.sendRemoveAttackEvent
+        </td>
+        <td style="background: #F0ADAD">
+          UserEventHandler.this.sendRemoveAttackEvent(UserEventHandler.this.eventToPoint(event), viewManagerActor)
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          1300
+        </td>
+        <td>
+          4225
+          -
+          4230
         </td>
         <td>
           ApplyImplicitView
@@ -1696,15 +1801,15 @@ else
         </td>
       </tr><tr>
         <td>
-          132
+          135
         </td>
         <td>
-          1165
+          1303
         </td>
         <td>
-          4014
+          4225
           -
-          4058
+          4269
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1717,15 +1822,15 @@ else
         </td>
       </tr><tr>
         <td>
-          132
+          135
         </td>
         <td>
-          1164
+          1302
         </td>
         <td>
-          4020
+          4231
           -
-          4020
+          4231
         </td>
         <td>
           Apply
@@ -1738,15 +1843,15 @@ else
         </td>
       </tr><tr>
         <td>
-          132
+          135
         </td>
         <td>
-          1163
+          1301
         </td>
         <td>
-          4022
+          4233
           -
-          4058
+          4269
         </td>
         <td>
           Apply
@@ -1759,36 +1864,15 @@ else
         </td>
       </tr><tr>
         <td>
-          141
+          144
         </td>
         <td>
-          1169
+          1306
         </td>
         <td>
-          4383
+          4600
           -
-          4432
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          qual$2.!(x$5)(x$6)
-        </td>
-      </tr><tr>
-        <td>
-          141
-        </td>
-        <td>
-          1168
-        </td>
-        <td>
-          4389
-          -
-          4389
+          4600
         </td>
         <td>
           Apply
@@ -1801,15 +1885,15 @@ else
         </td>
       </tr><tr>
         <td>
-          141
+          144
         </td>
         <td>
-          1167
+          1305
         </td>
         <td>
-          4391
+          4602
           -
-          4432
+          4643
         </td>
         <td>
           Apply
@@ -1822,15 +1906,15 @@ else
         </td>
       </tr><tr>
         <td>
-          141
+          144
         </td>
         <td>
-          1166
+          1304
         </td>
         <td>
-          4383
+          4594
           -
-          4388
+          4599
         </td>
         <td>
           ApplyImplicitView
@@ -1843,15 +1927,36 @@ else
         </td>
       </tr><tr>
         <td>
-          150
+          144
         </td>
         <td>
-          1171
+          1307
         </td>
         <td>
-          4728
+          4594
           -
-          4744
+          4643
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.!(x$5)(x$6)
+        </td>
+      </tr><tr>
+        <td>
+          153
+        </td>
+        <td>
+          1309
+        </td>
+        <td>
+          4939
+          -
+          4955
         </td>
         <td>
           Select
@@ -1864,15 +1969,15 @@ else
         </td>
       </tr><tr>
         <td>
-          150
+          153
         </td>
         <td>
-          1170
+          1308
         </td>
         <td>
-          4710
+          4921
           -
-          4726
+          4937
         </td>
         <td>
           Select
@@ -1885,15 +1990,15 @@ else
         </td>
       </tr><tr>
         <td>
-          150
+          153
         </td>
         <td>
-          1172
+          1310
         </td>
         <td>
-          4704
+          4915
           -
-          4745
+          4956
         </td>
         <td>
           Apply

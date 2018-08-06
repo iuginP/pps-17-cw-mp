@@ -25,73 +25,70 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.model
 </span>2 <span style=''>
 </span>3 <span style=''>import io.vertx.lang.scala.json.JsonObject
-</span>4 <span style=''>import it.cwmp.utils.Utils._
-</span>5 <span style=''>
-</span>6 <span style=''>/**
-</span>7 <span style=''>  * A trait that describes a participant of a game Room
-</span>8 <span style=''>  *
-</span>9 <span style=''>  * @author Eugenio Pierfederici
-</span>10 <span style=''>  */
-</span>11 <span style=''>trait Participant extends User with Address
-</span>12 <span style=''>
-</span>13 <span style=''>/**
-</span>14 <span style=''>  * Companion object
-</span>15 <span style=''>  */
-</span>16 <span style=''>object Participant {
-</span>17 <span style=''>
-</span>18 <span style=''>  def apply(username: String, address: String): Participant = {
-</span>19 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(username), </span><span style='background: #F0ADAD'>&quot;Username empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>20 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(address), </span><span style='background: #F0ADAD'>&quot;Address empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
-</span>21 <span style=''>    </span><span style='background: #AEF1AE'>ParticipantImpl(username, address)</span><span style=''>
-</span>22 <span style=''>  }
-</span>23 <span style=''>
-</span>24 <span style=''>  def unapply(toExtract: Participant): Option[(String, String)] =
-</span>25 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract eq null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.username, toExtract.address)</span><span style=''>
-</span>26 <span style=''>
-</span>27 <span style=''>  private case class ParticipantImpl(username: String, address: String) extends Participant
+</span>4 <span style=''>import it.cwmp.model.Address.Converters._
+</span>5 <span style=''>import it.cwmp.model.User.Converters._
+</span>6 <span style=''>import it.cwmp.utils.Utils._
+</span>7 <span style=''>
+</span>8 <span style=''>/**
+</span>9 <span style=''>  * A trait that describes a participant of a game Room
+</span>10 <span style=''>  *
+</span>11 <span style=''>  * @author Eugenio Pierfederici
+</span>12 <span style=''>  */
+</span>13 <span style=''>trait Participant extends User with Address
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Companion object
+</span>17 <span style=''>  */
+</span>18 <span style=''>object Participant {
+</span>19 <span style=''>
+</span>20 <span style=''>  def apply(username: String, address: String): Participant = {
+</span>21 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(username), &quot;Username empty&quot;)</span><span style=''>
+</span>22 <span style=''>    </span><span style='background: #AEF1AE'>require(!emptyString(address), </span><span style='background: #F0ADAD'>&quot;Address empty&quot;</span><span style='background: #AEF1AE'>)</span><span style=''>
+</span>23 <span style=''>    </span><span style='background: #AEF1AE'>ParticipantImpl(username, address)</span><span style=''>
+</span>24 <span style=''>  }
+</span>25 <span style=''>
+</span>26 <span style=''>  def unapply(toExtract: Participant): Option[(String, String)] =
+</span>27 <span style=''>    if (</span><span style='background: #F0ADAD'>toExtract == null</span><span style=''>) </span><span style='background: #F0ADAD'>None</span><span style=''> else </span><span style='background: #F0ADAD'>Some(toExtract.username, toExtract.address)</span><span style=''>
 </span>28 <span style=''>
 </span>29 <span style=''>  /**
-</span>30 <span style=''>    * Converters for Participant
-</span>31 <span style=''>    *
-</span>32 <span style=''>    * @author Enrico Siboni
-</span>33 <span style=''>    * @author Eugenio Pierfederici
-</span>34 <span style=''>    */
-</span>35 <span style=''>  object Converters {
-</span>36 <span style=''>
-</span>37 <span style=''>    /**
-</span>38 <span style=''>      * Participant to Json Converter
-</span>39 <span style=''>      */
-</span>40 <span style=''>    implicit class RichParticipant(participant: Participant) {
-</span>41 <span style=''>      def toJson: JsonObject = {
-</span>42 <span style=''>        import Address.Converters._
-</span>43 <span style=''>        val json = </span><span style='background: #AEF1AE'>participant.asInstanceOf[Address].toJson</span><span style=''>
-</span>44 <span style=''>
-</span>45 <span style=''>        import User.Converters._
-</span>46 <span style=''>        </span><span style='background: #AEF1AE'>participant.asInstanceOf[User].toJson.mergeIn(json)</span><span style=''>
-</span>47 <span style=''>      }
-</span>48 <span style=''>    }
-</span>49 <span style=''>
-</span>50 <span style=''>    /**
-</span>51 <span style=''>      * Json to Participant Converter
-</span>52 <span style=''>      */
-</span>53 <span style=''>    implicit class JsonParticipantConverter(json: JsonObject) {
-</span>54 <span style=''>      def toParticipant: Participant =
-</span>55 <span style=''>        if (</span><span style='background: #AEF1AE'>(json containsKey Address.FIELD_ADDRESS) &amp;&amp; (json containsKey User.FIELD_USERNAME)</span><span style=''>) </span><span style='background: #AEF1AE'>{
-</span>56 <span style=''></span><span style='background: #AEF1AE'>          val address = {
-</span>57 <span style=''></span><span style='background: #AEF1AE'>            import Address.Converters._
-</span>58 <span style=''></span><span style='background: #AEF1AE'>            json.toAddress
-</span>59 <span style=''></span><span style='background: #AEF1AE'>          }
-</span>60 <span style=''></span><span style='background: #AEF1AE'>          val user = {
-</span>61 <span style=''></span><span style='background: #AEF1AE'>            import User.Converters._
-</span>62 <span style=''></span><span style='background: #AEF1AE'>            json.toUser
-</span>63 <span style=''></span><span style='background: #AEF1AE'>          }
-</span>64 <span style=''></span><span style='background: #AEF1AE'>          Participant(user.username, address.address)
-</span>65 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''> else </span><span style='background: #F0ADAD'>throw parseException(&quot;Participant JsonParsing&quot;, s&quot;The input doesn't contain ${Address.FIELD_ADDRESS} or ${User.FIELD_USERNAME} --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
-</span>66 <span style=''>    }
-</span>67 <span style=''>
-</span>68 <span style=''>  }
-</span>69 <span style=''>
-</span>70 <span style=''>}
+</span>30 <span style=''>    * Default participant implementation
+</span>31 <span style=''>    */
+</span>32 <span style=''>  private case class ParticipantImpl(username: String, address: String) extends Participant
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>    * Converters for Participant
+</span>36 <span style=''>    *
+</span>37 <span style=''>    * @author Enrico Siboni
+</span>38 <span style=''>    * @author Eugenio Pierfederici
+</span>39 <span style=''>    */
+</span>40 <span style=''>  object Converters {
+</span>41 <span style=''>
+</span>42 <span style=''>    /**
+</span>43 <span style=''>      * Participant to Json Converter
+</span>44 <span style=''>      */
+</span>45 <span style=''>    implicit class RichParticipant(participant: Participant) {
+</span>46 <span style=''>      def toJson: JsonObject = {
+</span>47 <span style=''>        val json = </span><span style='background: #AEF1AE'>participant.asInstanceOf[Address].toJson</span><span style=''>
+</span>48 <span style=''>        </span><span style='background: #AEF1AE'>participant.asInstanceOf[User].toJson.mergeIn(json)</span><span style=''>
+</span>49 <span style=''>      }
+</span>50 <span style=''>    }
+</span>51 <span style=''>
+</span>52 <span style=''>    /**
+</span>53 <span style=''>      * Json to Participant Converter
+</span>54 <span style=''>      */
+</span>55 <span style=''>    implicit class JsonParticipantConverter(json: JsonObject) {
+</span>56 <span style=''>      def toParticipant: Participant =
+</span>57 <span style=''>        if (</span><span style='background: #AEF1AE'>(json containsKey Address.FIELD_ADDRESS) &amp;&amp; (json containsKey User.FIELD_USERNAME)</span><span style=''>) {
+</span>58 <span style=''>          </span><span style='background: #AEF1AE'>Participant(json.toUser.username, json.toAddress.address)</span><span style=''>
+</span>59 <span style=''>        } else {
+</span>60 <span style=''>          </span><span style='background: #AEF1AE'>throw parseException(&quot;Participant JsonParsing&quot;,
+</span>61 <span style=''></span><span style='background: #AEF1AE'>            s&quot;The input doesn't contain ${Address.FIELD_ADDRESS} or ${User.FIELD_USERNAME} --&gt; ${json encodePrettily()}&quot;)</span><span style=''>
+</span>62 <span style=''>        }
+</span>63 <span style=''>    }
+</span>64 <span style=''>
+</span>65 <span style=''>  }
+</span>66 <span style=''>
+</span>67 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -105,15 +102,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
           26
         </td>
         <td>
-          371
+          452
           -
-          393
+          474
         </td>
         <td>
           Select
@@ -126,15 +123,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
           28
         </td>
         <td>
-          363
+          444
           -
-          412
+          493
         </td>
         <td>
           Apply
@@ -147,15 +144,15 @@
         </td>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
           27
         </td>
         <td>
-          395
+          476
           -
-          411
+          492
         </td>
         <td>
           Literal
@@ -163,20 +160,20 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           &quot;Username empty&quot;
         </td>
       </tr><tr>
         <td>
-          20
+          22
         </td>
         <td>
           29
         </td>
         <td>
-          425
+          506
           -
-          446
+          527
         </td>
         <td>
           Select
@@ -189,15 +186,15 @@
         </td>
       </tr><tr>
         <td>
-          20
+          22
         </td>
         <td>
           31
         </td>
         <td>
-          417
+          498
           -
-          464
+          545
         </td>
         <td>
           Apply
@@ -210,15 +207,15 @@
         </td>
       </tr><tr>
         <td>
-          20
+          22
         </td>
         <td>
           30
         </td>
         <td>
-          448
+          529
           -
-          463
+          544
         </td>
         <td>
           Literal
@@ -231,15 +228,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          23
         </td>
         <td>
           32
         </td>
         <td>
-          469
+          550
           -
-          503
+          584
         </td>
         <td>
           Apply
@@ -252,15 +249,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           35
         </td>
         <td>
-          602
+          683
           -
-          606
+          687
         </td>
         <td>
           Block
@@ -273,15 +270,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           38
         </td>
         <td>
-          612
+          693
           -
-          655
+          736
         </td>
         <td>
           Apply
@@ -294,15 +291,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           40
         </td>
         <td>
-          612
+          693
           -
-          655
+          736
         </td>
         <td>
           Block
@@ -315,15 +312,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           34
         </td>
         <td>
-          602
+          683
           -
-          606
+          687
         </td>
         <td>
           Select
@@ -336,15 +333,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           37
         </td>
         <td>
-          637
+          718
           -
-          654
+          735
         </td>
         <td>
           Select
@@ -357,15 +354,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           36
         </td>
         <td>
-          617
+          698
           -
-          635
+          716
         </td>
         <td>
           Select
@@ -378,15 +375,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           39
         </td>
         <td>
-          612
+          693
           -
-          655
+          736
         </td>
         <td>
           Apply
@@ -399,36 +396,36 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
           33
         </td>
         <td>
-          583
+          664
           -
-          600
+          681
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.eq
+          java.lang.Object.==
         </td>
         <td style="background: #F0ADAD">
-          toExtract.eq(null)
+          toExtract.==(null)
         </td>
       </tr><tr>
         <td>
-          43
+          47
         </td>
         <td>
           41
         </td>
         <td>
-          1094
+          1193
           -
-          1127
+          1226
         </td>
         <td>
           TypeApply
@@ -441,15 +438,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          47
         </td>
         <td>
           42
         </td>
         <td>
-          1094
+          1193
           -
-          1134
+          1233
         </td>
         <td>
           Select
@@ -458,19 +455,19 @@
           it.cwmp.model.Address.Converters.RichAddress.toJson
         </td>
         <td style="background: #AEF1AE">
-          Address.Converters.RichAddress(RichParticipant.this.participant.asInstanceOf[it.cwmp.model.Address]).toJson
+          it.cwmp.model.Address.Converters.RichAddress(RichParticipant.this.participant.asInstanceOf[it.cwmp.model.Address]).toJson
         </td>
       </tr><tr>
         <td>
-          46
+          48
         </td>
         <td>
           43
         </td>
         <td>
-          1177
+          1242
           -
-          1228
+          1293
         </td>
         <td>
           Apply
@@ -479,19 +476,19 @@
           io.vertx.core.json.JsonObject.mergeIn
         </td>
         <td style="background: #AEF1AE">
-          User.Converters.RichUser(RichParticipant.this.participant.asInstanceOf[it.cwmp.model.User]).toJson.mergeIn(json)
+          it.cwmp.model.User.Converters.RichUser(RichParticipant.this.participant.asInstanceOf[it.cwmp.model.User]).toJson.mergeIn(json)
         </td>
       </tr><tr>
         <td>
-          55
+          57
         </td>
         <td>
           44
         </td>
         <td>
-          1432
+          1497
           -
-          1453
+          1518
         </td>
         <td>
           Select
@@ -504,15 +501,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          57
         </td>
         <td>
           47
         </td>
         <td>
-          1414
+          1479
           -
-          1496
+          1561
         </td>
         <td>
           Apply
@@ -525,15 +522,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          57
         </td>
         <td>
           46
         </td>
         <td>
-          1459
+          1524
           -
-          1495
+          1560
         </td>
         <td>
           Apply
@@ -546,46 +543,15 @@
         </td>
       </tr><tr>
         <td>
-          55
-        </td>
-        <td>
-          55
-        </td>
-        <td>
-          1498
-          -
-          1764
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          {
-  val address: it.cwmp.model.Address = {
-    import Address.Converters._;
-    Address.Converters.JsonToAddressConverter(JsonParticipantConverter.this.json).toAddress
-  };
-  val user: it.cwmp.model.User = {
-    import User.Converters._;
-    User.Converters.JsonUserConverter(JsonParticipantConverter.this.json).toUser
-  };
-  Participant.apply(user.username, address.address)
-}
-        </td>
-      </tr><tr>
-        <td>
-          55
+          57
         </td>
         <td>
           45
         </td>
         <td>
-          1476
+          1541
           -
-          1495
+          1560
         </td>
         <td>
           Select
@@ -601,21 +567,84 @@
           58
         </td>
         <td>
-          49
+          50
         </td>
         <td>
-          1578
+          1609
           -
-          1592
+          1613
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Address.Converters.JsonToAddressConverter.toAddress
+          it.cwmp.model.Participant.Converters.JsonParticipantConverter.json
         </td>
         <td style="background: #AEF1AE">
-          Address.Converters.JsonToAddressConverter(JsonParticipantConverter.this.json).toAddress
+          JsonParticipantConverter.this.json
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          1575
+          -
+          1632
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.model.Participant.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Participant.apply(it.cwmp.model.User.Converters.JsonUserConverter(JsonParticipantConverter.this.json).toUser.username, it.cwmp.model.Address.Converters.JsonToAddressConverter(JsonParticipantConverter.this.json).toAddress.address)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          1587
+          -
+          1607
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.User.Converters.JsonUserConverter(JsonParticipantConverter.this.json).toUser.username
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          1575
+          -
+          1632
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Participant.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Participant.apply(it.cwmp.model.User.Converters.JsonUserConverter(JsonParticipantConverter.this.json).toUser.username, it.cwmp.model.Address.Converters.JsonToAddressConverter(JsonParticipantConverter.this.json).toAddress.address)
         </td>
       </tr><tr>
         <td>
@@ -625,9 +654,9 @@
           48
         </td>
         <td>
-          1578
+          1587
           -
-          1582
+          1591
         </td>
         <td>
           Select
@@ -640,57 +669,15 @@
         </td>
       </tr><tr>
         <td>
-          62
-        </td>
-        <td>
-          50
-        </td>
-        <td>
-          1677
-          -
-          1681
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Participant.Converters.JsonParticipantConverter.json
-        </td>
-        <td style="background: #AEF1AE">
-          JsonParticipantConverter.this.json
-        </td>
-      </tr><tr>
-        <td>
-          62
+          58
         </td>
         <td>
           51
         </td>
         <td>
-          1677
+          1609
           -
-          1688
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.User.Converters.JsonUserConverter.toUser
-        </td>
-        <td style="background: #AEF1AE">
-          User.Converters.JsonUserConverter(JsonParticipantConverter.this.json).toUser
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          53
-        </td>
-        <td>
-          1738
-          -
-          1753
+          1631
         </td>
         <td>
           Select
@@ -699,82 +686,19 @@
           it.cwmp.model.Address.address
         </td>
         <td style="background: #AEF1AE">
-          address.address
+          it.cwmp.model.Address.Converters.JsonToAddressConverter(JsonParticipantConverter.this.json).toAddress.address
         </td>
       </tr><tr>
         <td>
-          64
+          60
         </td>
         <td>
-          52
+          55
         </td>
         <td>
-          1723
+          1660
           -
-          1736
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.User.username
-        </td>
-        <td style="background: #AEF1AE">
-          user.username
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          54
-        </td>
-        <td>
-          1711
-          -
-          1754
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.model.Participant.apply
-        </td>
-        <td style="background: #AEF1AE">
-          Participant.apply(user.username, address.address)
-        </td>
-      </tr><tr>
-        <td>
-          65
-        </td>
-        <td>
-          56
-        </td>
-        <td>
-          1770
-          -
-          1927
-        </td>
-        <td>
-          Throw
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          throw it.cwmp.utils.Utils.parseException(&quot;Participant JsonParsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; or &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.FIELD_ADDRESS, User.FIELD_USERNAME, JsonParticipantConverter.this.json.encodePrettily()))
-        </td>
-      </tr><tr>
-        <td>
-          65
-        </td>
-        <td>
-          57
-        </td>
-        <td>
-          1770
-          -
-          1927
+          1829
         </td>
         <td>
           Block
@@ -782,7 +706,28 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
+          throw it.cwmp.utils.Utils.parseException(&quot;Participant JsonParsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; or &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.FIELD_ADDRESS, User.FIELD_USERNAME, JsonParticipantConverter.this.json.encodePrettily()))
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          1660
+          -
+          1829
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
           throw it.cwmp.utils.Utils.parseException(&quot;Participant JsonParsing&quot;, scala.StringContext.apply(&quot;The input doesn\'t contain &quot;, &quot; or &quot;, &quot; --&gt; &quot;, &quot;&quot;).s(Address.FIELD_ADDRESS, User.FIELD_USERNAME, JsonParticipantConverter.this.json.encodePrettily()))
         </td>
       </tr>

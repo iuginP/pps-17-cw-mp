@@ -32,8 +32,8 @@
 </span>8 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8666</span><span style=''>
 </span>9 <span style=''>
 </span>10 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/authentication&quot;</span><span style=''>
-</span>11 <span style=''>  val API_SIGNUP = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signup&quot;</span><span style=''>
-</span>12 <span style=''>  val API_SIGNOUT = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signout&quot;</span><span style=''>
+</span>11 <span style=''>  val API_SIGN_UP = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signUp&quot;</span><span style=''>
+</span>12 <span style=''>  val API_SIGN_OUT = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signOut&quot;</span><span style=''>
 </span>13 <span style=''>  val API_LOGIN = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/login&quot;</span><span style=''>
 </span>14 <span style=''>  val API_VALIDATE = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/validate&quot;</span><span style=''>
 </span>15 <span style=''>}
@@ -53,7 +53,7 @@
           8
         </td>
         <td>
-          146
+          144
         </td>
         <td>
           151
@@ -74,7 +74,7 @@
           10
         </td>
         <td>
-          147
+          145
         </td>
         <td>
           187
@@ -95,12 +95,12 @@
           11
         </td>
         <td>
-          149
+          146
         </td>
         <td>
-          244
+          231
           -
-          252
+          232
         </td>
         <td>
           Literal
@@ -109,19 +109,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;/signup&quot;
+          &quot;&quot;
         </td>
       </tr><tr>
         <td>
           11
         </td>
         <td>
-          151
+          149
         </td>
         <td>
-          228
+          229
           -
-          252
+          253
         </td>
         <td>
           Apply
@@ -130,7 +130,7 @@
           scala.StringContext.s
         </td>
         <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/signup&quot;).s(ServerParameters.this.API_BASE_PATH)
+          scala.StringContext.apply(&quot;&quot;, &quot;/signUp&quot;).s(ServerParameters.this.API_BASE_PATH)
         </td>
       </tr><tr>
         <td>
@@ -140,9 +140,72 @@
           148
         </td>
         <td>
-          230
+          232
           -
-          231
+          245
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          11
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          245
+          -
+          253
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/signUp&quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          291
+          -
+          300
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/signOut&quot;
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          277
+          -
+          278
         </td>
         <td>
           Literal
@@ -152,69 +215,6 @@
         </td>
         <td style="background: #AEF1AE">
           &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          11
-        </td>
-        <td>
-          150
-        </td>
-        <td>
-          231
-          -
-          244
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          155
-        </td>
-        <td>
-          273
-          -
-          298
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/signout&quot;).s(ServerParameters.this.API_BASE_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          154
-        </td>
-        <td>
-          276
-          -
-          289
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
         </td>
       </tr><tr>
         <td>
@@ -224,18 +224,18 @@
           153
         </td>
         <td>
-          289
+          275
           -
-          298
+          300
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.StringContext.s
         </td>
         <td style="background: #AEF1AE">
-          &quot;/signout&quot;
+          scala.StringContext.apply(&quot;&quot;, &quot;/signOut&quot;).s(ServerParameters.this.API_BASE_PATH)
         </td>
       </tr><tr>
         <td>
@@ -245,30 +245,9 @@
           152
         </td>
         <td>
-          275
+          278
           -
-          276
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          158
-        </td>
-        <td>
-          320
-          -
-          333
+          291
         </td>
         <td>
           Select
@@ -284,12 +263,12 @@
           13
         </td>
         <td>
-          157
+          155
         </td>
         <td>
-          333
+          335
           -
-          340
+          342
         </td>
         <td>
           Literal
@@ -305,12 +284,12 @@
           13
         </td>
         <td>
-          156
+          154
         </td>
         <td>
-          319
+          321
           -
-          320
+          322
         </td>
         <td>
           Literal
@@ -326,12 +305,12 @@
           13
         </td>
         <td>
-          159
+          157
         </td>
         <td>
-          317
+          319
           -
-          340
+          342
         </td>
         <td>
           Apply
@@ -344,57 +323,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          13
         </td>
         <td>
-          160
+          156
         </td>
         <td>
-          364
+          322
           -
-          365
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          163
-        </td>
-        <td>
-          362
-          -
-          388
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/validate&quot;).s(ServerParameters.this.API_BASE_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          162
-        </td>
-        <td>
-          365
-          -
-          378
+          335
         </td>
         <td>
           Select
@@ -410,12 +347,54 @@
           14
         </td>
         <td>
-          161
+          158
         </td>
         <td>
-          378
+          366
           -
-          388
+          367
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          367
+          -
+          380
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          ServerParameters.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          380
+          -
+          390
         </td>
         <td>
           Literal
@@ -425,6 +404,27 @@
         </td>
         <td style="background: #AEF1AE">
           &quot;/validate&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          364
+          -
+          390
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/validate&quot;).s(ServerParameters.this.API_BASE_PATH)
         </td>
       </tr>
     </table>

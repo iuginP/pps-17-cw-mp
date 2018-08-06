@@ -24,131 +24,164 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller
 </span>2 <span style=''>
-</span>3 <span style=''>import akka.actor.{Actor, ActorRef, ActorSystem, AddressFromURIString, Props}
+</span>3 <span style=''>import akka.actor.{Actor, ActorRef, AddressFromURIString, Props, Stash}
 </span>4 <span style=''>import akka.cluster.Cluster
 </span>5 <span style=''>import akka.cluster.ClusterEvent._
 </span>6 <span style=''>import akka.cluster.ddata.DistributedData
-</span>7 <span style=''>import it.cwmp.client.GameMain
-</span>8 <span style=''>import it.cwmp.client.controller.PlayerActor.{EndGame, RetrieveAddress, RetrieveAddressResponse, StartGame}
-</span>9 <span style=''>import it.cwmp.client.model.DistributedState
-</span>10 <span style=''>import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
-</span>11 <span style=''>import it.cwmp.client.view.game.GameViewActor
-</span>12 <span style=''>import it.cwmp.client.view.game.GameViewActor._
-</span>13 <span style=''>import it.cwmp.model.Address
-</span>14 <span style=''>import it.cwmp.utils.Logging
-</span>15 <span style=''>
-</span>16 <span style=''>/**
-</span>17 <span style=''>  * Questo attore è quello che si occupa di gestire l'esecuzione del gioco distribuito.
-</span>18 <span style=''>  * Innanzi tutto all'avvio della partita crea un cluster con gli altri partecipanti; poi
-</span>19 <span style=''>  * mantiene attivo uno stato condiviso per fare in modo che la partita sia coerente per tutti i partecipanti.
-</span>20 <span style=''>  *
-</span>21 <span style=''>  * @author Eugenio Pierfederici
-</span>22 <span style=''>  */
-</span>23 <span style=''>class PlayerActor(system: ActorSystem) extends Actor with Logging { // TODO: review (and translate doc)
-</span>24 <span style=''>
-</span>25 <span style=''>  // View actor
-</span>26 <span style=''>  private var gameViewActor: ActorRef = _
-</span>27 <span style=''>
-</span>28 <span style=''>  // Cluster info
-</span>29 <span style=''>  private var roomSize: Int = _
-</span>30 <span style=''>
-</span>31 <span style=''>  // distributed replica system
-</span>32 <span style=''>  private val replicator: ActorRef = </span><span style='background: #F0ADAD'>DistributedData(context.system).replicator</span><span style=''>
-</span>33 <span style=''>  private val cluster: Cluster = </span><span style='background: #F0ADAD'>Cluster(context.system)</span><span style=''>
-</span>34 <span style=''>
-</span>35 <span style=''>  // Distributed world
-</span>36 <span style=''>  private val distributedState: DistributedState[CellWorld] =
-</span>37 <span style=''>    </span><span style='background: #F0ADAD'>CellWorldDistributedState(onWorldUpdatedAction)(replicator, cluster)</span><span style=''>
-</span>38 <span style=''>
-</span>39 <span style=''>  override def preStart(): Unit = {
-</span>40 <span style=''>    log.info(s&quot;Initializing the game-view actor...&quot;)
-</span>41 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor = system.actorOf(Props(classOf[GameViewActor], self), &quot;game-view&quot;)</span><span style=''>
-</span>42 <span style=''>    log.info(s&quot;Subscribing to cluster changes...&quot;)
-</span>43 <span style=''>    </span><span style='background: #F0ADAD'>cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
-</span>44 <span style=''></span><span style='background: #F0ADAD'>      classOf[MemberEvent], classOf[UnreachableMember])</span><span style=''>
-</span>45 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.subscribe(self)</span><span style=''>
-</span>46 <span style=''>  }
-</span>47 <span style=''>
-</span>48 <span style=''>  override def postStop(): Unit = {
-</span>49 <span style=''>    </span><span style='background: #F0ADAD'>cluster.unsubscribe(self)</span><span style=''>
-</span>50 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.unsubscribe(self)</span><span style=''>
-</span>51 <span style=''>  }
-</span>52 <span style=''>
-</span>53 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>clusterBehaviour orElse lobbyBehaviour</span><span style=''>
-</span>54 <span style=''>
-</span>55 <span style=''>  /**
-</span>56 <span style=''>    * @return the behaviour of an actor in a cluster
-</span>57 <span style=''>    */
-</span>58 <span style=''>  private def clusterBehaviour: Receive = {
-</span>59 <span style=''>    case MemberUp(member) =&gt;
-</span>60 <span style=''>      log.info(&quot;Member is Up: {}&quot;, member.address)
-</span>61 <span style=''>      log.debug(&quot;Cluster size: &quot; + cluster.state.members.size)
-</span>62 <span style=''>      if (</span><span style='background: #F0ADAD'>cluster.state.members.size == roomSize</span><span style=''>) </span><span style='background: #F0ADAD'>enterGameAction()</span><span style=''>
-</span>63 <span style=''>    case UnreachableMember(member) =&gt;
-</span>64 <span style=''>      log.info(&quot;Member detected as unreachable: {}&quot;, member)
-</span>65 <span style=''>    case MemberRemoved(member, previousStatus) =&gt;
-</span>66 <span style=''>      log.info(&quot;Member is Removed: {} after {}&quot;, member.address, previousStatus)
-</span>67 <span style=''>    case _: MemberEvent </span><span style='background: #F0ADAD'>=&gt;</span><span style=''> // ignore
-</span>68 <span style=''>  }
-</span>69 <span style=''>
-</span>70 <span style=''>  // TODO: add doc
-</span>71 <span style=''>  private def lobbyBehaviour: Receive = {
-</span>72 <span style=''>    case RetrieveAddress =&gt;
-</span>73 <span style=''>      </span><span style='background: #F0ADAD'>sender() ! RetrieveAddressResponse(getAddress)</span><span style=''>
-</span>74 <span style=''>    case StartGame(participants) =&gt;
-</span>75 <span style=''>      </span><span style='background: #F0ADAD'>join(participants)</span><span style=''>
-</span>76 <span style=''>      </span><span style='background: #F0ADAD'>roomSize = participants.size</span><span style=''>
-</span>77 <span style=''>  }
-</span>78 <span style=''>
-</span>79 <span style=''>  /**
-</span>80 <span style=''>    * @return the behaviour of the actor when it's in game
-</span>81 <span style=''>    */
-</span>82 <span style=''>  private def inGameBehaviour: Receive =
-</span>83 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.distributedStateBehaviour orElse {
-</span>84 <span style=''></span><span style='background: #F0ADAD'>      case EndGame =&gt; backToLobbyAction()
-</span>85 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>86 <span style=''>
-</span>87 <span style=''>  private def enterGameAction(): Unit = {
-</span>88 <span style=''>    </span><span style='background: #F0ADAD'>context.become(clusterBehaviour orElse inGameBehaviour)</span><span style=''>
-</span>89 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor ! ShowGUI</span><span style=''>
-</span>90 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor ! NewWorld(GameMain.debugWorld)</span><span style=''>
+</span>7 <span style=''>import it.cwmp.client.controller.PlayerActor.{GameEnded, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+</span>8 <span style=''>import it.cwmp.client.controller.game.GenerationStrategy
+</span>9 <span style=''>import it.cwmp.client.controller.messages.{Initialize, Request, Response}
+</span>10 <span style=''>import it.cwmp.client.model.DistributedState
+</span>11 <span style=''>import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
+</span>12 <span style=''>import it.cwmp.client.view.game.GameViewActor
+</span>13 <span style=''>import it.cwmp.client.view.game.GameViewActor._
+</span>14 <span style=''>import it.cwmp.model.Participant
+</span>15 <span style=''>import it.cwmp.utils.Logging
+</span>16 <span style=''>
+</span>17 <span style=''>/**
+</span>18 <span style=''>  * This actor manages execution of distributed game.
+</span>19 <span style=''>  *
+</span>20 <span style=''>  * It creates a cluster with other participants and maintains a distributed game state
+</span>21 <span style=''>  *
+</span>22 <span style=''>  * @author Eugenio Pierfederici
+</span>23 <span style=''>  */
+</span>24 <span style=''>case class PlayerActor() extends Actor with Stash with Logging {
+</span>25 <span style=''>
+</span>26 <span style=''>  // View actor
+</span>27 <span style=''>  private var gameViewActor: ActorRef = _
+</span>28 <span style=''>  private var playerName: String = _
+</span>29 <span style=''>
+</span>30 <span style=''>  // Cluster info
+</span>31 <span style=''>  private var roomSize: Int = _
+</span>32 <span style=''>
+</span>33 <span style=''>  // distributed replica system
+</span>34 <span style=''>  private val replicator: ActorRef = </span><span style='background: #F0ADAD'>DistributedData(context.system).replicator</span><span style=''>
+</span>35 <span style=''>  private val cluster: Cluster = </span><span style='background: #F0ADAD'>Cluster(context.system)</span><span style=''>
+</span>36 <span style=''>
+</span>37 <span style=''>  // Distributed world
+</span>38 <span style=''>  private val distributedState: DistributedState[CellWorld] =
+</span>39 <span style=''>    </span><span style='background: #F0ADAD'>CellWorldDistributedState(onWorldUpdatedAction)(replicator, cluster)</span><span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>  override def preStart(): Unit = {
+</span>42 <span style=''>    log.info(s&quot;Initializing the game-view actor...&quot;)
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor = context.system.actorOf(Props[GameViewActor], GameViewActor.getClass.getName)</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor ! Initialize</span><span style=''>
+</span>45 <span style=''>
+</span>46 <span style=''>    log.info(s&quot;Subscribing to cluster changes...&quot;)
+</span>47 <span style=''>    </span><span style='background: #F0ADAD'>cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      classOf[MemberEvent], classOf[UnreachableMember])</span><span style=''>
+</span>49 <span style=''>
+</span>50 <span style=''>    log.info(&quot;Subscribing to distributed state changes&quot;)
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.subscribe(self)</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  override def postStop(): Unit = {
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>cluster.unsubscribe(self)</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.unsubscribe(self)</span><span style=''>
+</span>57 <span style=''>  }
+</span>58 <span style=''>
+</span>59 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>clusterBehaviour orElse beforeInGameBehaviour</span><span style=''>
+</span>60 <span style=''>
+</span>61 <span style=''>  /**
+</span>62 <span style=''>    * @return the behaviour to have before entering the game
+</span>63 <span style=''>    */
+</span>64 <span style=''>  private def beforeInGameBehaviour: Receive = {
+</span>65 <span style=''>    case RetrieveAddress =&gt; </span><span style='background: #F0ADAD'>sender() ! RetrieveAddressResponse(getAddress)</span><span style=''>
+</span>66 <span style=''>
+</span>67 <span style=''>    case PrepareForGame(participants, worldGenerationStrategy) =&gt;
+</span>68 <span style=''>      </span><span style='background: #F0ADAD'>roomSize = participants.size</span><span style=''>
+</span>69 <span style=''>      </span><span style='background: #F0ADAD'>cluster.join(AddressFromURIString(participants.head.address))</span><span style=''> // all join first player cluster
+</span>70 <span style=''>      if (</span><span style='background: #F0ADAD'>getAddress == participants.head.address</span><span style=''>) { // first player injects start world
+</span>71 <span style=''>        </span><span style='background: #F0ADAD'>distributedState.initialize(worldGenerationStrategy(participants))</span><span style=''>
+</span>72 <span style=''>      }
+</span>73 <span style=''>      </span><span style='background: #F0ADAD'>playerName = participants.find(participant =&gt; participant.address == getAddress).get.username</span><span style=''>
+</span>74 <span style=''>
+</span>75 <span style=''>    case _ =&gt; </span><span style='background: #F0ADAD'>stash()</span><span style=''> // stash distributed change until all players enter the room
+</span>76 <span style=''>  }
+</span>77 <span style=''>
+</span>78 <span style=''>  /**
+</span>79 <span style=''>    * @return the behaviour of an actor in a cluster
+</span>80 <span style=''>    */
+</span>81 <span style=''>  private def clusterBehaviour: Receive = {
+</span>82 <span style=''>    case MemberUp(member) =&gt;
+</span>83 <span style=''>      log.info(&quot;Member is Up: {}&quot;, member.address)
+</span>84 <span style=''>      log.debug(&quot;Cluster size: &quot; + cluster.state.members.size)
+</span>85 <span style=''>      if (</span><span style='background: #F0ADAD'>cluster.state.members.size == roomSize</span><span style=''>) </span><span style='background: #F0ADAD'>startGame()</span><span style=''>
+</span>86 <span style=''>    case UnreachableMember(member) =&gt;
+</span>87 <span style=''>      log.info(&quot;Member detected as unreachable: {}&quot;, member)
+</span>88 <span style=''>    case MemberRemoved(member, previousStatus) =&gt;
+</span>89 <span style=''>      log.info(&quot;Member is Removed: {} after {}&quot;, member.address, previousStatus)
+</span>90 <span style=''>    case _: MemberEvent </span><span style='background: #F0ADAD'>=&gt;</span><span style=''> // ignore
 </span>91 <span style=''>  }
 </span>92 <span style=''>
-</span>93 <span style=''>  private def backToLobbyAction(): Unit = </span><span style='background: #F0ADAD'>context.become(clusterBehaviour orElse lobbyBehaviour)</span><span style=''>
-</span>94 <span style=''>
-</span>95 <span style=''>  /**
-</span>96 <span style=''>    * Action that will be executed every time the world will be updated
-</span>97 <span style=''>    *
-</span>98 <span style=''>    * @param world the updated world
-</span>99 <span style=''>    */
-</span>100 <span style=''>  private def onWorldUpdatedAction(world: CellWorld): Unit = </span><span style='background: #F0ADAD'>gameViewActor ! NewWorld(world)</span><span style=''>
+</span>93 <span style=''>  /**
+</span>94 <span style=''>    * Starts the game
+</span>95 <span style=''>    */
+</span>96 <span style=''>  private def startGame(): Unit = {
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>context.become(inGameBehaviour)</span><span style=''>
+</span>98 <span style=''>    </span><span style='background: #F0ADAD'>gameViewActor ! ShowGUIWithName(playerName)</span><span style=''>
+</span>99 <span style=''>    </span><span style='background: #F0ADAD'>unstashAll()</span><span style=''> // un-stash distributed change messages
+</span>100 <span style=''>  }
 </span>101 <span style=''>
-</span>102 <span style=''>
-</span>103 <span style=''>  private def join(participants: List[Address]): Unit = {
-</span>104 <span style=''>    </span><span style='background: #F0ADAD'>cluster.join(AddressFromURIString(participants.head.address))</span><span style=''>
-</span>105 <span style=''>  }
-</span>106 <span style=''>
-</span>107 <span style=''>  private def getAddress: String = </span><span style='background: #F0ADAD'>cluster.selfAddress + self.path.toString.substring(self.path.address.toString.length)</span><span style=''>
-</span>108 <span style=''>}
-</span>109 <span style=''>
-</span>110 <span style=''>/**
-</span>111 <span style=''>  * Companion object, containing actor messages
-</span>112 <span style=''>  */
-</span>113 <span style=''>object PlayerActor {
-</span>114 <span style=''>
-</span>115 <span style=''>  def apply(system: ActorSystem): PlayerActor = </span><span style='background: #F0ADAD'>new PlayerActor(system)</span><span style=''>
-</span>116 <span style=''>
-</span>117 <span style=''>  // Incoming messages
-</span>118 <span style=''>  case object RetrieveAddress
-</span>119 <span style=''>
-</span>120 <span style=''>  case class StartGame(participantList: List[Address])
-</span>121 <span style=''>
-</span>122 <span style=''>  case object EndGame
-</span>123 <span style=''>
-</span>124 <span style=''>  // Outgoing messages
-</span>125 <span style=''>  case class RetrieveAddressResponse(address: String)
-</span>126 <span style=''>
+</span>102 <span style=''>  /**
+</span>103 <span style=''>    * @return the behaviour of the actor when it's in game
+</span>104 <span style=''>    */
+</span>105 <span style=''>  private def inGameBehaviour: Receive =
+</span>106 <span style=''>    </span><span style='background: #F0ADAD'>distributedState.distributedStateBehaviour orElse {
+</span>107 <span style=''></span><span style='background: #F0ADAD'>      // TODO: remove this part of receive because we cannot come back to rooms view without stopping acotrSystem
+</span>108 <span style=''></span><span style='background: #F0ADAD'>      case GameEnded =&gt; backToLobbyAction()
+</span>109 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>110 <span style=''>
+</span>111 <span style=''>  /**
+</span>112 <span style=''>    * The action to do when the game is ended
+</span>113 <span style=''>    */
+</span>114 <span style=''>  private def backToLobbyAction(): Unit = </span><span style='background: #F0ADAD'>context.become(beforeInGameBehaviour orElse clusterBehaviour)</span><span style=''>
+</span>115 <span style=''>
+</span>116 <span style=''>  /**
+</span>117 <span style=''>    * Action that will be executed every time the world will be updated
+</span>118 <span style=''>    *
+</span>119 <span style=''>    * @param world the updated world
+</span>120 <span style=''>    */
+</span>121 <span style=''>  private def onWorldUpdatedAction(world: CellWorld): Unit = </span><span style='background: #F0ADAD'>gameViewActor ! NewWorld(world)</span><span style=''>
+</span>122 <span style=''>
+</span>123 <span style=''>  /**
+</span>124 <span style=''>    * @return the address of this player
+</span>125 <span style=''>    */
+</span>126 <span style=''>  private def getAddress: String = </span><span style='background: #F0ADAD'>cluster.selfAddress + self.path.toString.substring(self.path.address.toString.length)</span><span style=''>
 </span>127 <span style=''>}
+</span>128 <span style=''>
+</span>129 <span style=''>/**
+</span>130 <span style=''>  * Companion object, containing actor messages
+</span>131 <span style=''>  */
+</span>132 <span style=''>object PlayerActor {
+</span>133 <span style=''>
+</span>134 <span style=''>  /**
+</span>135 <span style=''>    * Message to retrieve address of this player
+</span>136 <span style=''>    */
+</span>137 <span style=''>  case object RetrieveAddress extends Request
+</span>138 <span style=''>
+</span>139 <span style=''>  /**
+</span>140 <span style=''>    * Message to prepare to game with provided participants
+</span>141 <span style=''>    *
+</span>142 <span style=''>    * @param participantList         the participants to game
+</span>143 <span style=''>    * @param worldGenerationStrategy the strategy to use generating the game world
+</span>144 <span style=''>    */
+</span>145 <span style=''>  case class PrepareForGame(participantList: List[Participant],
+</span>146 <span style=''>                            worldGenerationStrategy: GenerationStrategy[Seq[Participant], CellWorld])
+</span>147 <span style=''>
+</span>148 <span style=''>  /**
+</span>149 <span style=''>    * Message to say game ended
+</span>150 <span style=''>    */
+</span>151 <span style=''>  case object GameEnded
+</span>152 <span style=''>
+</span>153 <span style=''>  /**
+</span>154 <span style=''>    * Message to response to request of retrieving address
+</span>155 <span style=''>    *
+</span>156 <span style=''>    * @param address the address of player actor
+</span>157 <span style=''>    */
+</span>158 <span style=''>  case class RetrieveAddressResponse(address: String) extends Response
+</span>159 <span style=''>
+</span>160 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -162,15 +195,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          283
+          313
         </td>
         <td>
-          1251
+          1211
           -
-          1293
+          1253
         </td>
         <td>
           Select
@@ -183,15 +216,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          282
+          312
         </td>
         <td>
-          1267
+          1227
           -
-          1281
+          1241
         </td>
         <td>
           Select
@@ -204,15 +237,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          35
         </td>
         <td>
-          285
+          315
         </td>
         <td>
-          1327
+          1287
           -
-          1350
+          1310
         </td>
         <td>
           Apply
@@ -225,15 +258,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          35
         </td>
         <td>
-          284
+          314
         </td>
         <td>
-          1335
+          1295
           -
-          1349
+          1309
         </td>
         <td>
           Select
@@ -246,15 +279,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          286
+          316
         </td>
         <td>
-          1467
+          1427
           -
-          1487
+          1447
         </td>
         <td>
           Apply
@@ -267,15 +300,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          289
+          319
         </td>
         <td>
-          1441
+          1401
           -
-          1509
+          1469
         </td>
         <td>
           Apply
@@ -290,15 +323,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          288
+          318
         </td>
         <td>
-          1501
+          1461
           -
-          1508
+          1468
         </td>
         <td>
           Select
@@ -311,15 +344,15 @@
         </td>
       </tr><tr>
         <td>
-          37
+          39
         </td>
         <td>
-          287
+          317
         </td>
         <td>
-          1489
+          1449
           -
-          1499
+          1459
         </td>
         <td>
           Select
@@ -332,57 +365,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          43
         </td>
         <td>
-          295
+          322
         </td>
         <td>
-          1604
+          1580
           -
-          1684
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.gameViewActor_=
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.gameViewActor_=(PlayerActor.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], PlayerActor.this.self), &quot;game-view&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          292
-        </td>
-        <td>
-          1635
-          -
-          1670
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Props.apply
-        </td>
-        <td style="background: #F0ADAD">
-          akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], PlayerActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          294
-        </td>
-        <td>
-          1620
-          -
-          1684
+          1656
         </td>
         <td>
           Apply
@@ -391,19 +382,145 @@
           akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.system.actorOf(akka.actor.Props.apply(classOf[it.cwmp.client.view.game.GameViewActor], PlayerActor.this.self), &quot;game-view&quot;)
+          PlayerActor.this.context.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.game.GameViewActor]()((ClassTag.apply[it.cwmp.client.view.game.GameViewActor](classOf[it.cwmp.client.view.game.GameViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.game.GameViewActor])), it.cwmp.client.view.game.GameViewActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
-          41
+          43
         </td>
         <td>
-          291
+          321
         </td>
         <td>
-          1665
+          1625
           -
-          1669
+          1655
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Class.getName
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.getClass().getName()
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          323
+        </td>
+        <td>
+          1564
+          -
+          1656
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.gameViewActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.gameViewActor_=(PlayerActor.this.context.system.actorOf(akka.actor.Props.apply[it.cwmp.client.view.game.GameViewActor]()((ClassTag.apply[it.cwmp.client.view.game.GameViewActor](classOf[it.cwmp.client.view.game.GameViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.game.GameViewActor])), it.cwmp.client.view.game.GameViewActor.getClass().getName()))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          320
+        </td>
+        <td>
+          1603
+          -
+          1623
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.Props.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.Props.apply[it.cwmp.client.view.game.GameViewActor]()((ClassTag.apply[it.cwmp.client.view.game.GameViewActor](classOf[it.cwmp.client.view.game.GameViewActor]): scala.reflect.ClassTag[it.cwmp.client.view.game.GameViewActor]))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          325
+        </td>
+        <td>
+          1677
+          -
+          1687
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.Initialize
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.Initialize
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          327
+        </td>
+        <td>
+          1661
+          -
+          1687
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(PlayerActor.this.gameViewActor).!(it.cwmp.client.controller.messages.Initialize)(PlayerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          324
+        </td>
+        <td>
+          1661
+          -
+          1674
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.gameViewActor
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.gameViewActor
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          326
+        </td>
+        <td>
+          1675
+          -
+          1675
         </td>
         <td>
           Select
@@ -416,57 +533,36 @@
         </td>
       </tr><tr>
         <td>
-          41
+          47
         </td>
         <td>
-          290
+          328
         </td>
         <td>
-          1641
+          1762
           -
-          1663
+          1766
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          akka.actor.Actor.self
         </td>
         <td style="background: #F0ADAD">
-          classOf[it.cwmp.client.view.game.GameViewActor]
+          PlayerActor.this.self
         </td>
       </tr><tr>
         <td>
-          41
+          47
         </td>
         <td>
-          293
+          332
         </td>
         <td>
-          1672
+          1744
           -
-          1683
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;game-view&quot;
-        </td>
-      </tr><tr>
-        <td>
-          43
-        </td>
-        <td>
-          300
-        </td>
-        <td>
-          1740
-          -
-          1860
+          1864
         </td>
         <td>
           Apply
@@ -479,15 +575,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          47
         </td>
         <td>
-          297
+          329
         </td>
         <td>
-          1783
+          1787
           -
-          1803
+          1807
         </td>
         <td>
           Select
@@ -500,57 +596,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          48
         </td>
         <td>
-          296
+          331
         </td>
         <td>
-          1758
+          1837
           -
-          1762
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          298
-        </td>
-        <td>
-          1811
-          -
-          1831
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          classOf[akka.cluster.ClusterEvent$$MemberEvent]
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          299
-        </td>
-        <td>
-          1833
-          -
-          1859
+          1863
         </td>
         <td>
           Literal
@@ -563,36 +617,36 @@
         </td>
       </tr><tr>
         <td>
-          45
+          48
         </td>
         <td>
-          301
+          330
         </td>
         <td>
-          1892
+          1815
           -
-          1896
+          1835
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          akka.actor.Actor.self
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.self
+          classOf[akka.cluster.ClusterEvent$$MemberEvent]
         </td>
       </tr><tr>
         <td>
-          45
+          51
         </td>
         <td>
-          302
+          334
         </td>
         <td>
-          1865
+          1927
           -
-          1897
+          1959
         </td>
         <td>
           Apply
@@ -605,15 +659,36 @@
         </td>
       </tr><tr>
         <td>
-          49
+          51
         </td>
         <td>
-          304
+          333
         </td>
         <td>
-          1943
+          1954
           -
-          1968
+          1958
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          336
+        </td>
+        <td>
+          2005
+          -
+          2030
         </td>
         <td>
           Apply
@@ -626,15 +701,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          55
         </td>
         <td>
-          303
+          335
         </td>
         <td>
-          1963
+          2025
           -
-          1967
+          2029
         </td>
         <td>
           Select
@@ -647,15 +722,36 @@
         </td>
       </tr><tr>
         <td>
-          50
+          56
         </td>
         <td>
-          306
+          337
         </td>
         <td>
-          1973
+          2064
           -
-          2007
+          2068
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          2035
+          -
+          2069
         </td>
         <td>
           Apply
@@ -668,57 +764,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          59
         </td>
         <td>
-          305
+          340
         </td>
         <td>
-          2002
+          2109
           -
-          2006
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          307
-        </td>
-        <td>
-          2071
-          -
-          2085
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.lobbyBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.lobbyBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          308
-        </td>
-        <td>
-          2047
-          -
-          2085
+          2154
         </td>
         <td>
           Apply
@@ -727,19 +781,40 @@
           scala.PartialFunction.orElse
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.lobbyBehaviour)
+          PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.beforeInGameBehaviour)
         </td>
       </tr><tr>
         <td>
-          58
+          59
         </td>
         <td>
-          316
+          339
         </td>
         <td>
-          2195
+          2133
           -
-          2195
+          2154
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.beforeInGameBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.beforeInGameBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          2277
+          -
+          2277
         </td>
         <td>
           Apply
@@ -752,120 +827,246 @@
         </td>
       </tr><tr>
         <td>
-          62
+          65
         </td>
         <td>
-          313
+          343
         </td>
         <td>
-          2346
+          2318
           -
-          2346
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          310
-        </td>
-        <td>
-          2350
-          -
-          2388
+          2353
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Int.==
+          it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.cluster.state.members.size.==(PlayerActor.this.roomSize)
+          it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply(PlayerActor.this.getAddress)
         </td>
       </tr><tr>
         <td>
-          62
+          65
         </td>
         <td>
-          309
+          345
         </td>
         <td>
-          2380
+          2307
           -
-          2388
+          2353
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(PlayerActor.this.sender()).!(it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply(PlayerActor.this.getAddress))(PlayerActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          2342
+          -
+          2352
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.controller.PlayerActor.roomSize
+          it.cwmp.client.controller.PlayerActor.getAddress
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.roomSize
+          PlayerActor.this.getAddress
         </td>
       </tr><tr>
         <td>
-          62
+          65
         </td>
         <td>
-          312
+          341
         </td>
         <td>
-          2390
+          2307
           -
-          2407
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.enterGameAction
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.enterGameAction()
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          311
-        </td>
-        <td>
-          2390
-          -
-          2407
+          2315
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.PlayerActor.enterGameAction
+          akka.actor.Actor.sender
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.enterGameAction()
+          PlayerActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          62
+          65
         </td>
         <td>
-          314
+          344
         </td>
         <td>
-          2346
+          2316
           -
-          2346
+          2316
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          2438
+          -
+          2455
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.SeqLike.size
+        </td>
+        <td style="background: #F0ADAD">
+          participants.size
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          2427
+          -
+          2455
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.roomSize_=
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.roomSize_=(participants.size)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          349
+        </td>
+        <td>
+          2475
+          -
+          2522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.AddressFromURIString.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.actor.AddressFromURIString.apply(participants.head.address)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          2496
+          -
+          2521
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.address
+        </td>
+        <td style="background: #F0ADAD">
+          participants.head.address
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          2462
+          -
+          2523
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.Cluster.join
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.cluster.join(akka.actor.AddressFromURIString.apply(participants.head.address))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          352
+        </td>
+        <td>
+          2567
+          -
+          2606
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.getAddress.==(participants.head.address)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          2563
+          -
+          2563
         </td>
         <td>
           Block
@@ -878,15 +1079,36 @@
         </td>
       </tr><tr>
         <td>
-          67
+          70
         </td>
         <td>
-          315
+          351
         </td>
         <td>
-          2662
+          2581
           -
-          2664
+          2606
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.address
+        </td>
+        <td style="background: #F0ADAD">
+          participants.head.address
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          2563
+          -
+          2563
         </td>
         <td>
           Literal
@@ -902,54 +1124,75 @@
           71
         </td>
         <td>
-          325
+          355
         </td>
         <td>
-          2739
+          2654
           -
-          2739
+          2720
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.initialize
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.distributedState.initialize(worldGenerationStrategy.apply(participants))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          354
+        </td>
+        <td>
+          2654
+          -
+          2720
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.PlayerActor.$anonfun.&lt;init&gt;
+          it.cwmp.client.model.DistributedState.initialize
         </td>
         <td style="background: #F0ADAD">
-          new $anonfun()
+          PlayerActor.this.distributedState.initialize(worldGenerationStrategy.apply(participants))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          353
+        </td>
+        <td>
+          2682
+          -
+          2719
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          worldGenerationStrategy.apply(participants)
         </td>
       </tr><tr>
         <td>
           73
         </td>
         <td>
-          319
+          358
         </td>
         <td>
-          2786
+          2804
           -
-          2821
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply(PlayerActor.this.getAddress)
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          318
-        </td>
-        <td>
-          2810
-          -
-          2820
+          2814
         </td>
         <td>
           Select
@@ -965,12 +1208,327 @@
           73
         </td>
         <td>
-          321
+          361
         </td>
         <td>
-          2775
+          2735
           -
-          2821
+          2828
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.playerName_=
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.playerName_=(participants.find(((participant: it.cwmp.model.Participant) =&gt; participant.address.==(PlayerActor.this.getAddress))).get.username)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          2748
+          -
+          2828
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #F0ADAD">
+          participants.find(((participant: it.cwmp.model.Participant) =&gt; participant.address.==(PlayerActor.this.getAddress))).get.username
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          2781
+          -
+          2814
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          participant.address.==(PlayerActor.this.getAddress)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          2844
+          -
+          2851
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.StashSupport.stash
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.stash()
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          3026
+          -
+          3026
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          3211
+          -
+          3219
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.roomSize
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.roomSize
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          3221
+          -
+          3232
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.startGame
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.startGame()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          3177
+          -
+          3177
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          3221
+          -
+          3232
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.startGame
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.startGame()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          3177
+          -
+          3177
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          3181
+          -
+          3219
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.cluster.state.members.size.==(PlayerActor.this.roomSize)
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          3487
+          -
+          3489
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          3580
+          -
+          3611
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.ActorContext.become
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.context.become(PlayerActor.this.inGameBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          3595
+          -
+          3610
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.PlayerActor.inGameBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.inGameBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          3632
+          -
+          3659
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.ShowGUIWithName.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.ShowGUIWithName.apply(PlayerActor.this.playerName)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          3616
+          -
+          3659
         </td>
         <td>
           ApplyToImplicitArgs
@@ -979,40 +1537,40 @@
           akka.actor.ScalaActorRef.!
         </td>
         <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(PlayerActor.this.sender()).!(it.cwmp.client.controller.PlayerActor.RetrieveAddressResponse.apply(PlayerActor.this.getAddress))(PlayerActor.this.self)
+          actor.this.`package`.actorRef2Scala(PlayerActor.this.gameViewActor).!(it.cwmp.client.view.game.GameViewActor.ShowGUIWithName.apply(PlayerActor.this.playerName))(PlayerActor.this.self)
         </td>
       </tr><tr>
         <td>
-          73
+          98
         </td>
         <td>
-          317
+          375
         </td>
         <td>
-          2775
+          3648
           -
-          2783
+          3658
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          akka.actor.Actor.sender
+          it.cwmp.client.controller.PlayerActor.playerName
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.sender()
+          PlayerActor.this.playerName
         </td>
       </tr><tr>
         <td>
-          73
+          98
         </td>
         <td>
-          320
+          377
         </td>
         <td>
-          2784
+          3630
           -
-          2784
+          3630
         </td>
         <td>
           Select
@@ -1025,78 +1583,57 @@
         </td>
       </tr><tr>
         <td>
-          75
+          98
         </td>
         <td>
-          322
+          374
         </td>
         <td>
-          2864
+          3616
           -
-          2882
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.join
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.join(participants)
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          324
-        </td>
-        <td>
-          2889
-          -
-          2917
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.roomSize_=
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.roomSize_=(participants.size)
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          323
-        </td>
-        <td>
-          2900
-          -
-          2917
+          3629
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.collection.SeqLike.size
+          it.cwmp.client.controller.PlayerActor.gameViewActor
         </td>
         <td style="background: #F0ADAD">
-          participants.size
+          PlayerActor.this.gameViewActor
         </td>
       </tr><tr>
         <td>
-          83
+          99
         </td>
         <td>
-          328
+          379
         </td>
         <td>
-          3040
+          3664
           -
-          3139
+          3676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.StashSupport.unstashAll
+        </td>
+        <td style="background: #F0ADAD">
+          PlayerActor.this.unstashAll()
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          3839
+          -
+          4054
         </td>
         <td>
           Apply
@@ -1112,11 +1649,11 @@
       ()
     };
     final override def applyOrElse[A1, B1 &gt;: Unit](x3: A1, default: A1 =&gt; B1): B1 = ((x3.asInstanceOf[Any]: Any): Any @unchecked) match {
-      case it.cwmp.client.controller.PlayerActor.EndGame =&gt; PlayerActor.this.backToLobbyAction()
+      case it.cwmp.client.controller.PlayerActor.GameEnded =&gt; PlayerActor.this.backToLobbyAction()
       case (defaultCase$ @ _) =&gt; default.apply(x3)
     };
     final def isDefinedAt(x3: Any): Boolean = ((x3.asInstanceOf[Any]: Any): Any @unchecked) match {
-      case it.cwmp.client.controller.PlayerActor.EndGame =&gt; true
+      case it.cwmp.client.controller.PlayerActor.GameEnded =&gt; true
       case (defaultCase$ @ _) =&gt; false
     }
   };
@@ -1125,15 +1662,15 @@
         </td>
       </tr><tr>
         <td>
-          83
+          106
         </td>
         <td>
-          327
+          381
         </td>
         <td>
-          3090
+          3889
           -
-          3090
+          3889
         </td>
         <td>
           Apply
@@ -1146,15 +1683,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          108
         </td>
         <td>
-          326
+          380
         </td>
         <td>
-          3114
+          4029
           -
-          3133
+          4048
         </td>
         <td>
           Apply
@@ -1167,15 +1704,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          114
         </td>
         <td>
-          331
+          385
         </td>
         <td>
-          3187
+          4157
           -
-          3242
+          4218
         </td>
         <td>
           Apply
@@ -1184,19 +1721,19 @@
           akka.actor.ActorContext.become
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.context.become(PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.inGameBehaviour))
+          PlayerActor.this.context.become(PlayerActor.this.beforeInGameBehaviour.orElse[Any, Unit](PlayerActor.this.clusterBehaviour))
         </td>
       </tr><tr>
         <td>
-          88
+          114
         </td>
         <td>
-          330
+          384
         </td>
         <td>
-          3202
+          4172
           -
-          3241
+          4217
         </td>
         <td>
           Apply
@@ -1205,187 +1742,40 @@
           scala.PartialFunction.orElse
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.inGameBehaviour)
+          PlayerActor.this.beforeInGameBehaviour.orElse[Any, Unit](PlayerActor.this.clusterBehaviour)
         </td>
       </tr><tr>
         <td>
-          88
+          114
         </td>
         <td>
-          329
+          383
         </td>
         <td>
-          3226
+          4201
           -
-          3241
+          4217
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.controller.PlayerActor.inGameBehaviour
+          it.cwmp.client.controller.PlayerActor.clusterBehaviour
         </td>
         <td style="background: #F0ADAD">
-          PlayerActor.this.inGameBehaviour
+          PlayerActor.this.clusterBehaviour
         </td>
       </tr><tr>
         <td>
-          89
+          121
         </td>
         <td>
-          334
+          388
         </td>
         <td>
-          3261
+          4423
           -
-          3261
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          89
-        </td>
-        <td>
-          333
-        </td>
-        <td>
-          3263
-          -
-          3270
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.ShowGUI
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.ShowGUI
-        </td>
-      </tr><tr>
-        <td>
-          89
-        </td>
-        <td>
-          332
-        </td>
-        <td>
-          3247
-          -
-          3260
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.gameViewActor
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.gameViewActor
-        </td>
-      </tr><tr>
-        <td>
-          89
-        </td>
-        <td>
-          335
-        </td>
-        <td>
-          3247
-          -
-          3270
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(PlayerActor.this.gameViewActor).!(it.cwmp.client.view.game.GameViewActor.ShowGUI)(PlayerActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          340
-        </td>
-        <td>
-          3275
-          -
-          3320
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(PlayerActor.this.gameViewActor).!(it.cwmp.client.view.game.GameViewActor.NewWorld.apply(it.cwmp.client.GameMain.debugWorld))(PlayerActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          337
-        </td>
-        <td>
-          3300
-          -
-          3319
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.GameMain.debugWorld
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.GameMain.debugWorld
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          336
-        </td>
-        <td>
-          3275
-          -
-          3288
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.gameViewActor
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.gameViewActor
-        </td>
-      </tr><tr>
-        <td>
-          90
-        </td>
-        <td>
-          339
-        </td>
-        <td>
-          3289
-          -
-          3289
+          4423
         </td>
         <td>
           Select
@@ -1398,120 +1788,15 @@
         </td>
       </tr><tr>
         <td>
-          90
+          121
         </td>
         <td>
-          338
+          387
         </td>
         <td>
-          3291
+          4425
           -
-          3320
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.NewWorld.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.NewWorld.apply(it.cwmp.client.GameMain.debugWorld)
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          343
-        </td>
-        <td>
-          3368
-          -
-          3422
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.ActorContext.become
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.context.become(PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.lobbyBehaviour))
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          342
-        </td>
-        <td>
-          3383
-          -
-          3421
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.PartialFunction.orElse
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.clusterBehaviour.orElse[Any, Unit](PlayerActor.this.lobbyBehaviour)
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          341
-        </td>
-        <td>
-          3407
-          -
-          3421
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.lobbyBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.lobbyBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          100
-        </td>
-        <td>
-          346
-        </td>
-        <td>
-          3627
-          -
-          3627
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          100
-        </td>
-        <td>
-          345
-        </td>
-        <td>
-          3629
-          -
-          3644
+          4440
         </td>
         <td>
           Apply
@@ -1524,15 +1809,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          121
         </td>
         <td>
-          344
+          386
         </td>
         <td>
-          3613
+          4409
           -
-          3626
+          4422
         </td>
         <td>
           Select
@@ -1545,15 +1830,15 @@
         </td>
       </tr><tr>
         <td>
-          100
+          121
         </td>
         <td>
-          347
+          389
         </td>
         <td>
-          3613
+          4409
           -
-          3644
+          4440
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1566,78 +1851,15 @@
         </td>
       </tr><tr>
         <td>
-          104
+          126
         </td>
         <td>
-          349
+          391
         </td>
         <td>
-          3722
+          4582
           -
-          3769
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.AddressFromURIString.apply
-        </td>
-        <td style="background: #F0ADAD">
-          akka.actor.AddressFromURIString.apply(participants.head.address)
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          348
-        </td>
-        <td>
-          3743
-          -
-          3768
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Address.address
-        </td>
-        <td style="background: #F0ADAD">
-          participants.head.address
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          350
-        </td>
-        <td>
-          3709
-          -
-          3770
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.cluster.Cluster.join
-        </td>
-        <td style="background: #F0ADAD">
-          PlayerActor.this.cluster.join(akka.actor.AddressFromURIString.apply(participants.head.address))
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          352
-        </td>
-        <td>
-          3862
-          -
-          3895
+          4615
         </td>
         <td>
           Apply
@@ -1650,36 +1872,15 @@
         </td>
       </tr><tr>
         <td>
-          107
+          126
         </td>
         <td>
-          354
+          390
         </td>
         <td>
-          3811
+          4531
           -
-          3896
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.any2stringadd.+
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.any2stringadd[akka.actor.Address](PlayerActor.this.cluster.selfAddress).+(PlayerActor.this.self.path.toString().substring(PlayerActor.this.self.path.address.toString.length()))
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          351
-        </td>
-        <td>
-          3811
-          -
-          3830
+          4550
         </td>
         <td>
           Select
@@ -1692,15 +1893,36 @@
         </td>
       </tr><tr>
         <td>
-          107
+          126
         </td>
         <td>
-          353
+          393
         </td>
         <td>
-          3833
+          4531
           -
-          3896
+          4616
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.any2stringadd.+
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.any2stringadd[akka.actor.Address](PlayerActor.this.cluster.selfAddress).+(PlayerActor.this.self.path.toString().substring(PlayerActor.this.self.path.address.toString.length()))
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          392
+        </td>
+        <td>
+          4553
+          -
+          4616
         </td>
         <td>
           Apply
@@ -1710,27 +1932,6 @@
         </td>
         <td style="background: #F0ADAD">
           PlayerActor.this.self.path.toString().substring(PlayerActor.this.self.path.address.toString.length())
-        </td>
-      </tr><tr>
-        <td>
-          115
-        </td>
-        <td>
-          355
-        </td>
-        <td>
-          4027
-          -
-          4050
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.PlayerActor.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new PlayerActor(system)
         </td>
       </tr>
     </table>

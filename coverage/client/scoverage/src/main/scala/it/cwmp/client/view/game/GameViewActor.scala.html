@@ -25,170 +25,195 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.{Actor, ActorRef, Cancellable}
-</span>4 <span style=''>import it.cwmp.client.controller.game.GameEngine
-</span>5 <span style=''>import it.cwmp.client.model.DistributedState
-</span>6 <span style=''>import it.cwmp.client.model.game.GeometricUtils
-</span>7 <span style=''>import it.cwmp.client.model.game.impl._
-</span>8 <span style=''>import it.cwmp.client.view.game.GameViewActor._
-</span>9 <span style=''>import it.cwmp.client.view.game.model.{CellView, TentacleView}
-</span>10 <span style=''>import it.cwmp.utils.Logging
-</span>11 <span style=''>
-</span>12 <span style=''>import scala.concurrent.duration._
+</span>4 <span style=''>import it.cwmp.client.controller.ViewVisibilityMessages.Hide
+</span>5 <span style=''>import it.cwmp.client.controller.game.GameEngine
+</span>6 <span style=''>import it.cwmp.client.controller.messages.Initialize
+</span>7 <span style=''>import it.cwmp.client.model.DistributedState.UpdateState
+</span>8 <span style=''>import it.cwmp.client.model.game.GeometricUtils
+</span>9 <span style=''>import it.cwmp.client.model.game.impl._
+</span>10 <span style=''>import it.cwmp.client.view.game.GameViewActor._
+</span>11 <span style=''>import it.cwmp.client.view.game.model.{CellView, TentacleView}
+</span>12 <span style=''>import it.cwmp.utils.Logging
 </span>13 <span style=''>
-</span>14 <span style=''>/**
-</span>15 <span style=''>  * The actor that deals with Game View
-</span>16 <span style=''>  *
-</span>17 <span style=''>  * @author contributor Enrico Siboni
-</span>18 <span style=''>  */
-</span>19 <span style=''>class GameViewActor(parentActor: ActorRef) extends Actor with Logging {
-</span>20 <span style=''>
-</span>21 <span style=''>  private val gameFX: GameFX = </span><span style='background: #F0ADAD'>GameFX(self)</span><span style=''>
-</span>22 <span style=''>  private val TIME_BETWEEN_FRAMES: FiniteDuration = </span><span style='background: #F0ADAD'>500.millis</span><span style=''>
-</span>23 <span style=''>
-</span>24 <span style=''>  private var updatingSchedule: Cancellable = _
-</span>25 <span style=''>  private var tempWorld: CellWorld = _
-</span>26 <span style=''>
-</span>27 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>showGUIBehaviour</span><span style=''>
+</span>14 <span style=''>import scala.concurrent.ExecutionContext.Implicits.global
+</span>15 <span style=''>import scala.concurrent.Future
+</span>16 <span style=''>import scala.concurrent.duration._
+</span>17 <span style=''>import scala.util.{Failure, Success}
+</span>18 <span style=''>
+</span>19 <span style=''>/**
+</span>20 <span style=''>  * The actor that deals with Game View
+</span>21 <span style=''>  *
+</span>22 <span style=''>  * @author contributor Enrico Siboni
+</span>23 <span style=''>  */
+</span>24 <span style=''>case class GameViewActor() extends Actor with Logging {
+</span>25 <span style=''>
+</span>26 <span style=''>  private val gameFX: GameFX = </span><span style='background: #F0ADAD'>GameFX(self)</span><span style=''>
+</span>27 <span style=''>  private val TIME_BETWEEN_FRAMES: FiniteDuration = </span><span style='background: #F0ADAD'>350.millis</span><span style=''>
 </span>28 <span style=''>
-</span>29 <span style=''>  /**
-</span>30 <span style=''>    * The behaviour of opening the view
-</span>31 <span style=''>    */
-</span>32 <span style=''>  private def showGUIBehaviour: Receive = {
-</span>33 <span style=''>    case ShowGUI =&gt;
-</span>34 <span style=''>      </span><span style='background: #F0ADAD'>gameFX.start(VIEW_TITLE, VIEW_SIZE)</span><span style=''>
-</span>35 <span style=''>      </span><span style='background: #F0ADAD'>context.become(hideGUIBehaviour orElse
-</span>36 <span style=''></span><span style='background: #F0ADAD'>        newWorldBehaviour orElse guiWorldModificationsBehaviour)</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>
-</span>39 <span style=''>  /**
-</span>40 <span style=''>    * The behaviour of closing the view
-</span>41 <span style=''>    */
-</span>42 <span style=''>  private def hideGUIBehaviour: Receive = {
-</span>43 <span style=''>    case HideGUI =&gt;
-</span>44 <span style=''>      </span><span style='background: #F0ADAD'>gameFX.close()</span><span style=''>
-</span>45 <span style=''>      </span><span style='background: #F0ADAD'>context.become(showGUIBehaviour)</span><span style=''>
+</span>29 <span style=''>  private var parentActor: ActorRef = _
+</span>30 <span style=''>  private var updatingSchedule: Cancellable = _
+</span>31 <span style=''>  private var tempWorld: CellWorld = _
+</span>32 <span style=''>  private var playerName: String = _
+</span>33 <span style=''>
+</span>34 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>showGUIBehaviour orElse {
+</span>35 <span style=''></span><span style='background: #F0ADAD'>    case Initialize =&gt; parentActor = sender()
+</span>36 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>37 <span style=''>
+</span>38 <span style=''>  /**
+</span>39 <span style=''>    * The behaviour of opening the view
+</span>40 <span style=''>    */
+</span>41 <span style=''>  private def showGUIBehaviour: Receive = {
+</span>42 <span style=''>    case ShowGUIWithName(name) =&gt;
+</span>43 <span style=''>      </span><span style='background: #F0ADAD'>playerName = name</span><span style=''>
+</span>44 <span style=''>      </span><span style='background: #F0ADAD'>gameFX.start(s&quot;$VIEW_TITLE_PREFIX$name&quot;, VIEW_SIZE)</span><span style=''>
+</span>45 <span style=''>      </span><span style='background: #F0ADAD'>context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)</span><span style=''>
 </span>46 <span style=''>  }
 </span>47 <span style=''>
 </span>48 <span style=''>  /**
-</span>49 <span style=''>    * The behaviour of receiving world modifications from external source
+</span>49 <span style=''>    * The behaviour of closing the view
 </span>50 <span style=''>    */
-</span>51 <span style=''>  private def newWorldBehaviour: Receive = {
-</span>52 <span style=''>    case NewWorld(world) =&gt;
+</span>51 <span style=''>  private def hideGUIBehaviour: Receive = { // TODO: remove, no-one ever sends this message here
+</span>52 <span style=''>    case Hide =&gt;
 </span>53 <span style=''>      if (</span><span style='background: #F0ADAD'>updatingSchedule != null</span><span style=''>) </span><span style='background: #F0ADAD'>updatingSchedule.cancel()</span><span style=''>
-</span>54 <span style=''>      </span><span style='background: #F0ADAD'>tempWorld = world</span><span style=''>
-</span>55 <span style=''>      </span><span style='background: #F0ADAD'>updatingSchedule = context.system.scheduler
-</span>56 <span style=''></span><span style='background: #F0ADAD'>        .schedule(0.millis, TIME_BETWEEN_FRAMES, self, UpdateLocalWorld)(context.dispatcher)</span><span style=''>
+</span>54 <span style=''>      </span><span style='background: #F0ADAD'>gameFX.close()</span><span style=''>
+</span>55 <span style=''>      </span><span style='background: #F0ADAD'>context.become(showGUIBehaviour)</span><span style=''>
+</span>56 <span style=''>  }
 </span>57 <span style=''>
-</span>58 <span style=''>    case UpdateLocalWorld =&gt;
-</span>59 <span style=''>      //  log.info(s&quot;World to paint: Characters=${tempWorld.characters} Attacks=${tempWorld.attacks} Instant=${tempWorld.instant}&quot;)
-</span>60 <span style=''>      </span><span style='background: #F0ADAD'>gameFX.updateWorld(tempWorld)</span><span style=''>
-</span>61 <span style=''>
-</span>62 <span style=''>      // is that to heavy computation here ???
-</span>63 <span style=''>      </span><span style='background: #F0ADAD'>tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))</span><span style=''>
-</span>64 <span style=''>  }
-</span>65 <span style=''>
-</span>66 <span style=''>  /**
-</span>67 <span style=''>    * The behaviour of listening for user events on GUI
-</span>68 <span style=''>    */
-</span>69 <span style=''>  private def guiWorldModificationsBehaviour: Receive = {
-</span>70 <span style=''>    case AddAttack(from, to) =&gt;
-</span>71 <span style=''>      log.info(s&quot;AddAttack from:$from to:$to&quot;)
-</span>72 <span style=''>      val worldCharacters = </span><span style='background: #F0ADAD'>tempWorld.characters</span><span style=''>
-</span>73 <span style=''>      val fromCell = </span><span style='background: #F0ADAD'>findCellNearTo(from, worldCharacters)</span><span style=''>
-</span>74 <span style=''>      val toCell = </span><span style='background: #F0ADAD'>findCellNearTo(to, worldCharacters)</span><span style=''>
-</span>75 <span style=''>      (fromCell, toCell) match {
-</span>76 <span style=''>        case (Some(attacker), Some(attacked)) if </span><span style='background: #F0ADAD'>attacker != attacked</span><span style=''> =&gt;
-</span>77 <span style=''>          log.debug(s&quot;Adding attack from $attacker to $attacked ...&quot;)
-</span>78 <span style=''>          </span><span style='background: #F0ADAD'>parentActor ! DistributedState.UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))</span><span style=''>
-</span>79 <span style=''>        case tmp@_ =&gt; log.debug(s&quot;No cells detected or auto-attack $tmp&quot;)
-</span>80 <span style=''>      }
-</span>81 <span style=''>
-</span>82 <span style=''>    case RemoveAttack(pointOnAttackView) =&gt;
-</span>83 <span style=''>      log.info(s&quot;RemoveAttack pointOnView:$pointOnAttackView&quot;)
-</span>84 <span style=''>      val attack = </span><span style='background: #F0ADAD'>findTentacleNearTo(pointOnAttackView, tempWorld.attacks)</span><span style=''>
-</span>85 <span style=''>      attack match {
-</span>86 <span style=''>        case Some(tentacle) =&gt;
-</span>87 <span style=''>          log.debug(s&quot;Removing this attack: $tentacle ...&quot;)
-</span>88 <span style=''>          </span><span style='background: #F0ADAD'>parentActor ! DistributedState.UpdateState(tempWorld -- tentacle)</span><span style=''>
-</span>89 <span style=''>        case tmp@_ =&gt; log.debug(s&quot;No attack detected $tmp&quot;)
-</span>90 <span style=''>      }
-</span>91 <span style=''>  }
-</span>92 <span style=''>}
-</span>93 <span style=''>
-</span>94 <span style=''>/**
-</span>95 <span style=''>  * Companion object, containing actor messages
-</span>96 <span style=''>  */
-</span>97 <span style=''>object GameViewActor {
-</span>98 <span style=''>  def apply(parentActor: ActorRef): GameViewActor = </span><span style='background: #F0ADAD'>new GameViewActor(parentActor)</span><span style=''>
-</span>99 <span style=''>
-</span>100 <span style=''>  /**
-</span>101 <span style=''>    * The title of game view
-</span>102 <span style=''>    */
-</span>103 <span style=''>  val VIEW_TITLE = </span><span style='background: #F0ADAD'>&quot;CellWars&quot;</span><span style=''>
-</span>104 <span style=''>
-</span>105 <span style=''>  /**
-</span>106 <span style=''>    * The size of the squared view
-</span>107 <span style=''>    */
-</span>108 <span style=''>  val VIEW_SIZE = </span><span style='background: #F0ADAD'>512</span><span style=''> // TODO: sarebbe buono forse fare una dimensione diversa in base alla dimensione dello schermo
-</span>109 <span style=''>
-</span>110 <span style=''>  /**
-</span>111 <span style=''>    * Shows the GUI
-</span>112 <span style=''>    */
-</span>113 <span style=''>  case object ShowGUI
-</span>114 <span style=''>
-</span>115 <span style=''>  /**
-</span>116 <span style=''>    * Hides the GUI
-</span>117 <span style=''>    */
-</span>118 <span style=''>  case object HideGUI
-</span>119 <span style=''>
-</span>120 <span style=''>  /**
-</span>121 <span style=''>    * Sets a new world to display
-</span>122 <span style=''>    *
-</span>123 <span style=''>    * @param world the newWorld from which to compute new evolution
-</span>124 <span style=''>    */
-</span>125 <span style=''>  case class NewWorld(world: CellWorld)
-</span>126 <span style=''>
-</span>127 <span style=''>  /**
-</span>128 <span style=''>    * Updates local version of the world making it &quot;move&quot;
-</span>129 <span style=''>    */
-</span>130 <span style=''>  case object UpdateLocalWorld
-</span>131 <span style=''>
-</span>132 <span style=''>  /**
-</span>133 <span style=''>    * A message stating that an attack has been launched from one point to another
-</span>134 <span style=''>    *
-</span>135 <span style=''>    * @param from the point from which attack is starting
-</span>136 <span style=''>    * @param to   the point to which the attack is going
+</span>58 <span style=''>  /**
+</span>59 <span style=''>    * The behaviour of receiving world modifications from external source
+</span>60 <span style=''>    */
+</span>61 <span style=''>  private def newWorldBehaviour: Receive = {
+</span>62 <span style=''>    case NewWorld(world) =&gt;
+</span>63 <span style=''>      </span><span style='background: #F0ADAD'>tempWorld = world</span><span style=''>
+</span>64 <span style=''>      if (</span><span style='background: #F0ADAD'>updatingSchedule == null</span><span style=''>) {
+</span>65 <span style=''>        </span><span style='background: #F0ADAD'>updatingSchedule = context.system.scheduler
+</span>66 <span style=''></span><span style='background: #F0ADAD'>          .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)</span><span style=''>
+</span>67 <span style=''>      }
+</span>68 <span style=''>
+</span>69 <span style=''>    case UpdateGUI =&gt;
+</span>70 <span style=''>      </span><span style='background: #F0ADAD'>Future {
+</span>71 <span style=''></span><span style='background: #F0ADAD'>        tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
+</span>72 <span style=''></span><span style='background: #F0ADAD'>        tempWorld
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      } andThen {
+</span>74 <span style=''></span><span style='background: #F0ADAD'>        case Success(cellWorld) =&gt; gameFX.updateWorld(cellWorld)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        case Failure(ex) =&gt;
+</span>76 <span style=''></span><span style='background: #F0ADAD'>          updatingSchedule.cancel()
+</span>77 <span style=''></span><span style='background: #F0ADAD'>          log.error(&quot;Error calculating next CellWorld&quot;, ex)
+</span>78 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>79 <span style=''>  }
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * The behaviour of listening for user events on GUI
+</span>83 <span style=''>    */
+</span>84 <span style=''>  private def guiWorldModificationsBehaviour: Receive = {
+</span>85 <span style=''>    case AddAttack(from, to) =&gt;
+</span>86 <span style=''>      log.info(s&quot;AddAttack from:$from to:$to&quot;)
+</span>87 <span style=''>      val worldCharacters = </span><span style='background: #F0ADAD'>tempWorld.characters</span><span style=''>
+</span>88 <span style=''>      val fromCell = </span><span style='background: #F0ADAD'>findCellNearTo(from, worldCharacters)</span><span style=''>
+</span>89 <span style=''>      val toCell = </span><span style='background: #F0ADAD'>findCellNearTo(to, worldCharacters)</span><span style=''>
+</span>90 <span style=''>      (fromCell, toCell) match {
+</span>91 <span style=''>        case (Some(attacker), Some(attacked)) if </span><span style='background: #F0ADAD'>canAddAttack(attacker, attacked, tempWorld.attacks)</span><span style=''> =&gt;
+</span>92 <span style=''>          log.debug(s&quot;Adding attack from $attacker to $attacked ...&quot;)
+</span>93 <span style=''>          </span><span style='background: #F0ADAD'>parentActor ! UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))</span><span style=''>
+</span>94 <span style=''>        case tmp@_ =&gt; log.debug(s&quot;No cells detected or auto-attack or not $playerName cell $tmp&quot;)
+</span>95 <span style=''>      }
+</span>96 <span style=''>
+</span>97 <span style=''>    case RemoveAttack(pointOnAttackView) =&gt;
+</span>98 <span style=''>      log.info(s&quot;RemoveAttack pointOnView:$pointOnAttackView&quot;)
+</span>99 <span style=''>      val attack = </span><span style='background: #F0ADAD'>findTentacleNearTo(pointOnAttackView, tempWorld.attacks)</span><span style=''>
+</span>100 <span style=''>      attack match {
+</span>101 <span style=''>        case Some(tentacle) if </span><span style='background: #F0ADAD'>tentacle.from.owner.username == playerName</span><span style=''> =&gt;
+</span>102 <span style=''>          log.debug(s&quot;Removing this attack: $tentacle ...&quot;)
+</span>103 <span style=''>          </span><span style='background: #F0ADAD'>parentActor ! UpdateState(tempWorld -- tentacle)</span><span style=''>
+</span>104 <span style=''>        case tmp@_ =&gt; log.debug(s&quot;No attack detected or not $playerName attack $tmp&quot;)
+</span>105 <span style=''>      }
+</span>106 <span style=''>  }
+</span>107 <span style=''>
+</span>108 <span style=''>  /**
+</span>109 <span style=''>    * Utility method to know if can add attack
+</span>110 <span style=''>    *
+</span>111 <span style=''>    * @param attacker       the attacker cell
+</span>112 <span style=''>    * @param attacked       the attacked cell
+</span>113 <span style=''>    * @param currentAttacks the current game attacks
+</span>114 <span style=''>    * @return true if attack can be added, false otherwise
+</span>115 <span style=''>    */
+</span>116 <span style=''>  private def canAddAttack(attacker: Cell, attacked: Cell, currentAttacks: Seq[Tentacle]): Boolean = {
+</span>117 <span style=''>    </span><span style='background: #F0ADAD'>!Cell.ownerAndPositionMatch(attacker, attacked) &amp;&amp; // no auto-attack
+</span>118 <span style=''></span><span style='background: #F0ADAD'>      attacker.owner.username == playerName &amp;&amp; // control only your cells
+</span>119 <span style=''></span><span style='background: #F0ADAD'>      !currentAttacks.exists(tentacle =&gt; // no already present attacks
+</span>120 <span style=''></span><span style='background: #F0ADAD'>        Cell.ownerAndPositionMatch(tentacle.from, attacker) &amp;&amp;
+</span>121 <span style=''></span><span style='background: #F0ADAD'>          Cell.ownerAndPositionMatch(tentacle.to, attacked))</span><span style=''>
+</span>122 <span style=''>  }
+</span>123 <span style=''>}
+</span>124 <span style=''>
+</span>125 <span style=''>/**
+</span>126 <span style=''>  * Companion object, containing actor messages
+</span>127 <span style=''>  */
+</span>128 <span style=''>object GameViewActor {
+</span>129 <span style=''>
+</span>130 <span style=''>  /**
+</span>131 <span style=''>    * The title of game view
+</span>132 <span style=''>    */
+</span>133 <span style=''>  val VIEW_TITLE_PREFIX = </span><span style='background: #F0ADAD'>&quot;CellWars: &quot;</span><span style=''>
+</span>134 <span style=''>
+</span>135 <span style=''>  /**
+</span>136 <span style=''>    * The size of the squared view
 </span>137 <span style=''>    */
-</span>138 <span style=''>  case class AddAttack(from: Point, to: Point)
+</span>138 <span style=''>  val VIEW_SIZE = </span><span style='background: #F0ADAD'>512</span><span style=''>
 </span>139 <span style=''>
 </span>140 <span style=''>  /**
-</span>141 <span style=''>    * A message stating that an attack has been removed
-</span>142 <span style=''>    *
-</span>143 <span style=''>    * @param pointOnAttackView the point clicked by the player to remove the attack
-</span>144 <span style=''>    */
-</span>145 <span style=''>  case class RemoveAttack(pointOnAttackView: Point)
-</span>146 <span style=''>
-</span>147 <span style=''>  /**
-</span>148 <span style=''>    * A method to find a cell near to a clicked point on view, according to actual cell sizing
-</span>149 <span style=''>    *
-</span>150 <span style=''>    * @param clickedPoint the clicked point on view
-</span>151 <span style=''>    * @param cells        the collection of cells on screen
-</span>152 <span style=''>    * @return optionally the cell near the clicked point
-</span>153 <span style=''>    */
-</span>154 <span style=''>  private def findCellNearTo(clickedPoint: Point, cells: Seq[Cell]): Option[Cell] =
-</span>155 <span style=''>    </span><span style='background: #F0ADAD'>cells.find(cell =&gt; GeometricUtils.isWithinCircumference(clickedPoint, cell.position, CellView.sizingStrategy(cell)))</span><span style=''>
+</span>141 <span style=''>    * Shows the GUI
+</span>142 <span style=''>    */
+</span>143 <span style=''>  case class ShowGUIWithName(playerName: String)
+</span>144 <span style=''>
+</span>145 <span style=''>  /**
+</span>146 <span style=''>    * Sets a new world to display
+</span>147 <span style=''>    *
+</span>148 <span style=''>    * @param world the newWorld from which to compute new evolution
+</span>149 <span style=''>    */
+</span>150 <span style=''>  case class NewWorld(world: CellWorld)
+</span>151 <span style=''>
+</span>152 <span style=''>  /**
+</span>153 <span style=''>    * Updates GUI of the world making it &quot;move&quot;
+</span>154 <span style=''>    */
+</span>155 <span style=''>  case object UpdateGUI
 </span>156 <span style=''>
 </span>157 <span style=''>  /**
-</span>158 <span style=''>    * A method to find the tentacle near to a clicked point on view, according to actual tentacle sizing
+</span>158 <span style=''>    * A message stating that an attack has been launched from one point to another
 </span>159 <span style=''>    *
-</span>160 <span style=''>    * @param clickedPoint the cliked point on view
-</span>161 <span style=''>    * @param tentacles    the collection of attacks on screen
-</span>162 <span style=''>    * @return optionally the tentacle near the clicked point
-</span>163 <span style=''>    */
-</span>164 <span style=''>  private def findTentacleNearTo(clickedPoint: Point, tentacles: Seq[Tentacle]): Option[Tentacle] =
-</span>165 <span style=''>    </span><span style='background: #F0ADAD'>tentacles.find(tentacle =&gt; GeometricUtils.
-</span>166 <span style=''></span><span style='background: #F0ADAD'>      pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position) &lt;= TentacleView.thicknessStrategy(tentacle))</span><span style=''>
-</span>167 <span style=''>}
+</span>160 <span style=''>    * @param from the point from which attack is starting
+</span>161 <span style=''>    * @param to   the point to which the attack is going
+</span>162 <span style=''>    */
+</span>163 <span style=''>  case class AddAttack(from: Point, to: Point)
+</span>164 <span style=''>
+</span>165 <span style=''>  /**
+</span>166 <span style=''>    * A message stating that an attack has been removed
+</span>167 <span style=''>    *
+</span>168 <span style=''>    * @param pointOnAttackView the point clicked by the player to remove the attack
+</span>169 <span style=''>    */
+</span>170 <span style=''>  case class RemoveAttack(pointOnAttackView: Point)
+</span>171 <span style=''>
+</span>172 <span style=''>  /**
+</span>173 <span style=''>    * A method to find a cell near to a clicked point on view, according to actual cell sizing
+</span>174 <span style=''>    *
+</span>175 <span style=''>    * @param clickedPoint the clicked point on view
+</span>176 <span style=''>    * @param cells        the collection of cells on screen
+</span>177 <span style=''>    * @return optionally the cell near the clicked point
+</span>178 <span style=''>    */
+</span>179 <span style=''>  private def findCellNearTo(clickedPoint: Point, cells: Seq[Cell]): Option[Cell] =
+</span>180 <span style=''>    </span><span style='background: #F0ADAD'>cells.find(cell =&gt; GeometricUtils.isWithinCircumference(clickedPoint, cell.position, CellView.sizingStrategy(cell)))</span><span style=''>
+</span>181 <span style=''>
+</span>182 <span style=''>  /**
+</span>183 <span style=''>    * A method to find the tentacle near to a clicked point on view, according to actual tentacle sizing
+</span>184 <span style=''>    *
+</span>185 <span style=''>    * @param clickedPoint the clicked point on view
+</span>186 <span style=''>    * @param tentacles    the collection of attacks on screen
+</span>187 <span style=''>    * @return optionally the tentacle near the clicked point
+</span>188 <span style=''>    */
+</span>189 <span style=''>  private def findTentacleNearTo(clickedPoint: Point, tentacles: Seq[Tentacle]): Option[Tentacle] =
+</span>190 <span style=''>    </span><span style='background: #F0ADAD'>tentacles.find(tentacle =&gt; GeometricUtils.
+</span>191 <span style=''></span><span style='background: #F0ADAD'>      pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position) &lt;= TentacleView.thicknessStrategy(tentacle))</span><span style=''>
+</span>192 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -202,15 +227,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          21
+          26
         </td>
         <td>
-          1174
+          1312
         </td>
         <td>
-          637
+          873
           -
-          649
+          885
         </td>
         <td>
           Apply
@@ -223,15 +248,15 @@
         </td>
       </tr><tr>
         <td>
-          21
+          26
         </td>
         <td>
-          1173
+          1311
         </td>
         <td>
-          644
+          880
           -
-          648
+          884
         </td>
         <td>
           Select
@@ -244,15 +269,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          27
         </td>
         <td>
-          1176
+          1314
         </td>
         <td>
-          702
+          938
           -
-          712
+          948
         </td>
         <td>
           Select
@@ -261,19 +286,19 @@
           scala.concurrent.duration.DurationConversions.millis
         </td>
         <td style="background: #F0ADAD">
-          scala.concurrent.duration.`package`.DurationInt(500).millis
+          scala.concurrent.duration.`package`.DurationInt(350).millis
         </td>
       </tr><tr>
         <td>
-          22
+          27
         </td>
         <td>
-          1175
+          1313
         </td>
         <td>
-          702
+          938
           -
-          705
+          941
         </td>
         <td>
           Literal
@@ -282,40 +307,56 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          500
+          350
         </td>
       </tr><tr>
         <td>
-          27
+          34
         </td>
         <td>
-          1177
+          1318
         </td>
         <td>
-          836
+          1149
           -
-          852
+          1224
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.showGUIBehaviour
+          scala.PartialFunction.orElse
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.showGUIBehaviour
+          GameViewActor.this.showGUIBehaviour.orElse[Any, Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Any,Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Any =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1, B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case it.cwmp.client.controller.messages.Initialize =&gt; GameViewActor.this.parentActor_=(GameViewActor.this.sender())
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Any): Boolean = ((x1.asInstanceOf[Any]: Any): Any @unchecked) match {
+      case it.cwmp.client.controller.messages.Initialize =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Any,Unit]))
         </td>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          1185
+          1317
         </td>
         <td>
-          949
+          1173
           -
-          949
+          1173
         </td>
         <td>
           Apply
@@ -328,36 +369,183 @@
         </td>
       </tr><tr>
         <td>
-          34
+          35
         </td>
         <td>
-          1178
+          1315
         </td>
         <td>
-          990
+          1212
           -
-          1000
+          1220
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          1316
+        </td>
+        <td>
+          1198
+          -
+          1220
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.parentActor_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.parentActor_=(GameViewActor.this.sender())
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          1331
+        </td>
+        <td>
+          1321
+          -
+          1321
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          1319
+        </td>
+        <td>
+          1363
+          -
+          1380
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.playerName_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.playerName_=(name)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1324
+        </td>
+        <td>
+          1400
+          -
+          1426
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;, &quot;&quot;).s(it.cwmp.client.view.game.GameViewActor.VIEW_TITLE_PREFIX, name)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1321
+        </td>
+        <td>
+          1420
+          -
+          1421
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1320
+        </td>
+        <td>
+          1402
+          -
+          1403
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1323
+        </td>
+        <td>
+          1403
+          -
+          1420
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.VIEW_TITLE
+          it.cwmp.client.view.game.GameViewActor.VIEW_TITLE_PREFIX
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.VIEW_TITLE
+          it.cwmp.client.view.game.GameViewActor.VIEW_TITLE_PREFIX
         </td>
       </tr><tr>
         <td>
-          34
+          44
         </td>
         <td>
-          1180
+          1326
         </td>
         <td>
-          977
+          1387
           -
-          1012
+          1438
         </td>
         <td>
           Apply
@@ -366,19 +554,40 @@
           it.cwmp.client.view.game.GameFX.start
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.gameFX.start(it.cwmp.client.view.game.GameViewActor.VIEW_TITLE, it.cwmp.client.view.game.GameViewActor.VIEW_SIZE)
+          GameViewActor.this.gameFX.start(scala.StringContext.apply(&quot;&quot;, &quot;&quot;, &quot;&quot;).s(it.cwmp.client.view.game.GameViewActor.VIEW_TITLE_PREFIX, name), it.cwmp.client.view.game.GameViewActor.VIEW_SIZE)
         </td>
       </tr><tr>
         <td>
-          34
+          44
         </td>
         <td>
-          1179
+          1322
         </td>
         <td>
-          1002
+          1425
           -
-          1011
+          1426
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          1325
+        </td>
+        <td>
+          1428
+          -
+          1437
         </td>
         <td>
           Select
@@ -391,78 +600,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          45
         </td>
         <td>
-          1184
+          1327
         </td>
         <td>
-          1019
+          1484
           -
-          1122
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.ActorContext.become
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.context.become(GameViewActor.this.hideGUIBehaviour.orElse[Any, Unit](GameViewActor.this.newWorldBehaviour).orElse[Any, Unit](GameViewActor.this.guiWorldModificationsBehaviour))
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1183
-        </td>
-        <td>
-          1034
-          -
-          1121
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.PartialFunction.orElse
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.hideGUIBehaviour.orElse[Any, Unit](GameViewActor.this.newWorldBehaviour).orElse[Any, Unit](GameViewActor.this.guiWorldModificationsBehaviour)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1182
-        </td>
-        <td>
-          1091
-          -
-          1121
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.guiWorldModificationsBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.guiWorldModificationsBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          1181
-        </td>
-        <td>
-          1066
-          -
-          1083
+          1501
         </td>
         <td>
           Select
@@ -475,78 +621,15 @@
         </td>
       </tr><tr>
         <td>
-          42
-        </td>
-        <td>
-          1189
-        </td>
-        <td>
-          1223
-          -
-          1223
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          1186
-        </td>
-        <td>
-          1251
-          -
-          1265
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.close
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.gameFX.close()
-        </td>
-      </tr><tr>
-        <td>
           45
         </td>
         <td>
-          1187
+          1330
         </td>
         <td>
-          1287
+          1445
           -
-          1303
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.showGUIBehaviour
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.showGUIBehaviour
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1188
-        </td>
-        <td>
-          1272
-          -
-          1304
+          1540
         </td>
         <td>
           Apply
@@ -555,19 +638,61 @@
           akka.actor.ActorContext.become
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.context.become(GameViewActor.this.showGUIBehaviour)
+          GameViewActor.this.context.become(GameViewActor.this.hideGUIBehaviour.orElse[Any, Unit](GameViewActor.this.newWorldBehaviour).orElse[Any, Unit](GameViewActor.this.guiWorldModificationsBehaviour))
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1329
+        </td>
+        <td>
+          1460
+          -
+          1539
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.hideGUIBehaviour.orElse[Any, Unit](GameViewActor.this.newWorldBehaviour).orElse[Any, Unit](GameViewActor.this.guiWorldModificationsBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          1328
+        </td>
+        <td>
+          1509
+          -
+          1539
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.guiWorldModificationsBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.guiWorldModificationsBehaviour
         </td>
       </tr><tr>
         <td>
           51
         </td>
         <td>
-          1213
+          1340
         </td>
         <td>
-          1440
+          1641
           -
-          1440
+          1641
         </td>
         <td>
           Apply
@@ -583,15 +708,15 @@
           53
         </td>
         <td>
-          1192
+          1333
         </td>
         <td>
-          1506
+          1749
           -
-          1531
+          1774
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
           akka.actor.Cancellable.cancel
@@ -604,12 +729,12 @@
           53
         </td>
         <td>
-          1194
+          1336
         </td>
         <td>
-          1476
+          1719
           -
-          1476
+          1719
         </td>
         <td>
           Block
@@ -625,33 +750,12 @@
           53
         </td>
         <td>
-          1191
+          1332
         </td>
         <td>
-          1506
+          1723
           -
-          1531
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Cancellable.cancel
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.updatingSchedule.cancel()
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          1190
-        </td>
-        <td>
-          1480
-          -
-          1504
+          1747
         </td>
         <td>
           Apply
@@ -667,12 +771,12 @@
           53
         </td>
         <td>
-          1193
+          1335
         </td>
         <td>
-          1476
+          1719
           -
-          1476
+          1719
         </td>
         <td>
           Literal
@@ -685,402 +789,99 @@
         </td>
       </tr><tr>
         <td>
+          53
+        </td>
+        <td>
+          1334
+        </td>
+        <td>
+          1749
+          -
+          1774
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          akka.actor.Cancellable.cancel
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.updatingSchedule.cancel()
+        </td>
+      </tr><tr>
+        <td>
           54
         </td>
         <td>
-          1195
+          1337
         </td>
         <td>
-          1538
+          1781
           -
-          1555
+          1795
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.tempWorld_=
+          it.cwmp.client.view.game.GameFX.close
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld_=(world)
+          GameViewActor.this.gameFX.close()
         </td>
       </tr><tr>
         <td>
           55
         </td>
         <td>
-          1205
+          1339
         </td>
         <td>
-          1562
+          1802
           -
-          1698
+          1834
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.updatingSchedule_=
+          akka.actor.ActorContext.become
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.updatingSchedule_=({
-  &lt;artifact&gt; val qual$1: akka.actor.Scheduler = GameViewActor.this.context.system.scheduler;
-  &lt;artifact&gt; val x$1: scala.concurrent.duration.FiniteDuration = scala.concurrent.duration.`package`.DurationInt(0).millis;
-  &lt;artifact&gt; val x$2: scala.concurrent.duration.FiniteDuration = GameViewActor.this.TIME_BETWEEN_FRAMES;
-  &lt;artifact&gt; val x$3: akka.actor.ActorRef = GameViewActor.this.self;
-  &lt;artifact&gt; val x$4: it.cwmp.client.view.game.GameViewActor.UpdateLocalWorld.type = it.cwmp.client.view.game.GameViewActor.UpdateLocalWorld;
-  &lt;artifact&gt; val x$5: scala.concurrent.ExecutionContextExecutor = GameViewActor.this.context.dispatcher;
-  &lt;artifact&gt; val x$6: akka.actor.ActorRef = qual$1.schedule$default$6(x$1, x$2, x$3, x$4);
-  qual$1.schedule(x$1, x$2, x$3, x$4)(x$5, x$6)
-})
+          GameViewActor.this.context.become(GameViewActor.this.showGUIBehaviour)
         </td>
       </tr><tr>
         <td>
           55
         </td>
         <td>
-          1196
+          1338
         </td>
         <td>
-          1581
+          1817
           -
-          1605
+          1833
         </td>
         <td>
           Select
         </td>
         <td>
-          akka.actor.ActorSystem.scheduler
+          it.cwmp.client.view.game.GameViewActor.showGUIBehaviour
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.context.system.scheduler
+          GameViewActor.this.showGUIBehaviour
         </td>
       </tr><tr>
         <td>
-          56
+          61
         </td>
         <td>
-          1204
+          1366
         </td>
         <td>
-          1581
+          1970
           -
-          1698
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Scheduler.schedule
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.schedule(x$1, x$2, x$3, x$4)(x$5, x$6)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1198
-        </td>
-        <td>
-          1624
-          -
-          1632
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.concurrent.duration.DurationConversions.millis
-        </td>
-        <td style="background: #F0ADAD">
-          scala.concurrent.duration.`package`.DurationInt(0).millis
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1201
-        </td>
-        <td>
-          1661
-          -
-          1677
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.UpdateLocalWorld
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.UpdateLocalWorld
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1200
-        </td>
-        <td>
-          1655
-          -
-          1659
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.Actor.self
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.self
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1203
-        </td>
-        <td>
-          1623
-          -
-          1623
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Scheduler.schedule$default$6
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.schedule$default$6(x$1, x$2, x$3, x$4)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1197
-        </td>
-        <td>
-          1624
-          -
-          1625
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          0
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1199
-        </td>
-        <td>
-          1634
-          -
-          1653
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.TIME_BETWEEN_FRAMES
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.TIME_BETWEEN_FRAMES
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1202
-        </td>
-        <td>
-          1679
-          -
-          1697
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          akka.actor.ActorContext.dispatcher
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.context.dispatcher
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          1207
-        </td>
-        <td>
-          1867
-          -
-          1896
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.updateWorld
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.gameFX.updateWorld(GameViewActor.this.tempWorld)
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          1206
-        </td>
-        <td>
-          1886
-          -
-          1895
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.tempWorld
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1210
-        </td>
-        <td>
-          1985
-          -
-          2042
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.Duration.ofMillis
-        </td>
-        <td style="background: #F0ADAD">
-          java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis)
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1209
-        </td>
-        <td>
-          2013
-          -
-          2041
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.concurrent.duration.FiniteDuration.toMillis
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1212
-        </td>
-        <td>
-          1951
-          -
-          2043
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.tempWorld_=
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld_=(it.cwmp.client.controller.game.GameEngine.apply(GameViewActor.this.tempWorld, java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis)))
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1208
-        </td>
-        <td>
-          1974
-          -
-          1983
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.tempWorld
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld
-        </td>
-      </tr><tr>
-        <td>
-          63
-        </td>
-        <td>
-          1211
-        </td>
-        <td>
-          1963
-          -
-          2043
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.game.GameEngine.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.game.GameEngine.apply(GameViewActor.this.tempWorld, java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis))
-        </td>
-      </tr><tr>
-        <td>
-          69
-        </td>
-        <td>
-          1233
-        </td>
-        <td>
-          2174
-          -
-          2174
+          1970
         </td>
         <td>
           Apply
@@ -1093,141 +894,390 @@
         </td>
       </tr><tr>
         <td>
-          72
+          63
         </td>
         <td>
-          1214
+          1341
         </td>
         <td>
-          2283
+          2006
           -
-          2303
+          2023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.tempWorld_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.tempWorld_=(world)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1342
+        </td>
+        <td>
+          2034
+          -
+          2058
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.updatingSchedule.==(null)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1354
+        </td>
+        <td>
+          2030
+          -
+          2030
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          1353
+        </td>
+        <td>
+          2030
+          -
+          2030
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1351
+        </td>
+        <td>
+          2070
+          -
+          2212
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.updatingSchedule_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.updatingSchedule_=({
+  &lt;artifact&gt; val qual$1: akka.actor.Scheduler = GameViewActor.this.context.system.scheduler;
+  &lt;artifact&gt; val x$1: scala.concurrent.duration.FiniteDuration = GameViewActor.this.TIME_BETWEEN_FRAMES;
+  &lt;artifact&gt; val x$2: scala.concurrent.duration.FiniteDuration = GameViewActor.this.TIME_BETWEEN_FRAMES;
+  &lt;artifact&gt; val x$3: akka.actor.ActorRef = GameViewActor.this.self;
+  &lt;artifact&gt; val x$4: it.cwmp.client.view.game.GameViewActor.UpdateGUI.type = it.cwmp.client.view.game.GameViewActor.UpdateGUI;
+  &lt;artifact&gt; val x$5: scala.concurrent.ExecutionContextExecutor = GameViewActor.this.context.dispatcher;
+  &lt;artifact&gt; val x$6: akka.actor.ActorRef = qual$1.schedule$default$6(x$1, x$2, x$3, x$4);
+  qual$1.schedule(x$1, x$2, x$3, x$4)(x$5, x$6)
+})
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          1343
+        </td>
+        <td>
+          2089
+          -
+          2113
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorld.characters
+          akka.actor.ActorSystem.scheduler
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld.characters
+          GameViewActor.this.context.system.scheduler
         </td>
       </tr><tr>
         <td>
-          73
+          65
         </td>
         <td>
-          1215
+          1352
         </td>
         <td>
-          2325
+          2070
           -
-          2362
+          2212
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.updatingSchedule_=
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.updatingSchedule_=({
+  &lt;artifact&gt; val qual$1: akka.actor.Scheduler = GameViewActor.this.context.system.scheduler;
+  &lt;artifact&gt; val x$1: scala.concurrent.duration.FiniteDuration = GameViewActor.this.TIME_BETWEEN_FRAMES;
+  &lt;artifact&gt; val x$2: scala.concurrent.duration.FiniteDuration = GameViewActor.this.TIME_BETWEEN_FRAMES;
+  &lt;artifact&gt; val x$3: akka.actor.ActorRef = GameViewActor.this.self;
+  &lt;artifact&gt; val x$4: it.cwmp.client.view.game.GameViewActor.UpdateGUI.type = it.cwmp.client.view.game.GameViewActor.UpdateGUI;
+  &lt;artifact&gt; val x$5: scala.concurrent.ExecutionContextExecutor = GameViewActor.this.context.dispatcher;
+  &lt;artifact&gt; val x$6: akka.actor.ActorRef = qual$1.schedule$default$6(x$1, x$2, x$3, x$4);
+  qual$1.schedule(x$1, x$2, x$3, x$4)(x$5, x$6)
+})
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1345
+        </td>
+        <td>
+          2155
+          -
+          2174
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.TIME_BETWEEN_FRAMES
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.TIME_BETWEEN_FRAMES
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1348
+        </td>
+        <td>
+          2193
+          -
+          2211
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.ActorContext.dispatcher
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.context.dispatcher
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1347
+        </td>
+        <td>
+          2182
+          -
+          2191
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.UpdateGUI
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.UpdateGUI
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1350
+        </td>
+        <td>
+          2089
+          -
+          2212
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.findCellNearTo
+          akka.actor.Scheduler.schedule
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.findCellNearTo(from, worldCharacters)
+          qual$1.schedule(x$1, x$2, x$3, x$4)(x$5, x$6)
         </td>
       </tr><tr>
         <td>
-          74
+          66
         </td>
         <td>
-          1216
+          1344
         </td>
         <td>
-          2382
+          2134
           -
-          2417
+          2153
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.TIME_BETWEEN_FRAMES
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.TIME_BETWEEN_FRAMES
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1346
+        </td>
+        <td>
+          2176
+          -
+          2180
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1349
+        </td>
+        <td>
+          2133
+          -
+          2133
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.findCellNearTo
+          akka.actor.Scheduler.schedule$default$6
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.findCellNearTo(to, worldCharacters)
+          qual$1.schedule$default$6(x$1, x$2, x$3, x$4)
         </td>
       </tr><tr>
         <td>
-          76
+          71
         </td>
         <td>
-          1217
+          1357
         </td>
         <td>
-          2500
+          2301
           -
-          2520
+          2358
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.!=
+          java.time.Duration.ofMillis
         </td>
         <td style="background: #F0ADAD">
-          attacker.!=(attacked)
+          java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis)
         </td>
       </tr><tr>
         <td>
-          78
+          71
         </td>
         <td>
-          1222
+          1356
         </td>
         <td>
-          2647
+          2329
           -
-          2707
+          2357
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.concurrent.duration.FiniteDuration.toMillis
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          1359
+        </td>
+        <td>
+          2267
+          -
+          2359
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorld.CellWorldManipulator.++
+          it.cwmp.client.view.game.GameViewActor.tempWorld_=
         </td>
         <td style="background: #F0ADAD">
-          impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant))
+          GameViewActor.this.tempWorld_=(it.cwmp.client.controller.game.GameEngine.apply(GameViewActor.this.tempWorld, java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis)))
         </td>
       </tr><tr>
         <td>
-          78
+          71
         </td>
         <td>
-          1225
+          1355
         </td>
         <td>
-          2604
+          2290
           -
-          2708
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(GameViewActor.this.parentActor).!(it.cwmp.client.model.DistributedState.UpdateState.apply[it.cwmp.client.model.game.impl.CellWorld](impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant))))(GameViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1219
-        </td>
-        <td>
-          2647
-          -
-          2656
+          2299
         </td>
         <td>
           Select
@@ -1240,141 +1290,294 @@
         </td>
       </tr><tr>
         <td>
-          78
+          71
         </td>
         <td>
-          1218
+          1358
         </td>
         <td>
-          2604
+          2279
           -
-          2615
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewActor.parentActor
-        </td>
-        <td style="background: #F0ADAD">
-          GameViewActor.this.parentActor
-        </td>
-      </tr><tr>
-        <td>
-          78
-        </td>
-        <td>
-          1221
-        </td>
-        <td>
-          2660
-          -
-          2707
+          2359
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.apply
+          it.cwmp.client.controller.game.GameEngine.apply
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant)
+          it.cwmp.client.controller.game.GameEngine.apply(GameViewActor.this.tempWorld, java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis))
         </td>
       </tr><tr>
         <td>
-          78
+          72
         </td>
         <td>
-          1224
+          1360
         </td>
         <td>
-          2616
+          2368
           -
-          2616
+          2377
         </td>
         <td>
           Select
         </td>
         <td>
-          akka.actor.Actor.self
+          it.cwmp.client.view.game.GameViewActor.tempWorld
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.self
+          GameViewActor.this.tempWorld
         </td>
       </tr><tr>
         <td>
-          78
+          73
         </td>
         <td>
-          1223
+          1363
         </td>
         <td>
-          2618
+          2394
           -
-          2708
+          2394
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.DistributedState.UpdateState.apply
+          it.cwmp.client.view.game.GameViewActor.$anonfun.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.model.DistributedState.UpdateState.apply[it.cwmp.client.model.game.impl.CellWorld](impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant)))
+          new $anonfun()
         </td>
       </tr><tr>
         <td>
-          78
+          73
         </td>
         <td>
-          1220
+          1365
         </td>
         <td>
-          2689
+          2386
           -
-          2706
+          2386
         </td>
         <td>
-          Select
+          Literal
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorld.instant
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.this.tempWorld.instant
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1364
+        </td>
+        <td>
+          2250
+          -
+          2592
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.apply[it.cwmp.client.model.game.impl.CellWorld]({
+  GameViewActor.this.tempWorld_=(it.cwmp.client.controller.game.GameEngine.apply(GameViewActor.this.tempWorld, java.time.Duration.ofMillis(GameViewActor.this.TIME_BETWEEN_FRAMES.toMillis)));
+  GameViewActor.this.tempWorld
+})(scala.concurrent.ExecutionContext.Implicits.global).andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[it.cwmp.client.model.game.impl.CellWorld],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[it.cwmp.client.model.game.impl.CellWorld] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[it.cwmp.client.model.game.impl.CellWorld], B1 &gt;: Unit](x5: A1, default: A1 =&gt; B1): B1 = ((x5.asInstanceOf[scala.util.Try[it.cwmp.client.model.game.impl.CellWorld]]: scala.util.Try[it.cwmp.client.model.game.impl.CellWorld]): scala.util.Try[it.cwmp.client.model.game.impl.CellWorld] @unchecked) match {
+      case (value: it.cwmp.client.model.game.impl.CellWorld)scala.util.Success[it.cwmp.client.model.game.impl.CellWorld]((cellWorld @ _)) =&gt; GameViewActor.this.gameFX.updateWorld(cellWorld)
+      case (exception: Throwable)scala.util.Failure[it.cwmp.client.model.game.impl.CellWorld]((ex @ _)) =&gt; {
+        GameViewActor.this.updatingSchedule.cancel();
+        (if (GameViewActor.this.log.underlying.isErrorEnabled())
+          GameViewActor.this.log.underlying.error(&quot;Error calculating next CellWorld&quot;, ex)
+        else
+          (): Unit)
+      }
+      case (defaultCase$ @ _) =&gt; default.apply(x5)
+    };
+    final def isDefinedAt(x5: scala.util.Try[it.cwmp.client.model.game.impl.CellWorld]): Boolean = ((x5.asInstanceOf[scala.util.Try[it.cwmp.client.model.game.impl.CellWorld]]: scala.util.Try[it.cwmp.client.model.game.impl.CellWorld]): scala.util.Try[it.cwmp.client.model.game.impl.CellWorld] @unchecked) match {
+      case (value: it.cwmp.client.model.game.impl.CellWorld)scala.util.Success[it.cwmp.client.model.game.impl.CellWorld]((cellWorld @ _)) =&gt; true
+      case (exception: Throwable)scala.util.Failure[it.cwmp.client.model.game.impl.CellWorld]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[it.cwmp.client.model.game.impl.CellWorld],Unit]))(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          1361
+        </td>
+        <td>
+          2431
+          -
+          2460
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFX.updateWorld
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.gameFX.updateWorld(cellWorld)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          1362
+        </td>
+        <td>
+          2499
+          -
+          2524
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Cancellable.cancel
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.updatingSchedule.cancel()
         </td>
       </tr><tr>
         <td>
           84
         </td>
         <td>
-          1227
+          1389
         </td>
         <td>
-          2918
+          2723
           -
-          2974
+          2723
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.findTentacleNearTo
+          it.cwmp.client.view.game.GameViewActor.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewActor.findTentacleNearTo(pointOnAttackView, GameViewActor.this.tempWorld.attacks)
+          new $anonfun()
         </td>
       </tr><tr>
         <td>
-          84
+          87
         </td>
         <td>
-          1226
+          1367
         </td>
         <td>
-          2956
+          2832
           -
-          2973
+          2852
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.characters
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.tempWorld.characters
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          1368
+        </td>
+        <td>
+          2874
+          -
+          2911
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.findCellNearTo
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.findCellNearTo(from, worldCharacters)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          1369
+        </td>
+        <td>
+          2931
+          -
+          2966
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.findCellNearTo
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.findCellNearTo(to, worldCharacters)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          1371
+        </td>
+        <td>
+          3049
+          -
+          3100
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.canAddAttack
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.canAddAttack(attacker, attacked, GameViewActor.this.tempWorld.attacks)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          1370
+        </td>
+        <td>
+          3082
+          -
+          3099
         </td>
         <td>
           Select
@@ -1387,15 +1590,36 @@
         </td>
       </tr><tr>
         <td>
-          88
+          93
         </td>
         <td>
-          1231
+          1375
         </td>
         <td>
-          3109
+          3223
           -
-          3109
+          3270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1378
+        </td>
+        <td>
+          3196
+          -
+          3196
         </td>
         <td>
           Select
@@ -1408,15 +1632,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          93
         </td>
         <td>
-          1228
+          1372
         </td>
         <td>
-          3097
+          3184
           -
-          3108
+          3195
         </td>
         <td>
           Select
@@ -1429,15 +1653,246 @@
         </td>
       </tr><tr>
         <td>
-          88
+          93
         </td>
         <td>
-          1230
+          1374
         </td>
         <td>
-          3111
+          3252
           -
-          3162
+          3269
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.tempWorld.instant
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1377
+        </td>
+        <td>
+          3198
+          -
+          3271
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.DistributedState.UpdateState.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.DistributedState.UpdateState.apply[it.cwmp.client.model.game.impl.CellWorld](impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant)))
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1379
+        </td>
+        <td>
+          3184
+          -
+          3271
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(GameViewActor.this.parentActor).!(it.cwmp.client.model.DistributedState.UpdateState.apply[it.cwmp.client.model.game.impl.CellWorld](impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant))))(GameViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1373
+        </td>
+        <td>
+          3210
+          -
+          3219
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.tempWorld
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.tempWorld
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1376
+        </td>
+        <td>
+          3210
+          -
+          3270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.CellWorldManipulator.++
+        </td>
+        <td style="background: #F0ADAD">
+          impl.this.CellWorld.CellWorldManipulator(GameViewActor.this.tempWorld).++(it.cwmp.client.model.game.impl.Tentacle.apply(attacker, attacked, GameViewActor.this.tempWorld.instant))
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          1381
+        </td>
+        <td>
+          3505
+          -
+          3561
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.findTentacleNearTo
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewActor.findTentacleNearTo(pointOnAttackView, GameViewActor.this.tempWorld.attacks)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          1380
+        </td>
+        <td>
+          3543
+          -
+          3560
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.attacks
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.tempWorld.attacks
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          1383
+        </td>
+        <td>
+          3614
+          -
+          3656
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from.owner.username.==(GameViewActor.this.playerName)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          1382
+        </td>
+        <td>
+          3646
+          -
+          3656
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.playerName
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.playerName
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1384
+        </td>
+        <td>
+          3730
+          -
+          3741
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.parentActor
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.parentActor
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1387
+        </td>
+        <td>
+          3742
+          -
+          3742
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.actor.Actor.self
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.self
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1386
+        </td>
+        <td>
+          3744
+          -
+          3778
         </td>
         <td>
           Apply
@@ -1450,15 +1905,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          103
         </td>
         <td>
-          1232
+          1388
         </td>
         <td>
-          3097
+          3730
           -
-          3162
+          3778
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1471,15 +1926,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          103
         </td>
         <td>
-          1229
+          1385
         </td>
         <td>
-          3140
+          3756
           -
-          3161
+          3777
         </td>
         <td>
           Apply
@@ -1492,36 +1947,183 @@
         </td>
       </tr><tr>
         <td>
-          98
+          118
         </td>
         <td>
-          1234
+          1390
         </td>
         <td>
-          3370
+          4357
           -
-          3400
+          4367
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewActor.playerName
+        </td>
+        <td style="background: #F0ADAD">
+          GameViewActor.this.playerName
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          1397
+        </td>
+        <td>
+          4255
+          -
+          4592
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.&lt;init&gt;
+          scala.Boolean.&amp;&amp;
         </td>
         <td style="background: #F0ADAD">
-          new GameViewActor(parentActor)
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(attacker, attacked).unary_!.&amp;&amp;(attacker.owner.username.==(GameViewActor.this.playerName)).&amp;&amp;(currentAttacks.exists(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.from, attacker).&amp;&amp;(it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.to, attacked)))).unary_!)
         </td>
       </tr><tr>
         <td>
-          103
+          118
         </td>
         <td>
-          1235
+          1391
         </td>
         <td>
-          3463
+          4330
           -
-          3473
+          4367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #F0ADAD">
+          attacker.owner.username.==(GameViewActor.this.playerName)
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          1396
+        </td>
+        <td>
+          4404
+          -
+          4592
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          currentAttacks.exists(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.from, attacker).&amp;&amp;(it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.to, attacked)))).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          1392
+        </td>
+        <td>
+          4504
+          -
+          4517
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          1395
+        </td>
+        <td>
+          4477
+          -
+          4591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.from, attacker).&amp;&amp;(it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.to, attacked))
+        </td>
+      </tr><tr>
+        <td>
+          121
+        </td>
+        <td>
+          1393
+        </td>
+        <td>
+          4569
+          -
+          4580
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.to
+        </td>
+        <td style="background: #F0ADAD">
+          tentacle.to
+        </td>
+      </tr><tr>
+        <td>
+          121
+        </td>
+        <td>
+          1394
+        </td>
+        <td>
+          4542
+          -
+          4591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.to, attacked)
+        </td>
+      </tr><tr>
+        <td>
+          133
+        </td>
+        <td>
+          1398
+        </td>
+        <td>
+          4749
+          -
+          4761
         </td>
         <td>
           Literal
@@ -1530,19 +2132,19 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          &quot;CellWars&quot;
+          &quot;CellWars: &quot;
         </td>
       </tr><tr>
         <td>
-          108
+          138
         </td>
         <td>
-          1236
+          1399
         </td>
         <td>
-          3541
+          4829
           -
-          3544
+          4832
         </td>
         <td>
           Literal
@@ -1555,57 +2157,15 @@
         </td>
       </tr><tr>
         <td>
-          155
+          180
         </td>
         <td>
-          1237
+          1402
         </td>
         <td>
-          4936
+          6032
           -
-          4949
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.position
-        </td>
-        <td style="background: #F0ADAD">
-          cell.position
-        </td>
-      </tr><tr>
-        <td>
-          155
-        </td>
-        <td>
-          1240
-        </td>
-        <td>
-          4866
-          -
-          4982
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.find
-        </td>
-        <td style="background: #F0ADAD">
-          cells.find(((cell: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.GeometricUtils.isWithinCircumference(clickedPoint, cell.position, it.cwmp.client.view.game.model.CellView.sizingStrategy.apply(cell))))
-        </td>
-      </tr><tr>
-        <td>
-          155
-        </td>
-        <td>
-          1239
-        </td>
-        <td>
-          4885
-          -
-          4981
+          6128
         </td>
         <td>
           Apply
@@ -1618,15 +2178,15 @@
         </td>
       </tr><tr>
         <td>
-          155
+          180
         </td>
         <td>
-          1238
+          1401
         </td>
         <td>
-          4951
+          6098
           -
-          4980
+          6127
         </td>
         <td>
           Apply
@@ -1639,15 +2199,57 @@
         </td>
       </tr><tr>
         <td>
-          165
+          180
         </td>
         <td>
-          1245
+          1403
         </td>
         <td>
-          5386
+          6013
           -
-          5569
+          6129
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.find
+        </td>
+        <td style="background: #F0ADAD">
+          cells.find(((cell: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.GeometricUtils.isWithinCircumference(clickedPoint, cell.position, it.cwmp.client.view.game.model.CellView.sizingStrategy.apply(cell))))
+        </td>
+      </tr><tr>
+        <td>
+          180
+        </td>
+        <td>
+          1400
+        </td>
+        <td>
+          6083
+          -
+          6096
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #F0ADAD">
+          cell.position
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          1408
+        </td>
+        <td>
+          6534
+          -
+          6717
         </td>
         <td>
           Apply
@@ -1660,36 +2262,15 @@
         </td>
       </tr><tr>
         <td>
-          166
+          191
         </td>
         <td>
-          1243
+          1405
         </td>
         <td>
-          5528
+          6651
           -
-          5568
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Function1.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.TentacleView.thicknessStrategy.apply(tentacle)
-        </td>
-      </tr><tr>
-        <td>
-          166
-        </td>
-        <td>
-          1242
-        </td>
-        <td>
-          5503
-          -
-          5523
+          6671
         </td>
         <td>
           Select
@@ -1702,15 +2283,36 @@
         </td>
       </tr><tr>
         <td>
-          166
+          191
         </td>
         <td>
-          1241
+          1407
         </td>
         <td>
-          5479
+          6561
           -
-          5501
+          6716
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&lt;=
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.GeometricUtils.pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position).&lt;=(it.cwmp.client.view.game.model.TentacleView.thicknessStrategy.apply(tentacle))
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          1404
+        </td>
+        <td>
+          6627
+          -
+          6649
         </td>
         <td>
           Select
@@ -1723,24 +2325,24 @@
         </td>
       </tr><tr>
         <td>
-          166
+          191
         </td>
         <td>
-          1244
+          1406
         </td>
         <td>
-          5413
+          6676
           -
-          5568
+          6716
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Double.&lt;=
+          scala.Function1.apply
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.model.game.GeometricUtils.pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position).&lt;=(it.cwmp.client.view.game.model.TentacleView.thicknessStrategy.apply(tentacle))
+          it.cwmp.client.view.game.model.TentacleView.thicknessStrategy.apply(tentacle)
         </td>
       </tr>
     </table>

@@ -103,27 +103,50 @@
 </span>79 <span style=''>      * @param energyReduction the amount of energy to remove
 </span>80 <span style=''>      * @return the cell with reduced energy
 </span>81 <span style=''>      */
-</span>82 <span style=''>    def --(energyReduction: Double): Cell = {
-</span>83 <span style=''>      </span><span style='background: #AEF1AE'>require(energyReduction &gt;= 0, &quot;Energy decrement should be positive&quot;)</span><span style=''>
-</span>84 <span style=''>      if (</span><span style='background: #AEF1AE'>energyReduction == 0</span><span style=''>) </span><span style='background: #AEF1AE'>cell</span><span style=''>
-</span>85 <span style=''>      else </span><span style='background: #AEF1AE'>Cell(cell.owner, cell.position, cell.energy - energyReduction)</span><span style=''>
-</span>86 <span style=''>    }
-</span>87 <span style=''>
-</span>88 <span style=''>    /**
-</span>89 <span style=''>      * Creates a new cell with energy increased
-</span>90 <span style=''>      *
-</span>91 <span style=''>      * @param energyIncrement the increment to add to energy
-</span>92 <span style=''>      * @return the cell with incremented energy
-</span>93 <span style=''>      */
-</span>94 <span style=''>    def ++(energyIncrement: Double): Cell = {
-</span>95 <span style=''>      </span><span style='background: #AEF1AE'>require(energyIncrement &gt;= 0, &quot;Energy increment should be positive&quot;)</span><span style=''>
-</span>96 <span style=''>      if (</span><span style='background: #AEF1AE'>energyIncrement == 0</span><span style=''>) </span><span style='background: #AEF1AE'>cell</span><span style=''>
-</span>97 <span style=''>      else </span><span style='background: #AEF1AE'>Cell(cell.owner, cell.position, cell.energy + energyIncrement)</span><span style=''>
-</span>98 <span style=''>    }
-</span>99 <span style=''>
-</span>100 <span style=''>  }
-</span>101 <span style=''>
-</span>102 <span style=''>}
+</span>82 <span style=''>    // scalastyle:off method.name
+</span>83 <span style=''>    def --(energyReduction: Double): Cell = {
+</span>84 <span style=''>      // scalastyle:on method.name
+</span>85 <span style=''>      </span><span style='background: #AEF1AE'>require(energyReduction &gt;= 0, &quot;Energy decrement should be positive&quot;)</span><span style=''>
+</span>86 <span style=''>      if (</span><span style='background: #AEF1AE'>energyReduction == 0</span><span style=''>) </span><span style='background: #AEF1AE'>cell</span><span style=''>
+</span>87 <span style=''>      else </span><span style='background: #AEF1AE'>Cell(cell.owner, cell.position, cell.energy - energyReduction)</span><span style=''>
+</span>88 <span style=''>    }
+</span>89 <span style=''>
+</span>90 <span style=''>    /**
+</span>91 <span style=''>      * Creates a new cell with energy increased
+</span>92 <span style=''>      *
+</span>93 <span style=''>      * @param energyIncrement the increment to add to energy
+</span>94 <span style=''>      * @return the cell with incremented energy
+</span>95 <span style=''>      */
+</span>96 <span style=''>    // scalastyle:off method.name
+</span>97 <span style=''>    def ++(energyIncrement: Double): Cell = {
+</span>98 <span style=''>      // scalastyle:on method.name
+</span>99 <span style=''>      </span><span style='background: #AEF1AE'>require(energyIncrement &gt;= 0, &quot;Energy increment should be positive&quot;)</span><span style=''>
+</span>100 <span style=''>      if (</span><span style='background: #AEF1AE'>energyIncrement == 0</span><span style=''>) </span><span style='background: #AEF1AE'>cell</span><span style=''>
+</span>101 <span style=''>      else </span><span style='background: #AEF1AE'>Cell(cell.owner, cell.position, cell.energy + energyIncrement)</span><span style=''>
+</span>102 <span style=''>    }
+</span>103 <span style=''>
+</span>104 <span style=''>  }
+</span>105 <span style=''>
+</span>106 <span style=''>  /**
+</span>107 <span style=''>    * Constants for cells that are passive... that is with no owner
+</span>108 <span style=''>    */
+</span>109 <span style=''>  object Passive {
+</span>110 <span style=''>
+</span>111 <span style=''>    /**
+</span>112 <span style=''>      * Placeholder User for cells with no owner
+</span>113 <span style=''>      */
+</span>114 <span style=''>    val NO_OWNER: User = </span><span style='background: #AEF1AE'>User(&quot;_NO_OWNER_&quot;)</span><span style=''>
+</span>115 <span style=''>
+</span>116 <span style=''>    /**
+</span>117 <span style=''>      * Default evolution strategy for a passive cell
+</span>118 <span style=''>      *
+</span>119 <span style=''>      * Does nothing
+</span>120 <span style=''>      */
+</span>121 <span style=''>    val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell, _) =&gt; cell
+</span>122 <span style=''>
+</span>123 <span style=''>  }
+</span>124 <span style=''>
+</span>125 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -140,7 +163,7 @@
           22
         </td>
         <td>
-          657
+          786
         </td>
         <td>
           695
@@ -161,7 +184,7 @@
           22
         </td>
         <td>
-          656
+          785
         </td>
         <td>
           717
@@ -182,7 +205,7 @@
           22
         </td>
         <td>
-          655
+          784
         </td>
         <td>
           710
@@ -203,28 +226,7 @@
           23
         </td>
         <td>
-          660
-        </td>
-        <td>
-          750
-          -
-          803
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.Objects.requireNonNull
-        </td>
-        <td style="background: #AEF1AE">
-          java.util.Objects.requireNonNull[it.cwmp.client.model.game.impl.Point](Cell.this.position, &quot;Position must not be null&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          659
+          788
         </td>
         <td>
           775
@@ -245,7 +247,7 @@
           23
         </td>
         <td>
-          658
+          787
         </td>
         <td>
           765
@@ -263,10 +265,31 @@
         </td>
       </tr><tr>
         <td>
+          23
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          750
+          -
+          803
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Objects.requireNonNull
+        </td>
+        <td style="background: #AEF1AE">
+          java.util.Objects.requireNonNull[it.cwmp.client.model.game.impl.Point](Cell.this.position, &quot;Position must not be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
           24
         </td>
         <td>
-          663
+          792
         </td>
         <td>
           806
@@ -287,7 +310,7 @@
           24
         </td>
         <td>
-          662
+          791
         </td>
         <td>
           826
@@ -308,7 +331,7 @@
           24
         </td>
         <td>
-          661
+          790
         </td>
         <td>
           814
@@ -329,7 +352,7 @@
           39
         </td>
         <td>
-          666
+          795
         </td>
         <td>
           1116
@@ -350,7 +373,7 @@
           39
         </td>
         <td>
-          665
+          794
         </td>
         <td>
           1125
@@ -371,7 +394,7 @@
           39
         </td>
         <td>
-          664
+          793
         </td>
         <td>
           1148
@@ -392,28 +415,7 @@
           50
         </td>
         <td>
-          669
-        </td>
-        <td>
-          1402
-          -
-          1464
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Double.toLong
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.GeometricUtils.distance(cell1.position, cell2.position).toLong
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          668
+          797
         </td>
         <td>
           1442
@@ -434,7 +436,7 @@
           50
         </td>
         <td>
-          667
+          796
         </td>
         <td>
           1426
@@ -452,10 +454,31 @@
         </td>
       </tr><tr>
         <td>
+          50
+        </td>
+        <td>
+          798
+        </td>
+        <td>
+          1402
+          -
+          1464
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Double.toLong
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.GeometricUtils.distance(cell1.position, cell2.position).toLong
+        </td>
+      </tr><tr>
+        <td>
           57
         </td>
         <td>
-          672
+          801
         </td>
         <td>
           1652
@@ -476,7 +499,7 @@
           57
         </td>
         <td>
-          671
+          800
         </td>
         <td>
           1670
@@ -497,7 +520,7 @@
           57
         </td>
         <td>
-          673
+          802
         </td>
         <td>
           1622
@@ -518,7 +541,7 @@
           57
         </td>
         <td>
-          670
+          799
         </td>
         <td>
           1637
@@ -539,7 +562,7 @@
           74
         </td>
         <td>
-          675
+          804
         </td>
         <td>
           2211
@@ -560,7 +583,7 @@
           74
         </td>
         <td>
-          674
+          803
         </td>
         <td>
           2233
@@ -578,36 +601,15 @@
         </td>
       </tr><tr>
         <td>
-          83
+          85
         </td>
         <td>
-          678
+          806
         </td>
         <td>
-          2484
+          2583
           -
-          2552
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.require
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.require(energyReduction.&gt;=(0), &quot;Energy decrement should be positive&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          677
-        </td>
-        <td>
-          2514
-          -
-          2551
+          2620
         </td>
         <td>
           Literal
@@ -620,15 +622,15 @@
         </td>
       </tr><tr>
         <td>
-          83
+          85
         </td>
         <td>
-          676
+          805
         </td>
         <td>
-          2492
+          2561
           -
-          2512
+          2581
         </td>
         <td>
           Apply
@@ -641,15 +643,36 @@
         </td>
       </tr><tr>
         <td>
-          84
+          85
         </td>
         <td>
-          681
+          807
         </td>
         <td>
-          2585
+          2553
           -
-          2589
+          2621
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(energyReduction.&gt;=(0), &quot;Energy decrement should be positive&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          810
+        </td>
+        <td>
+          2654
+          -
+          2658
         </td>
         <td>
           Block
@@ -662,15 +685,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          86
         </td>
         <td>
-          680
+          809
         </td>
         <td>
-          2585
+          2654
           -
-          2589
+          2658
         </td>
         <td>
           Select
@@ -683,15 +706,15 @@
         </td>
       </tr><tr>
         <td>
-          84
+          86
         </td>
         <td>
-          679
+          808
         </td>
         <td>
-          2563
+          2632
           -
-          2583
+          2652
         </td>
         <td>
           Apply
@@ -704,15 +727,15 @@
         </td>
       </tr><tr>
         <td>
-          85
+          87
         </td>
         <td>
-          684
+          813
         </td>
         <td>
-          2633
+          2702
           -
-          2662
+          2731
         </td>
         <td>
           Apply
@@ -725,15 +748,15 @@
         </td>
       </tr><tr>
         <td>
-          85
+          87
         </td>
         <td>
-          683
+          812
         </td>
         <td>
-          2618
+          2687
           -
-          2631
+          2700
         </td>
         <td>
           Select
@@ -746,15 +769,15 @@
         </td>
       </tr><tr>
         <td>
-          85
+          87
         </td>
         <td>
-          686
+          815
         </td>
         <td>
-          2601
+          2670
           -
-          2663
+          2732
         </td>
         <td>
           Block
@@ -767,15 +790,15 @@
         </td>
       </tr><tr>
         <td>
-          85
+          87
         </td>
         <td>
-          682
+          811
         </td>
         <td>
-          2606
+          2675
           -
-          2616
+          2685
         </td>
         <td>
           Select
@@ -788,15 +811,15 @@
         </td>
       </tr><tr>
         <td>
-          85
+          87
         </td>
         <td>
-          685
+          814
         </td>
         <td>
-          2601
+          2670
           -
-          2663
+          2732
         </td>
         <td>
           Apply
@@ -809,36 +832,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          99
         </td>
         <td>
-          687
+          818
         </td>
         <td>
-          2916
+          3046
           -
-          2936
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.&gt;=
-        </td>
-        <td style="background: #AEF1AE">
-          energyIncrement.&gt;=(0)
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          689
-        </td>
-        <td>
-          2908
-          -
-          2976
+          3114
         </td>
         <td>
           Apply
@@ -851,15 +853,15 @@
         </td>
       </tr><tr>
         <td>
-          95
+          99
         </td>
         <td>
-          688
+          817
         </td>
         <td>
-          2938
+          3076
           -
-          2975
+          3113
         </td>
         <td>
           Literal
@@ -872,15 +874,36 @@
         </td>
       </tr><tr>
         <td>
-          96
+          99
         </td>
         <td>
-          690
+          816
         </td>
         <td>
-          2987
+          3054
           -
-          3007
+          3074
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&gt;=
+        </td>
+        <td style="background: #AEF1AE">
+          energyIncrement.&gt;=(0)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          819
+        </td>
+        <td>
+          3125
+          -
+          3145
         </td>
         <td>
           Apply
@@ -893,15 +916,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          100
         </td>
         <td>
-          692
+          821
         </td>
         <td>
-          3009
+          3147
           -
-          3013
+          3151
         </td>
         <td>
           Block
@@ -914,15 +937,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          100
         </td>
         <td>
-          691
+          820
         </td>
         <td>
-          3009
+          3147
           -
-          3013
+          3151
         </td>
         <td>
           Select
@@ -935,36 +958,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          101
         </td>
         <td>
-          696
+          822
         </td>
         <td>
-          3025
+          3168
           -
-          3087
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.apply
-        </td>
-        <td style="background: #AEF1AE">
-          Cell.apply(CellManipulator.this.cell.owner, CellManipulator.this.cell.position, CellManipulator.this.cell.energy.+(energyIncrement))
-        </td>
-      </tr><tr>
-        <td>
-          97
-        </td>
-        <td>
-          693
-        </td>
-        <td>
-          3030
-          -
-          3040
+          3178
         </td>
         <td>
           Select
@@ -977,15 +979,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          101
         </td>
         <td>
-          695
+          824
         </td>
         <td>
-          3057
+          3195
           -
-          3086
+          3224
         </td>
         <td>
           Apply
@@ -998,15 +1000,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          101
         </td>
         <td>
-          697
+          826
         </td>
         <td>
-          3025
+          3163
           -
-          3087
+          3225
         </td>
         <td>
           Block
@@ -1019,15 +1021,15 @@
         </td>
       </tr><tr>
         <td>
-          97
+          101
         </td>
         <td>
-          694
+          823
         </td>
         <td>
-          3042
+          3180
           -
-          3055
+          3193
         </td>
         <td>
           Select
@@ -1037,6 +1039,48 @@
         </td>
         <td style="background: #AEF1AE">
           CellManipulator.this.cell.position
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          825
+        </td>
+        <td>
+          3163
+          -
+          3225
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Cell.apply(CellManipulator.this.cell.owner, CellManipulator.this.cell.position, CellManipulator.this.cell.energy.+(energyIncrement))
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          827
+        </td>
+        <td>
+          3430
+          -
+          3448
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.User.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.User.apply(&quot;_NO_OWNER_&quot;)
         </td>
       </tr>
     </table>

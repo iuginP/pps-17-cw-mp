@@ -64,41 +64,45 @@
 </span>40 <span style=''>      * @param tentacle the tentacle to add
 </span>41 <span style=''>      * @return the modified world
 </span>42 <span style=''>      */
-</span>43 <span style=''>    def ++(tentacle: Tentacle): CellWorld =
-</span>44 <span style=''>      </span><span style='background: #AEF1AE'>CellWorld(cellWorld.instant, cellWorld.characters, tentacle +: cellWorld.attacks)</span><span style=''>
-</span>45 <span style=''>
-</span>46 <span style=''>    /**
-</span>47 <span style=''>      * Removes the tentacle from the world refunding for energy the attacker
-</span>48 <span style=''>      *
-</span>49 <span style=''>      * @param tentacle the tentacle to remove
-</span>50 <span style=''>      * @return the modified world
-</span>51 <span style=''>      */
-</span>52 <span style=''>    def --(tentacle: Tentacle): CellWorld = {
-</span>53 <span style=''>      val tentacleActualLength = </span><span style='background: #AEF1AE'>tentacle.length(cellWorld.instant)</span><span style=''>
-</span>54 <span style=''>      val energyRefund = </span><span style='background: #AEF1AE'>lengthToEnergyReductionStrategy(tentacleActualLength)</span><span style=''>
-</span>55 <span style=''>      val attackerAndOthersPair = </span><span style='background: #AEF1AE'>cellWorld.characters.partition(Cell.ownerAndPositionMatch(_, tentacle.from))</span><span style=''>
-</span>56 <span style=''>      val attackerCell = </span><span style='background: #AEF1AE'>attackerAndOthersPair._1.head</span><span style=''>
-</span>57 <span style=''>      val attackerRefunded = </span><span style='background: #AEF1AE'>Cell(attackerCell.owner, attackerCell.position, attackerCell.energy + energyRefund)</span><span style=''>
-</span>58 <span style=''>      </span><span style='background: #AEF1AE'>CellWorld(cellWorld.instant, attackerAndOthersPair._2 :+ attackerRefunded, cellWorld.attacks filterNot (_ == tentacle))</span><span style=''>
-</span>59 <span style=''>    }
-</span>60 <span style=''>  }
-</span>61 <span style=''>
-</span>62 <span style=''>  /**
-</span>63 <span style=''>    * Default strategy for sizing the energy reduction of attacking character
-</span>64 <span style=''>    *
-</span>65 <span style=''>    * Every [[LENGTH_TO_ENERGY_REDUCTION_RATE]] the attacking character spends 1 energy
-</span>66 <span style=''>    */
-</span>67 <span style=''>  val lengthToEnergyReductionStrategy: SizingStrategy[Long, Double] =
-</span>68 <span style=''>    (length: Long) =&gt; </span><span style='background: #AEF1AE'>length / LENGTH_TO_ENERGY_REDUCTION_RATE</span><span style=''>
-</span>69 <span style=''>
-</span>70 <span style=''>  /**
-</span>71 <span style=''>    * Default strategy to calculate reduction/increment of energy of attacked character
-</span>72 <span style=''>    *
-</span>73 <span style=''>    * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
-</span>74 <span style=''>    */
-</span>75 <span style=''>  val durationToEnergyConversionStrategy: SizingStrategy[Duration, Double] =
-</span>76 <span style=''>    (attackDuration: Duration) =&gt; </span><span style='background: #AEF1AE'>attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE</span><span style=''>
-</span>77 <span style=''>}
+</span>43 <span style=''>    // scalastyle:off method.name
+</span>44 <span style=''>    def ++(tentacle: Tentacle): CellWorld =
+</span>45 <span style=''>    // scalastyle:on method.name
+</span>46 <span style=''>      </span><span style='background: #AEF1AE'>CellWorld(cellWorld.instant, cellWorld.characters, tentacle +: cellWorld.attacks)</span><span style=''>
+</span>47 <span style=''>
+</span>48 <span style=''>    /**
+</span>49 <span style=''>      * Removes the tentacle from the world refunding for energy the attacker
+</span>50 <span style=''>      *
+</span>51 <span style=''>      * @param tentacle the tentacle to remove
+</span>52 <span style=''>      * @return the modified world
+</span>53 <span style=''>      */
+</span>54 <span style=''>    // scalastyle:off method.name
+</span>55 <span style=''>    def --(tentacle: Tentacle): CellWorld = {
+</span>56 <span style=''>      // scalastyle:on method.name
+</span>57 <span style=''>      val tentacleActualLength = </span><span style='background: #AEF1AE'>tentacle.length(cellWorld.instant)</span><span style=''>
+</span>58 <span style=''>      val energyRefund = </span><span style='background: #AEF1AE'>lengthToEnergyReductionStrategy(tentacleActualLength)</span><span style=''>
+</span>59 <span style=''>      val attackerAndOthersPair = </span><span style='background: #AEF1AE'>cellWorld.characters.partition(Cell.ownerAndPositionMatch(_, tentacle.from))</span><span style=''>
+</span>60 <span style=''>      val attackerCell = </span><span style='background: #AEF1AE'>attackerAndOthersPair._1.head</span><span style=''>
+</span>61 <span style=''>      val attackerRefunded = </span><span style='background: #AEF1AE'>Cell(attackerCell.owner, attackerCell.position, attackerCell.energy + energyRefund)</span><span style=''>
+</span>62 <span style=''>      </span><span style='background: #AEF1AE'>CellWorld(cellWorld.instant, attackerAndOthersPair._2 :+ attackerRefunded, cellWorld.attacks filterNot (_ == tentacle))</span><span style=''>
+</span>63 <span style=''>    }
+</span>64 <span style=''>  }
+</span>65 <span style=''>
+</span>66 <span style=''>  /**
+</span>67 <span style=''>    * Default strategy for sizing the energy reduction of attacking character
+</span>68 <span style=''>    *
+</span>69 <span style=''>    * Every [[LENGTH_TO_ENERGY_REDUCTION_RATE]] the attacking character spends 1 energy
+</span>70 <span style=''>    */
+</span>71 <span style=''>  val lengthToEnergyReductionStrategy: SizingStrategy[Long, Double] =
+</span>72 <span style=''>    (length: Long) =&gt; </span><span style='background: #AEF1AE'>length / LENGTH_TO_ENERGY_REDUCTION_RATE</span><span style=''>
+</span>73 <span style=''>
+</span>74 <span style=''>  /**
+</span>75 <span style=''>    * Default strategy to calculate reduction/increment of energy of attacked character
+</span>76 <span style=''>    *
+</span>77 <span style=''>    * Every [[ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE]] the attacked character reduces its energy by 1
+</span>78 <span style=''>    */
+</span>79 <span style=''>  val durationToEnergyConversionStrategy: SizingStrategy[Duration, Double] =
+</span>80 <span style=''>    (attackDuration: Duration) =&gt; </span><span style='background: #AEF1AE'>attackDuration.toMillis / ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE</span><span style=''>
+</span>81 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -115,28 +119,7 @@
           21
         </td>
         <td>
-          699
-        </td>
-        <td>
-          743
-          -
-          775
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;World instant must not be null&quot;
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          698
+          828
         </td>
         <td>
           734
@@ -157,7 +140,7 @@
           21
         </td>
         <td>
-          700
+          830
         </td>
         <td>
           719
@@ -175,15 +158,15 @@
         </td>
       </tr><tr>
         <td>
-          22
+          21
         </td>
         <td>
-          702
+          829
         </td>
         <td>
-          806
+          743
           -
-          830
+          775
         </td>
         <td>
           Literal
@@ -192,14 +175,14 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;Cells must not be null&quot;
+          &quot;World instant must not be null&quot;
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          701
+          831
         </td>
         <td>
           794
@@ -220,7 +203,7 @@
           22
         </td>
         <td>
-          703
+          833
         </td>
         <td>
           779
@@ -238,10 +221,52 @@
         </td>
       </tr><tr>
         <td>
+          22
+        </td>
+        <td>
+          832
+        </td>
+        <td>
+          806
+          -
+          830
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Cells must not be null&quot;
+        </td>
+      </tr><tr>
+        <td>
           23
         </td>
         <td>
-          705
+          836
+        </td>
+        <td>
+          834
+          -
+          887
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.Objects.requireNonNull
+        </td>
+        <td style="background: #AEF1AE">
+          java.util.Objects.requireNonNull[Seq[it.cwmp.client.model.game.impl.Tentacle]](CellWorld.this.attacks, &quot;Tentacles must not be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          835
         </td>
         <td>
           858
@@ -262,7 +287,7 @@
           23
         </td>
         <td>
-          704
+          834
         </td>
         <td>
           849
@@ -280,36 +305,57 @@
         </td>
       </tr><tr>
         <td>
-          23
+          46
         </td>
         <td>
-          706
+          837
         </td>
         <td>
-          834
+          1388
           -
-          887
+          1405
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          java.util.Objects.requireNonNull
+          it.cwmp.client.model.game.impl.CellWorld.instant
         </td>
         <td style="background: #AEF1AE">
-          java.util.Objects.requireNonNull[Seq[it.cwmp.client.model.game.impl.Tentacle]](CellWorld.this.attacks, &quot;Tentacles must not be null&quot;)
+          CellWorldManipulator.this.cellWorld.instant
         </td>
       </tr><tr>
         <td>
-          44
+          46
         </td>
         <td>
-          708
+          839
         </td>
         <td>
-          1340
+          1438
           -
-          1360
+          1438
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          838
+        </td>
+        <td>
+          1407
+          -
+          1427
         </td>
         <td>
           Select
@@ -322,15 +368,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          46
         </td>
         <td>
-          711
+          841
         </td>
         <td>
-          1311
+          1378
           -
-          1392
+          1459
         </td>
         <td>
           Apply
@@ -346,15 +392,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          46
         </td>
         <td>
-          710
+          840
         </td>
         <td>
-          1371
+          1438
           -
-          1391
+          1458
         </td>
         <td>
           ApplyToImplicitArgs
@@ -367,120 +413,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          57
         </td>
         <td>
-          707
+          842
         </td>
         <td>
-          1321
+          1794
           -
-          1338
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorld.instant
-        </td>
-        <td style="background: #AEF1AE">
-          CellWorldManipulator.this.cellWorld.instant
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          709
-        </td>
-        <td>
-          1371
-          -
-          1371
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          714
-        </td>
-        <td>
-          1667
-          -
-          1667
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          qual$1.length$default$2
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          713
-        </td>
-        <td>
-          1674
-          -
-          1691
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorld.instant
-        </td>
-        <td style="background: #AEF1AE">
-          CellWorldManipulator.this.cellWorld.instant
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          715
-        </td>
-        <td>
-          1658
-          -
-          1692
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
-        </td>
-        <td style="background: #AEF1AE">
-          qual$1.length(x$4, x$5)
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          712
-        </td>
-        <td>
-          1658
-          -
-          1666
+          1802
         </td>
         <td>
           ApplyImplicitView
@@ -493,267 +434,57 @@
         </td>
       </tr><tr>
         <td>
-          54
+          57
         </td>
         <td>
-          716
+          845
         </td>
         <td>
-          1718
+          1794
           -
-          1771
+          1828
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Function1.apply
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
         </td>
         <td style="background: #AEF1AE">
-          CellWorld.this.lengthToEnergyReductionStrategy.apply(tentacleActualLength)
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          717
-        </td>
-        <td>
-          1867
-          -
-          1880
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
-        </td>
-        <td style="background: #AEF1AE">
-          tentacle.from
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          719
-        </td>
-        <td>
-          1806
-          -
-          1882
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableLike.partition
-        </td>
-        <td style="background: #AEF1AE">
-          CellWorldManipulator.this.cellWorld.characters.partition(((x$2: it.cwmp.client.model.game.impl.Cell) =&gt; Cell.ownerAndPositionMatch(x$2, tentacle.from)))
-        </td>
-      </tr><tr>
-        <td>
-          55
-        </td>
-        <td>
-          718
-        </td>
-        <td>
-          1837
-          -
-          1881
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
-        </td>
-        <td style="background: #AEF1AE">
-          Cell.ownerAndPositionMatch(x$2, tentacle.from)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          720
-        </td>
-        <td>
-          1908
-          -
-          1937
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.IterableLike.head
-        </td>
-        <td style="background: #AEF1AE">
-          attackerAndOthersPair._1.head
+          qual$1.length(x$4, x$5)
         </td>
       </tr><tr>
         <td>
           57
         </td>
         <td>
-          723
+          844
         </td>
         <td>
-          2015
+          1803
           -
-          2049
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.+
-        </td>
-        <td style="background: #AEF1AE">
-          attackerCell.energy.+(energyRefund)
-        </td>
-      </tr><tr>
-        <td>
-          57
-        </td>
-        <td>
-          722
-        </td>
-        <td>
-          1992
-          -
-          2013
+          1803
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Cell.position
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
         </td>
         <td style="background: #AEF1AE">
-          attackerCell.position
+          qual$1.length$default$2
         </td>
       </tr><tr>
         <td>
           57
         </td>
         <td>
-          724
+          843
         </td>
         <td>
-          1967
+          1810
           -
-          2050
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.apply
-        </td>
-        <td style="background: #AEF1AE">
-          Cell.apply(attackerCell.owner, attackerCell.position, attackerCell.energy.+(energyRefund))
-        </td>
-      </tr><tr>
-        <td>
-          57
-        </td>
-        <td>
-          721
-        </td>
-        <td>
-          1972
-          -
-          1990
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.owner
-        </td>
-        <td style="background: #AEF1AE">
-          attackerCell.owner
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          729
-        </td>
-        <td>
-          2132
-          -
-          2175
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableLike.filterNot
-        </td>
-        <td style="background: #AEF1AE">
-          CellWorldManipulator.this.cellWorld.attacks.filterNot(((x$3: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$3.==(tentacle)))
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          726
-        </td>
-        <td>
-          2111
-          -
-          2111
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          728
-        </td>
-        <td>
-          2161
-          -
-          2174
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.==
-        </td>
-        <td style="background: #AEF1AE">
-          x$3.==(tentacle)
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          725
-        </td>
-        <td>
-          2067
-          -
-          2084
+          1827
         </td>
         <td>
           Select
@@ -769,12 +500,222 @@
           58
         </td>
         <td>
-          727
+          846
         </td>
         <td>
-          2086
+          1854
           -
-          2130
+          1907
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorld.this.lengthToEnergyReductionStrategy.apply(tentacleActualLength)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          848
+        </td>
+        <td>
+          1973
+          -
+          2017
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
+        </td>
+        <td style="background: #AEF1AE">
+          Cell.ownerAndPositionMatch(x$2, tentacle.from)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          847
+        </td>
+        <td>
+          2003
+          -
+          2016
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          849
+        </td>
+        <td>
+          1942
+          -
+          2018
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableLike.partition
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldManipulator.this.cellWorld.characters.partition(((x$2: it.cwmp.client.model.game.impl.Cell) =&gt; Cell.ownerAndPositionMatch(x$2, tentacle.from)))
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          850
+        </td>
+        <td>
+          2044
+          -
+          2073
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.IterableLike.head
+        </td>
+        <td style="background: #AEF1AE">
+          attackerAndOthersPair._1.head
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          851
+        </td>
+        <td>
+          2108
+          -
+          2126
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.owner
+        </td>
+        <td style="background: #AEF1AE">
+          attackerCell.owner
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          854
+        </td>
+        <td>
+          2103
+          -
+          2186
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Cell.apply(attackerCell.owner, attackerCell.position, attackerCell.energy.+(energyRefund))
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          853
+        </td>
+        <td>
+          2151
+          -
+          2185
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.+
+        </td>
+        <td style="background: #AEF1AE">
+          attackerCell.energy.+(energyRefund)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          2128
+          -
+          2149
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #AEF1AE">
+          attackerCell.position
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          855
+        </td>
+        <td>
+          2203
+          -
+          2220
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldManipulator.this.cellWorld.instant
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          2222
+          -
+          2266
         </td>
         <td>
           ApplyToImplicitArgs
@@ -787,15 +728,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          62
         </td>
         <td>
-          730
+          860
         </td>
         <td>
-          2057
+          2193
           -
-          2176
+          2312
         </td>
         <td>
           Apply
@@ -808,15 +749,78 @@
         </td>
       </tr><tr>
         <td>
-          68
+          62
         </td>
         <td>
-          732
+          856
         </td>
         <td>
-          2465
+          2247
           -
-          2505
+          2247
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          859
+        </td>
+        <td>
+          2268
+          -
+          2311
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableLike.filterNot
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldManipulator.this.cellWorld.attacks.filterNot(((x$3: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$3.==(tentacle)))
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          858
+        </td>
+        <td>
+          2297
+          -
+          2310
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          x$3.==(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          862
+        </td>
+        <td>
+          2601
+          -
+          2641
         </td>
         <td>
           Apply
@@ -829,15 +833,15 @@
         </td>
       </tr><tr>
         <td>
-          68
+          72
         </td>
         <td>
-          731
+          861
         </td>
         <td>
-          2474
+          2610
           -
-          2505
+          2641
         </td>
         <td>
           Select
@@ -850,15 +854,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          80
         </td>
         <td>
-          734
+          864
         </td>
         <td>
-          2829
+          2965
           -
-          2895
+          3031
         </td>
         <td>
           Apply
@@ -871,15 +875,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          80
         </td>
         <td>
-          733
+          863
         </td>
         <td>
-          2855
+          2991
           -
-          2895
+          3031
         </td>
         <td>
           Select

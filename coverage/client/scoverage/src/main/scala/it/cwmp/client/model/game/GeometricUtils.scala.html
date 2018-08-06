@@ -90,66 +90,74 @@
 </span>66 <span style=''>    </span><span style='background: #AEF1AE'>require(distance &gt; 0, &quot;Distance should be greater than 0&quot;)</span><span style=''>
 </span>67 <span style=''>
 </span>68 <span style=''>    val deltaY =
-</span>69 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.y == point2.y</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''> // point on same horizontal line has no delta Y
-</span>70 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y) // point on same vertical line has delta Y that equals distance to travel; signum function makes delta positive if first point below second, negative otherwise
-</span>71 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y)</span><span style=''> // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
-</span>72 <span style=''>
-</span>73 <span style=''>    val deltaX =
-</span>74 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.x == point2.x</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''> // point on same vertical line has no delta X
-</span>75 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x) // point on same horizontal line has delta X that equals distance to travel; signum function makes delta positive if first point is on the left of the second, negative otherwise
-</span>76 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x)</span><span style=''> // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
-</span>77 <span style=''>
-</span>78 <span style=''>    </span><span style='background: #AEF1AE'>(deltaX, deltaY)</span><span style=''>
-</span>79 <span style=''>  }
-</span>80 <span style=''>
-</span>81 <span style=''>  /**
-</span>82 <span style=''>    * A method returning the distance of a point from a straight line passing through two points
-</span>83 <span style=''>    *
-</span>84 <span style=''>    * @param myPoint the point from which to calculate the distance
-</span>85 <span style=''>    * @param point1  the first point from which the straight line is passing through
-</span>86 <span style=''>    * @param point2  the second point from which the straight line is passing through
-</span>87 <span style=''>    * @return the distance of first point from this straight line
-</span>88 <span style=''>    */
-</span>89 <span style=''>  def pointDistanceFromStraightLine(myPoint: Point,
-</span>90 <span style=''>                                    point1: Point,
-</span>91 <span style=''>                                    point2: Point): Double = {
-</span>92 <span style=''>    val angularCoefficient = </span><span style='background: #AEF1AE'>GeometricUtils.angularCoefficient(point1, point2)</span><span style=''>
-</span>93 <span style=''>
-</span>94 <span style=''>    if (</span><span style='background: #AEF1AE'>angularCoefficient.isPosInfinity</span><span style=''>) </span><span style='background: #AEF1AE'>Math.abs(myPoint.x - point1.x)</span><span style=''> // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
-</span>95 <span style=''>    else
-</span>96 <span style=''>      </span><span style='background: #AEF1AE'>Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
-</span>97 <span style=''></span><span style='background: #AEF1AE'>        Math.sqrt(angularCoefficient.squared + 1)</span><span style=''>
-</span>98 <span style=''>  }
-</span>99 <span style=''>
-</span>100 <span style=''>  /**
-</span>101 <span style=''>    * A method that says if provided point is inside the circumference with provided center and radius
-</span>102 <span style=''>    *
-</span>103 <span style=''>    * @param point  the point to verify inside circumference
-</span>104 <span style=''>    * @param center the center of the circumference
-</span>105 <span style=''>    * @param radius the radius of the circumference
-</span>106 <span style=''>    * @return true if the point is inside or on the circumference, false otherwise
-</span>107 <span style=''>    */
-</span>108 <span style=''>  def isWithinCircumference(point: Point,
-</span>109 <span style=''>                            center: Point,
-</span>110 <span style=''>                            radius: Double): Boolean = {
-</span>111 <span style=''>    </span><span style='background: #AEF1AE'>require(radius &gt;= 0, &quot;Circumference radius must be positive&quot;)</span><span style=''>
-</span>112 <span style=''>
-</span>113 <span style=''>    (</span><span style='background: #AEF1AE'>point.x - center.x).squared + (point.y - center.y).squared &lt;= radius.squared</span><span style=''>
-</span>114 <span style=''>  }
-</span>115 <span style=''>
-</span>116 <span style=''>  /**
-</span>117 <span style=''>    * A class that makes possible to square numbers
-</span>118 <span style=''>    *
-</span>119 <span style=''>    * @param number a number to square
-</span>120 <span style=''>    */
-</span>121 <span style=''>  implicit class RichDouble(number: Double) {
-</span>122 <span style=''>    /**
-</span>123 <span style=''>      * @return the squared number -&gt; n^2^
-</span>124 <span style=''>      */
-</span>125 <span style=''>    def squared: Double = </span><span style='background: #AEF1AE'>number * number</span><span style=''>
-</span>126 <span style=''>  }
-</span>127 <span style=''>
-</span>128 <span style=''>}
+</span>69 <span style=''>    // point on same horizontal line has no delta Y
+</span>70 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.y == point2.y</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''>
+</span>71 <span style=''>      // point on same vertical line has delta Y that equals distance to travel;
+</span>72 <span style=''>      // signum function makes delta positive if first point below second, negative otherwise
+</span>73 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y)
+</span>74 <span style=''></span><span style='background: #AEF1AE'>      // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y)</span><span style=''>
+</span>76 <span style=''>
+</span>77 <span style=''>    val deltaX =
+</span>78 <span style=''>    // point on same vertical line has no delta X
+</span>79 <span style=''>      if (</span><span style='background: #AEF1AE'>point1.x == point2.x</span><span style=''>) </span><span style='background: #AEF1AE'>0</span><span style=''>
+</span>80 <span style=''>      // point on same horizontal line has delta X that equals distance to travel;
+</span>81 <span style=''>      // signum function makes delta positive if first point is on the left of the second, negative otherwise
+</span>82 <span style=''>      else </span><span style='background: #AEF1AE'>if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x)
+</span>83 <span style=''></span><span style='background: #AEF1AE'>      // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
+</span>84 <span style=''></span><span style='background: #AEF1AE'>      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x)</span><span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>    </span><span style='background: #AEF1AE'>(deltaX, deltaY)</span><span style=''>
+</span>87 <span style=''>  }
+</span>88 <span style=''>
+</span>89 <span style=''>  /**
+</span>90 <span style=''>    * A method returning the distance of a point from a straight line passing through two points
+</span>91 <span style=''>    *
+</span>92 <span style=''>    * @param myPoint the point from which to calculate the distance
+</span>93 <span style=''>    * @param point1  the first point from which the straight line is passing through
+</span>94 <span style=''>    * @param point2  the second point from which the straight line is passing through
+</span>95 <span style=''>    * @return the distance of first point from this straight line
+</span>96 <span style=''>    */
+</span>97 <span style=''>  def pointDistanceFromStraightLine(myPoint: Point,
+</span>98 <span style=''>                                    point1: Point,
+</span>99 <span style=''>                                    point2: Point): Double = {
+</span>100 <span style=''>    val angularCoefficient = </span><span style='background: #AEF1AE'>GeometricUtils.angularCoefficient(point1, point2)</span><span style=''>
+</span>101 <span style=''>
+</span>102 <span style=''>    // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
+</span>103 <span style=''>    if (</span><span style='background: #AEF1AE'>angularCoefficient.isPosInfinity</span><span style=''>) </span><span style='background: #AEF1AE'>Math.abs(myPoint.x - point1.x)</span><span style=''>
+</span>104 <span style=''>    else </span><span style='background: #AEF1AE'>Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
+</span>105 <span style=''></span><span style='background: #AEF1AE'>      Math.sqrt(angularCoefficient.squared + 1)</span><span style=''>
+</span>106 <span style=''>  }
+</span>107 <span style=''>
+</span>108 <span style=''>  /**
+</span>109 <span style=''>    * A method that says if provided point is inside the circumference with provided center and radius
+</span>110 <span style=''>    *
+</span>111 <span style=''>    * @param point  the point to verify inside circumference
+</span>112 <span style=''>    * @param center the center of the circumference
+</span>113 <span style=''>    * @param radius the radius of the circumference
+</span>114 <span style=''>    * @return true if the point is inside or on the circumference, false otherwise
+</span>115 <span style=''>    */
+</span>116 <span style=''>  def isWithinCircumference(point: Point,
+</span>117 <span style=''>                            center: Point,
+</span>118 <span style=''>                            radius: Double): Boolean = {
+</span>119 <span style=''>    </span><span style='background: #AEF1AE'>require(radius &gt;= 0, &quot;Circumference radius must be positive&quot;)</span><span style=''>
+</span>120 <span style=''>
+</span>121 <span style=''>    (</span><span style='background: #AEF1AE'>point.x - center.x).squared + (point.y - center.y).squared &lt;= radius.squared</span><span style=''>
+</span>122 <span style=''>  }
+</span>123 <span style=''>
+</span>124 <span style=''>  /**
+</span>125 <span style=''>    * A class that makes possible to square numbers
+</span>126 <span style=''>    *
+</span>127 <span style=''>    * @param number a number to square
+</span>128 <span style=''>    */
+</span>129 <span style=''>  implicit class RichDouble(number: Double) {
+</span>130 <span style=''>    /**
+</span>131 <span style=''>      * @return the squared number -&gt; n^2^
+</span>132 <span style=''>      */
+</span>133 <span style=''>    def squared: Double = </span><span style='background: #AEF1AE'>number * number</span><span style=''>
+</span>134 <span style=''>  }
+</span>135 <span style=''>
+</span>136 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -166,7 +174,7 @@
           20
         </td>
         <td>
-          566
+          695
         </td>
         <td>
           423
@@ -187,7 +195,7 @@
           21
         </td>
         <td>
-          561
+          690
         </td>
         <td>
           442
@@ -208,7 +216,7 @@
           21
         </td>
         <td>
-          560
+          689
         </td>
         <td>
           462
@@ -229,7 +237,7 @@
           21
         </td>
         <td>
-          565
+          694
         </td>
         <td>
           442
@@ -250,7 +258,7 @@
           22
         </td>
         <td>
-          564
+          693
         </td>
         <td>
           491
@@ -271,7 +279,7 @@
           22
         </td>
         <td>
-          563
+          692
         </td>
         <td>
           491
@@ -292,7 +300,7 @@
           22
         </td>
         <td>
-          562
+          691
         </td>
         <td>
           511
@@ -313,28 +321,7 @@
           36
         </td>
         <td>
-          568
-        </td>
-        <td>
-          940
-          -
-          960
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #AEF1AE">
-          point1.x.==(point2.x)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          567
+          696
         </td>
         <td>
           952
@@ -355,7 +342,7 @@
           36
         </td>
         <td>
-          570
+          699
         </td>
         <td>
           962
@@ -376,7 +363,7 @@
           36
         </td>
         <td>
-          569
+          698
         </td>
         <td>
           962
@@ -394,10 +381,31 @@
         </td>
       </tr><tr>
         <td>
+          36
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          940
+          -
+          960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
           37
         </td>
         <td>
-          573
+          702
         </td>
         <td>
           1029
@@ -418,7 +426,7 @@
           37
         </td>
         <td>
-          572
+          701
         </td>
         <td>
           1049
@@ -439,7 +447,7 @@
           37
         </td>
         <td>
-          575
+          704
         </td>
         <td>
           995
@@ -460,7 +468,7 @@
           37
         </td>
         <td>
-          571
+          700
         </td>
         <td>
           1016
@@ -481,7 +489,7 @@
           37
         </td>
         <td>
-          574
+          703
         </td>
         <td>
           995
@@ -502,28 +510,7 @@
           50
         </td>
         <td>
-          577
-        </td>
-        <td>
-          1455
-          -
-          1475
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int.==
-        </td>
-        <td style="background: #AEF1AE">
-          point1.x.==(point2.x)
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          576
+          705
         </td>
         <td>
           1467
@@ -544,7 +531,7 @@
           50
         </td>
         <td>
-          579
+          708
         </td>
         <td>
           1477
@@ -565,7 +552,7 @@
           50
         </td>
         <td>
-          578
+          707
         </td>
         <td>
           1477
@@ -583,10 +570,31 @@
         </td>
       </tr><tr>
         <td>
+          50
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          1455
+          -
+          1475
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.==
+        </td>
+        <td style="background: #AEF1AE">
+          point1.x.==(point2.x)
+        </td>
+      </tr><tr>
+        <td>
           51
         </td>
         <td>
-          585
+          714
         </td>
         <td>
           1497
@@ -607,7 +615,7 @@
           51
         </td>
         <td>
-          582
+          711
         </td>
         <td>
           1529
@@ -628,7 +636,7 @@
           51
         </td>
         <td>
-          581
+          710
         </td>
         <td>
           1549
@@ -649,7 +657,7 @@
           51
         </td>
         <td>
-          584
+          713
         </td>
         <td>
           1562
@@ -670,7 +678,7 @@
           51
         </td>
         <td>
-          586
+          715
         </td>
         <td>
           1497
@@ -691,7 +699,7 @@
           51
         </td>
         <td>
-          580
+          709
         </td>
         <td>
           1518
@@ -712,7 +720,7 @@
           51
         </td>
         <td>
-          583
+          712
         </td>
         <td>
           1582
@@ -733,7 +741,7 @@
           66
         </td>
         <td>
-          588
+          717
         </td>
         <td>
           2349
@@ -754,7 +762,7 @@
           66
         </td>
         <td>
-          587
+          716
         </td>
         <td>
           2335
@@ -775,7 +783,7 @@
           66
         </td>
         <td>
-          589
+          718
         </td>
         <td>
           2327
@@ -793,15 +801,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          70
         </td>
         <td>
-          591
+          720
         </td>
         <td>
-          2414
+          2466
           -
-          2434
+          2486
         </td>
         <td>
           Apply
@@ -814,15 +822,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          70
         </td>
         <td>
-          590
+          719
         </td>
         <td>
-          2426
+          2478
           -
-          2434
+          2486
         </td>
         <td>
           Select
@@ -835,15 +843,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          70
         </td>
         <td>
-          593
+          722
         </td>
         <td>
-          2436
+          2488
           -
-          2437
+          2489
         </td>
         <td>
           Block
@@ -856,15 +864,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          70
         </td>
         <td>
-          592
+          721
         </td>
         <td>
-          2436
+          2488
           -
-          2437
+          2489
         </td>
         <td>
           Literal
@@ -877,15 +885,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          600
+          729
         </td>
         <td>
-          2523
+          2702
           -
-          2573
+          2752
         </td>
         <td>
           Block
@@ -898,15 +906,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          594
+          723
         </td>
         <td>
-          2513
+          2692
           -
-          2521
+          2700
         </td>
         <td>
           Select
@@ -919,15 +927,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          597
+          726
         </td>
         <td>
-          2546
+          2725
           -
-          2572
+          2751
         </td>
         <td>
           Select
@@ -940,15 +948,36 @@
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          608
+          728
         </td>
         <td>
-          2497
+          2702
           -
-          2859
+          2752
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          737
+        </td>
+        <td>
+          2676
+          -
+          3000
         </td>
         <td>
           If
@@ -964,36 +993,15 @@ else
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          599
+          725
         </td>
         <td>
-          2523
+          2743
           -
-          2573
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.*
-        </td>
-        <td style="background: #AEF1AE">
-          distance.*(java.lang.Math.signum(point2.y.toLong.-(point1.y).toFloat))
-        </td>
-      </tr><tr>
-        <td>
-          70
-        </td>
-        <td>
-          596
-        </td>
-        <td>
-          2564
-          -
-          2572
+          2751
         </td>
         <td>
           Select
@@ -1006,15 +1014,15 @@ else
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          595
+          724
         </td>
         <td>
-          2501
+          2680
           -
-          2521
+          2700
         </td>
         <td>
           Apply
@@ -1027,15 +1035,15 @@ else
         </td>
       </tr><tr>
         <td>
-          70
+          73
         </td>
         <td>
-          598
+          727
         </td>
         <td>
-          2534
+          2713
           -
-          2573
+          2752
         </td>
         <td>
           Apply
@@ -1048,15 +1056,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          603
+          732
         </td>
         <td>
-          2850
+          2991
           -
-          2858
+          2999
         </td>
         <td>
           Select
@@ -1069,15 +1077,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          606
+          735
         </td>
         <td>
-          2745
+          2886
           -
-          2859
+          3000
         </td>
         <td>
           Apply
@@ -1090,15 +1098,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          602
+          731
         </td>
         <td>
-          2756
+          2897
           -
-          2817
+          2958
         </td>
         <td>
           Apply
@@ -1111,15 +1119,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          605
+          734
         </td>
         <td>
-          2820
+          2961
           -
-          2859
+          3000
         </td>
         <td>
           Apply
@@ -1132,15 +1140,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          604
+          733
         </td>
         <td>
-          2832
+          2973
           -
-          2858
+          2999
         </td>
         <td>
           Select
@@ -1153,15 +1161,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          607
+          736
         </td>
         <td>
-          2745
+          2886
           -
-          2859
+          3000
         </td>
         <td>
           Block
@@ -1174,15 +1182,15 @@ else
         </td>
       </tr><tr>
         <td>
-          71
+          75
         </td>
         <td>
-          601
+          730
         </td>
         <td>
-          2766
+          2907
           -
-          2816
+          2957
         </td>
         <td>
           Apply
@@ -1195,15 +1203,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          609
+          738
         </td>
         <td>
-          3016
+          3091
           -
-          3024
+          3099
         </td>
         <td>
           Select
@@ -1216,15 +1224,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          612
+          741
         </td>
         <td>
-          3026
+          3101
           -
-          3027
+          3102
         </td>
         <td>
           Block
@@ -1237,15 +1245,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          611
+          740
         </td>
         <td>
-          3026
+          3101
           -
-          3027
+          3102
         </td>
         <td>
           Literal
@@ -1258,15 +1266,15 @@ else
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          610
+          739
         </td>
         <td>
-          3004
+          3079
           -
-          3024
+          3099
         </td>
         <td>
           Apply
@@ -1279,15 +1287,36 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          82
         </td>
         <td>
-          627
+          747
         </td>
         <td>
-          3085
+          3333
           -
-          3461
+          3383
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          756
+        </td>
+        <td>
+          3307
+          -
+          3627
         </td>
         <td>
           If
@@ -1303,36 +1332,15 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          82
         </td>
         <td>
-          618
+          744
         </td>
         <td>
-          3111
+          3374
           -
-          3161
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.*
-        </td>
-        <td style="background: #AEF1AE">
-          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          615
-        </td>
-        <td>
-          3152
-          -
-          3160
+          3382
         </td>
         <td>
           Select
@@ -1345,36 +1353,15 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          82
         </td>
         <td>
-          617
+          743
         </td>
         <td>
-          3122
+          3311
           -
-          3161
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Math.signum
-        </td>
-        <td style="background: #AEF1AE">
-          java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat)
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          614
-        </td>
-        <td>
-          3089
-          -
-          3109
+          3331
         </td>
         <td>
           Apply
@@ -1387,99 +1374,15 @@ else
         </td>
       </tr><tr>
         <td>
-          75
+          82
         </td>
         <td>
-          613
+          746
         </td>
         <td>
-          3101
+          3344
           -
-          3109
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Point.y
-        </td>
-        <td style="background: #AEF1AE">
-          point2.y
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          616
-        </td>
-        <td>
-          3134
-          -
-          3160
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Long.toFloat
-        </td>
-        <td style="background: #AEF1AE">
-          point2.x.toLong.-(point1.x).toFloat
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          619
-        </td>
-        <td>
-          3111
-          -
-          3161
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Double.*
-        </td>
-        <td style="background: #AEF1AE">
-          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          621
-        </td>
-        <td>
-          3362
-          -
-          3419
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Math.sqrt
-        </td>
-        <td style="background: #AEF1AE">
-          java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          624
-        </td>
-        <td>
-          3422
-          -
-          3461
+          3383
         </td>
         <td>
           Apply
@@ -1492,15 +1395,36 @@ else
         </td>
       </tr><tr>
         <td>
-          76
+          82
         </td>
         <td>
-          623
+          742
         </td>
         <td>
-          3434
+          3323
           -
-          3460
+          3331
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.y
+        </td>
+        <td style="background: #AEF1AE">
+          point2.y
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          745
+        </td>
+        <td>
+          3356
+          -
+          3382
         </td>
         <td>
           Select
@@ -1513,15 +1437,99 @@ else
         </td>
       </tr><tr>
         <td>
-          76
+          82
         </td>
         <td>
-          626
+          748
         </td>
         <td>
-          3351
+          3333
           -
-          3461
+          3383
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          distance.*(java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          750
+        </td>
+        <td>
+          3528
+          -
+          3585
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.sqrt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.sqrt(GeometricUtils.this.RichDouble(GeometricUtils.this.angularCoefficient(point1, point2)).squared.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          753
+        </td>
+        <td>
+          3588
+          -
+          3627
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Math.signum
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Math.signum(point2.x.toLong.-(point1.x).toFloat)
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          752
+        </td>
+        <td>
+          3600
+          -
+          3626
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Long.toFloat
+        </td>
+        <td style="background: #AEF1AE">
+          point2.x.toLong.-(point1.x).toFloat
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          755
+        </td>
+        <td>
+          3517
+          -
+          3627
         </td>
         <td>
           Block
@@ -1534,15 +1542,15 @@ else
         </td>
       </tr><tr>
         <td>
-          76
+          84
         </td>
         <td>
-          620
+          749
         </td>
         <td>
-          3372
+          3538
           -
-          3418
+          3584
         </td>
         <td>
           Apply
@@ -1555,15 +1563,15 @@ else
         </td>
       </tr><tr>
         <td>
-          76
+          84
         </td>
         <td>
-          622
+          751
         </td>
         <td>
-          3452
+          3618
           -
-          3460
+          3626
         </td>
         <td>
           Select
@@ -1576,15 +1584,15 @@ else
         </td>
       </tr><tr>
         <td>
-          76
+          84
         </td>
         <td>
-          625
+          754
         </td>
         <td>
-          3351
+          3517
           -
-          3461
+          3627
         </td>
         <td>
           Apply
@@ -1597,15 +1605,15 @@ else
         </td>
       </tr><tr>
         <td>
-          78
+          86
         </td>
         <td>
-          628
+          757
         </td>
         <td>
-          3583
+          3633
           -
-          3599
+          3649
         </td>
         <td>
           Apply
@@ -1618,15 +1626,15 @@ else
         </td>
       </tr><tr>
         <td>
-          92
+          100
         </td>
         <td>
-          629
+          758
         </td>
         <td>
-          4221
+          4271
           -
-          4270
+          4320
         </td>
         <td>
           Apply
@@ -1639,15 +1647,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          103
         </td>
         <td>
-          630
+          759
         </td>
         <td>
-          4280
+          4448
           -
-          4312
+          4480
         </td>
         <td>
           Select
@@ -1660,15 +1668,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          103
         </td>
         <td>
-          633
+          762
         </td>
         <td>
-          4314
+          4482
           -
-          4344
+          4512
         </td>
         <td>
           Select
@@ -1681,15 +1689,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          103
         </td>
         <td>
-          632
+          761
         </td>
         <td>
-          4323
+          4491
           -
-          4343
+          4511
         </td>
         <td>
           Apply
@@ -1702,15 +1710,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          103
         </td>
         <td>
-          631
+          760
         </td>
         <td>
-          4335
+          4503
           -
-          4343
+          4511
         </td>
         <td>
           Select
@@ -1723,15 +1731,15 @@ else
         </td>
       </tr><tr>
         <td>
-          94
+          103
         </td>
         <td>
-          634
+          763
         </td>
         <td>
-          4314
+          4482
           -
-          4344
+          4512
         </td>
         <td>
           Block
@@ -1744,15 +1752,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          636
+          765
         </td>
         <td>
-          4529
+          4577
           -
-          4561
+          4609
         </td>
         <td>
           Apply
@@ -1765,15 +1773,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          642
+          771
         </td>
         <td>
-          4474
+          4522
           -
-          4615
+          4661
         </td>
         <td>
           Block
@@ -1786,15 +1794,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          641
+          770
         </td>
         <td>
-          4474
+          4522
           -
-          4615
+          4661
         </td>
         <td>
           Apply
@@ -1807,15 +1815,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          635
+          764
         </td>
         <td>
-          4517
+          4565
           -
-          4526
+          4574
         </td>
         <td>
           Select
@@ -1828,15 +1836,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          638
+          767
         </td>
         <td>
-          4483
+          4531
           -
-          4562
+          4610
         </td>
         <td>
           Apply
@@ -1849,15 +1857,15 @@ else
         </td>
       </tr><tr>
         <td>
-          96
+          104
         </td>
         <td>
-          637
+          766
         </td>
         <td>
-          4496
+          4544
           -
-          4561
+          4609
         </td>
         <td>
           Apply
@@ -1870,15 +1878,15 @@ else
         </td>
       </tr><tr>
         <td>
-          97
+          105
         </td>
         <td>
-          639
+          768
         </td>
         <td>
-          4584
+          4630
           -
-          4614
+          4660
         </td>
         <td>
           Apply
@@ -1891,15 +1899,15 @@ else
         </td>
       </tr><tr>
         <td>
-          97
+          105
         </td>
         <td>
-          640
+          769
         </td>
         <td>
-          4574
+          4620
           -
-          4615
+          4661
         </td>
         <td>
           Apply
@@ -1912,15 +1920,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          119
         </td>
         <td>
-          645
+          774
         </td>
         <td>
-          5137
+          5183
           -
-          5198
+          5244
         </td>
         <td>
           Apply
@@ -1933,15 +1941,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          119
         </td>
         <td>
-          644
+          773
         </td>
         <td>
-          5158
+          5204
           -
-          5197
+          5243
         </td>
         <td>
           Literal
@@ -1954,15 +1962,15 @@ else
         </td>
       </tr><tr>
         <td>
-          111
+          119
         </td>
         <td>
-          643
+          772
         </td>
         <td>
-          5145
+          5191
           -
-          5156
+          5202
         </td>
         <td>
           Apply
@@ -1975,15 +1983,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          648
+          777
         </td>
         <td>
-          5246
+          5292
           -
-          5254
+          5300
         </td>
         <td>
           Select
@@ -1996,36 +2004,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          651
+          779
         </td>
         <td>
-          5267
+          5282
           -
-          5281
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.GeometricUtils.RichDouble.squared
-        </td>
-        <td style="background: #AEF1AE">
-          GeometricUtils.this.RichDouble(radius).squared
-        </td>
-      </tr><tr>
-        <td>
-          113
-        </td>
-        <td>
-          650
-        </td>
-        <td>
-          5236
-          -
-          5263
+          5309
         </td>
         <td>
           Select
@@ -2038,15 +2025,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          647
+          776
         </td>
         <td>
-          5205
+          5251
           -
-          5223
+          5269
         </td>
         <td>
           Select
@@ -2059,15 +2046,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          646
+          775
         </td>
         <td>
-          5215
+          5261
           -
-          5223
+          5269
         </td>
         <td>
           Select
@@ -2080,15 +2067,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          649
+          778
         </td>
         <td>
-          5236
+          5282
           -
-          5254
+          5300
         </td>
         <td>
           Select
@@ -2101,15 +2088,15 @@ else
         </td>
       </tr><tr>
         <td>
-          113
+          121
         </td>
         <td>
-          652
+          781
         </td>
         <td>
-          5205
+          5251
           -
-          5281
+          5327
         </td>
         <td>
           Apply
@@ -2122,15 +2109,36 @@ else
         </td>
       </tr><tr>
         <td>
-          125
+          121
         </td>
         <td>
-          654
+          780
         </td>
         <td>
-          5529
+          5313
           -
-          5544
+          5327
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.GeometricUtils.RichDouble.squared
+        </td>
+        <td style="background: #AEF1AE">
+          GeometricUtils.this.RichDouble(radius).squared
+        </td>
+      </tr><tr>
+        <td>
+          133
+        </td>
+        <td>
+          783
+        </td>
+        <td>
+          5575
+          -
+          5590
         </td>
         <td>
           Apply
@@ -2143,15 +2151,15 @@ else
         </td>
       </tr><tr>
         <td>
-          125
+          133
         </td>
         <td>
-          653
+          782
         </td>
         <td>
-          5538
+          5584
           -
-          5544
+          5590
         </td>
         <td>
           Select

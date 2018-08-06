@@ -1,0 +1,1622 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/controller/game/CellWorldGenerationStrategy.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller.game
+</span>2 <span style=''>
+</span>3 <span style=''>import java.time.Instant
+</span>4 <span style=''>
+</span>5 <span style=''>import it.cwmp.client.controller.game.CellWorldGenerationStrategy.{MINIMUM_DISTANCE_BETWEEN_CELLS, MINIMUM_DISTANCE_FROM_BORDER, randomPoint}
+</span>6 <span style=''>import it.cwmp.client.model.game.GeometricUtils
+</span>7 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
+</span>8 <span style=''>import it.cwmp.client.view.game.model.CellView
+</span>9 <span style=''>import it.cwmp.model.User
+</span>10 <span style=''>
+</span>11 <span style=''>import scala.util.Random
+</span>12 <span style=''>
+</span>13 <span style=''>/**
+</span>14 <span style=''>  * A class implementing a CellWorld generation strategy
+</span>15 <span style=''>  *
+</span>16 <span style=''>  * @param worldHeight  the height of the world
+</span>17 <span style=''>  * @param worldWidth   the width of the world
+</span>18 <span style=''>  * @param passiveCells the number of passive cells to generate
+</span>19 <span style=''>  * @author Enrico Siboni
+</span>20 <span style=''>  */
+</span>21 <span style=''>case class CellWorldGenerationStrategy(worldHeight: Int, worldWidth: Int, passiveCells: Int) extends GenerationStrategy[Seq[User], CellWorld] {
+</span>22 <span style=''>  </span><span style='background: #AEF1AE'>require(worldHeight &gt; 0, &quot;World height should be greater that 0&quot;)</span><span style=''>
+</span>23 <span style=''>  </span><span style='background: #AEF1AE'>require(worldWidth &gt; 0, &quot;World width should be greater that 0&quot;)</span><span style=''>
+</span>24 <span style=''>  </span><span style='background: #AEF1AE'>require(passiveCells &gt;= 0, &quot;Passive cells number should be positive&quot;)</span><span style=''>
+</span>25 <span style=''>
+</span>26 <span style=''>  /**
+</span>27 <span style=''>    * Generates the world starting from a participant list
+</span>28 <span style=''>    *
+</span>29 <span style=''>    * @param players the participants to game
+</span>30 <span style=''>    * @return the generated world starting from participants
+</span>31 <span style=''>    */
+</span>32 <span style=''>  override def apply(players: Seq[User]): CellWorld =
+</span>33 <span style=''>    </span><span style='background: #AEF1AE'>CellWorld(Instant.now(), generateWorldCells(players, passiveCells), Seq())</span><span style=''>
+</span>34 <span style=''>
+</span>35 <span style=''>  /**
+</span>36 <span style=''>    * A method to generate world cells in a way that they don't overlap
+</span>37 <span style=''>    *
+</span>38 <span style=''>    * @param players              the participants to game for which to generate cells
+</span>39 <span style=''>    * @param numberOfPassiveCells the number of passive cells to generate among others
+</span>40 <span style=''>    * @return generated cells
+</span>41 <span style=''>    */
+</span>42 <span style=''>  def generateWorldCells(players: Seq[User], numberOfPassiveCells: Int): Seq[Cell] = {
+</span>43 <span style=''>    val participantCells = </span><span style='background: #AEF1AE'>getParticipantCells(players)</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #AEF1AE'>participantCells ++ randomPassiveCells(numberOfPassiveCells, participantCells.map(_.position))</span><span style=''>
+</span>45 <span style=''>  }
+</span>46 <span style=''>
+</span>47 <span style=''>  /**
+</span>48 <span style=''>    * A method to position participant cells into game world
+</span>49 <span style=''>    *
+</span>50 <span style=''>    * @param players the participants to assign a cell into the world
+</span>51 <span style=''>    * @return the cells assigned to participants
+</span>52 <span style=''>    */
+</span>53 <span style=''>  def getParticipantCells(players: Seq[User]): Seq[Cell] = {
+</span>54 <span style=''>    var assignedPoints: Seq[Point] = </span><span style='background: #AEF1AE'>Seq()</span><span style=''>
+</span>55 <span style=''>    </span><span style='background: #AEF1AE'>for (player &lt;- players) yield {
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      val validPoint = getValidPoint(assignedPoints)
+</span>57 <span style=''></span><span style='background: #AEF1AE'>      assignedPoints = assignedPoints :+ validPoint
+</span>58 <span style=''></span><span style='background: #AEF1AE'>      Cell(player, validPoint)
+</span>59 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>60 <span style=''>  }
+</span>61 <span style=''>
+</span>62 <span style=''>  /**
+</span>63 <span style=''>    * A method to generate a certain number of passive cells to be placed into world
+</span>64 <span style=''>    *
+</span>65 <span style=''>    * @param numberOfPassiveCells  the number of passive cells to place
+</span>66 <span style=''>    * @param alreadyOccupiedPlaces those places already occupied
+</span>67 <span style=''>    * @return the passive cells placed
+</span>68 <span style=''>    */
+</span>69 <span style=''>  def randomPassiveCells(numberOfPassiveCells: Int, alreadyOccupiedPlaces: Seq[Point]): Seq[Cell] = {
+</span>70 <span style=''>    var assignedPoints: Seq[Point] = alreadyOccupiedPlaces
+</span>71 <span style=''>    </span><span style='background: #AEF1AE'>for (_ &lt;- 0 until numberOfPassiveCells) yield {
+</span>72 <span style=''></span><span style='background: #AEF1AE'>      val validPoint = getValidPoint(assignedPoints)
+</span>73 <span style=''></span><span style='background: #AEF1AE'>      assignedPoints = assignedPoints :+ validPoint
+</span>74 <span style=''></span><span style='background: #AEF1AE'>      Cell(Cell.Passive.NO_OWNER, validPoint, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
+</span>75 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>76 <span style=''>  }
+</span>77 <span style=''>
+</span>78 <span style=''>  /**
+</span>79 <span style=''>    * A method to get a valid point for a cell;
+</span>80 <span style=''>    * that is a point which is not overlapping other cells and distant from world border
+</span>81 <span style=''>    *
+</span>82 <span style=''>    * @param alreadySelectedPoints the already selected points
+</span>83 <span style=''>    * @return the point that is valid according to rules
+</span>84 <span style=''>    */
+</span>85 <span style=''>  private def getValidPoint(alreadySelectedPoints: Seq[Point]): Point = {
+</span>86 <span style=''>    var point = </span><span style='background: #AEF1AE'>randomPoint(worldWidth, worldHeight)</span><span style=''>
+</span>87 <span style=''>    while (</span><span style='background: #AEF1AE'>!pointValid(point, alreadySelectedPoints)</span><span style=''>) </span><span style='background: #AEF1AE'>point = randomPoint(worldWidth, worldHeight)</span><span style=''>
+</span>88 <span style=''>    point
+</span>89 <span style=''>  }
+</span>90 <span style=''>
+</span>91 <span style=''>  /**
+</span>92 <span style=''>    * Determines if the point in which to place a cell is valid;
+</span>93 <span style=''>    *
+</span>94 <span style=''>    * A point is valid when it's distance from borders is respected and also the distance from other cells is respected
+</span>95 <span style=''>    *
+</span>96 <span style=''>    * @param toCheck         the point to check
+</span>97 <span style=''>    * @param alreadySelected the points representing already selected points
+</span>98 <span style=''>    * @return
+</span>99 <span style=''>    */
+</span>100 <span style=''>  private def pointValid(toCheck: Point, alreadySelected: Seq[Point]): Boolean =
+</span>101 <span style=''>    </span><span style='background: #AEF1AE'>toCheck.x &gt;= MINIMUM_DISTANCE_FROM_BORDER &amp;&amp; toCheck.x &lt;= worldWidth - MINIMUM_DISTANCE_FROM_BORDER &amp;&amp;
+</span>102 <span style=''></span><span style='background: #AEF1AE'>      toCheck.y &gt;= MINIMUM_DISTANCE_FROM_BORDER &amp;&amp; toCheck.y &lt;= worldHeight - MINIMUM_DISTANCE_FROM_BORDER &amp;&amp;
+</span>103 <span style=''></span><span style='background: #AEF1AE'>      alreadySelected.forall(point =&gt; !GeometricUtils.isWithinCircumference(toCheck, point, MINIMUM_DISTANCE_BETWEEN_CELLS))</span><span style=''>
+</span>104 <span style=''>}
+</span>105 <span style=''>
+</span>106 <span style=''>/**
+</span>107 <span style=''>  * Companion object
+</span>108 <span style=''>  */
+</span>109 <span style=''>object CellWorldGenerationStrategy {
+</span>110 <span style=''>  private val MINIMUM_DISTANCE_FROM_BORDER = </span><span style='background: #AEF1AE'>CellView.CELL_MAX_RADIUS_FOR_ENERGY._1</span><span style=''>
+</span>111 <span style=''>  private val MINIMUM_DISTANCE_BETWEEN_CELLS = </span><span style='background: #AEF1AE'>CellView.CELL_MAX_RADIUS_FOR_ENERGY._1 * 2</span><span style=''>
+</span>112 <span style=''>
+</span>113 <span style=''>  /**
+</span>114 <span style=''>    * Returns a random point with coordinates between 0 and max values (inclusive)
+</span>115 <span style=''>    *
+</span>116 <span style=''>    * @param maxX the max X of any generated point
+</span>117 <span style=''>    * @param maxY the max Y of any generated point
+</span>118 <span style=''>    * @return the generated point
+</span>119 <span style=''>    */
+</span>120 <span style=''>  private def randomPoint(maxX: Int, maxY: Int): Point = </span><span style='background: #AEF1AE'>Point(Random.nextInt(maxX + 1), Random.nextInt(maxY + 1))</span><span style=''>
+</span>121 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          394
+        </td>
+        <td>
+          828
+          -
+          843
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldHeight.&gt;(0)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          396
+        </td>
+        <td>
+          820
+          -
+          885
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(CellWorldGenerationStrategy.this.worldHeight.&gt;(0), &quot;World height should be greater that 0&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          845
+          -
+          884
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;World height should be greater that 0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          397
+        </td>
+        <td>
+          896
+          -
+          910
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldWidth.&gt;(0)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          399
+        </td>
+        <td>
+          888
+          -
+          951
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(CellWorldGenerationStrategy.this.worldWidth.&gt;(0), &quot;World width should be greater that 0&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          398
+        </td>
+        <td>
+          912
+          -
+          950
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;World width should be greater that 0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          400
+        </td>
+        <td>
+          962
+          -
+          979
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;=
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.passiveCells.&gt;=(0)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          402
+        </td>
+        <td>
+          954
+          -
+          1023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.require(CellWorldGenerationStrategy.this.passiveCells.&gt;=(0), &quot;Passive cells number should be positive&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          401
+        </td>
+        <td>
+          981
+          -
+          1022
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Passive cells number should be positive&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          406
+        </td>
+        <td>
+          1336
+          -
+          1341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[Nothing]()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          403
+        </td>
+        <td>
+          1278
+          -
+          1291
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Instant.now
+        </td>
+        <td style="background: #AEF1AE">
+          java.time.Instant.now()
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          405
+        </td>
+        <td>
+          1293
+          -
+          1334
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.generateWorldCells
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.generateWorldCells(players, CellWorldGenerationStrategy.this.passiveCells)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          404
+        </td>
+        <td>
+          1321
+          -
+          1333
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.passiveCells
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.passiveCells
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          407
+        </td>
+        <td>
+          1268
+          -
+          1342
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.CellWorld.apply(java.time.Instant.now(), CellWorldGenerationStrategy.this.generateWorldCells(players, CellWorldGenerationStrategy.this.passiveCells), scala.collection.Seq.apply[Nothing]())
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          1753
+          -
+          1781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.getParticipantCells
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.getParticipantCells(players)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          409
+        </td>
+        <td>
+          1868
+          -
+          1878
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.position
+        </td>
+        <td style="background: #AEF1AE">
+          x$1.position
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          412
+        </td>
+        <td>
+          1806
+          -
+          1880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPassiveCells
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.randomPassiveCells(numberOfPassiveCells, participantCells.map[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](((x$1: it.cwmp.client.model.game.impl.Cell) =&gt; x$1.position))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          414
+        </td>
+        <td>
+          1786
+          -
+          1880
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.++
+        </td>
+        <td style="background: #AEF1AE">
+          participantCells.++[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](CellWorldGenerationStrategy.this.randomPassiveCells(numberOfPassiveCells, participantCells.map[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](((x$1: it.cwmp.client.model.game.impl.Cell) =&gt; x$1.position))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point])))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          411
+        </td>
+        <td>
+          1847
+          -
+          1879
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          participantCells.map[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](((x$1: it.cwmp.client.model.game.impl.Cell) =&gt; x$1.position))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point])
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          410
+        </td>
+        <td>
+          1867
+          -
+          1867
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          413
+        </td>
+        <td>
+          1803
+          -
+          1803
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          415
+        </td>
+        <td>
+          2183
+          -
+          2188
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.collection.Seq.apply[Nothing]()
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          421
+        </td>
+        <td>
+          2205
+          -
+          2205
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          2193
+          -
+          2366
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          players.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((player: it.cwmp.model.User) =&gt; {
+  val validPoint: it.cwmp.client.model.game.impl.Point = CellWorldGenerationStrategy.this.getValidPoint(assignedPoints);
+  assignedPoints = assignedPoints.:+[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](validPoint)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]);
+  it.cwmp.client.model.game.impl.Cell.apply(player, validPoint, it.cwmp.client.model.game.impl.Cell.apply$default$3)
+}))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          416
+        </td>
+        <td>
+          2248
+          -
+          2277
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.getValidPoint
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.getValidPoint(assignedPoints)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          418
+        </td>
+        <td>
+          2301
+          -
+          2329
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SeqLike.:+
+        </td>
+        <td style="background: #AEF1AE">
+          assignedPoints.:+[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](validPoint)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point])
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          417
+        </td>
+        <td>
+          2316
+          -
+          2316
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          420
+        </td>
+        <td>
+          2336
+          -
+          2360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.apply(player, validPoint, it.cwmp.client.model.game.impl.Cell.apply$default$3)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          419
+        </td>
+        <td>
+          2336
+          -
+          2336
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.apply$default$3
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.apply$default$3
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          430
+        </td>
+        <td>
+          2824
+          -
+          2824
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.immutable.IndexedSeq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.IndexedSeq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          423
+        </td>
+        <td>
+          2827
+          -
+          2828
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          431
+        </td>
+        <td>
+          2817
+          -
+          3066
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.intWrapper(0).until(numberOfPassiveCells).map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((_: Int) =&gt; {
+  val validPoint: it.cwmp.client.model.game.impl.Point = CellWorldGenerationStrategy.this.getValidPoint(assignedPoints);
+  assignedPoints = assignedPoints.:+[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](validPoint)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]);
+  it.cwmp.client.model.game.impl.Cell.apply(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER, validPoint, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
+}))(immutable.this.IndexedSeq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          424
+        </td>
+        <td>
+          2888
+          -
+          2917
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.getValidPoint
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.getValidPoint(assignedPoints)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          426
+        </td>
+        <td>
+          2941
+          -
+          2969
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.SeqLike.:+
+        </td>
+        <td style="background: #AEF1AE">
+          assignedPoints.:+[it.cwmp.client.model.game.impl.Point, Seq[it.cwmp.client.model.game.impl.Point]](validPoint)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point])
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          425
+        </td>
+        <td>
+          2956
+          -
+          2956
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Point]
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          427
+        </td>
+        <td>
+          2981
+          -
+          3002
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          429
+        </td>
+        <td>
+          2976
+          -
+          3060
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.apply(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER, validPoint, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          428
+        </td>
+        <td>
+          3016
+          -
+          3059
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN
+        </td>
+        <td style="background: #AEF1AE">
+          GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          433
+        </td>
+        <td>
+          3462
+          -
+          3473
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.worldHeight
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldHeight
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          432
+        </td>
+        <td>
+          3450
+          -
+          3460
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.worldWidth
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldWidth
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          434
+        </td>
+        <td>
+          3438
+          -
+          3474
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPoint
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPoint(CellWorldGenerationStrategy.this.worldWidth, CellWorldGenerationStrategy.this.worldHeight)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          3479
+          -
+          3479
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          3549
+          -
+          3559
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.worldWidth
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldWidth
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          3535
+          -
+          3535
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.while$1
+        </td>
+        <td style="background: #AEF1AE">
+          while$1()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          3537
+          -
+          3573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPoint
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPoint(CellWorldGenerationStrategy.this.worldWidth, CellWorldGenerationStrategy.this.worldHeight)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          3479
+          -
+          3479
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          435
+        </td>
+        <td>
+          3486
+          -
+          3527
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.pointValid(point, alreadySelectedPoints).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          3561
+          -
+          3572
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.worldHeight
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldHeight
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          440
+        </td>
+        <td>
+          3529
+          -
+          3573
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  point = it.cwmp.client.controller.game.CellWorldGenerationStrategy.randomPoint(CellWorldGenerationStrategy.this.worldWidth, CellWorldGenerationStrategy.this.worldHeight);
+  while$1()
+}
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          445
+        </td>
+        <td>
+          4081
+          -
+          4122
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.-
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldWidth.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          4094
+          -
+          4122
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          4036
+          -
+          4064
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          4068
+          -
+          4122
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&lt;=
+        </td>
+        <td style="background: #AEF1AE">
+          toCheck.x.&lt;=(CellWorldGenerationStrategy.this.worldWidth.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER))
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          4177
+          -
+          4232
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&lt;=
+        </td>
+        <td style="background: #AEF1AE">
+          toCheck.y.&lt;=(CellWorldGenerationStrategy.this.worldHeight.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER))
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          448
+        </td>
+        <td>
+          4132
+          -
+          4173
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;=
+        </td>
+        <td style="background: #AEF1AE">
+          toCheck.y.&gt;=(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          447
+        </td>
+        <td>
+          4145
+          -
+          4173
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          450
+        </td>
+        <td>
+          4190
+          -
+          4232
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.-
+        </td>
+        <td style="background: #AEF1AE">
+          CellWorldGenerationStrategy.this.worldHeight.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          455
+        </td>
+        <td>
+          4023
+          -
+          4360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #AEF1AE">
+          toCheck.x.&gt;=(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER).&amp;&amp;(toCheck.x.&lt;=(CellWorldGenerationStrategy.this.worldWidth.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER))).&amp;&amp;(toCheck.y.&gt;=(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER)).&amp;&amp;(toCheck.y.&lt;=(CellWorldGenerationStrategy.this.worldHeight.-(it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER))).&amp;&amp;(alreadySelected.forall(((point: it.cwmp.client.model.game.impl.Point) =&gt; it.cwmp.client.model.game.GeometricUtils.isWithinCircumference(toCheck, point, it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_BETWEEN_CELLS).unary_!)))
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          4204
+          -
+          4232
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_FROM_BORDER
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          454
+        </td>
+        <td>
+          4242
+          -
+          4360
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.forall
+        </td>
+        <td style="background: #AEF1AE">
+          alreadySelected.forall(((point: it.cwmp.client.model.game.impl.Point) =&gt; it.cwmp.client.model.game.GeometricUtils.isWithinCircumference(toCheck, point, it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_BETWEEN_CELLS).unary_!))
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          453
+        </td>
+        <td>
+          4274
+          -
+          4359
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.GeometricUtils.isWithinCircumference(toCheck, point, it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_BETWEEN_CELLS).unary_!
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          452
+        </td>
+        <td>
+          4328
+          -
+          4358
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_BETWEEN_CELLS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.controller.game.CellWorldGenerationStrategy.MINIMUM_DISTANCE_BETWEEN_CELLS
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          456
+        </td>
+        <td>
+          4476
+          -
+          4514
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.view.game.model.CellView.CELL_MAX_RADIUS_FOR_ENERGY._1
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          457
+        </td>
+        <td>
+          4562
+          -
+          4604
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.*
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.view.game.model.CellView.CELL_MAX_RADIUS_FOR_ENERGY._1.*(2)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          460
+        </td>
+        <td>
+          4948
+          -
+          4956
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.+
+        </td>
+        <td style="background: #AEF1AE">
+          maxY.+(1)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          459
+        </td>
+        <td>
+          4907
+          -
+          4931
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Random.nextInt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.util.Random.nextInt(maxX.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          462
+        </td>
+        <td>
+          4901
+          -
+          4958
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Point.apply(scala.util.Random.nextInt(maxX.+(1)), scala.util.Random.nextInt(maxY.+(1)))
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          461
+        </td>
+        <td>
+          4933
+          -
+          4957
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Random.nextInt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.util.Random.nextInt(maxY.+(1))
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          458
+        </td>
+        <td>
+          4922
+          -
+          4930
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.+
+        </td>
+        <td style="background: #AEF1AE">
+          maxX.+(1)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

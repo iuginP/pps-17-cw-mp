@@ -41,94 +41,95 @@
 </span>17 <span style=''>trait VertxJDBC {
 </span>18 <span style=''>  this: VertxInstance =&gt;
 </span>19 <span style=''>
-</span>20 <span style=''>  def configurationPath: String = </span><span style='background: #F0ADAD'>null</span><span style=''>
+</span>20 <span style=''>  def configurationPath: Option[String] = </span><span style='background: #F0ADAD'>None</span><span style=''>
 </span>21 <span style=''>
 </span>22 <span style=''>  private val DEFAULT_CONFIG_PATH: String = </span><span style='background: #AEF1AE'>&quot;database/jdbc_config.json&quot;</span><span style=''>
 </span>23 <span style=''>
 </span>24 <span style=''>  private val clientFuture: Future[JDBCClient] =
-</span>25 <span style=''>    </span><span style='background: #AEF1AE'>vertx.fileSystem.readFileFuture(configurationPath)
-</span>26 <span style=''></span><span style='background: #AEF1AE'>      .recoverWith { case _ =&gt; vertx.fileSystem.readFileFuture(DEFAULT_CONFIG_PATH) }
-</span>27 <span style=''></span><span style='background: #AEF1AE'>      .map(_.toJsonObject)
-</span>28 <span style=''></span><span style='background: #AEF1AE'>      .map(JDBCClient.createShared(vertx, _))</span><span style=''>
-</span>29 <span style=''>
-</span>30 <span style=''>  private var connectionList: ListBuffer[SQLConnection] = </span><span style='background: #AEF1AE'>ListBuffer()</span><span style=''>
-</span>31 <span style=''>
-</span>32 <span style=''>  /**
-</span>33 <span style=''>    * Open a connection and returns it.
-</span>34 <span style=''>    *
-</span>35 <span style=''>    * @return the connection just opened.
-</span>36 <span style=''>    */
-</span>37 <span style=''>  protected def openConnection(): Future[SQLConnection] = {
-</span>38 <span style=''>    </span><span style='background: #AEF1AE'>clientFuture.flatMap(_.getConnectionFuture()).andThen {
-</span>39 <span style=''></span><span style='background: #AEF1AE'>      case Success(connection) =&gt; connectionList += connection
-</span>40 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>41 <span style=''>  }
-</span>42 <span style=''>
-</span>43 <span style=''>  /**
-</span>44 <span style=''>    * Closes the specified connection (or present as implicit)
-</span>45 <span style=''>    *
-</span>46 <span style=''>    * @param connection the connection we want to close.
-</span>47 <span style=''>    */
-</span>48 <span style=''>  protected def closeConnection(implicit connection: SQLConnection): Unit = {
-</span>49 <span style=''>    </span><span style='background: #AEF1AE'>connectionList -= connection</span><span style=''>
-</span>50 <span style=''>    </span><span style='background: #AEF1AE'>connection.close()</span><span style=''>
-</span>51 <span style=''>  }
-</span>52 <span style=''>
-</span>53 <span style=''>  /**
-</span>54 <span style=''>    * Closes all the connections opened until now through this client.
-</span>55 <span style=''>    */
-</span>56 <span style=''>  protected def closeAllConnections(): Unit = </span><span style='background: #AEF1AE'>connectionList.foreach(closeConnection(_))</span><span style=''>
-</span>57 <span style=''>
-</span>58 <span style=''>  /**
-</span>59 <span style=''>    * Closes last opened connection through this client.
-</span>60 <span style=''>    */
-</span>61 <span style=''>  protected def closeLastOpenedConnection(): Unit =
-</span>62 <span style=''>    if (</span><span style='background: #AEF1AE'>connectionList.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>closeConnection(connectionList.last)</span><span style=''>
-</span>63 <span style=''>
-</span>64 <span style=''>  /**
-</span>65 <span style=''>    * This class decorates the future with some utils for the connection management.
-</span>66 <span style=''>    *
-</span>67 <span style=''>    * @param future the future to decorate
-</span>68 <span style=''>    * @tparam F the type of the future
-</span>69 <span style=''>    */
-</span>70 <span style=''>  implicit class RichFuture[F](future: Future[F]) {
-</span>71 <span style=''>
-</span>72 <span style=''>    /**
-</span>73 <span style=''>      * When the future reaches that point, it closes all the connections opened until now in the client.
-</span>74 <span style=''>      *
-</span>75 <span style=''>      * @param executionContext the execution context in which to execute the operation
-</span>76 <span style=''>      * @return the future itself
-</span>77 <span style=''>      */
-</span>78 <span style=''>    def closeConnections(implicit executionContext: ExecutionContext): Future[F] =
-</span>79 <span style=''>      </span><span style='background: #AEF1AE'>future.andThen { case _ =&gt; closeAllConnections() }</span><span style=''>
-</span>80 <span style=''>
-</span>81 <span style=''>    /**
-</span>82 <span style=''>      * When the future reches this point, it closes the last opened connection till now in the client.
-</span>83 <span style=''>      *
-</span>84 <span style=''>      * @param executionContext the execution context in which to execute the operation
-</span>85 <span style=''>      * @return the future itself
-</span>86 <span style=''>      */
-</span>87 <span style=''>    def closeLastConnection(implicit executionContext: ExecutionContext): Future[F] =
-</span>88 <span style=''>      </span><span style='background: #AEF1AE'>future.andThen { case _ =&gt; closeLastOpenedConnection() }</span><span style=''>
-</span>89 <span style=''>  }
-</span>90 <span style=''>
-</span>91 <span style=''>}
-</span>92 <span style=''>
+</span>25 <span style=''>    </span><span style='background: #AEF1AE'>for (
+</span>26 <span style=''></span><span style='background: #AEF1AE'>      configPath &lt;- Future(configurationPath.getOrElse(</span><span style='background: #F0ADAD'>DEFAULT_CONFIG_PATH</span><span style='background: #AEF1AE'>));
+</span>27 <span style=''></span><span style='background: #AEF1AE'>      configExists &lt;- vertx.fileSystem.existsFuture(configPath);
+</span>28 <span style=''></span><span style='background: #AEF1AE'>      configFileBuffer &lt;- vertx.fileSystem.readFileFuture(if (configExists) </span><span style='background: #F0ADAD'>configPath</span><span style='background: #AEF1AE'> else DEFAULT_CONFIG_PATH)
+</span>29 <span style=''></span><span style='background: #AEF1AE'>    ) yield JDBCClient.createShared(vertx, configFileBuffer.toJsonObject)</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>  private var connectionList: ListBuffer[SQLConnection] = </span><span style='background: #AEF1AE'>ListBuffer()</span><span style=''>
+</span>32 <span style=''>
+</span>33 <span style=''>  /**
+</span>34 <span style=''>    * Open a connection and returns it.
+</span>35 <span style=''>    *
+</span>36 <span style=''>    * @return the connection just opened.
+</span>37 <span style=''>    */
+</span>38 <span style=''>  protected def openConnection(): Future[SQLConnection] = {
+</span>39 <span style=''>    </span><span style='background: #AEF1AE'>clientFuture.flatMap(_.getConnectionFuture()).andThen {
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      case Success(connection) =&gt; connectionList += connection
+</span>41 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>42 <span style=''>  }
+</span>43 <span style=''>
+</span>44 <span style=''>  /**
+</span>45 <span style=''>    * Closes the specified connection (or present as implicit)
+</span>46 <span style=''>    *
+</span>47 <span style=''>    * @param connection the connection we want to close.
+</span>48 <span style=''>    */
+</span>49 <span style=''>  protected def closeConnection(implicit connection: SQLConnection): Unit = {
+</span>50 <span style=''>    </span><span style='background: #AEF1AE'>connectionList -= connection</span><span style=''>
+</span>51 <span style=''>    </span><span style='background: #AEF1AE'>connection.close()</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  /**
+</span>55 <span style=''>    * Closes all the connections opened until now through this client.
+</span>56 <span style=''>    */
+</span>57 <span style=''>  protected def closeAllConnections(): Unit = </span><span style='background: #AEF1AE'>connectionList.foreach(closeConnection(_))</span><span style=''>
+</span>58 <span style=''>
+</span>59 <span style=''>  /**
+</span>60 <span style=''>    * Closes last opened connection through this client.
+</span>61 <span style=''>    */
+</span>62 <span style=''>  protected def closeLastOpenedConnection(): Unit =
+</span>63 <span style=''>    if (</span><span style='background: #AEF1AE'>connectionList.nonEmpty</span><span style=''>) </span><span style='background: #AEF1AE'>closeConnection(connectionList.last)</span><span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>  /**
+</span>66 <span style=''>    * This class decorates the future with some utils for the connection management.
+</span>67 <span style=''>    *
+</span>68 <span style=''>    * @param future the future to decorate
+</span>69 <span style=''>    * @tparam F the type of the future
+</span>70 <span style=''>    */
+</span>71 <span style=''>  implicit class RichFuture[F](future: Future[F]) {
+</span>72 <span style=''>
+</span>73 <span style=''>    /**
+</span>74 <span style=''>      * When the future reaches that point, it closes all the connections opened until now in the client.
+</span>75 <span style=''>      *
+</span>76 <span style=''>      * @param executionContext the execution context in which to execute the operation
+</span>77 <span style=''>      * @return the future itself
+</span>78 <span style=''>      */
+</span>79 <span style=''>    def closeConnections(implicit executionContext: ExecutionContext): Future[F] =
+</span>80 <span style=''>      </span><span style='background: #AEF1AE'>future.andThen { case _ =&gt; closeAllConnections() }</span><span style=''>
+</span>81 <span style=''>
+</span>82 <span style=''>    /**
+</span>83 <span style=''>      * When the future reaches this point, it closes the last opened connection till now in the client.
+</span>84 <span style=''>      *
+</span>85 <span style=''>      * @param executionContext the execution context in which to execute the operation
+</span>86 <span style=''>      * @return the future itself
+</span>87 <span style=''>      */
+</span>88 <span style=''>    def closeLastConnection(implicit executionContext: ExecutionContext): Future[F] =
+</span>89 <span style=''>      </span><span style='background: #AEF1AE'>future.andThen { case _ =&gt; closeLastOpenedConnection() }</span><span style=''>
+</span>90 <span style=''>  }
+</span>91 <span style=''>
+</span>92 <span style=''>}
 </span>93 <span style=''>
-</span>94 <span style=''>/**
-</span>95 <span style=''>  * Companion object
-</span>96 <span style=''>  */
-</span>97 <span style=''>object VertxJDBC {
-</span>98 <span style=''>
-</span>99 <span style=''>  /**
-</span>100 <span style=''>    * Implicit conversion to jsonArray
-</span>101 <span style=''>    *
-</span>102 <span style=''>    * @return the converted data
-</span>103 <span style=''>    */
-</span>104 <span style=''>  implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
-</span>105 <span style=''>    </span><span style='background: #AEF1AE'>arguments.foldLeft(new JsonArray)(_.add(_))</span><span style=''>
-</span>106 <span style=''>  }
-</span>107 <span style=''>}
+</span>94 <span style=''>
+</span>95 <span style=''>/**
+</span>96 <span style=''>  * Companion object
+</span>97 <span style=''>  */
+</span>98 <span style=''>object VertxJDBC {
+</span>99 <span style=''>
+</span>100 <span style=''>  /**
+</span>101 <span style=''>    * Implicit conversion to jsonArray
+</span>102 <span style=''>    *
+</span>103 <span style=''>    * @return the converted data
+</span>104 <span style=''>    */
+</span>105 <span style=''>  implicit def stringsToJsonArray(arguments: Iterable[String]): JsonArray = {
+</span>106 <span style=''>    </span><span style='background: #AEF1AE'>arguments.foldLeft(new JsonArray)(_.add(_))</span><span style=''>
+</span>107 <span style=''>  }
+</span>108 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -145,33 +146,33 @@
           20
         </td>
         <td>
-          424
+          431
         </td>
         <td>
-          538
+          546
           -
-          542
+          550
         </td>
         <td>
-          Literal
+          Select
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.None
         </td>
         <td style="background: #F0ADAD">
-          null
+          scala.None
         </td>
       </tr><tr>
         <td>
           22
         </td>
         <td>
-          425
+          432
         </td>
         <td>
-          588
+          596
           -
-          615
+          623
         </td>
         <td>
           Literal
@@ -184,36 +185,255 @@
         </td>
       </tr><tr>
         <td>
-          25
+          26
         </td>
         <td>
-          426
+          433
         </td>
         <td>
-          702
+          739
           -
-          719
+          758
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.configurationPath
+          it.cwmp.utils.VertxJDBC.DEFAULT_CONFIG_PATH
         </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.configurationPath
+        <td style="background: #F0ADAD">
+          VertxJDBC.this.DEFAULT_CONFIG_PATH
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          427
+          447
         </td>
         <td>
-          784
+          678
           -
-          803
+          1013
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.apply[String](VertxJDBC.this.configurationPath.getOrElse[String](VertxJDBC.this.DEFAULT_CONFIG_PATH))(VertxJDBC.this.vertxExecutionContext).flatMap[io.vertx.scala.ext.jdbc.JDBCClient](((configPath: String) =&gt; VertxJDBC.this.vertx.fileSystem().existsFuture(configPath).flatMap[io.vertx.scala.ext.jdbc.JDBCClient](((configExists: Boolean) =&gt; VertxJDBC.this.vertx.fileSystem().readFileFuture(if (configExists)
+  configPath
+else
+  VertxJDBC.this.DEFAULT_CONFIG_PATH).map[io.vertx.scala.ext.jdbc.JDBCClient](((configFileBuffer: io.vertx.core.buffer.Buffer) =&gt; io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())))(VertxJDBC.this.vertxExecutionContext)))(VertxJDBC.this.vertxExecutionContext)))(VertxJDBC.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          435
+        </td>
+        <td>
+          710
+          -
+          710
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          701
+          -
+          701
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          434
+        </td>
+        <td>
+          711
+          -
+          759
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.configurationPath.getOrElse[String](VertxJDBC.this.DEFAULT_CONFIG_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          445
+        </td>
+        <td>
+          768
+          -
+          1013
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertx.fileSystem().existsFuture(configPath).flatMap[io.vertx.scala.ext.jdbc.JDBCClient](((configExists: Boolean) =&gt; VertxJDBC.this.vertx.fileSystem().readFileFuture(if (configExists)
+  configPath
+else
+  VertxJDBC.this.DEFAULT_CONFIG_PATH).map[io.vertx.scala.ext.jdbc.JDBCClient](((configFileBuffer: io.vertx.core.buffer.Buffer) =&gt; io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())))(VertxJDBC.this.vertxExecutionContext)))(VertxJDBC.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          781
+          -
+          781
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          850
+          -
+          850
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          903
+          -
+          913
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.configPath
+        </td>
+        <td style="background: #F0ADAD">
+          configPath
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          919
+          -
+          938
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.DEFAULT_CONFIG_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.DEFAULT_CONFIG_PATH
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          833
+          -
+          1013
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertx.fileSystem().readFileFuture(if (configExists)
+  configPath
+else
+  VertxJDBC.this.DEFAULT_CONFIG_PATH).map[io.vertx.scala.ext.jdbc.JDBCClient](((configFileBuffer: io.vertx.core.buffer.Buffer) =&gt; io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())))(VertxJDBC.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          919
+          -
+          938
         </td>
         <td>
           Select
@@ -226,120 +446,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          29
         </td>
         <td>
-          430
+          439
         </td>
         <td>
-          740
+          976
           -
-          740
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          429
-        </td>
-        <td>
-          740
-          -
-          740
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          428
-        </td>
-        <td>
-          752
-          -
-          804
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.core.file.FileSystem.readFileFuture
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertx.fileSystem().readFileFuture(VertxJDBC.this.DEFAULT_CONFIG_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          432
-        </td>
-        <td>
-          817
-          -
-          817
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          27
-        </td>
-        <td>
-          431
-        </td>
-        <td>
-          818
-          -
-          832
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.core.buffer.Buffer.toJsonObject
-        </td>
-        <td style="background: #AEF1AE">
-          x$1.toJsonObject()
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          433
-        </td>
-        <td>
-          869
-          -
-          874
+          981
         </td>
         <td>
           Select
@@ -352,73 +467,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          29
         </td>
         <td>
-          436
+          441
         </td>
         <td>
-          670
+          952
           -
-          879
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertx.fileSystem().readFileFuture(VertxJDBC.this.configurationPath).recoverWith[io.vertx.core.buffer.Buffer](({
-  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Throwable,scala.concurrent.Future[io.vertx.core.buffer.Buffer]] with Serializable {
-    def &lt;init&gt;(): &lt;$anon: Throwable =&gt; scala.concurrent.Future[io.vertx.core.buffer.Buffer]&gt; = {
-      $anonfun.super.&lt;init&gt;();
-      ()
-    };
-    final override def applyOrElse[A1 &lt;: Throwable, B1 &gt;: scala.concurrent.Future[io.vertx.core.buffer.Buffer]](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Throwable]: Throwable): Throwable @unchecked) match {
-      case _ =&gt; VertxJDBC.this.vertx.fileSystem().readFileFuture(VertxJDBC.this.DEFAULT_CONFIG_PATH)
-      case (defaultCase$ @ _) =&gt; default.apply(x1)
-    };
-    final def isDefinedAt(x1: Throwable): Boolean = ((x1.asInstanceOf[Throwable]: Throwable): Throwable @unchecked) match {
-      case _ =&gt; true
-      case (defaultCase$ @ _) =&gt; false
-    }
-  };
-  new $anonfun()
-}: PartialFunction[Throwable,scala.concurrent.Future[io.vertx.core.buffer.Buffer]]))(VertxJDBC.this.vertxExecutionContext).map[io.vertx.core.json.JsonObject](((x$1: io.vertx.core.buffer.Buffer) =&gt; x$1.toJsonObject()))(VertxJDBC.this.vertxExecutionContext).map[io.vertx.scala.ext.jdbc.JDBCClient](((x$2: io.vertx.core.json.JsonObject) =&gt; io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, x$2)))(VertxJDBC.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          435
-        </td>
-        <td>
-          844
-          -
-          844
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          434
-        </td>
-        <td>
-          845
-          -
-          878
+          1013
         </td>
         <td>
           Apply
@@ -427,19 +484,40 @@
           io.vertx.scala.ext.jdbc.JDBCClient.createShared
         </td>
         <td style="background: #AEF1AE">
-          io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, x$2)
+          io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())
         </td>
       </tr><tr>
         <td>
-          30
+          29
         </td>
         <td>
-          437
+          440
         </td>
         <td>
-          939
+          983
           -
-          951
+          1012
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.buffer.Buffer.toJsonObject
+        </td>
+        <td style="background: #AEF1AE">
+          configFileBuffer.toJsonObject()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          448
+        </td>
+        <td>
+          1073
+          -
+          1085
         </td>
         <td>
           Apply
@@ -452,99 +530,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          39
         </td>
         <td>
-          442
+          454
         </td>
         <td>
-          1172
+          1252
           -
-          1172
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          439
-        </td>
-        <td>
-          1138
-          -
-          1138
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          438
-        </td>
-        <td>
-          1139
-          -
-          1162
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.sql.SQLClient.getConnectionFuture
-        </td>
-        <td style="background: #AEF1AE">
-          x$3.getConnectionFuture()
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          441
-        </td>
-        <td>
-          1172
-          -
-          1172
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          443
-        </td>
-        <td>
-          1118
-          -
-          1242
+          1376
         </td>
         <td>
           ApplyToImplicitArgs
@@ -553,17 +547,17 @@
           scala.concurrent.Future.andThen
         </td>
         <td style="background: #AEF1AE">
-          VertxJDBC.this.clientFuture.flatMap[io.vertx.scala.ext.sql.SQLConnection](((x$3: io.vertx.scala.ext.jdbc.JDBCClient) =&gt; x$3.getConnectionFuture()))(VertxJDBC.this.vertxExecutionContext).andThen[scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]](({
+          VertxJDBC.this.clientFuture.flatMap[io.vertx.scala.ext.sql.SQLConnection](((x$1: io.vertx.scala.ext.jdbc.JDBCClient) =&gt; x$1.getConnectionFuture()))(VertxJDBC.this.vertxExecutionContext).andThen[scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]](({
   @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[io.vertx.scala.ext.sql.SQLConnection],scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]] with Serializable {
     def &lt;init&gt;(): &lt;$anon: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection] =&gt; scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]&gt; = {
       $anonfun.super.&lt;init&gt;();
       ()
     };
-    final override def applyOrElse[A1 &lt;: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection], B1 &gt;: scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]](x2: A1, default: A1 =&gt; B1): B1 = ((x2.asInstanceOf[scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]]: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): scala.util.Try[io.vertx.scala.ext.sql.SQLConnection] @unchecked) match {
+    final override def applyOrElse[A1 &lt;: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection], B1 &gt;: scala.collection.mutable.ListBuffer[io.vertx.scala.ext.sql.SQLConnection]](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]]: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): scala.util.Try[io.vertx.scala.ext.sql.SQLConnection] @unchecked) match {
       case (value: io.vertx.scala.ext.sql.SQLConnection)scala.util.Success[io.vertx.scala.ext.sql.SQLConnection]((connection @ _)) =&gt; VertxJDBC.this.connectionList.+=(connection)
-      case (defaultCase$ @ _) =&gt; default.apply(x2)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
     };
-    final def isDefinedAt(x2: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): Boolean = ((x2.asInstanceOf[scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]]: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): scala.util.Try[io.vertx.scala.ext.sql.SQLConnection] @unchecked) match {
+    final def isDefinedAt(x1: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): Boolean = ((x1.asInstanceOf[scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]]: scala.util.Try[io.vertx.scala.ext.sql.SQLConnection]): scala.util.Try[io.vertx.scala.ext.sql.SQLConnection] @unchecked) match {
       case (value: io.vertx.scala.ext.sql.SQLConnection)scala.util.Success[io.vertx.scala.ext.sql.SQLConnection]((connection @ _)) =&gt; true
       case (defaultCase$ @ _) =&gt; false
     }
@@ -576,12 +570,96 @@
           39
         </td>
         <td>
-          440
+          450
         </td>
         <td>
-          1208
+          1272
           -
-          1236
+          1272
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          453
+        </td>
+        <td>
+          1306
+          -
+          1306
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          452
+        </td>
+        <td>
+          1306
+          -
+          1306
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          1273
+          -
+          1296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.sql.SQLClient.getConnectionFuture
+        </td>
+        <td style="background: #AEF1AE">
+          x$1.getConnectionFuture()
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          1342
+          -
+          1370
         </td>
         <td>
           Apply
@@ -594,15 +672,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          444
+          455
         </td>
         <td>
-          1469
+          1603
           -
-          1497
+          1631
         </td>
         <td>
           Apply
@@ -615,15 +693,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
-          445
+          456
         </td>
         <td>
-          1502
+          1636
           -
-          1520
+          1654
         </td>
         <td>
           Apply
@@ -636,15 +714,36 @@
         </td>
       </tr><tr>
         <td>
-          56
+          57
         </td>
         <td>
-          447
+          457
         </td>
         <td>
-          1656
+          1813
           -
-          1698
+          1831
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.closeConnection
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.closeConnection(x$2)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          458
+        </td>
+        <td>
+          1790
+          -
+          1832
         </td>
         <td>
           Apply
@@ -653,145 +752,19 @@
           scala.collection.generic.TraversableForwarder.foreach
         </td>
         <td style="background: #AEF1AE">
-          VertxJDBC.this.connectionList.foreach[Unit](((x$4: io.vertx.scala.ext.sql.SQLConnection) =&gt; VertxJDBC.this.closeConnection(x$4)))
+          VertxJDBC.this.connectionList.foreach[Unit](((x$2: io.vertx.scala.ext.sql.SQLConnection) =&gt; VertxJDBC.this.closeConnection(x$2)))
         </td>
       </tr><tr>
         <td>
-          56
+          63
         </td>
         <td>
-          446
+          460
         </td>
         <td>
-          1679
+          2005
           -
-          1697
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.closeConnection(x$4)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          451
-        </td>
-        <td>
-          1855
-          -
-          1891
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          448
-        </td>
-        <td>
-          1830
-          -
-          1853
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.mutable.ListBuffer.nonEmpty
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.connectionList.nonEmpty
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          450
-        </td>
-        <td>
-          1855
-          -
-          1891
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          453
-        </td>
-        <td>
-          1826
-          -
-          1826
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          452
-        </td>
-        <td>
-          1826
-          -
-          1826
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          449
-        </td>
-        <td>
-          1871
-          -
-          1890
+          2024
         </td>
         <td>
           Select
@@ -804,15 +777,120 @@
         </td>
       </tr><tr>
         <td>
-          79
+          63
         </td>
         <td>
-          454
+          463
         </td>
         <td>
-          2501
+          1960
           -
-          2522
+          1960
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          459
+        </td>
+        <td>
+          1964
+          -
+          1987
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.mutable.ListBuffer.nonEmpty
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.connectionList.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          462
+        </td>
+        <td>
+          1989
+          -
+          2025
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.closeConnection
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          461
+        </td>
+        <td>
+          1989
+          -
+          2025
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.closeConnection
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          464
+        </td>
+        <td>
+          1960
+          -
+          1960
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          465
+        </td>
+        <td>
+          2635
+          -
+          2656
         </td>
         <td>
           Apply
@@ -825,15 +903,115 @@
         </td>
       </tr><tr>
         <td>
-          79
+          80
         </td>
         <td>
-          457
+          468
         </td>
         <td>
-          2474
+          2608
           -
-          2524
+          2658
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #AEF1AE">
+          RichFuture.this.future.andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[F],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[F] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[F], B1 &gt;: Unit](x2: A1, default: A1 =&gt; B1): B1 = ((x2.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
+      case _ =&gt; VertxJDBC.this.closeAllConnections()
+      case (defaultCase$ @ _) =&gt; default.apply(x2)
+    };
+    final def isDefinedAt(x2: scala.util.Try[F]): Boolean = ((x2.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
+      case _ =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[F],Unit]))(VertxJDBC.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          467
+        </td>
+        <td>
+          2623
+          -
+          2623
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          466
+        </td>
+        <td>
+          2623
+          -
+          2623
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          469
+        </td>
+        <td>
+          3031
+          -
+          3058
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.utils.VertxJDBC.closeLastOpenedConnection
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.closeLastOpenedConnection()
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          472
+        </td>
+        <td>
+          3004
+          -
+          3060
         </td>
         <td>
           ApplyToImplicitArgs
@@ -849,7 +1027,7 @@
       ()
     };
     final override def applyOrElse[A1 &lt;: scala.util.Try[F], B1 &gt;: Unit](x3: A1, default: A1 =&gt; B1): B1 = ((x3.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
-      case _ =&gt; VertxJDBC.this.closeAllConnections()
+      case _ =&gt; VertxJDBC.this.closeLastOpenedConnection()
       case (defaultCase$ @ _) =&gt; default.apply(x3)
     };
     final def isDefinedAt(x3: scala.util.Try[F]): Boolean = ((x3.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
@@ -862,15 +1040,15 @@
         </td>
       </tr><tr>
         <td>
-          79
+          89
         </td>
         <td>
-          456
+          471
         </td>
         <td>
-          2489
+          3019
           -
-          2489
+          3019
         </td>
         <td>
           Select
@@ -883,15 +1061,15 @@
         </td>
       </tr><tr>
         <td>
-          79
+          89
         </td>
         <td>
-          455
+          470
         </td>
         <td>
-          2489
+          3019
           -
-          2489
+          3019
         </td>
         <td>
           Apply
@@ -904,115 +1082,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          106
         </td>
         <td>
-          460
+          474
         </td>
         <td>
-          2884
+          3327
           -
-          2884
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          88
-        </td>
-        <td>
-          459
-        </td>
-        <td>
-          2884
-          -
-          2884
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          88
-        </td>
-        <td>
-          461
-        </td>
-        <td>
-          2869
-          -
-          2925
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.andThen
-        </td>
-        <td style="background: #AEF1AE">
-          RichFuture.this.future.andThen[Unit](({
-  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[F],Unit] with Serializable {
-    def &lt;init&gt;(): &lt;$anon: scala.util.Try[F] =&gt; Unit&gt; = {
-      $anonfun.super.&lt;init&gt;();
-      ()
-    };
-    final override def applyOrElse[A1 &lt;: scala.util.Try[F], B1 &gt;: Unit](x4: A1, default: A1 =&gt; B1): B1 = ((x4.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
-      case _ =&gt; VertxJDBC.this.closeLastOpenedConnection()
-      case (defaultCase$ @ _) =&gt; default.apply(x4)
-    };
-    final def isDefinedAt(x4: scala.util.Try[F]): Boolean = ((x4.asInstanceOf[scala.util.Try[F]]: scala.util.Try[F]): scala.util.Try[F] @unchecked) match {
-      case _ =&gt; true
-      case (defaultCase$ @ _) =&gt; false
-    }
-  };
-  new $anonfun()
-}: PartialFunction[scala.util.Try[F],Unit]))(VertxJDBC.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          88
-        </td>
-        <td>
-          458
-        </td>
-        <td>
-          2896
-          -
-          2923
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.closeLastOpenedConnection
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.closeLastOpenedConnection()
-        </td>
-      </tr><tr>
-        <td>
-          105
-        </td>
-        <td>
-          463
-        </td>
-        <td>
-          3192
-          -
-          3200
+          3335
         </td>
         <td>
           Apply
@@ -1021,19 +1099,19 @@
           io.vertx.core.json.JsonArray.add
         </td>
         <td style="background: #AEF1AE">
-          x$5.add(x$6)
+          x$3.add(x$4)
         </td>
       </tr><tr>
         <td>
-          105
+          106
         </td>
         <td>
-          462
+          473
         </td>
         <td>
-          3177
+          3312
           -
-          3190
+          3325
         </td>
         <td>
           Apply
@@ -1046,15 +1124,15 @@
         </td>
       </tr><tr>
         <td>
-          105
+          106
         </td>
         <td>
-          464
+          475
         </td>
         <td>
-          3158
+          3293
           -
-          3201
+          3336
         </td>
         <td>
           Apply
@@ -1063,7 +1141,7 @@
           scala.collection.TraversableOnce.foldLeft
         </td>
         <td style="background: #AEF1AE">
-          arguments.foldLeft[io.vertx.core.json.JsonArray](new io.vertx.lang.scala.json.`package`.JsonArray())(((x$5: io.vertx.core.json.JsonArray, x$6: String) =&gt; x$5.add(x$6)))
+          arguments.foldLeft[io.vertx.core.json.JsonArray](new io.vertx.lang.scala.json.`package`.JsonArray())(((x$3: io.vertx.core.json.JsonArray, x$4: String) =&gt; x$3.add(x$4)))
         </td>
       </tr>
     </table>
