@@ -2,7 +2,6 @@ package it.cwmp.client.model
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
-import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.{Subscribe, Unsubscribe}
 import akka.cluster.ddata.{Key, ReplicatedData, Replicator}
 import it.cwmp.utils.Logging
@@ -10,14 +9,11 @@ import it.cwmp.utils.Logging
 /**
   * A base class to represent a distributed state in Akka
   *
-  * @param onDistributedStateUpdate the strategy to adopt on state changes
-  * @param replicatorActor          the actor that will distribute the data
-  * @param cluster                  the cluster where this distributed data are exchanged
+  * @param replicatorActor the actor that will distribute the data
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Unit)
-                                          (implicit replicatorActor: ActorRef, cluster: Cluster) // TODO: remove unnecessary parameters from here
+abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
   extends DistributedState[State, ActorRef] with Logging {
 
   /**

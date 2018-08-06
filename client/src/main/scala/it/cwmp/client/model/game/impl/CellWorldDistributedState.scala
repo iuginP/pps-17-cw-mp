@@ -13,12 +13,14 @@ import scala.concurrent.duration._
 /**
   * Distributed representation of the world and of his behaviours.
   *
+  * @param onWorldUpdate   the strategy to adopt on world changes
+  * @param replicatorActor the actor that will distribute the data
+  * @param cluster         the cluster where this distributed data are exchanged
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
 case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
-                                    (implicit replicatorActor: ActorRef, cluster: Cluster)
-  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
+                                    (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
 
   override protected val distributedKey: LWWRegisterKey[CellWorld] =
     LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
