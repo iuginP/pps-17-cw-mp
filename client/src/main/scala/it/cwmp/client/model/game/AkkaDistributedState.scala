@@ -59,7 +59,7 @@ abstract class AkkaDistributedState[State, DistributedData <: ReplicatedData](on
   /**
     * @return the key to access distributed state
     */
-  protected def distributedKey: Key[_ <: ReplicatedData]
+  protected def distributedKey: Key[DistributedData]
 
   /**
     * @return the consistency policy to adopt when writing updates in distributed state
