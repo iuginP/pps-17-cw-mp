@@ -55,7 +55,11 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
     }
 
     "return the token when successful login" in {
-      actor ! AuthenticationRequests.LogIn(nextUsername, nextPassword)
+      val username = nextUsername
+      val password = nextPassword
+      actor ! AuthenticationRequests.SignUp(username, password)
+      expectMsgType[AuthenticationResponses.SignUpSuccess]
+      actor ! AuthenticationRequests.LogIn(username, password)
       expectMsgType[AuthenticationResponses.LogInSuccess]
     }
 
