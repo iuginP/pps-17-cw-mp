@@ -15,7 +15,8 @@ import scala.util.{Failure, Success, Try}
 /**
   * A class that implements the actor that will manage communications with services APIs
   */
-case class ApiClientActor() extends Actor {
+case class ApiClientActor(authenticationApiWrapper: AuthenticationApiWrapper = AuthenticationApiWrapper(),
+                          roomApiWrapper: RoomsApiWrapper = RoomsApiWrapper()) extends Actor {
 
   override def receive: Receive = authenticationBehaviour orElse roomsBehaviour
 
@@ -23,7 +24,6 @@ case class ApiClientActor() extends Actor {
     * @return the behaviour of authenticating user online
     */
   private def authenticationBehaviour: Receive = {
-    val authenticationApiWrapper = AuthenticationApiWrapper()
     // scalastyle:off import.grouping
     import authenticationApiWrapper._
     // scalastyle:on import.grouping
@@ -47,7 +47,6 @@ case class ApiClientActor() extends Actor {
     * @return the behaviour of managing the rooms online
     */
   private def roomsBehaviour: Receive = {
-    val roomApiWrapper = RoomsApiWrapper()
     // scalastyle:off import.grouping
     import roomApiWrapper._
     // scalastyle:on import.grouping
