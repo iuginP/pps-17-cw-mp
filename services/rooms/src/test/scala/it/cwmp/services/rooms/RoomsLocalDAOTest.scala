@@ -35,7 +35,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
     it("should succeed returning roomId, if parameters are correct") {
       for (dao <- daoFuture; roomID <- dao.createRoom(roomName, playersNumber)) yield roomID should not be empty
     }
-    describe("should fail") {
+    describe(shouldFail) {
       it("if roomName empty") {
         for (dao <- daoFuture; assertion <- dao.createRoom("", playersNumber).shouldFailWith[IllegalArgumentException])
           yield assertion
@@ -60,7 +60,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
            _ <- cleanUpRoom(roomID)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(roomID => daoFuture flatMap (_.enterRoom(roomID)(user, notificationAddress)))
 
       it("if user is already inside a room") {
@@ -94,7 +94,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
            _ <- cleanUpRoom(roomID)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(roomID => daoFuture flatMap (_.roomInfo(roomID)))
     }
   }
@@ -112,7 +112,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
            roomInfo <- dao.roomInfo(roomID)) yield roomInfo._1.participants shouldNot contain(user)
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongRoomID(roomID => daoFuture flatMap (_.exitRoom(roomID)))
 
       it("if user is not inside the room") {
@@ -144,7 +144,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
       }
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(playersNumber => daoFuture flatMap (_.enterPublicRoom(playersNumber)(user, notificationAddress)))
 
       it("if user is already inside a room") {
@@ -187,7 +187,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
            _ <- cleanUpRoom(playersNumber)) yield assertion
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(playersNumber => daoFuture flatMap (_.publicRoomInfo(playersNumber)))
     }
   }
@@ -203,7 +203,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
            roomInfo <- dao.publicRoomInfo(playersNumber)) yield roomInfo._1.participants shouldNot contain(user)
     }
 
-    describe("should fail") {
+    describe(shouldFail) {
       onWrongPlayersNumber(playersNumber => daoFuture flatMap (_.exitPublicRoom(playersNumber)))
 
       it("if user is not inside the room") {
@@ -237,7 +237,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
              assertion <- dao.roomInfo(roomID).shouldFailWith[NoSuchElementException]) yield assertion
       }
 
-      describe("should fail") {
+      describe(shouldFail) {
         onWrongRoomID(roomID => daoFuture flatMap (_.deleteRoom(roomID)))
 
         it("if room is not full") {
@@ -259,7 +259,7 @@ class RoomsLocalDAOTest extends RoomsTesting with BeforeAndAfterEach with Future
              roomInfo <- dao.publicRoomInfo(playersNumber)) yield roomInfo._1.participants shouldBe empty
       }
 
-      describe("should fail") {
+      describe(shouldFail) {
         onWrongPlayersNumber(playersNumber => daoFuture flatMap (_.deleteAndRecreatePublicRoom(playersNumber)))
 
         it("if room is not full") {

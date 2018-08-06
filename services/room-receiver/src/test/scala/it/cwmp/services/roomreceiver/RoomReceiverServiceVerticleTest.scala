@@ -1,5 +1,6 @@
 package it.cwmp.services.roomreceiver
 
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, NOT_FOUND}
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
@@ -7,6 +8,7 @@ import it.cwmp.model.Participant.Converters._
 import it.cwmp.services.roomreceiver.ServerParameters._
 import it.cwmp.services.testing.roomreceiver.RoomReceiverWebTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
+import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.VertxClient
 
 import scala.util.{Failure, Success}
@@ -22,41 +24,39 @@ class RoomReceiverServiceVerticleTest extends RoomReceiverWebTesting
     .setKeepAlive(false)
 
   describe("RoomReceiver") {
-    describe("Receiving partecipants list") {
-      it("When wrong url should 404") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(wrongToken)).port(port)
-          .sendFuture()
-          .map(res => res statusCode() should equal(404))
+    describe("Receiving participants list") {
+      it("When wrong url should NOT_FOUND") {
+        client.post(createParticipantReceiverUrl(wrongToken)).port(port)
+          .sendFuture() shouldAnswerWith NOT_FOUND
       }
 
-      it("When right url and empty body should 400") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
-          .sendFuture()
-          .map(res => res statusCode() should equal(400))
+      it("When right url and empty body should BAD_REQUEST") {
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
+          .sendFuture() shouldAnswerWith BAD_REQUEST
       }
 
-      it("When right url and body should 201") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+      it("When right url and body should CREATED") {
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
-          .map(res => res statusCode() should equal(201))
+          .shouldAnswerWith(CREATED)
       }
 
       it("When right url and body should obtain the correct list") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendJsonFuture(participants.foldLeft(Json emptyArr())(_ add _.toJson))
           .flatMap(_ => participantsPromise.future)
-          .map(l => l should equal(participants))
+          .map(_ should equal(participants))
       }
 
       it("When right, after response should close") {
-        client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken)).port(port)
+        client.post(createParticipantReceiverUrl(rightToken)).port(port)
           .sendFuture()
           .transform({
-            case Success(res) if res.statusCode() == 201 => Success(Unit)
+            case Success(res) if res.statusCode() == CREATED.code() => Success(())
             case Success(res) => Failure(HTTPException(res.statusCode(), res.statusMessage()))
-            case Failure(f) => Failure(f)
+            case failure@Failure(_) => failure
           })
-          .flatMap(_ => client.post(API_RECEIVE_PARTICIPANTS_URL(rightToken))
+          .flatMap(_ => client.post(createParticipantReceiverUrl(rightToken))
             .sendFuture()
             .map(_ => fail))
           .shouldFailWith[HTTPException]

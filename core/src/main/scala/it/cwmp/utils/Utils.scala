@@ -2,6 +2,8 @@ package it.cwmp.utils
 
 import java.text.ParseException
 
+import io.netty.handler.codec.http.HttpResponseStatus
+
 import scala.language.implicitConversions
 
 /**
@@ -38,4 +40,12 @@ object Utils {
     * @return the option of that string
     */
   implicit def stringToOption(string: String): Option[String] = Option(string)
+
+  /**
+    * Implicit conversion of HttpStatus response names to relative codes
+    *
+    * @param httpResponseStatus the httpResponseStatus name to convert
+    * @return the integer representing the httpStatus
+    */
+  implicit def httpStatusNameToCode(httpResponseStatus: HttpResponseStatus): Int = httpResponseStatus.code()
 }

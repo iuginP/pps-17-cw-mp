@@ -3,7 +3,7 @@ package it.cwmp.client.controller
 import akka.actor.Actor
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
-import it.cwmp.client.controller.messages.RoomsRequests.{ServiceCreate, ServiceEnterPrivate, ServiceEnterPublic}
+import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
 import it.cwmp.utils.Utils.stringToOption
@@ -24,8 +24,9 @@ case class ApiClientActor() extends Actor {
     */
   private def authenticationBehaviour: Receive = {
     val authenticationApiWrapper = AuthenticationApiWrapper()
-    //noinspection ScalaStyle
+    // scalastyle:off import.grouping
     import authenticationApiWrapper._
+    // scalastyle:on import.grouping
     {
       case LogIn(username, password) =>
         val senderTmp = sender
@@ -47,8 +48,9 @@ case class ApiClientActor() extends Actor {
     */
   private def roomsBehaviour: Receive = {
     val roomApiWrapper = RoomsApiWrapper()
-    //noinspection ScalaStyle
+    // scalastyle:off import.grouping
     import roomApiWrapper._
+    // scalastyle:on import.grouping
     {
       case ServiceCreate(roomName, playersNumber, token) =>
         val senderTmp = sender
@@ -67,6 +69,18 @@ case class ApiClientActor() extends Actor {
         enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
           _ => senderTmp ! EnterPublicSuccess,
           exception => senderTmp ! EnterPublicFailure(exception.getMessage)
+        ))
+      case ServiceExitPrivate(roomID, jwtToken) =>
+        val senderTmp = sender
+        exitRoom(roomID)(jwtToken).onComplete(replyWith(
+          _ => senderTmp ! ExitPrivateSuccess,
+          exception => senderTmp ! ExitPrivateFailure(exception.getMessage)
+        ))
+      case ServiceExitPublic(playersNumber, jwtToken) =>
+        val senderTmp = sender
+        exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
+          _ => senderTmp ! ExitPublicSuccess,
+          exception => senderTmp ! ExitPublicFailure(exception.getMessage)
         ))
     }
   }

@@ -1,9 +1,11 @@
 package it.cwmp.services.wrapper
 
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK}
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
 import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.{Validation, VertxClient, VertxInstance}
 
 import scala.concurrent.Future
@@ -44,27 +46,27 @@ object AuthenticationApiWrapper {
     extends AuthenticationApiWrapper with VertxInstance with VertxClient {
 
     def signUp(username: String, password: String): Future[String] =
-      client.post(API_SIGNUP)
+      client.post(API_SIGN_UP)
         .addAuthentication(username, password)
         .sendFuture()
-        .expectStatus(201)
+        .expectStatus(CREATED)
         .map(_.bodyAsString().getOrElse(""))
 
     override def login(username: String, password: String): Future[String] =
       client.get(API_LOGIN)
         .addAuthentication(username, password)
         .sendFuture()
-        .expectStatus(200)
+        .expectStatus(OK)
         .map(_.bodyAsString().getOrElse(""))
 
     override def validate(authenticationHeader: String): Future[User] =
       client.get(API_VALIDATE)
         .addAuthenticationHeader(authenticationHeader)
         .sendFuture()
-        .expectStatus(200)
+        .expectStatus(OK)
         .mapBody {
           case Some(body) => Future.successful(User(body))
-          case _ => Future.failed(HTTPException(400, "Empty body"))
+          case _ => Future.failed(HTTPException(BAD_REQUEST, "Empty body"))
         }
   }
 

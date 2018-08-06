@@ -1,5 +1,7 @@
 package it.cwmp.client.view.room
 
+import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
+import it.cwmp.client.controller.messages.GUIRequest
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.view.FXServiceViewActor
 import it.cwmp.client.view.room.RoomViewActor._
@@ -39,14 +41,20 @@ case class RoomViewActor() extends FXServiceViewActor {
           roomEnteringMessage = GUIEnterPublic(playersNumber)
           controllerActor ! roomEnteringMessage
         }
+
+        override def onClosingRoomView(): Unit = {
+          controllerActor ! GUILogOut
+        }
       }))
   }
 
   override def receive: Receive = super.receive orElse {
-    case ShowToken(roomToken) => runOnUIThread(() => {
+    case ShowToken(roomToken) =>
       onServiceResponseReceived()
       fxController showTokenDialog roomToken
-    })
+
+    case FoundOpponents => onServiceResponseReceived()
+
     case WaitingForOthers =>
       fxController showCloseableLoading(WAITING_FOR_PARTICIPANTS_MESSAGE, WAITING_FOR_PARTICIPANTS_TITLE, () => {
         controllerActor ! (roomEnteringMessage match {
@@ -81,5 +89,10 @@ object RoomViewActor {
     * Shows a loading while waiting for others participants
     */
   case object WaitingForOthers
+
+  /**
+    * Tells View actor that opponents have been found
+    */
+  case object FoundOpponents
 
 }

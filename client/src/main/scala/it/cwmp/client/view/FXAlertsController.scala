@@ -139,8 +139,9 @@ trait FXAlertsController extends FXRunOnUIThread {
       */
     def closeLoadingAlert(): Unit =
       runOnUIThread(() => {
-        //noinspection ScalaStyle
+        // scalastyle:off null
         loadingAlert.setOnCloseRequest(null)
+        // scalastyle:on null
         loadingAlert.setResult(ButtonType.OK) // setting a result of right type, seems the only way to have dialog to close
       })
   }

@@ -1,5 +1,6 @@
 package it.cwmp.services.wrapper
 
+import io.netty.handler.codec.http.HttpResponseStatus.{CREATED, OK}
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
@@ -8,6 +9,7 @@ import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Room}
 import it.cwmp.services.rooms.RoomApiWrapperUtils
 import it.cwmp.services.rooms.ServerParameters._
+import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.{VertxClient, VertxInstance}
 
 import scala.concurrent.Future
@@ -107,7 +109,7 @@ trait RoomsApiWrapper {
     *
     * @param playersNumber the number of players that the public room has to have
     * @param userToken     the token to be authenticated against api
-    * @return the future taht completes when the user has exited,
+    * @return the future that completes when the user has exited,
     *         or fails if players number is not correct,
     *         or user not inside that room
     */
@@ -144,23 +146,23 @@ object RoomsApiWrapper {
     override def createRoom(roomName: String, playersNumber: Int)
                            (implicit userToken: String): Future[String] =
       createPrivateRoomRequest(roomName, playersNumber)
-        .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), 201))
+        .flatMap(implicit response => handleResponse(Future.successful(response.bodyAsString().get), CREATED))
 
     override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
                           (implicit userToken: String): Future[Unit] =
       enterPrivateRoomRequest(roomID, userAddress, notificationAddress)
-        .flatMap(implicit response => handleResponse(Future.successful(()), 200))
+        .flatMap(implicit response => handleResponse(Future.successful(()), OK))
 
     override def roomInfo(roomID: String)
                          (implicit userToken: String): Future[Room] =
       privateRoomInfoRequest(roomID)
         .flatMap(implicit response =>
-          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))
+          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), OK))
 
     override def exitRoom(roomID: String)
                          (implicit userToken: String): Future[Unit] =
       exitPrivateRoomRequest(roomID)
-        .flatMap(implicit response => handleResponse(Future.successful(()), 200))
+        .flatMap(implicit response => handleResponse(Future.successful(()), OK))
 
     override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
       listPublicRoomsRequest()
@@ -170,23 +172,23 @@ object RoomsApiWrapper {
               .stream().toArray().toSeq.map(_.toString)
               .map(jsonString => Json.fromObjectString(jsonString).toRoom)
           }
-        }, 200))
+        }, OK))
 
     override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
                                 (implicit userToken: String): Future[Unit] =
       enterPublicRoomRequest(playersNumber, userAddress, notificationAddress)
-        .flatMap(implicit response => handleResponse(Future.successful(()), 200))
+        .flatMap(implicit response => handleResponse(Future.successful(()), OK))
 
     override def publicRoomInfo(playersNumber: Int)
                                (implicit userToken: String): Future[Room] =
       publicRoomInfoRequest(playersNumber)
         .flatMap(implicit response =>
-          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), 200))
+          handleResponse(Future.successful(Json.fromObjectString(response.bodyAsString().get).toRoom), OK))
 
     override def exitPublicRoom(playersNumber: Int)
                                (implicit userToken: String): Future[Unit] =
       exitPublicRoomRequest(playersNumber)
-        .flatMap(implicit response => handleResponse(Future.successful(()), 200))
+        .flatMap(implicit response => handleResponse(Future.successful(()), OK))
 
     /**
       * Utility method to handle the Service response

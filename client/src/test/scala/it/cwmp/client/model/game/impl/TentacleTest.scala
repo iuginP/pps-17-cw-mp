@@ -13,8 +13,10 @@ import org.scalatest.{BeforeAndAfterEach, FunSpec}
   */
 class TentacleTest extends FunSpec with BeforeAndAfterEach {
 
+  // scalastyle:off magic.number
   private val fromCell = Cell(User("Enrico"), Point(0, 0), 50)
   private val toCell = Cell(User("Eugenio"), Point(3, 4), 500)
+  // scalastyle:on magic.number
   private val launchInstant = Instant.now()
 
   private val myTentacle: Tentacle = Tentacle(fromCell, toCell, launchInstant)
@@ -28,9 +30,11 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
       }
 
       describe("should complain") {
+        // scalastyle:off null
         it("on bad fromCell")(intercept[NullPointerException](Tentacle(null, toCell, launchInstant)))
         it("on bad toCell")(intercept[NullPointerException](Tentacle(fromCell, null, launchInstant)))
         it("on bad launchInstant")(intercept[NullPointerException](Tentacle(fromCell, toCell, null)))
+        // scalastyle:on null
         it("on same start and destination")(intercept[IllegalArgumentException](Tentacle(fromCell, fromCell, launchInstant)))
       }
     }
@@ -59,6 +63,7 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
         }
 
         describe("should complain if") {
+          // scalastyle:off null
           it("passed Instant is null")(intercept[NullPointerException](myTentacle.length(null)))
           it("passed Instant is before launch instant") {
             intercept[IllegalArgumentException] {
@@ -68,6 +73,7 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
           it("passed strategy is null") {
             intercept[NullPointerException](myTentacle.length(myTentacle.launchInstant, null))
           }
+          // scalastyle:on null
         }
       }
 
@@ -87,6 +93,7 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
         }
 
         describe("should complain if") {
+          // scalastyle:off null
           it("passed Instant is null")(intercept[NullPointerException](myTentacle.hasReachedDestinationFor(null)))
           it("passed Instant is before launch instant") {
             intercept[IllegalArgumentException] {
@@ -96,6 +103,7 @@ class TentacleTest extends FunSpec with BeforeAndAfterEach {
           it("passed strategy is null") {
             intercept[NullPointerException](myTentacle.hasReachedDestinationFor(myTentacle.launchInstant, null))
           }
+          // scalastyle:on null
         }
       }
     }

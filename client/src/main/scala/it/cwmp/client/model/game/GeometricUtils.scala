@@ -66,14 +66,22 @@ object GeometricUtils {
     require(distance > 0, "Distance should be greater than 0")
 
     val deltaY =
-      if (point1.y == point2.y) 0 // point on same horizontal line has no delta Y
-      else if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y) // point on same vertical line has delta Y that equals distance to travel; signum function makes delta positive if first point below second, negative otherwise
-      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y) // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
+    // point on same horizontal line has no delta Y
+      if (point1.y == point2.y) 0
+      // point on same vertical line has delta Y that equals distance to travel;
+      // signum function makes delta positive if first point below second, negative otherwise
+      else if (point1.x == point2.x) distance * Math.signum(point2.y.toLong - point1.y)
+      // this is the formula to get deltaY from a distance, the signum function has same significance as in above comment
+      else distance / Math.sqrt(1 / angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.y.toLong - point1.y)
 
     val deltaX =
-      if (point1.x == point2.x) 0 // point on same vertical line has no delta X
-      else if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x) // point on same horizontal line has delta X that equals distance to travel; signum function makes delta positive if first point is on the left of the second, negative otherwise
-      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x) // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
+    // point on same vertical line has no delta X
+      if (point1.x == point2.x) 0
+      // point on same horizontal line has delta X that equals distance to travel;
+      // signum function makes delta positive if first point is on the left of the second, negative otherwise
+      else if (point1.y == point2.y) distance * Math.signum(point2.x.toLong - point1.x)
+      // this is the formula to get deltaX from a distance, the signum function has same significance as in above comment
+      else distance / Math.sqrt(angularCoefficient(point1, point2).squared + 1) * Math.signum(point2.x.toLong - point1.x)
 
     (deltaX, deltaY)
   }
@@ -91,10 +99,10 @@ object GeometricUtils {
                                     point2: Point): Double = {
     val angularCoefficient = GeometricUtils.angularCoefficient(point1, point2)
 
-    if (angularCoefficient.isPosInfinity) Math.abs(myPoint.x - point1.x) // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
-    else
-      Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
-        Math.sqrt(angularCoefficient.squared + 1)
+    // if the straight line is vertical, the distance is the difference from myPoint X and a point on straight line X
+    if (angularCoefficient.isPosInfinity) Math.abs(myPoint.x - point1.x)
+    else Math.abs(myPoint.y - (angularCoefficient * myPoint.x + ordinateAtOrigin(point1, point2))) /
+      Math.sqrt(angularCoefficient.squared + 1)
   }
 
   /**

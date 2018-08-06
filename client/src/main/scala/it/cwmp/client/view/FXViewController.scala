@@ -63,8 +63,8 @@ trait FXViewController {
     val pane: Pane = loader.load()
 
     stage setTitle title
-    stage setResizable false
-    stage.setOnCloseRequest(_ => onCloseAction())
+    stage setOnCloseRequest (_ => onCloseAction())
     stage setScene new Scene(pane)
+    stage setResizable false
   }
 }

@@ -1,5 +1,6 @@
 package it.cwmp.services.roomreceiver
 
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED}
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.JsonObject
@@ -7,11 +8,11 @@ import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
 import it.cwmp.services.roomreceiver.ServerParameters._
-import it.cwmp.utils.Utils.stringToOption
+import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.{Logging, VertxServer}
 
 /**
-  * A class implementing a one-time service provided by clients to receive room infromation
+  * A class implementing a one-time service provided by clients to receive room information
   *
   * @param token             the token on which to listen for an authorized response
   * @param receptionStrategy the strategy to use when the data has been received
@@ -23,7 +24,7 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
   def port: Int = server.actualPort()
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_RECEIVE_PARTICIPANTS_URL(token) handler createParticipantReceiverHandler
+    router post createParticipantReceiverUrl(token) handler createParticipantReceiverHandler
     log.info(s"Starting the RoomReceiver service with the token: $token ...")
   }
 
@@ -39,10 +40,10 @@ case class RoomReceiverServiceVerticle(token: String, receptionStrategy: List[Pa
           log.debug("Applying reception strategy...")
           receptionStrategy(participants)
           response.endHandler(_ => server.close())
-          sendResponse(201)
+          sendResponse(CREATED)
         case None =>
           log.info("Error: List is invalid.")
-          sendResponse(400, "Invalid parameter: no participant list JSON in body")
+          sendResponse(BAD_REQUEST, "Invalid parameter: no participant list JSON in body")
       })
 
     def extractIncomingParticipantListFromBody(body: Buffer): Option[List[Participant]] = {

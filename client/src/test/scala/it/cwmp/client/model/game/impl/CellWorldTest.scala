@@ -1,6 +1,6 @@
 package it.cwmp.client.model.game.impl
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 
 import it.cwmp.model.User
 import org.scalatest.FunSpec
@@ -14,10 +14,12 @@ class CellWorldTest extends FunSpec {
 
   private val worldInstant = Instant.now
 
+  // scalastyle:off magic.number
   private val cells = Cell(User("Winner"), Point(20, 20), 20) ::
     Cell(User("Mantis"), Point(90, 400), 40) ::
     Cell(User("Enrico"), Point(70, 250), 40) ::
     Cell(User("Candle"), Point(200, 150), 200) :: Nil
+  // scalastyle:on magic.number
 
   private val tentacles = Tentacle(cells.head, cells(1), worldInstant) ::
     Tentacle(cells(1), cells(2), worldInstant) ::
@@ -25,6 +27,8 @@ class CellWorldTest extends FunSpec {
     Nil
 
   private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
+
+  private val timeAmount: Duration = Duration.ofSeconds(1)
 
   describe("A CellWorld") {
     describe("On creation") {
@@ -35,15 +39,17 @@ class CellWorldTest extends FunSpec {
       }
 
       describe("should complain") {
+        // scalastyle:off null
         it("on bad world instant")(intercept[NullPointerException](CellWorld(null, cells, tentacles)))
         it("on bad cells")(intercept[NullPointerException](CellWorld(worldInstant, null, tentacles)))
         it("on bad tentacles")(intercept[NullPointerException](CellWorld(worldInstant, cells, null)))
+        // scalastyle:on null
       }
     }
 
     describe("Manipulation") {
       it("can add a tentacle to world") {
-        val tentacle = Tentacle(cells(3), cells(2), worldInstant.plusMillis(1000))
+        val tentacle = Tentacle(cells(3), cells(2), worldInstant.plus(timeAmount))
         val newWorld = myCellWorld ++ tentacle
 
         assert(newWorld.attacks contains tentacle)
@@ -56,7 +62,7 @@ class CellWorldTest extends FunSpec {
       }
 
       it("removing a tentacle from world refunds energy to character") {
-        val advancedWorld = CellWorld(worldInstant.plusMillis(1000), cells, tentacles)
+        val advancedWorld = CellWorld(worldInstant.plus(timeAmount), cells, tentacles)
         val beforeCell = advancedWorld.characters.find(_ == tentacles.head.from).get
 
         val changedWorld = advancedWorld -- tentacles.head

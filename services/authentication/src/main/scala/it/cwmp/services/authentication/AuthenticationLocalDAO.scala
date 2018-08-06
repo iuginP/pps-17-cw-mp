@@ -7,56 +7,63 @@ import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
 import scala.concurrent._
 
 /**
-  * Trait che descrive l' Authentication Data Access Object
+  * Authentication Data Access object interface
   *
   * @author Davide Borficchia
   */
 trait AuthenticationDAO {
+
   /**
-    * Registra un nuovo utente all'interno dello storage
+    * Registers a new user
     *
-    * @param username username del nuovo utente
-    * @param password password del nuovo utente
-    * @return ritorna un Future vuoto
+    * @param username the username
+    * @param password the password
+    * @return a Future that completes when signUp succeeds
     */
   def signUpFuture(username: String, password: String): Future[Unit]
 
   /**
-    * Fa sloggare un utente che ha precedentemente fatto login
+    * Performs user de-registration, that is a cancellation of its credentials from database
     *
-    * @param username username dell'utente che si vuole fare sloggare
-    * @return ritorna un Future vuoto
+    * @param username the username of user to delete
+    * @return the Future that completes when signOut completes
     */
   def signOutFuture(username: String): Future[Unit]
 
   /**
-    * Permette di far loggare un utente precedentemente registrato nel sistema
+    * Performs user log-in
     *
-    * @param username username dell'utente
-    * @param password password dell'utente
-    * @return ritorna un Future vuoto
+    * @param username the username
+    * @param password the password
+    * @return A Future that completes when login completed
     */
   def loginFuture(username: String, password: String): Future[Unit]
 
   /**
-    * controlla se un utente è presente nel sistema
+    * Checks existence of user inside database
     *
-    * @param username utente da controllare
-    * @return ritorna un Future vuoto
+    * @param username the username to check
+    * @return A Future that completes when user found
     */
   def existsFuture(username: String): Future[Unit]
 }
 
 /**
-  * Wrapper per accedere allo storage Vertex locale per l'autenticazione
+  * Default implementation of AuthenticationDAO
   *
+  * @param configurationPath the database configuration file path
   * @author Davide Borficchia
   */
-case class AuthenticationLocalDAO(override val configurationPath: String = "authentication/database.json")
+case class AuthenticationLocalDAO(override val configurationPath: Option[String] = Some("authentication/database.json"))
   extends AuthenticationDAO with VertxInstance with VertxJDBC with Logging {
 
   private var notInitialized = true
 
+  /**
+    * Initialization method; it should be called before using DAO
+    *
+    * @return A Future that completes when initialization successful
+    */
   def initialize(): Future[Unit] = {
     log.info("Initializing RoomLocalDAO...")
     (for (
@@ -68,7 +75,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
   }
 
   override def signUpFuture(usernameP: String, passwordP: String): Future[Unit] = {
-    log.debug(s"signup() username:$usernameP, password:$passwordP")
+    log.debug(s"signUp() username:$usernameP, password:$passwordP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty;
@@ -81,11 +88,11 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         _ <- connection.updateWithParamsFuture(
           insertNewUserSql, Seq(username, password, "SALT"))
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR)))
   }
 
   override def signOutFuture(usernameP: String): Future[Unit] = {
-    log.debug(s"signoutFuture() username:$usernameP")
+    log.debug(s"signOutFuture() username:$usernameP")
     (for (
       // Controllo l'input
       username <- Option(usernameP) if username.nonEmpty
@@ -96,7 +103,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.updateWithParamsFuture(signOutUserSql, Seq(username)) if result.getUpdated > 0
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_NOT_PROVIDED_ERROR)))
   }
 
   override def loginFuture(usernameP: String, passwordP: String): Future[Unit] = {
@@ -112,7 +119,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.queryWithParamsFuture(loginUserSql, Seq(username, password)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR)))
   }
 
   override def existsFuture(usernameP: String): Future[Unit] = {
@@ -127,7 +134,7 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
         connection <- openConnection();
         result <- connection.queryWithParamsFuture(existFutureUserSql, Seq(username)) if result.getResults.nonEmpty
       ) yield ()).closeConnections
-    }).getOrElse(Future.failed(new IllegalArgumentException()))
+    }).getOrElse(Future.failed(new IllegalArgumentException(USERNAME_NOT_PROVIDED_ERROR)))
   }
 }
 
@@ -136,12 +143,18 @@ case class AuthenticationLocalDAO(override val configurationPath: String = "auth
   */
 object AuthenticationLocalDAO {
 
+  private val USERNAME_OR_PASSWORD_NOT_PROVIDED_ERROR = "Username or password not provided!"
+  private val USERNAME_NOT_PROVIDED_ERROR = "Username not provided!"
+
   private val FIELD_AUTH_USERNAME = "auth_username"
   private val FIELD_AUTH_PASSWORD = "auth_password"
   private val FIELD_AUTH_SALT = "auth_salt"
 
   /**
-    * Utility method per controlloare se il DAO è stato inizializzato
+    * Utility method to check if DAO was initialized
+    *
+    * @param notInitialized the flag to check for initialization
+    * @return A succeeded Future if DAO was initialized, a failed Future otherwise
     */
   private def checkInitialization(notInitialized: Boolean): Future[Unit] = {
     if (notInitialized) Future.failed(new IllegalStateException("Not initialized, you should first call initialize()"))

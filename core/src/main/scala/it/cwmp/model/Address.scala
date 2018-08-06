@@ -25,7 +25,7 @@ object Address {
   }
 
   def unapply(toExtract: Address): Option[String] =
-    if (toExtract eq null) None else Some(toExtract.address)
+    if (toExtract == null) None else Some(toExtract.address)
 
   /**
     * Default implementation of Address

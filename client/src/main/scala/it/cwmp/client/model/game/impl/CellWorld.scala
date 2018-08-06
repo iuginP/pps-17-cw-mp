@@ -40,7 +40,9 @@ object CellWorld {
       * @param tentacle the tentacle to add
       * @return the modified world
       */
+    // scalastyle:off method.name
     def ++(tentacle: Tentacle): CellWorld =
+    // scalastyle:on method.name
       CellWorld(cellWorld.instant, cellWorld.characters, tentacle +: cellWorld.attacks)
 
     /**
@@ -49,7 +51,9 @@ object CellWorld {
       * @param tentacle the tentacle to remove
       * @return the modified world
       */
+    // scalastyle:off method.name
     def --(tentacle: Tentacle): CellWorld = {
+      // scalastyle:on method.name
       val tentacleActualLength = tentacle.length(cellWorld.instant)
       val energyRefund = lengthToEnergyReductionStrategy(tentacleActualLength)
       val attackerAndOthersPair = cellWorld.characters.partition(Cell.ownerAndPositionMatch(_, tentacle.from))

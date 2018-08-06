@@ -8,20 +8,22 @@ import org.scalatest.FunSpec
 class HttpUtilsTest extends FunSpec {
 
   describe("Basic Authentication") {
-    describe("build") {
-      it("should succeed if right") {
+    describe("Build") {
+      it("should succeed if input correct") {
         assert(HttpUtils.buildBasicAuthentication("pippo", "pluto").nonEmpty)
       }
-      it("should fail if argument is empty") {
+      it("should fail if arguments empty") {
         assert(HttpUtils.buildBasicAuthentication("", "").isEmpty)
       }
-      it("should fail if argument is null") {
+      it("should fail if arguments null") {
+        // scalastyle:off null
         assert(HttpUtils.buildBasicAuthentication(null, null).isEmpty)
+        // scalastyle:on null
       }
     }
 
-    describe("read") {
-      it("should succeed if right") {
+    describe("Read") {
+      it("should succeed if argument valid") {
         val username = "pippo"
         val password = "password"
         var result: Option[(String, String)] = None
@@ -36,30 +38,34 @@ class HttpUtilsTest extends FunSpec {
           case _ => fail
         }
       }
-      it("should fail if argument is empty") {
+      it("should fail if argument empty") {
         assert(HttpUtils.readBasicAuthentication("").isEmpty)
       }
-      it("should fail if argument is null") {
+      it("should fail if argument null") {
+        // scalastyle:off null
         assert(HttpUtils.readBasicAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
   }
 
   describe("JWT authentication") {
-    describe("build") {
-      it("should succeed if right") {
+    describe("Build") {
+      it("should succeed if input right") {
         assert(HttpUtils.buildJwtAuthentication("token").nonEmpty)
       }
       it("should fail if argument is empty") {
         assert(HttpUtils.buildJwtAuthentication("").isEmpty)
       }
       it("should fail if argument is null") {
+        // scalastyle:off null
         assert(HttpUtils.buildJwtAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
 
-    describe("read") {
-      it("should succeed if right") {
+    describe("Read") {
+      it("should succeed if argument right") {
         var result: Option[String] = None
         val myToken = "token"
         for (
@@ -77,7 +83,9 @@ class HttpUtilsTest extends FunSpec {
         assert(HttpUtils.readJwtAuthentication("").isEmpty)
       }
       it("should fail if argument is null") {
+        // scalastyle:off null
         assert(HttpUtils.readJwtAuthentication(null).isEmpty)
+        // scalastyle:on null
       }
     }
   }

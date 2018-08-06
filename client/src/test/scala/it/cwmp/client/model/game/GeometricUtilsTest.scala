@@ -11,6 +11,7 @@ import org.scalatest.{Matchers, PropSpec}
   * @author Enrico Siboni
   */
 class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
+  // scalastyle:off magic.number
 
   property("Method distance() should calculate Euclidean distance between two points") {
 
@@ -98,6 +99,7 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
           else {
             if (point1.x > point2.x) assert(deltaXY._1 < 0) // if point1 on the right of point2 -> delta X should be negative
             else assert(deltaXY._1 > 0) // positive otherwise
+
             if (point1.y > point2.y) assert(deltaXY._2 < 0) // if point1 above point2 -> delta Y should be negative
             else assert(deltaXY._2 > 0) // positive otherwise
           }
@@ -145,10 +147,11 @@ class GeometricUtilsTest extends PropSpec with PropertyChecks with Matchers {
     forAnyTwoPoints { (myPoint, centerPoint) =>
       forAll { (radius: Double) =>
         whenever(radius > 0) {
-          if ((myPoint.x - centerPoint.x).squared + (myPoint.y - centerPoint.y).squared <= radius.squared)
+          if ((myPoint.x - centerPoint.x).squared + (myPoint.y - centerPoint.y).squared <= radius.squared) {
             assert(GeometricUtils.isWithinCircumference(myPoint, centerPoint, radius))
-          else
+          } else {
             assert(!GeometricUtils.isWithinCircumference(myPoint, centerPoint, radius))
+          }
         }
       }
     }

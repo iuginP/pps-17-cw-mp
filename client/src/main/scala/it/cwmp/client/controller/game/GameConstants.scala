@@ -22,6 +22,18 @@ object GameConstants {
   val MILLIS_TO_ENERGY_CONVERSION_RATE = 1000d
 
   /**
+    * ==Passive Cell==
+    *
+    * The energy that a passive cell has when it's born
+    */
+  val PASSIVE_CELL_ENERGY_WHEN_BORN = 40d
+
+  /**
+    * Time needed to conquer a passive cell (expressed in milliseconds)
+    */
+  val MILLIS_TO_PASSIVE_CELL_CONQUER = 3000
+
+  /**
     * ==Tentacle==
     *
     * Amount of time expressed in milliseconds that will be converted to a movement step of the tentacle
@@ -41,4 +53,9 @@ object GameConstants {
     * Amount of time expressed in milliseconds that will be converted in 1 energy reduction on under attack character
     */
   val ATTACK_DURATION_TO_ENERGY_REDUCTION_RATE = 1000d
+
+  /**
+    * The number of passive cells in generated world
+    */
+  val PASSIVE_CELLS_NUMBER = 5
 }

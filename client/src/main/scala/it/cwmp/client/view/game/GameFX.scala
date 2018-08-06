@@ -2,15 +2,17 @@ package it.cwmp.client.view.game
 
 import akka.actor.ActorRef
 import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.view.FXRunOnUIThread
 import it.cwmp.client.view.game.model.CellView._
 import it.cwmp.client.view.game.model.TentacleView
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.input.MouseEvent
-import javafx.scene.{Group, Scene}
+import javafx.scene.{Group, Node, Scene}
 import javafx.stage.Stage
 
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 /**
@@ -20,7 +22,7 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
+case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with FXRunOnUIThread {
 
   private var stage: Stage = _
   private var root: Group = _
@@ -34,7 +36,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
     */
   def start(title: String, size: Int): Unit = {
     new JFXPanel() // initializes JavaFX
-    Platform.runLater(() => {
+    runOnUIThread(() => {
       stage = new Stage
       root = new Group
       canvas = new Canvas(size, size)
@@ -42,6 +44,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
       UserEventHandler.initializeEventHandlers(root, viewManagerActor)
 
       stage.setTitle(title)
+      stage.setResizable(false)
       root.getChildren.add(canvas)
       stage.setScene(new Scene(root))
 
@@ -57,11 +60,7 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
   /**
     * Closes the GUI
     */
-  def close(): Unit = {
-    Platform.runLater(() => {
-      stage.close()
-    })
-  }
+  def close(): Unit = runOnUIThread { () => stage.close() } // TODO: useless, the gui will be closed by user X press
 
   /**
     * Updates the GUI with the newly provided world
@@ -69,14 +68,18 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer {
     * @param world the new world to draw
     */
   def updateWorld(world: CellWorld): Unit = {
-    Platform.runLater(() => {
-      implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
-      root.getChildren.clear()
+    implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
+    val graphicElementsToDraw: Seq[Node] =
+      Seq(
+        world.attacks.map(tentacle => drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))),
+        world.characters.map(cell => drawCell(cell)),
+        world.characters.map(cell => drawCellEnergy(cell)),
+        Seq(drawInstant(world.instant))
+      ).flatten
 
-      world.attacks.foreach(tentacle => root.getChildren.add(drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))
-      world.characters.foreach(cell => root.getChildren.add(drawCell(cell)))
-      world.characters.foreach(cell => root.getChildren.add(drawCellEnergy(cell)))
-      root.getChildren.add(drawInstant(world.instant))
+    runOnUIThread(() => {
+      root.getChildren.clear()
+      root.getChildren.addAll(graphicElementsToDraw.asJava)
     })
   }
 

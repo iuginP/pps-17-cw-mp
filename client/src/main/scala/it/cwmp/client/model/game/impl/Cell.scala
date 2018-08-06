@@ -79,7 +79,9 @@ object Cell {
       * @param energyReduction the amount of energy to remove
       * @return the cell with reduced energy
       */
+    // scalastyle:off method.name
     def --(energyReduction: Double): Cell = {
+      // scalastyle:on method.name
       require(energyReduction >= 0, "Energy decrement should be positive")
       if (energyReduction == 0) cell
       else Cell(cell.owner, cell.position, cell.energy - energyReduction)
@@ -91,11 +93,32 @@ object Cell {
       * @param energyIncrement the increment to add to energy
       * @return the cell with incremented energy
       */
+    // scalastyle:off method.name
     def ++(energyIncrement: Double): Cell = {
+      // scalastyle:on method.name
       require(energyIncrement >= 0, "Energy increment should be positive")
       if (energyIncrement == 0) cell
       else Cell(cell.owner, cell.position, cell.energy + energyIncrement)
     }
+
+  }
+
+  /**
+    * Constants for cells that are passive... that is with no owner
+    */
+  object Passive {
+
+    /**
+      * Placeholder User for cells with no owner
+      */
+    val NO_OWNER: User = User("_NO_OWNER_")
+
+    /**
+      * Default evolution strategy for a passive cell
+      *
+      * Does nothing
+      */
+    val defaultEvolutionStrategy: EvolutionStrategy[Cell, Duration] = (cell, _) => cell
 
   }
 

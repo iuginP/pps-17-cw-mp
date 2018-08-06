@@ -1,9 +1,10 @@
 package it.cwmp.services.authentication
 
+import io.netty.handler.codec.http.HttpResponseStatus._
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.authentication.ServerParameters._
-import it.cwmp.utils.Utils.stringToOption
+import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
 
 import scala.concurrent.Future
@@ -19,8 +20,8 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
   private var storageFuture: Future[AuthenticationDAO] = _
 
   override protected def initRouter(router: Router): Unit = {
-    router post API_SIGNUP handler handlerSignUp
-    router post API_SIGNOUT handler handlerSignOut
+    router post API_SIGN_UP handler handlerSignUp
+    router post API_SIGN_OUT handler handlerSignOut
     router get API_LOGIN handler handlerLogin
     router get API_VALIDATE handler handlerValidation
   }
@@ -42,10 +43,10 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
           log.info(s"User $username signed up.")
           JwtUtils
             .encodeUsernameToken(username)
-            .foreach(sendResponse(201, _))
-        case Failure(_) => sendResponse(400)
+            .foreach(sendResponse(CREATED, _))
+        case Failure(_) => sendResponse(BAD_REQUEST)
       }
-    }) orElse Some(sendResponse(400))
+    }) orElse Some(sendResponse(BAD_REQUEST))
   }
 
   private def handlerSignOut: Handler[RoutingContext] = implicit routingContext => {
@@ -59,10 +60,10 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
       storageFuture.map(_.signOutFuture(username).onComplete {
         case Success(_) =>
           log.info(s"User $username signed out.")
-          sendResponse(202)
-        case Failure(_) => sendResponse(401)
+          sendResponse(ACCEPTED)
+        case Failure(_) => sendResponse(UNAUTHORIZED)
       })
-    }) orElse Some(sendResponse(400))
+    }) orElse Some(sendResponse(BAD_REQUEST))
   }
 
   private def handlerLogin: Handler[RoutingContext] = implicit routingContext => {
@@ -76,10 +77,10 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
           log.info(s"User $username logged in.")
           JwtUtils
             .encodeUsernameToken(username)
-            .foreach(sendResponse(200, _))
-        case Failure(_) => sendResponse(401)
+            .foreach(sendResponse(OK, _))
+        case Failure(_) => sendResponse(UNAUTHORIZED)
       }
-    }) orElse Some(sendResponse(400))
+    }) orElse Some(sendResponse(BAD_REQUEST))
   }
 
   private def handlerValidation: Handler[RoutingContext] = implicit routingContext => {
@@ -93,9 +94,9 @@ case class AuthenticationServiceVerticle() extends VertxServer with Logging {
       storageFuture.map(_.existsFuture(username).onComplete {
         case Success(_) =>
           log.info(s"Token validation for $username successful")
-          sendResponse(200, username)
-        case Failure(_) => sendResponse(401)
+          sendResponse(OK, username)
+        case Failure(_) => sendResponse(UNAUTHORIZED)
       })
-    }) orElse Some(sendResponse(400))
+    }) orElse Some(sendResponse(BAD_REQUEST))
   }
 }

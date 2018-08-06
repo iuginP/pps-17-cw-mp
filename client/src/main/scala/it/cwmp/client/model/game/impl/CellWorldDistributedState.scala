@@ -24,6 +24,16 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
   override protected def activeBehaviour: Receive = {
     case UpdateState(state: CellWorld) =>
       log.debug("Updating distributed state")
-      replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
+      writeDistributed(state)
   }
+
+  override def initialize(state: CellWorld): Unit = writeDistributed(state)
+
+  /**
+    * Handle method to do a distributed write
+    *
+    * @param state the state to write
+    */
+  private def writeDistributed(state: CellWorld): Unit =
+    replicatorActor ! Update(DistributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
 }

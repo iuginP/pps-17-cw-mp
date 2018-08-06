@@ -1,5 +1,6 @@
 package it.cwmp.services.rooms
 
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, NOT_FOUND, OK}
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.Json
@@ -10,7 +11,7 @@ import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
-import it.cwmp.utils.Utils.stringToOption
+import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,19 +58,21 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         extractIncomingRoomFromBody(body) match {
           case Some((roomName, neededPlayers)) =>
             daoFuture.map(_.createRoom(roomName, neededPlayers).onComplete {
-              failureHandler orElse successHandler(generatedID => sendResponse(201, generatedID))
+              failureHandler orElse successHandler(generatedID => sendResponse(CREATED, generatedID))
             })
           case None =>
             log.warn("Request body for room creation is required!")
-            sendResponse(400, s"$INVALID_PARAMETER_ERROR no Room JSON in body")
+            sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR no Room JSON in body")
         }))
 
     def extractIncomingRoomFromBody(body: Buffer): Option[(String, Int)] = {
       try {
         val jsonObject = body.toJsonObject
-        if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS))
+        if ((jsonObject containsKey Room.FIELD_NAME) && (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS)) {
           Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
-        else None
+        } else {
+          None
+        }
       } catch {
         case _: Throwable => None
       }
@@ -86,12 +89,12 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
         (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
           case (Some(roomID), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-              failureHandler orElse successHandler(_ => handlePrivateRoomFilling(roomID) map (_ => sendResponse(200)))
+              failureHandler orElse successHandler(_ => handlePrivateRoomFilling(roomID) map (_ => sendResponse(OK)))
             })
 
           case _ =>
             log.warn("Player and notification address are required for entering a room!")
-            sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}")
+            sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}")
         }
       }))
   }
@@ -105,15 +108,15 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
-            failureHandler orElse successHandler(room => sendResponse(200, room.toJson.encode()))
+            failureHandler orElse successHandler(room => sendResponse(OK, room.toJson.encode()))
           })
-        case None => sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
+        case None => sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
       }
     })
   }
 
   /**
-    * Handles exititng a private room
+    * Handles exiting a private room
     */
   private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext => {
     log.info("Exit Private Room Request received...")
@@ -121,9 +124,9 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       getRequestParameter(Room.FIELD_IDENTIFIER) match {
         case Some(roomId) =>
           daoFuture.map(_.exitRoom(roomId).onComplete {
-            failureHandler orElse successHandler(_ => sendResponse(200))
+            failureHandler orElse successHandler(_ => sendResponse(OK))
           })
-        case None => sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
+        case None => sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}")
       }
     })
   }
@@ -136,7 +139,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     request.checkAuthenticationOrReject.map(_ =>
       daoFuture.map(_.listPublicRooms().onComplete {
         failureHandler orElse
-          successHandler(rooms => sendResponse(200, rooms.foldLeft(Json emptyArr())(_ add _.toJson) encode()))
+          successHandler(rooms => sendResponse(OK, rooms.foldLeft(Json emptyArr())(_ add _.toJson) encode()))
       }))
   }
 
@@ -155,12 +158,12 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
           case (Some(playersNumber), Some(addresses)) =>
             daoFuture.map(implicit dao => dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2)
               .onComplete {
-                failureHandler orElse successHandler(_ => handlePublicRoomFilling(playersNumber) map (_ => sendResponse(200)))
+                failureHandler orElse successHandler(_ => handlePublicRoomFilling(playersNumber) map (_ => sendResponse(OK)))
               })
 
           case _ =>
             log.warn("The number of players in url and player/notification address in body are required for public room entering")
-            sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}")
+            sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}")
         }
       }))
   }
@@ -177,11 +180,11 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }) match {
         case Some(playersNumber) =>
           daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
-            failureHandler orElse { case Success(room) => sendResponse(200, room.toJson.encode()) }
+            failureHandler orElse { case Success(room) => sendResponse(OK, room.toJson.encode()) }
           })
         case None =>
           log.warn("The number of players in url is required for public room info retrieval")
-          sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
+          sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
       }
     })
   }
@@ -198,11 +201,11 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
       }) match {
         case Some(roomId) =>
           daoFuture.map(_.exitPublicRoom(roomId).onComplete {
-            failureHandler orElse successHandler(_ => sendResponse(200))
+            failureHandler orElse successHandler(_ => sendResponse(OK))
           })
         case None =>
           log.warn("The number of players in url is required for public room exiting")
-          sendResponse(400, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
+          sendResponse(BAD_REQUEST, s"$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}")
       }
     })
   }
@@ -218,7 +221,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
                                        executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
       onRetrievedRoomAction = (roomDAO deleteRoom roomID)
-        .map(_ => sendResponse(200)))(communicationStrategy, executionContext)
+        .map(_ => sendResponse(OK)))(communicationStrategy, executionContext)
   }
 
   /**
@@ -231,7 +234,7 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
                                       executionContext: ExecutionContext): Future[Unit] = {
     handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
       onRetrievedRoomAction = (roomDAO deleteAndRecreatePublicRoom playersNumber)
-        .map(_ => sendResponse(200)))(communicationStrategy, executionContext)
+        .map(_ => sendResponse(OK)))(communicationStrategy, executionContext)
   }
 
   /**
@@ -278,8 +281,8 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
     * @return the common handler for failures in this service
     */
   private def failureHandler(implicit routingContext: RoutingContext): PartialFunction[Try[_], Unit] = {
-    case Failure(ex: NoSuchElementException) => sendResponse(404, ex.getMessage)
-    case Failure(ex) => sendResponse(400, ex.getMessage)
+    case Failure(ex: NoSuchElementException) => sendResponse(NOT_FOUND, ex.getMessage)
+    case Failure(ex) => sendResponse(BAD_REQUEST, ex.getMessage)
   }
 
   /**
