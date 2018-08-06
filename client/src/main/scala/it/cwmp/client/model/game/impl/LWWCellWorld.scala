@@ -6,7 +6,7 @@ import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.{Changed, Update, WriteMajority}
 import akka.cluster.ddata._
 import it.cwmp.client.model.AkkaDistributedState
-import it.cwmp.client.model.game.impl.CellWorldDistributedState.{DISTRIBUTED_KEY_NAME, UpdateState}
+import it.cwmp.client.model.game.impl.LWWCellWorld.{DISTRIBUTED_KEY_NAME, UpdateState}
 
 import scala.concurrent.duration._
 
@@ -19,8 +19,8 @@ import scala.concurrent.duration._
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
-                                    (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
+case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
+                       (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
 
   override protected val distributedKey: LWWRegisterKey[CellWorld] =
     LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
@@ -72,7 +72,7 @@ case class CellWorldDistributedState(onWorldUpdate: CellWorld => Unit)
 /**
   * Companion Object, containing actor messages
   */
-object CellWorldDistributedState {
+object LWWCellWorld {
 
   private val DISTRIBUTED_KEY_NAME = "distributedKey"
 

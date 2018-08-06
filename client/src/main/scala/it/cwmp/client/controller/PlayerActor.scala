@@ -8,7 +8,7 @@ import it.cwmp.client.controller.PlayerActor.{GameEnded, PrepareForGame, Retriev
 import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.AkkaDistributedState
-import it.cwmp.client.model.game.impl.{CellWorld, CellWorldDistributedState}
+import it.cwmp.client.model.game.impl.{CellWorld, LWWCellWorld}
 import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.Participant
@@ -36,7 +36,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
 
   // Distributed world
   private val distributedState: AkkaDistributedState[CellWorld] =
-    CellWorldDistributedState(onWorldUpdatedAction)(replicator, cluster)
+    LWWCellWorld(onWorldUpdatedAction)(replicator, cluster)
 
   override def preStart(): Unit = {
     log.info(s"Initializing the game-view actor...")

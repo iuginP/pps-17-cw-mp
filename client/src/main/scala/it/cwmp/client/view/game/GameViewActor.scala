@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.model.game.impl.CellWorldDistributedState.UpdateState
+import it.cwmp.client.model.game.impl.LWWCellWorld.UpdateState
 import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.view.game.GameViewActor._
