@@ -159,8 +159,20 @@
                         <a href="AuthenticationResponses$.html" title="Collection of Authentication response messages">AuthenticationResponses</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
+                        <a class="trait" href="GUIRequest.html" title="Identifies a request message coming from the GUI"></a>
+                        <a href="GUIRequest.html" title="Identifies a request message coming from the GUI">GUIRequest</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
                         <a class="object" href="Initialize$.html" title="Tells the receiver who is the sender, so replies will be directed to it"></a>
                         <a href="Initialize$.html" title="Tells the receiver who is the sender, so replies will be directed to it">Initialize</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="trait" href="Request.html" title="Identifies a request message"></a>
+                        <a href="Request.html" title="Identifies a request message">Request</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="trait" href="Response.html" title="Identifies a response message"></a>
+                        <a href="Response.html" title="Identifies a response message">Response</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
                         <a class="object" href="RoomsRequests$.html" title="The collection of Rooms request messages"></a>
@@ -169,6 +181,10 @@
                         <span class="separator"></span>
                         <a class="object" href="RoomsResponses$.html" title="The collection of Rooms response messages"></a>
                         <a href="RoomsResponses$.html" title="The collection of Rooms response messages">RoomsResponses</a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="trait" href="ToServiceRequest.html" title="Identifies a request a message that is a request to a service"></a>
+                        <a href="ToServiceRequest.html" title="Identifies a request a message that is a request to a service">ToServiceRequest</a>
                       </li>
               </ul>
             </div>
@@ -251,9 +267,9 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="AuthenticationRequestextendsAnyRef"></a><a id="AuthenticationRequest:AuthenticationRequest"></a>
+      <a id="AuthenticationRequestextendsRequest"></a><a id="AuthenticationRequest:AuthenticationRequest"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#AuthenticationRequestextendsAnyRef" title="Permalink">
+      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#AuthenticationRequestextendsRequest" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -262,14 +278,14 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="AuthenticationRequests$$AuthenticationRequest.html"><span class="name">AuthenticationRequest</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="" href="AuthenticationRequests$$AuthenticationRequest.html"><span class="name">AuthenticationRequest</span></a><span class="result"> extends <a href="Request.html" class="extype" name="it.cwmp.client.controller.messages.Request">Request</a></span>
       </span>
       
       
     </li><li name="it.cwmp.client.controller.messages.AuthenticationRequests.LogIn" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LogInextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable"></a><a id="LogIn:LogIn"></a>
+      <a id="LogInextendsAuthenticationRequests.AuthenticationRequestwithToServiceRequestwithProductwithSerializable"></a><a id="LogIn:LogIn"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#LogInextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable" title="Permalink">
+      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#LogInextendsAuthenticationRequests.AuthenticationRequestwithToServiceRequestwithProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -278,34 +294,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Request to log-in" href="AuthenticationRequests$$LogIn.html"><span class="name">LogIn</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Request to log-in to online service" href="AuthenticationRequests$$LogIn.html"><span class="name">LogIn</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <a href="ToServiceRequest.html" class="extype" name="it.cwmp.client.controller.messages.ToServiceRequest">ToServiceRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt">Request to log-in
-</p><div class="fullcomment"><div class="comment cmt"><p>Request to log-in
+      <p class="shortcomment cmt">Request to log-in to online service
+</p><div class="fullcomment"><div class="comment cmt"><p>Request to log-in to online service
 </p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the player username</p></dd><dt class="param">password</dt><dd class="cmt"><p>the player password</p></dd></dl></div>
-    </li><li name="it.cwmp.client.controller.messages.AuthenticationRequests.LogOut" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LogOutextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable"></a><a id="LogOut:LogOut"></a>
-      <span class="permalink">
-      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#LogOutextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Request to log-out" href="AuthenticationRequests$$LogOut.html"><span class="name">LogOut</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Request to log-out
-</p><div class="fullcomment"><div class="comment cmt"><p>Request to log-out
-</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the player username that's signing-out</p></dd></dl></div>
     </li><li name="it.cwmp.client.controller.messages.AuthenticationRequests.SignUp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="SignUpextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable"></a><a id="SignUp:SignUp"></a>
+      <a id="SignUpextendsAuthenticationRequests.AuthenticationRequestwithToServiceRequestwithProductwithSerializable"></a><a id="SignUp:SignUp"></a>
       <span class="permalink">
-      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#SignUpextendsAuthenticationRequests.AuthenticationRequestwithProductwithSerializable" title="Permalink">
+      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#SignUpextendsAuthenticationRequests.AuthenticationRequestwithToServiceRequestwithProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -314,11 +312,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Request to sign-up" href="AuthenticationRequests$$SignUp.html"><span class="name">SignUp</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Request to sign-up to online service" href="AuthenticationRequests$$SignUp.html"><span class="name">SignUp</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <a href="ToServiceRequest.html" class="extype" name="it.cwmp.client.controller.messages.ToServiceRequest">ToServiceRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt">Request to sign-up
-</p><div class="fullcomment"><div class="comment cmt"><p>Request to sign-up
+      <p class="shortcomment cmt">Request to sign-up to online service
+</p><div class="fullcomment"><div class="comment cmt"><p>Request to sign-up to online service
 </p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the player username</p></dd><dt class="param">password</dt><dd class="cmt"><p>the player password</p></dd></dl></div>
     </li></ol>
             </div>
@@ -678,6 +676,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GUILogOut"></a><a id="GUILogOut:GUILogOut"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/controller/messages/AuthenticationRequests$.html#GUILogOut" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Request to log-out from GUI" href="AuthenticationRequests$$GUILogOut$.html"><span class="name">GUILogOut</span></a><span class="result"> extends <a href="AuthenticationRequests$$AuthenticationRequest.html" class="extype" name="it.cwmp.client.controller.messages.AuthenticationRequests.AuthenticationRequest">AuthenticationRequest</a> with <a href="GUIRequest.html" class="extype" name="it.cwmp.client.controller.messages.GUIRequest">GUIRequest</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Request to log-out from GUI
+</p>
     </li>
               </ol>
             </div>

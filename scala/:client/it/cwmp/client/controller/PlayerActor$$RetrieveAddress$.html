@@ -145,7 +145,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Companion object, containing actor messages" href="PlayerActor$.html"><span class="name">PlayerActor</span></a>
+        <a title="Companion object, containing actor messages" href="PlayerActor$.html"><span class="name">PlayerActor</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Companion object, containing actor messages
@@ -153,20 +153,20 @@
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="it.cwmp.client.controller">controller</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="PlayerActor$$EndGame$.html" title=""></a>
-                        <a href="PlayerActor$$EndGame$.html" title="">EndGame</a>
+                        <a class="object" href="PlayerActor$$GameEnded$.html" title="Message to say game ended"></a>
+                        <a href="PlayerActor$$GameEnded$.html" title="Message to say game ended">GameEnded</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">RetrieveAddress</a>
+                        <a class="class" href="PlayerActor$$PrepareForGame.html" title="Message to prepare to game with provided participants"></a>
+                        <a href="PlayerActor$$PrepareForGame.html" title="Message to prepare to game with provided participants">PrepareForGame</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="PlayerActor$$RetrieveAddressResponse.html" title=""></a>
-                        <a href="PlayerActor$$RetrieveAddressResponse.html" title="">RetrieveAddressResponse</a>
+                        <a class="object" href="" title="Message to retrieve address of this player"></a>
+                        <a href="" title="Message to retrieve address of this player">RetrieveAddress</a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
-                        <a class="class" href="PlayerActor$$StartGame.html" title=""></a>
-                        <a href="PlayerActor$$StartGame.html" title="">StartGame</a>
+                        <a class="class" href="PlayerActor$$RetrieveAddressResponse.html" title="Message to response to request of retrieving address"></a>
+                        <a href="PlayerActor$$RetrieveAddressResponse.html" title="Message to response to request of retrieving address">RetrieveAddressResponse</a>
                       </li>
               </ul>
             </div>
@@ -190,16 +190,17 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">RetrieveAddress</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">RetrieveAddress</span><span class="result"> extends <a href="messages/Request.html" class="extype" name="it.cwmp.client.controller.messages.Request">Request</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Message to retrieve address of this player
+</p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="messages/Request.html" class="extype" name="it.cwmp.client.controller.messages.Request">Request</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -225,7 +226,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.client.controller.PlayerActor.RetrieveAddress"><span>RetrieveAddress</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.client.controller.PlayerActor.RetrieveAddress"><span>RetrieveAddress</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.client.controller.messages.Request"><span>Request</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -585,6 +586,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="it.cwmp.client.controller.messages.Request">
+              <h3>Inherited from <a href="messages/Request.html" class="extype" name="it.cwmp.client.controller.messages.Request">Request</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

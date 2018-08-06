@@ -135,12 +135,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.services">services</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="" title="Trait che descrive l' Authentication Data Access Object"></a>
-                        <a href="" title="Trait che descrive l' Authentication Data Access Object">AuthenticationDAO</a>
+                        <a class="trait" href="" title="Authentication Data Access object interface"></a>
+                        <a href="" title="Authentication Data Access object interface">AuthenticationDAO</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="AuthenticationLocalDAO$.html" title="Companion Object"></a>
-                        <a class="class" href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione"></a>
-                        <a href="AuthenticationLocalDAO.html" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione">AuthenticationLocalDAO</a>
+                        <a class="class" href="AuthenticationLocalDAO.html" title="Default implementation of AuthenticationDAO"></a>
+                        <a href="AuthenticationLocalDAO.html" title="Default implementation of AuthenticationDAO">AuthenticationLocalDAO</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point"></a>
@@ -181,7 +181,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Trait che descrive l' Authentication Data Access Object
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Authentication Data Access object interface
 </p></div><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
@@ -256,9 +256,9 @@
         <span class="name">existsFuture</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">controlla se un utente è presente nel sistema
-</p><div class="fullcomment"><div class="comment cmt"><p>controlla se un utente è presente nel sistema
-</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>utente da controllare</p></dd><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl></div>
+      <p class="shortcomment cmt">Checks existence of user inside database
+</p><div class="fullcomment"><div class="comment cmt"><p>Checks existence of user inside database
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username to check</p></dd><dt>returns</dt><dd class="cmt"><p>A Future that completes when user found</p></dd></dl></div>
     </li><li name="it.cwmp.services.authentication.AuthenticationDAO#loginFuture" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="loginFuture(username:String,password:String):scala.concurrent.Future[Unit]"></a><a id="loginFuture(String,String):Future[Unit]"></a>
       <span class="permalink">
@@ -274,9 +274,9 @@
         <span class="name">loginFuture</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Permette di far loggare un utente precedentemente registrato nel sistema
-</p><div class="fullcomment"><div class="comment cmt"><p>Permette di far loggare un utente precedentemente registrato nel sistema
-</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>username dell'utente</p></dd><dt class="param">password</dt><dd class="cmt"><p>password dell'utente</p></dd><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl></div>
+      <p class="shortcomment cmt">Performs user log-in
+</p><div class="fullcomment"><div class="comment cmt"><p>Performs user log-in
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password</p></dd><dt>returns</dt><dd class="cmt"><p>A Future that completes when login completed</p></dd></dl></div>
     </li><li name="it.cwmp.services.authentication.AuthenticationDAO#signOutFuture" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="signOutFuture(username:String):scala.concurrent.Future[Unit]"></a><a id="signOutFuture(String):Future[Unit]"></a>
       <span class="permalink">
@@ -292,9 +292,9 @@
         <span class="name">signOutFuture</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Fa sloggare un utente che ha precedentemente fatto login
-</p><div class="fullcomment"><div class="comment cmt"><p>Fa sloggare un utente che ha precedentemente fatto login
-</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>username dell'utente che si vuole fare sloggare</p></dd><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl></div>
+      <p class="shortcomment cmt">Performs user de-registration, that is a cancellation of its credentials from database
+</p><div class="fullcomment"><div class="comment cmt"><p>Performs user de-registration, that is a cancellation of its credentials from database
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username of user to delete</p></dd><dt>returns</dt><dd class="cmt"><p>the Future that completes when signOut completes</p></dd></dl></div>
     </li><li name="it.cwmp.services.authentication.AuthenticationDAO#signUpFuture" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="signUpFuture(username:String,password:String):scala.concurrent.Future[Unit]"></a><a id="signUpFuture(String,String):Future[Unit]"></a>
       <span class="permalink">
@@ -310,9 +310,9 @@
         <span class="name">signUpFuture</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Registra un nuovo utente all'interno dello storage
-</p><div class="fullcomment"><div class="comment cmt"><p>Registra un nuovo utente all'interno dello storage
-</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>username del nuovo utente</p></dd><dt class="param">password</dt><dd class="cmt"><p>password del nuovo utente</p></dd><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl></div>
+      <p class="shortcomment cmt">Registers a new user
+</p><div class="fullcomment"><div class="comment cmt"><p>Registers a new user
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password</p></dd><dt>returns</dt><dd class="cmt"><p>a Future that completes when signUp succeeds</p></dd></dl></div>
     </li></ol>
             </div>
 

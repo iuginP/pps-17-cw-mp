@@ -174,7 +174,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;rooms/database.json&quot;</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Some(&quot;rooms/database.json&quot;)</span></span>)</span><span class="result"> extends <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -231,9 +231,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="it.cwmp.services.rooms.RoomsLocalDAO#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(configurationPath:String):it.cwmp.services.rooms.RoomsLocalDAO"></a><a id="&lt;init&gt;:RoomsLocalDAO"></a>
+      <a id="&lt;init&gt;(configurationPath:Option[String]):it.cwmp.services.rooms.RoomsLocalDAO"></a><a id="&lt;init&gt;:RoomsLocalDAO"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#&lt;init&gt;(configurationPath:String):it.cwmp.services.rooms.RoomsLocalDAO" title="Permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#&lt;init&gt;(configurationPath:Option[String]):it.cwmp.services.rooms.RoomsLocalDAO" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -242,7 +242,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;rooms/database.json&quot;</span></span>)</span>
+        <span class="name">RoomsLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Some(&quot;rooms/database.json&quot;)</span></span>)</span>
       </span>
       
       
@@ -412,9 +412,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxJDBC</dd></dl></div>
     </li><li name="it.cwmp.services.rooms.RoomsLocalDAO#configurationPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="configurationPath:String"></a>
+      <a id="configurationPath:Option[String]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#configurationPath:String" title="Permalink">
+      <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#configurationPath:Option[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -423,7 +423,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">configurationPath</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">configurationPath</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → VertxJDBC</dd></dl></div>
@@ -559,7 +559,7 @@
       
       <p class="shortcomment cmt">Exits a public room
 </p><div class="fullcomment"><div class="comment cmt"><p>Exits a public room
-</p></div><dl class="paramcmts block"><dt class="param">playersNumber</dt><dd class="cmt"><p>the number of players that the public room has to have</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to exit</p></dd><dt>returns</dt><dd class="cmt"><p>the future taht completes when the user has exited,
+</p></div><dl class="paramcmts block"><dt class="param">playersNumber</dt><dd class="cmt"><p>the number of players that the public room has to have</p></dd><dt class="param">user</dt><dd class="cmt"><p>the user that wants to exit</p></dd><dt>returns</dt><dd class="cmt"><p>the future that completes when the user has exited,
         or fails if players number is not correct,
         or user not inside that room</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.rooms.RoomsLocalDAO">RoomsLocalDAO</a> → <a href="RoomDAO.html" class="extype" name="it.cwmp.services.rooms.RoomDAO">RoomDAO</a></dd></dl></div>
     </li><li name="it.cwmp.services.rooms.RoomsLocalDAO#exitRoom" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -623,7 +623,7 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="it.cwmp.services.rooms.RoomsLocalDAO#initialize" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="it.cwmp.services.rooms.RoomsLocalDAO#initialize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initialize():scala.concurrent.Future[Unit]"></a><a id="initialize():Future[Unit]"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/rooms/RoomsLocalDAO.html#initialize():scala.concurrent.Future[Unit]" title="Permalink">
@@ -638,7 +638,9 @@
         <span class="name">initialize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Initializes LocalDAO
+</p><div class="fullcomment"><div class="comment cmt"><p>Initializes LocalDAO
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a Future that completes when DAO is initialized, or fails if an error occurs</p></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">

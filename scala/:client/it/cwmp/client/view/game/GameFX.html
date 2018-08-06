@@ -208,7 +208,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">GameFX</span><span class="params">(<span name="viewManagerActor">viewManagerActor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result"> extends <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">GameFX</span><span class="params">(<span name="viewManagerActor">viewManagerActor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result"> extends <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a> with <a href="../FXRunOnUIThread.html" class="extype" name="it.cwmp.client.view.FXRunOnUIThread">FXRunOnUIThread</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -218,7 +218,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="../FXRunOnUIThread.html" class="extype" name="it.cwmp.client.view.FXRunOnUIThread">FXRunOnUIThread</a>, <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -244,7 +244,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="it.cwmp.client.view.game.GameFX"><span>GameFX</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.client.view.game.CellWorldObjectDrawer"><span>CellWorldObjectDrawer</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="it.cwmp.client.view.game.GameFX"><span>GameFX</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="it.cwmp.client.view.FXRunOnUIThread"><span>FXRunOnUIThread</span></li><li class="in" name="it.cwmp.client.view.game.CellWorldObjectDrawer"><span>CellWorldObjectDrawer</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -594,6 +594,24 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="it.cwmp.client.view.FXRunOnUIThread#runOnUIThread" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runOnUIThread(task:Runnable):Unit"></a><a id="runOnUIThread(Runnable):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../../it/cwmp/client/view/game/GameFX.html#runOnUIThread(task:Runnable):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runOnUIThread</span><span class="params">(<span name="task">task: <span class="extype" name="java.lang.Runnable">Runnable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A method to run a task on UI thread without overheads
+</p><div class="fullcomment"><div class="comment cmt"><p>A method to run a task on UI thread without overheads
+</p></div><dl class="paramcmts block"><dt class="param">task</dt><dd class="cmt"><p>the task to run on GUI thread</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../FXRunOnUIThread.html" class="extype" name="it.cwmp.client.view.FXRunOnUIThread">FXRunOnUIThread</a></dd></dl></div>
     </li><li name="it.cwmp.client.view.game.GameFX#start" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="start(title:String,size:Int):Unit"></a><a id="start(String,Int):Unit"></a>
       <span class="permalink">
@@ -748,6 +766,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="it.cwmp.client.view.FXRunOnUIThread">
+              <h3>Inherited from <a href="../FXRunOnUIThread.html" class="extype" name="it.cwmp.client.view.FXRunOnUIThread">FXRunOnUIThread</a></h3>
             </div><div class="parent" name="it.cwmp.client.view.game.CellWorldObjectDrawer">
               <h3>Inherited from <a href="CellWorldObjectDrawer.html" class="extype" name="it.cwmp.client.view.game.CellWorldObjectDrawer">CellWorldObjectDrawer</a></h3>
             </div><div class="parent" name="scala.AnyRef">

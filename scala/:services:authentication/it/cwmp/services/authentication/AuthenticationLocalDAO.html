@@ -135,12 +135,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="it.cwmp.services">services</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object"></a>
-                        <a href="AuthenticationDAO.html" title="Trait che descrive l' Authentication Data Access Object">AuthenticationDAO</a>
+                        <a class="trait" href="AuthenticationDAO.html" title="Authentication Data Access object interface"></a>
+                        <a href="AuthenticationDAO.html" title="Authentication Data Access object interface">AuthenticationDAO</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="AuthenticationLocalDAO$.html" title="Companion Object"></a>
-                        <a class="class" href="" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione"></a>
-                        <a href="" title="Wrapper per accedere allo storage Vertex locale per l'autenticazione">AuthenticationLocalDAO</a>
+                        <a class="class" href="" title="Default implementation of AuthenticationDAO"></a>
+                        <a href="" title="Default implementation of AuthenticationDAO">AuthenticationLocalDAO</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="AuthenticationServiceMain$.html" title="AuthenticationService entry-point"></a>
@@ -178,13 +178,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthenticationLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;authentication/database.json&quot;</span></span>)</span><span class="result"> extends <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">AuthenticationLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="defval" name="Some(&quot;authentication/database.json&quot;)">...</span></span>)</span><span class="result"> extends <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a> with <span class="extype" name="it.cwmp.utils.VertxInstance">VertxInstance</span> with <span class="extype" name="it.cwmp.utils.VertxJDBC">VertxJDBC</span> with <span class="extype" name="it.cwmp.utils.Logging">Logging</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Wrapper per accedere allo storage Vertex locale per l'autenticazione
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Default implementation of AuthenticationDAO
+</p></div><dl class="paramcmts block"><dt class="param">configurationPath</dt><dd class="cmt"><p>the database configuration file path</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -234,10 +234,10 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(configurationPath:String):it.cwmp.services.authentication.AuthenticationLocalDAO"></a><a id="&lt;init&gt;:AuthenticationLocalDAO"></a>
+              <ol><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;init&gt;(configurationPath:Option[String]):it.cwmp.services.authentication.AuthenticationLocalDAO"></a><a id="&lt;init&gt;:AuthenticationLocalDAO"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/AuthenticationLocalDAO.html#&lt;init&gt;(configurationPath:String):it.cwmp.services.authentication.AuthenticationLocalDAO" title="Permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationLocalDAO.html#&lt;init&gt;(configurationPath:Option[String]):it.cwmp.services.authentication.AuthenticationLocalDAO" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -246,10 +246,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthenticationLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;authentication/database.json&quot;</span></span>)</span>
+        <span class="name">AuthenticationLocalDAO</span><span class="params">(<span name="configurationPath">configurationPath: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="defval" name="Some(&quot;authentication/database.json&quot;)">...</span></span>)</span>
       </span>
       
-      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">configurationPath</dt><dd class="cmt"><p>the database configuration file path</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -416,9 +416,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>VertxJDBC</dd></dl></div>
     </li><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#configurationPath" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="configurationPath:String"></a>
+      <a id="configurationPath:Option[String]"></a>
       <span class="permalink">
-      <a href="../../../../it/cwmp/services/authentication/AuthenticationLocalDAO.html#configurationPath:String" title="Permalink">
+      <a href="../../../../it/cwmp/services/authentication/AuthenticationLocalDAO.html#configurationPath:Option[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -427,7 +427,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">configurationPath</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">configurationPath</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → VertxJDBC</dd></dl></div>
@@ -462,9 +462,9 @@
         <span class="name">existsFuture</span><span class="params">(<span name="usernameP">usernameP: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">controlla se un utente è presente nel sistema
-</p><div class="fullcomment"><div class="comment cmt"><p>controlla se un utente è presente nel sistema
-</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
+      <p class="shortcomment cmt">Checks existence of user inside database
+</p><div class="fullcomment"><div class="comment cmt"><p>Checks existence of user inside database
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>A Future that completes when user found</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -506,7 +506,7 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#initialize" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#initialize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initialize():scala.concurrent.Future[Unit]"></a><a id="initialize():Future[Unit]"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/authentication/AuthenticationLocalDAO.html#initialize():scala.concurrent.Future[Unit]" title="Permalink">
@@ -521,7 +521,9 @@
         <span class="name">initialize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Initialization method; it should be called before using DAO
+</p><div class="fullcomment"><div class="comment cmt"><p>Initialization method; it should be called before using DAO
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>A Future that completes when initialization successful</p></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -569,9 +571,9 @@
         <span class="name">loginFuture</span><span class="params">(<span name="usernameP">usernameP: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="passwordP">passwordP: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Permette di far loggare un utente precedentemente registrato nel sistema
-</p><div class="fullcomment"><div class="comment cmt"><p>Permette di far loggare un utente precedentemente registrato nel sistema
-</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
+      <p class="shortcomment cmt">Performs user log-in
+</p><div class="fullcomment"><div class="comment cmt"><p>Performs user log-in
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>A Future that completes when login completed</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -657,9 +659,9 @@
         <span class="name">signOutFuture</span><span class="params">(<span name="usernameP">usernameP: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Fa sloggare un utente che ha precedentemente fatto login
-</p><div class="fullcomment"><div class="comment cmt"><p>Fa sloggare un utente che ha precedentemente fatto login
-</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
+      <p class="shortcomment cmt">Performs user de-registration, that is a cancellation of its credentials from database
+</p><div class="fullcomment"><div class="comment cmt"><p>Performs user de-registration, that is a cancellation of its credentials from database
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the Future that completes when signOut completes</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
     </li><li name="it.cwmp.services.authentication.AuthenticationLocalDAO#signUpFuture" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="signUpFuture(usernameP:String,passwordP:String):scala.concurrent.Future[Unit]"></a><a id="signUpFuture(String,String):Future[Unit]"></a>
       <span class="permalink">
@@ -675,9 +677,9 @@
         <span class="name">signUpFuture</span><span class="params">(<span name="usernameP">usernameP: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="passwordP">passwordP: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Registra un nuovo utente all'interno dello storage
-</p><div class="fullcomment"><div class="comment cmt"><p>Registra un nuovo utente all'interno dello storage
-</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>ritorna un Future vuoto</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
+      <p class="shortcomment cmt">Registers a new user
+</p><div class="fullcomment"><div class="comment cmt"><p>Registers a new user
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a Future that completes when signUp succeeds</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.authentication.AuthenticationLocalDAO">AuthenticationLocalDAO</a> → <a href="AuthenticationDAO.html" class="extype" name="it.cwmp.services.authentication.AuthenticationDAO">AuthenticationDAO</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
