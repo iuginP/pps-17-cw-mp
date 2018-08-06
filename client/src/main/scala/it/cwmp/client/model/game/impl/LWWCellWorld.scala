@@ -6,12 +6,13 @@ import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.{Changed, Update, WriteMajority}
 import akka.cluster.ddata._
 import it.cwmp.client.model.AkkaDistributedState
-import it.cwmp.client.model.game.impl.LWWCellWorld.{DISTRIBUTED_KEY_NAME, UpdateState}
+import it.cwmp.client.model.AkkaDistributedState.UpdateState
+import it.cwmp.client.model.game.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
 
 import scala.concurrent.duration._
 
 /**
-  * Distributed representation of the world and of his behaviours.
+  * Distributed representation of the world where "Latest Write Wins"
   *
   * @param onWorldUpdate   the strategy to adopt on world changes
   * @param replicatorActor the actor that will distribute the data
@@ -42,24 +43,6 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
 
   override protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
 
-  //
-  //  /**
-  //    * Implicit conversion from State to distributed state
-  //    *
-  //    * @param state the state to convert to distributed
-  //    * @return the distributed version of the given state
-  //    */
-  //  protected implicit def convertToDistributed(state: State): DistributedData
-  //
-  //  /**
-  //    * Implicit conversion from distributed state to application State
-  //    *
-  //    * @param distributedData the distributed data to convert
-  //    * @return the application version of state
-  //    */
-  //  protected implicit def convertFromDistributed(distributedData: DistributedData): State
-
-
   /**
     * Handle method to do a distributed write
     *
@@ -70,17 +53,8 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
 }
 
 /**
-  * Companion Object, containing actor messages
+  * Companion Object
   */
 object LWWCellWorld {
-
   private val DISTRIBUTED_KEY_NAME = "distributedKey"
-
-  /**
-    * The message to send to update distributed state
-    *
-    * @param cellWorld the new cellWorld state
-    */
-  case class UpdateState(cellWorld: CellWorld)
-
 }

@@ -58,3 +58,17 @@ abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
     */
   protected def consistencyPolicy: Replicator.WriteConsistency
 }
+
+/**
+  * Companion object, with actor messages
+  */
+object AkkaDistributedState {
+
+  /**
+    * The message to send to update distributed state
+    *
+    * @param state the new state
+    */
+  case class UpdateState[T](state: T)
+
+}
