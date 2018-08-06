@@ -64,7 +64,7 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     playerActor ! RetrieveAddress
 
     log.info(s"Initializing the API client actor...")
-    apiClientActor = context.system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
+    apiClientActor = context.system.actorOf(Props(ApiClientActor()), ApiClientActor.getClass.getName)
 
     log.info(s"Initializing the authentication view actor...")
     authenticationViewActor = context.system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)

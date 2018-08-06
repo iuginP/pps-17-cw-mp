@@ -15,7 +15,7 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
     TestKit.shutdownActorSystem(system)
   }
 
-  private val actor: ActorRef = system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
+  private val actor: ActorRef = system.actorOf(Props(ApiClientActor()), ApiClientActor.getClass.getName)
 
   private val USERNAME_LENGTH: Int = 10
   private val PASSWORD_LENGTH: Int = 10
