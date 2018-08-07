@@ -55,10 +55,10 @@ object CellView {
   private val CELL_BORDER_COLOR = Color.BLACK
 
   private val DEFAULT_CELL_BORDER =
-    new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+    new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0.5)))
 
   private val OWNER_CELL_BORDER =
-    new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2)))
+    new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1.5)))
 
   private val PASSIVE_CELL_COLOR = Color.LIGHTGREY
 
