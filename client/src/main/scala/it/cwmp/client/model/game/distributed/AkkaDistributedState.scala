@@ -2,7 +2,7 @@ package it.cwmp.client.model.game.distributed
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
-import akka.cluster.ddata.Replicator.{Subscribe, Unsubscribe, WriteMajority}
+import akka.cluster.ddata.Replicator.{Changed, Subscribe, Unsubscribe, WriteMajority}
 import akka.cluster.ddata.{Key, ReplicatedData, Replicator}
 import it.cwmp.utils.Logging
 
@@ -15,9 +15,13 @@ import scala.concurrent.duration._
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
+abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Unit)
+                                          (implicit replicatorActor: ActorRef)
   extends DistributedState[State, ActorRef] with Logging {
 
+  /**
+    * The type of replicated data for this distributed state
+    */
   type ReplicatedDataType <: ReplicatedData
 
   /**
@@ -50,7 +54,15 @@ abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
   /**
     * @return the behaviour enabling to listen for modification in the distributed state
     */
-  protected def passiveBehaviour: Receive
+  protected def passiveBehaviour: Receive = {
+    val changedDistributedKey = distributedKey;
+    {
+      // Called when notified of the distributed data change
+      case msg@Changed(`changedDistributedKey`) =>
+        log.debug("Being notified that distributed state has changed")
+        onDistributedStateUpdate(msg.get[ReplicatedDataType](changedDistributedKey))
+    }
+  }
 
   /**
     * @return the behaviour enabling to modify distributed state

@@ -3,7 +3,7 @@ package it.cwmp.client.model.game.distributed.impl
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator.{Changed, Update}
+import akka.cluster.ddata.Replicator.Update
 import akka.cluster.ddata._
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
@@ -21,8 +21,8 @@ import scala.language.implicitConversions
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
-                       (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
+case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
+  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
 
   override type ReplicatedDataType = LWWRegister[CellWorld]
 
@@ -30,13 +30,6 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
     LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
 
   override def initialize(initialState: CellWorld): Unit = writeDistributed(initialState)
-
-  override protected def passiveBehaviour: Receive = {
-    // Called when notified of the distributed data change
-    case msg@Changed(`distributedKey`) =>
-      log.debug("Being notified that distributed state has changed")
-      onWorldUpdate(msg.get[ReplicatedDataType](distributedKey))
-  }
 
   override protected def activeBehaviour: Receive = {
     case UpdateState(state: CellWorld) =>

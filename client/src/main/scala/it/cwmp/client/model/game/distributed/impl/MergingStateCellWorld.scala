@@ -5,7 +5,6 @@ import java.time.Instant
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator.Changed
 import akka.cluster.ddata._
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.{CELLS_DISTRIBUTED_KEY, DISTRIBUTED_KEY_NAME, INSTANT_DISTRIBUTED_KEY, TENTACLE_DISTRIBUTED_KEY}
@@ -21,21 +20,13 @@ import scala.language.implicitConversions
   * @param cluster         the cluster where this distributed data are exchanged
   * @author Enrico Siboni
   */
-case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)
-                                (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
+case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
+  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
 
   override type ReplicatedDataType = ORMultiMap[String, ReplicatedData]
 
   override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] =
     ORMultiMapKey[String, ReplicatedData](DISTRIBUTED_KEY_NAME)
-
-  override protected def passiveBehaviour: Receive = {
-    case msg@Changed(`distributedKey`) =>
-      log.debug("Being notified that distributed state has changed")
-    // TODO: retrieve cellworld and call strategy
-    //      onWorldUpdate(msg.get(distributedKey).value)
-
-  }
 
   override protected def activeBehaviour: Receive = ??? // TODO: write cellworld to distributed state like in initialize
 
