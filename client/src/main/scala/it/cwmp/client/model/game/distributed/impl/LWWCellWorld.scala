@@ -1,13 +1,14 @@
-package it.cwmp.client.model.game.impl
+package it.cwmp.client.model.game.distributed.impl
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.{Changed, Update}
 import akka.cluster.ddata._
-import it.cwmp.client.model.AkkaDistributedState
-import it.cwmp.client.model.AkkaDistributedState.UpdateState
-import it.cwmp.client.model.game.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
+import it.cwmp.client.model.game.distributed.AkkaDistributedState
+import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
+import it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
+import it.cwmp.client.model.game.impl.CellWorld
 
 /**
   * Distributed representation of the world where "Latest Write Wins"

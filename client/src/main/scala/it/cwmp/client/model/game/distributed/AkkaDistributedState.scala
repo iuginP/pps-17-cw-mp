@@ -1,4 +1,4 @@
-package it.cwmp.client.model
+package it.cwmp.client.model.game.distributed
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef

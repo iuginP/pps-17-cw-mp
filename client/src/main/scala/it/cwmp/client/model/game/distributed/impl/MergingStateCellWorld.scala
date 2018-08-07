@@ -1,12 +1,13 @@
-package it.cwmp.client.model.game.impl
+package it.cwmp.client.model.game.distributed.impl
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
 import akka.cluster.ddata.Replicator.Changed
 import akka.cluster.ddata._
-import it.cwmp.client.model.AkkaDistributedState
-import it.cwmp.client.model.game.impl.MergingStateCellWorld.{CELLS_DISTRIBUTED_KEY, INSTANT_DISTRIBUTED_KEY, MAP_DISTRIBUTED_KEY}
+import it.cwmp.client.model.game.distributed.AkkaDistributedState
+import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.{CELLS_DISTRIBUTED_KEY, INSTANT_DISTRIBUTED_KEY, MAP_DISTRIBUTED_KEY}
+import it.cwmp.client.model.game.impl.{Cell, CellWorld}
 
 /**
   * Distributed representation of CellWorld where modifications made concurrently are merged
@@ -29,7 +30,7 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)
     case msg@Changed(`distributedKey`) =>
       log.debug("Being notified that distributed state has changed")
     // TODO: retrieve cellworld and call strategy
-//      onWorldUpdate(msg.get(distributedKey).value)
+    //      onWorldUpdate(msg.get(distributedKey).value)
 
   }
 

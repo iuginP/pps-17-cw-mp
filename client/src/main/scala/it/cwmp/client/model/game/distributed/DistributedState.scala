@@ -1,4 +1,4 @@
-package it.cwmp.client.model
+package it.cwmp.client.model.game.distributed
 
 /**
   * A trait describing a distributed state
