@@ -73,9 +73,9 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
     var cellAndCanAttack = (cell, true)
 
     // all tentacles leaving from cell, checking if can still attack
-    for (tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) && cellAndCanAttack._2;
-         addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant);
-         attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)) {
+    for (tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) && cellAndCanAttack._2) {
+      val addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant)
+      val attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)
 
       if (cellAndCanAttack._1.energy <= attackerEnergyReduction) {
         cellAndCanAttack = (cellAndCanAttack._1, false) // if no more energy, the cell should not attack anymore
@@ -124,11 +124,12 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
                                           (implicit oldWorldInstant: Instant, elapsedTime: Duration): Cell = {
     var toReturnCell = cell
     val tentaclesToAttackedCell = allTentacles.filter(tentacle => Cell.ownerAndPositionMatch(tentacle.to, toReturnCell))
+    val actualInstant = oldWorldInstant.plus(elapsedTime)
 
-    for (tentacle <- tentaclesToAttackedCell;
-         actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime));
-         oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant);
-         addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)) {
+    for (tentacle <- tentaclesToAttackedCell) {
+      val actualAttackDuration = tentacle.hasReachedDestinationFor(actualInstant)
+      val oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant)
+      val addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)
 
       val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
 
@@ -142,7 +143,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
         if (toReturnCell.energy - energyDelta <= 0) {
           // if cell reaches 0 energy is conquered
 
-          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell,
+          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant,
             GameConstants.CELL_ENERGY_WHEN_BORN + (energyDelta - toReturnCell.energy))
         } else {
           toReturnCell = toReturnCell -- energyDelta
@@ -150,7 +151,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
       } else {
         // attacking passive cell
         if (actualAttackDuration.toMillis >= GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER) {
-          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
         }
       }
     }
@@ -163,13 +164,15 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
     *
     * @param cell                    the cell that has been conquered
     * @param tentaclesToAttackedCell the active tentacles attacking provided cell
+    * @param conquerInstant          the instant when conquer occurred
     * @param newEnergy               the energy the cell should have
     * @return the new cell after conquer
     */
   private def cellAfterConquer(cell: Cell,
                                tentaclesToAttackedCell: Seq[Tentacle],
+                               conquerInstant: Instant,
                                newEnergy: Double): Cell = {
-    val firstAttackerOfCell = tentaclesToAttackedCell.min(Tentacle.orderByLaunchInstant).from.owner
+    val firstAttackerOfCell = tentaclesToAttackedCell.max(Tentacle.orderByAttackDuration(conquerInstant)).from.owner
     Cell(firstAttackerOfCell, cell.position, newEnergy)
   }
 
