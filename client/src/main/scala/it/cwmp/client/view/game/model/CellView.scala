@@ -53,19 +53,23 @@ object CellView {
   private val CELL_DYING_FONT_COLOR = Color.DARKRED
 
   private val CELL_BORDER_COLOR = Color.BLACK
-  private val CELL_BORDER =
+
+  private val DEFAULT_CELL_BORDER =
     new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+
+  private val OWNER_CELL_BORDER =
+    new Border(new BorderStroke(CELL_BORDER_COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2)))
 
   private val PASSIVE_CELL_COLOR = Color.LIGHTGREY
 
   /**
-    * Implicit Conversion from Cell to CellView
+    * Conversion from Cell to CellView
     *
     * @return the ViewCell corresponding to the given Cell
     */
-  implicit def cellToView(cell: Cell): CellView =
+  def cellToView(cell: Cell, currentPlayerName: String): CellView =
     CellView(cell.position, sizingStrategy(cell), coloringStrategy(cell),
-      cell.energy, energyTextColoringStrategy(cell), CELL_BORDER)
+      cell.energy, energyTextColoringStrategy(cell), borderingStrategy((cell, currentPlayerName)))
 
   /**
     * Default cell coloring strategy
@@ -106,6 +110,16 @@ object CellView {
     case cell: Cell if cell.energy <= CELL_MINIMUM_RADIUS_FOR_ENERGY._2 => CELL_MINIMUM_RADIUS_FOR_ENERGY._1
     case cell: Cell if cell.energy >= CELL_MAX_RADIUS_FOR_ENERGY._2 => CELL_MAX_RADIUS_FOR_ENERGY._1
     case cell: Cell => radiusBetweenMinimumAndMaximum(cell, CELL_MINIMUM_RADIUS_FOR_ENERGY, CELL_MAX_RADIUS_FOR_ENERGY)
+  }
+
+  /**
+    * Default bordering strategy
+    *
+    * Makes thicker the border if cell is of current player
+    */
+  val borderingStrategy: ColoringStrategy[(Cell, String), Border] = {
+    case (cell: Cell, playerName: String) if cell.owner.username == playerName => OWNER_CELL_BORDER
+    case _ => DEFAULT_CELL_BORDER
   }
 
   /**
