@@ -5,9 +5,11 @@ import java.time.Instant
 import akka.actor.Actor.Receive
 import akka.actor.ActorRef
 import akka.cluster.Cluster
+import akka.cluster.ddata.Replicator.Update
 import akka.cluster.ddata._
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
-import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.{CELLS_DISTRIBUTED_KEY, DISTRIBUTED_KEY_NAME, INSTANT_DISTRIBUTED_KEY, TENTACLE_DISTRIBUTED_KEY}
+import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
+import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld._
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
 import it.cwmp.utils.Utils
 
@@ -28,11 +30,18 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
 
   override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] = ORMultiMapKey(DISTRIBUTED_KEY_NAME)
 
-  override protected def activeBehaviour: Receive = ??? // TODO: write cellworld to distributed state like in initialize
-
-  override def initialize(initialState: CellWorld): Unit = {
-    // TODO: transform initialState into a ORMultiMap and update distributed state
+  override protected def activeBehaviour: Receive = {
+    case UpdateState(state: CellWorld) =>
+      log.debug("Updating distributed state")
+      updateDistributedStateTo(state)
   }
+
+  override protected def updateDistributedStateTo(state: CellWorld): Unit =
+    replicatorActor !
+      Update(distributedKey,
+        ORMultiMap.emptyWithValueDeltas[String, ReplicatedData],
+        consistencyPolicy
+      )(_ => convertToDistributed(state))
 
   override protected implicit def convertToDistributed(state: CellWorld): ORMultiMap[String, ReplicatedData] = {
     val distributedState = ORMultiMap.emptyWithValueDeltas[String, ReplicatedData]

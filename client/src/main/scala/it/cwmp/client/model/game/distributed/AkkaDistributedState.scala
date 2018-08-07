@@ -24,32 +24,24 @@ abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Un
     */
   type ReplicatedDataType <: ReplicatedData
 
-  /**
-    * Subscribes the provided actor to receive changes in this distributed state
-    *
-    * @param subscriber the actor to subscribe
-    */
+  override def initialize(initialState: State): Unit = updateDistributedStateTo(initialState)
+
   override def subscribe(subscriber: ActorRef): Unit =
     replicatorActor ! Subscribe(distributedKey, subscriber)
 
-  /**
-    * Un-subscribes the provided actor from updates of this distributed state
-    *
-    * @param subscriber the exiting subscriber
-    */
   override def unsubscribe(subscriber: ActorRef): Unit =
     replicatorActor ! Unsubscribe(distributedKey, subscriber)
-
-  /**
-    * @return the consistency policy to adopt when writing updates in distributed state
-    */
-  protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
 
   /**
     * This behaviour provides an easy way to make the interested actor,
     * able to receive updates and make changes in this distributed state
     */
   def distributedStateBehaviour: Receive = passiveBehaviour orElse activeBehaviour
+
+  /**
+    * @return the consistency policy to adopt when writing updates in distributed state
+    */
+  protected def consistencyPolicy: Replicator.WriteConsistency = WriteMajority(1.seconds)
 
   /**
     * @return the behaviour enabling to listen for modification in the distributed state
@@ -73,6 +65,13 @@ abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Un
     * @return the key to access distributed state
     */
   protected def distributedKey: Key[ReplicatedDataType]
+
+  /**
+    * Updates the distributed state with provided new state
+    *
+    * @param state the new state to be published
+    */
+  protected def updateDistributedStateTo(state: State)
 
   /**
     * Implicit conversion from State to distributed state
