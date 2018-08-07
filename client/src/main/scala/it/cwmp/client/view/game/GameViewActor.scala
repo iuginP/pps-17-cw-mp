@@ -41,7 +41,7 @@ case class GameViewActor() extends Actor with Logging {
   private def showGUIBehaviour: Receive = {
     case ShowGUIWithName(name) =>
       playerName = name
-      gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE)
+      gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE, name)
       context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 

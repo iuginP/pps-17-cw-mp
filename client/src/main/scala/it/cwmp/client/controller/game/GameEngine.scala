@@ -53,7 +53,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
     * @return the evolved cell
     */
   private def naturallyEvolveCell(cell: Cell, elapsedTime: Duration): Cell = {
-    if (cell.owner == Cell.Passive.NO_OWNER) {
+    if (Cell.isPassiveCell(cell)) {
       cell.evolve(elapsedTime, Cell.Passive.defaultEvolutionStrategy)
     } else {
       cell.evolve(elapsedTime)
@@ -137,7 +137,7 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
         // owner of the cell is attacking his own cells -> heals the cell
         toReturnCell = toReturnCell ++ energyDelta
 
-      } else if (toReturnCell.owner != Cell.Passive.NO_OWNER) {
+      } else if (!Cell.isPassiveCell(toReturnCell)) {
         // attacking others cell -> damages the cell
 
         if (toReturnCell.energy - energyDelta <= 0) {

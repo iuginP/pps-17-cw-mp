@@ -34,7 +34,7 @@ trait CellWorldObjectDrawer {
     svgShape.setShape(svg)
     svgShape.setBorder(cell.border)
     svgShape.setPrefSize(cell.radius * 2, cell.radius * 2)
-    svgShape.setStyle("-fx-background-color: #" + getHexDecimalColor(cell.color))
+    svgShape.setStyle(getCellViewBackgroundStyle(cell.color))
     svgShape.setLayoutX(cell.center.x - cell.radius)
     svgShape.setLayoutY(cell.center.y - cell.radius)
     svgShape
@@ -109,6 +109,14 @@ trait CellWorldObjectDrawer {
   private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
     new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
   }
+
+  /**
+    * Returns the style for the svg shape of CellView
+    *
+    * @param color the color to set as background
+    * @return the string representing the CellView background
+    */
+  private def getCellViewBackgroundStyle(color: Color): String = "-fx-background-color: #" + getHexDecimalColor(color)
 
   /**
     * Returns the Hex string representation of the color
