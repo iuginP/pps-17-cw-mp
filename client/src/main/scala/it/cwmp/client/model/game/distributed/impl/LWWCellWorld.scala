@@ -26,8 +26,7 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)(implicit replicatorAct
 
   override type ReplicatedDataType = LWWRegister[CellWorld]
 
-  override protected val distributedKey: LWWRegisterKey[CellWorld] =
-    LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
+  override protected val distributedKey: LWWRegisterKey[CellWorld] = LWWRegisterKey(DISTRIBUTED_KEY_NAME)
 
   override def initialize(initialState: CellWorld): Unit = writeDistributed(initialState)
 

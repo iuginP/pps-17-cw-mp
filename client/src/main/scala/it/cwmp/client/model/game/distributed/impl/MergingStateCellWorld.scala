@@ -9,6 +9,7 @@ import akka.cluster.ddata._
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.{CELLS_DISTRIBUTED_KEY, DISTRIBUTED_KEY_NAME, INSTANT_DISTRIBUTED_KEY, TENTACLE_DISTRIBUTED_KEY}
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
+import it.cwmp.utils.Utils
 
 import scala.language.implicitConversions
 
@@ -25,8 +26,7 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
 
   override type ReplicatedDataType = ORMultiMap[String, ReplicatedData]
 
-  override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] =
-    ORMultiMapKey[String, ReplicatedData](DISTRIBUTED_KEY_NAME)
+  override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] = ORMultiMapKey(DISTRIBUTED_KEY_NAME)
 
   override protected def activeBehaviour: Receive = ??? // TODO: write cellworld to distributed state like in initialize
 
@@ -48,7 +48,27 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
     distributedState
   }
 
-  override protected implicit def convertFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = ???
+  override protected implicit def convertFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
+    val instantOption = distributedData.get(INSTANT_DISTRIBUTED_KEY)
+    val charactersOption = distributedData.get(CELLS_DISTRIBUTED_KEY)
+    val attacksOption = distributedData.get(TENTACLE_DISTRIBUTED_KEY)
+
+    (instantOption, charactersOption, attacksOption) match {
+      case (Some(replicatedInstant), Some(replicatedCharacters), Some(replicatedAttacks))
+        if replicatedInstant.nonEmpty && replicatedCharacters.nonEmpty && replicatedAttacks.nonEmpty =>
+
+        val distributedInstant = replicatedInstant.asInstanceOf[LWWRegister[Instant]]
+        val distributedCharacters = replicatedCharacters.asInstanceOf[ORSet[Cell]]
+        val distributedAttacks = replicatedAttacks.asInstanceOf[ORSet[Tentacle]]
+
+        CellWorld(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)
+
+      case cause@_ =>
+        val errorMessage = s"Cannot convert from distributed data: $cause"
+        log.error(errorMessage)
+        throw Utils.parseException("Converting from DistributedData to CellWorld", errorMessage)
+    }
+  }
 }
 
 /**
