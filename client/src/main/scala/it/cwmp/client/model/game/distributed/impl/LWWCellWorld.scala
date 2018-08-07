@@ -35,11 +35,12 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)(implicit replicatorAct
   }
 
   override protected def updateDistributedStateTo(state: CellWorld): Unit =
-    replicatorActor ! Update(distributedKey, convertToDistributed(state), consistencyPolicy)(_.withValue(state))
+    replicatorActor ! Update(distributedKey, LWWRegister(state), consistencyPolicy)(distributedModify(_, state))
 
-  override protected implicit def convertToDistributed(state: CellWorld): LWWRegister[CellWorld] = LWWRegister(state)
+  override protected def distributedModify(oldDistributedState: LWWRegister[CellWorld], newState: CellWorld): LWWRegister[CellWorld] =
+    oldDistributedState.withValue(newState)
 
-  override protected implicit def convertFromDistributed(distributedData: LWWRegister[CellWorld]): CellWorld = distributedData.value
+  override protected def parseFromDistributed(distributedData: LWWRegister[CellWorld]): CellWorld = distributedData.value
 }
 
 /**

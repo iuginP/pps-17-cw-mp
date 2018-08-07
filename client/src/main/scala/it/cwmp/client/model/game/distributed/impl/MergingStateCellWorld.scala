@@ -41,23 +41,24 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
       Update(distributedKey,
         ORMultiMap.emptyWithValueDeltas[String, ReplicatedData],
         consistencyPolicy
-      )(_ => convertToDistributed(state))
+      )(distributedModify(_, state))
 
-  override protected implicit def convertToDistributed(state: CellWorld): ORMultiMap[String, ReplicatedData] = {
-    val distributedState = ORMultiMap.emptyWithValueDeltas[String, ReplicatedData]
+  override protected def distributedModify(oldDistributedState: ORMultiMap[String, ReplicatedData],
+                                           newState: CellWorld): ORMultiMap[String, ReplicatedData] = {
 
-    val distributedInstant = LWWRegister[Instant](state.instant)
-    val distributedCharacters = state.characters.foldLeft(ORSet.empty[Cell])(_ + _)
-    val distributedAttacks = state.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)
+    val distributedInstant = LWWRegister[Instant](newState.instant)
+    val distributedCharacters = newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)
+    val distributedAttacks = newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)
 
-    distributedState.addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
-    distributedState.addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
-    distributedState.addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)
-
-    distributedState
+    oldDistributedState.-(INSTANT_DISTRIBUTED_KEY)
+      .-(CELLS_DISTRIBUTED_KEY)
+      .-(TENTACLE_DISTRIBUTED_KEY)
+      .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
+      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
+      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)
   }
 
-  override protected implicit def convertFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
+  override protected def parseFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
     val instantOption = distributedData.get(INSTANT_DISTRIBUTED_KEY)
     val charactersOption = distributedData.get(CELLS_DISTRIBUTED_KEY)
     val attacksOption = distributedData.get(TENTACLE_DISTRIBUTED_KEY)
@@ -66,9 +67,9 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
       case (Some(replicatedInstant), Some(replicatedCharacters), Some(replicatedAttacks))
         if replicatedInstant.nonEmpty && replicatedCharacters.nonEmpty && replicatedAttacks.nonEmpty =>
 
-        val distributedInstant = replicatedInstant.asInstanceOf[LWWRegister[Instant]]
-        val distributedCharacters = replicatedCharacters.asInstanceOf[ORSet[Cell]]
-        val distributedAttacks = replicatedAttacks.asInstanceOf[ORSet[Tentacle]]
+        val distributedInstant = replicatedInstant.head.asInstanceOf[LWWRegister[Instant]]
+        val distributedCharacters = replicatedCharacters.head.asInstanceOf[ORSet[Cell]]
+        val distributedAttacks = replicatedAttacks.head.asInstanceOf[ORSet[Tentacle]]
 
         CellWorld(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)
 
@@ -81,7 +82,7 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
 }
 
 /**
-  * Companion object, with actor messages
+  * Companion object
   */
 object MergingStateCellWorld {
   private val DISTRIBUTED_KEY_NAME = "distributedKey"

@@ -74,12 +74,13 @@ abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Un
   protected def updateDistributedStateTo(state: State)
 
   /**
-    * Implicit conversion from State to distributed state
+    * A function to modify distributed state to the new one
     *
-    * @param state the state to convert to distributed
-    * @return the distributed version of the given state
+    * @param oldDistributedState the old distributed state to modify
+    * @param newState            the new state to inject
+    * @return the new distributed state
     */
-  protected implicit def convertToDistributed(state: State): ReplicatedDataType
+  protected def distributedModify(oldDistributedState: ReplicatedDataType, newState: State): ReplicatedDataType
 
   /**
     * Implicit conversion from distributed state to application State
@@ -87,7 +88,7 @@ abstract class AkkaDistributedState[State](onDistributedStateUpdate: State => Un
     * @param distributedData the distributed data to convert
     * @return the application version of state
     */
-  protected implicit def convertFromDistributed(distributedData: ReplicatedDataType): State
+  protected implicit def parseFromDistributed(distributedData: ReplicatedDataType): State
 }
 
 /**
