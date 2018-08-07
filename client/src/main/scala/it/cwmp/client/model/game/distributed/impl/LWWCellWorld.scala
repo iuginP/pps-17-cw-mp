@@ -10,6 +10,8 @@ import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
 import it.cwmp.client.model.game.impl.CellWorld
 
+import scala.language.implicitConversions
+
 /**
   * Distributed representation of the world where "Latest Write Wins"
   *
@@ -22,6 +24,8 @@ import it.cwmp.client.model.game.impl.CellWorld
 case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
                        (implicit replicatorActor: ActorRef, cluster: Cluster) extends AkkaDistributedState[CellWorld] {
 
+  override type ReplicatedDataType = LWWRegister[CellWorld]
+
   override protected val distributedKey: LWWRegisterKey[CellWorld] =
     LWWRegisterKey[CellWorld](DISTRIBUTED_KEY_NAME)
 
@@ -31,7 +35,7 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
     // Called when notified of the distributed data change
     case msg@Changed(`distributedKey`) =>
       log.debug("Being notified that distributed state has changed")
-      onWorldUpdate(msg.get(distributedKey).value)
+      onWorldUpdate(msg.get[ReplicatedDataType](distributedKey))
   }
 
   override protected def activeBehaviour: Receive = {
@@ -46,7 +50,11 @@ case class LWWCellWorld(onWorldUpdate: CellWorld => Unit)
     * @param state the state to write
     */
   private def writeDistributed(state: CellWorld): Unit =
-    replicatorActor ! Update(distributedKey, LWWRegister[CellWorld](state), consistencyPolicy)(_.withValue(state))
+    replicatorActor ! Update(distributedKey, convertToDistributed(state), consistencyPolicy)(_.withValue(state))
+
+  override protected implicit def convertToDistributed(state: CellWorld): LWWRegister[CellWorld] = LWWRegister(state)
+
+  override protected implicit def convertFromDistributed(distributedData: LWWRegister[CellWorld]): CellWorld = distributedData.value
 }
 
 /**

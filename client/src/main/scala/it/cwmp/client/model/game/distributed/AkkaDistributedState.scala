@@ -18,6 +18,8 @@ import scala.concurrent.duration._
 abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
   extends DistributedState[State, ActorRef] with Logging {
 
+  type ReplicatedDataType <: ReplicatedData
+
   /**
     * Subscribes the provided actor to receive changes in this distributed state
     *
@@ -58,7 +60,23 @@ abstract class AkkaDistributedState[State](implicit replicatorActor: ActorRef)
   /**
     * @return the key to access distributed state
     */
-  protected def distributedKey: Key[_ <: ReplicatedData]
+  protected def distributedKey: Key[ReplicatedDataType]
+
+  /**
+    * Implicit conversion from State to distributed state
+    *
+    * @param state the state to convert to distributed
+    * @return the distributed version of the given state
+    */
+  protected implicit def convertToDistributed(state: State): ReplicatedDataType
+
+  /**
+    * Implicit conversion from distributed state to application State
+    *
+    * @param distributedData the distributed data to convert
+    * @return the application version of state
+    */
+  protected implicit def convertFromDistributed(distributedData: ReplicatedDataType): State
 }
 
 /**
