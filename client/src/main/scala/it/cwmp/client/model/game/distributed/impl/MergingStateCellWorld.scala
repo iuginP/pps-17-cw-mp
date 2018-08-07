@@ -50,9 +50,8 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
     val distributedCharacters = newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)
     val distributedAttacks = newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)
 
-    oldDistributedState.-(INSTANT_DISTRIBUTED_KEY)
-      .-(CELLS_DISTRIBUTED_KEY)
-      .-(TENTACLE_DISTRIBUTED_KEY)
+    oldDistributedState.entries
+      .foldLeft(oldDistributedState)(_ - _._1) // removes all bindings
       .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
       .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
       .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)
