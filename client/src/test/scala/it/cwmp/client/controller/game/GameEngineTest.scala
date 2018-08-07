@@ -31,7 +31,7 @@ class GameEngineTest extends FunSpec with Logging {
 
   // this is a world where Elia and Davide are attacking Enrico...
   // Elia attacked Enrico 500 milliseconds before Davide
-  // after some time Enrico will be conquered by Elia, because he is the first attacker
+  // after some time Enrico will be conquered by Elia, because he has been attacking for more time
   // Davide will conquer a passive cell near him
   private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
 
