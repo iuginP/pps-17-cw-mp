@@ -108,6 +108,7 @@ class CellTest extends FunSpec {
       val passiveCell = Cell(Cell.Passive.NO_OWNER, position, GameConstants.PASSIVE_CELL_ENERGY_WHEN_BORN)
       it("should have no owner") {
         assert(passiveCell.owner == Cell.Passive.NO_OWNER)
+        assert(Cell.isPassiveCell(passiveCell))
       }
 
       it("should not evolve") {

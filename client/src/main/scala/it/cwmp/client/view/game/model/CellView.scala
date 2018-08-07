@@ -73,7 +73,7 @@ object CellView {
     * Color based on the username hash value
     */
   val coloringStrategy: ColoringStrategy[Cell, Color] = (cell: Cell) => {
-    if (cell.owner == Cell.Passive.NO_OWNER) {
+    if (Cell.isPassiveCell(cell)) {
       PASSIVE_CELL_COLOR
     } else {
       implicit def colorFromRGB(userColor: Rgb): Color =

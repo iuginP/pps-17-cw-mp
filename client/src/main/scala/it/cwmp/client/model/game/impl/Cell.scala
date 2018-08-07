@@ -57,6 +57,14 @@ object Cell {
     cell1.owner == cell2.owner && cell1.position == cell2.position
 
   /**
+    * Tells if the cell is Passive
+    *
+    * @param cell the cell to check
+    * @return true if cell is passive, false otherwise
+    */
+  def isPassiveCell(cell: Cell): Boolean = cell.owner == Passive.NO_OWNER
+
+  /**
     * A class to manipulate cells
     *
     * @param cell the cell to manipulate
