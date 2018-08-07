@@ -73,9 +73,9 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
     var cellAndCanAttack = (cell, true)
 
     // all tentacles leaving from cell, checking if can still attack
-    for (tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) && cellAndCanAttack._2;
-         addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant);
-         attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)) {
+    for (tentacle <- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) && cellAndCanAttack._2) {
+      val addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant)
+      val attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)
 
       if (cellAndCanAttack._1.energy <= attackerEnergyReduction) {
         cellAndCanAttack = (cellAndCanAttack._1, false) // if no more energy, the cell should not attack anymore
@@ -125,10 +125,10 @@ object GameEngine extends EvolutionStrategy[CellWorld, Duration] with Logging {
     var toReturnCell = cell
     val tentaclesToAttackedCell = allTentacles.filter(tentacle => Cell.ownerAndPositionMatch(tentacle.to, toReturnCell))
 
-    for (tentacle <- tentaclesToAttackedCell;
-         actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime));
-         oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant);
-         addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)) {
+    for (tentacle <- tentaclesToAttackedCell) {
+      val actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime))
+      val oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant)
+      val addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)
 
       val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
 
