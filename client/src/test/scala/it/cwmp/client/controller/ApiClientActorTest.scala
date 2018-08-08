@@ -3,12 +3,9 @@ package it.cwmp.client.controller
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import it.cwmp.client.controller.messages.{AuthenticationRequests, AuthenticationResponses}
-import it.cwmp.model.{Address, Room}
-import it.cwmp.services.wrapper.{FakeAuthenticationApiWrapper, RoomsApiWrapper}
+import it.cwmp.services.wrapper.{FakeAuthenticationApiWrapper, FakeRoomsApiWrapper}
 import it.cwmp.utils.Utils
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
-import scala.concurrent.Future
 
 class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -28,23 +25,7 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
 
   private val actor: ActorRef = system.actorOf(Props(ApiClientActor(
     FakeAuthenticationApiWrapper(),
-    new RoomsApiWrapper {
-      override def createRoom(roomName: String, playersNumber: Int)(implicit userToken: String): Future[String] = ???
-
-      override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] = ???
-
-      override def roomInfo(roomID: String)(implicit userToken: String): Future[Room] = ???
-
-      override def exitRoom(roomID: String)(implicit userToken: String): Future[Unit] = ???
-
-      override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] = ???
-
-      override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)(implicit userToken: String): Future[Unit] = ???
-
-      override def publicRoomInfo(playersNumber: Int)(implicit userToken: String): Future[Room] = ???
-
-      override def exitPublicRoom(playersNumber: Int)(implicit userToken: String): Future[Unit] = ???
-    }
+    FakeRoomsApiWrapper()
   )), ApiClientActor.getClass.getName)
 
   "API authentication actor" must {

@@ -8,6 +8,11 @@ import it.cwmp.utils.Utils.httpStatusNameToCode
 
 import scala.concurrent.Future
 
+/**
+  * Fake class implementing a version of the AuthenticationApiWrapper in memory.
+  * This is useful when you need to test something that uses the authentication
+  * and you don't want to start the complete service.
+  */
 case class FakeAuthenticationApiWrapper() extends AuthenticationApiWrapper {
 
   private val participantAddress = "http://127.0.1.1:8668/api/client/pFU9qOCU3kmYqwk1qqkl/room/participants"
