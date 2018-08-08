@@ -12,6 +12,7 @@ object ServerParameters {
   val API_UNPUBLISH_SERVICE = s"$API_BASE_PATH/unPublish"
   val API_DISCOVER_SERVICE = s"$API_BASE_PATH/discover"
 
+  val PARAMETER_REGISTRATION = "service_registration"
   val PARAMETER_NAME = "service_name"
   val PARAMETER_HOST = "service_host"
   val PARAMETER_PORT = "service_port"

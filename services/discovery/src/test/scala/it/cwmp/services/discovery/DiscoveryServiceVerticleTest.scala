@@ -8,9 +8,11 @@ import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.VertxClient
 
+import scala.concurrent.Future
+
 class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
   with HttpMatchers with FutureMatchers with VertxClient {
-  
+
   override protected val clientOptions: WebClientOptions = WebClientOptions()
     .setDefaultHost("localhost")
     .setDefaultPort(DEFAULT_PORT)
@@ -27,7 +29,7 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
         .addQueryParam(PARAMETER_HOST, host)
         .addQueryParam(PARAMETER_PORT, port toString)
         .sendFuture()
-        .shouldAnswerWith(CREATED)
+        .shouldAnswerWith(CREATED, _.exists(_.nonEmpty))
     }
 
     it("when empty parameters should fail") {
@@ -40,17 +42,16 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
       val name = nextName
       val host = nextHost
       val port = nextPort
-      
+
       for (
-        _ <- client.post(API_PUBLISH_SERVICE)
+        record <- client.post(API_PUBLISH_SERVICE)
           .addQueryParam(PARAMETER_NAME, name)
           .addQueryParam(PARAMETER_HOST, host)
           .addQueryParam(PARAMETER_PORT, port toString)
-          .sendFuture();
+          .sendFuture()
+          .mapBody(body => Future.successful(body.getOrElse("")));
         apiRequest = client.delete(API_UNPUBLISH_SERVICE)
-          .addQueryParam(PARAMETER_NAME, name)
-          .addQueryParam(PARAMETER_HOST, host)
-          .addQueryParam(PARAMETER_PORT, port toString)
+          .addQueryParam(PARAMETER_REGISTRATION, record)
           .sendFuture();
         assertion <- apiRequest shouldAnswerWith OK
       ) yield assertion
@@ -60,15 +61,11 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
       client.delete(API_UNPUBLISH_SERVICE) sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
-    it("when service doesn't exists should fail") {
-      val name = nextName
-      val host = nextHost
-      val port = nextPort
+    it("when invalid service should fail") {
+      val record = "INVALID"
 
       client.delete(API_UNPUBLISH_SERVICE)
-        .addQueryParam(PARAMETER_NAME, name)
-        .addQueryParam(PARAMETER_HOST, host)
-        .addQueryParam(PARAMETER_PORT, port toString)
+        .addQueryParam(PARAMETER_REGISTRATION, record)
         .sendFuture()
         .shouldAnswerWith(BAD_REQUEST)
     }
