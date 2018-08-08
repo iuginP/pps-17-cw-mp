@@ -1,6 +1,6 @@
 package it.cwmp.services.wrapper
 
-import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, NOT_FOUND, UNAUTHORIZED}
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, NOT_FOUND}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.utils.Utils
@@ -15,14 +15,7 @@ import scala.util.{Failure, Success}
   * This is useful when you need to test something that uses the rooms
   * and you don't want to start the complete service.
   */
-case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
-
-  val registeredUsers: Map[String, User] = Map(
-    "TOKEN_1" -> User("Enrico"),
-    "TOKEN_2" -> User("Eugenio"),
-    "TOKEN_3" -> User("Elia"),
-    "TOKEN_4" -> User("Davide")
-  )
+case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrapper) extends RoomsApiWrapper {
 
   private val ROOM_ID_LENGTH = 10
   private val publicPrefix = "public"
@@ -35,7 +28,7 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
   override def createRoom(roomName: String, playersNumber: Int)
                          (implicit userToken: String): Future[String] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       val roomID = Utils.randomString(ROOM_ID_LENGTH)
       rooms = rooms :+ Room(roomID, roomName, playersNumber, Seq())
       roomsParticipantAddresses = roomsParticipantAddresses + (roomID -> Seq())
@@ -45,13 +38,13 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
   override def enterRoom(roomID: String, userAddress: Address, notificationAddress: Address)
                         (implicit userToken: String): Future[Unit] =
     Future {
-      checkAuthentication(userToken)
+      val user = authenticatedUser(userToken)
       val room = getRoomFromID(roomID)
       rooms = rooms.filterNot(_ == room) :+ Room(
         room.identifier,
         room.name,
         room.neededPlayersNumber,
-        room.participants :+ Participant(registeredUsers(userToken).username, userAddress.address))
+        room.participants :+ Participant(user.username, userAddress.address))
 
       val newAddresses = roomsParticipantAddresses(roomID) :+ notificationAddress.address
       roomsParticipantAddresses = roomsParticipantAddresses - roomID + (roomID -> newAddresses)
@@ -66,14 +59,14 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
   override def roomInfo(roomID: String)
                        (implicit userToken: String): Future[Room] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       getRoomFromID(roomID)
     }
 
   override def exitRoom(roomID: String)
                        (implicit userToken: String): Future[Unit] =
     Future {
-      checkAuthentication(userToken)
+      val user = authenticatedUser(userToken)
       val room = getRoomFromID(roomID)
       if (room.participants.size == room.neededPlayersNumber) {
         throw HTTPException(BAD_REQUEST)
@@ -82,48 +75,53 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
           room.identifier,
           room.name,
           room.neededPlayersNumber,
-          room.participants.filterNot(_.username == registeredUsers(userToken).username)
+          room.participants.filterNot(_.username == user.username)
         )
       }
     }
 
   override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       rooms.filter(_.identifier.startsWith(publicPrefix))
     }
 
   override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
                               (implicit userToken: String): Future[Unit] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       enterRoom(getPublicRoomIDFromPlayersNumber(playersNumber), userAddress, notificationAddress)
     }
 
   override def publicRoomInfo(playersNumber: Int)
                              (implicit userToken: String): Future[Room] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       roomInfo(getPublicRoomIDFromPlayersNumber(playersNumber)).value match {
         case Some(Success(room)) => room
         case Some(Failure(ex)) => throw ex
-        case _ => throw new IllegalStateException("Something went wrong in mocked version of RoomsApiWrapper")
+        case _ => throw mockedRoomsError
       }
     }
 
   override def exitPublicRoom(playersNumber: Int)
                              (implicit userToken: String): Future[Unit] =
     Future {
-      checkAuthentication(userToken)
+      authenticatedUser(userToken)
       exitRoom(getPublicRoomIDFromPlayersNumber(playersNumber))
     }
 
   /**
-    * Handle method to check authentication in this mocked version of ApiWrapper
+    * Handle method get user authenticated with provided token in this mocked version of ApiWrapper
     *
     * @param userToken the token to check
     */
-  private def checkAuthentication(userToken: String): Unit = if (!registeredUsers.contains(userToken)) throw HTTPException(UNAUTHORIZED)
+  private def authenticatedUser(userToken: String): User =
+    authenticationApiWrapper.validate(userToken).value match {
+      case Some(Success(user)) => user
+      case Some(Failure(ex)) => throw ex
+      case _ => throw mockedRoomsError
+    }
 
   /**
     * Handle method to get room in this mocked version of ApiWrapper
@@ -147,4 +145,9 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
       case Some(room) => room.identifier
       case _ => throw HTTPException(NOT_FOUND)
     }
+
+  /**
+    * @return error of the fake rooms api wrapper
+    */
+  private def mockedRoomsError: Throwable = new IllegalStateException("Something went wrong in mocked version of RoomsApiWrapper")
 }
