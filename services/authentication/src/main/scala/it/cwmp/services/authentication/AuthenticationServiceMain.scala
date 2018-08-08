@@ -17,7 +17,7 @@ object AuthenticationServiceMain extends App with VertxInstance with Logging {
 
   // Executing the app
   log.info("Deploying AuthenticationService... ")
-  vertx.deployVerticleFuture(AuthenticationServiceVerticle())
+  vertx.deployVerticleFuture(AuthenticationServiceVerticle(current_port))
     .andThen {
       case Success(_) =>
         log.info("AuthenticationService up and running!")

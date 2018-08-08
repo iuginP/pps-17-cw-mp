@@ -22,13 +22,11 @@ import scala.util.{Failure, Success, Try}
   *
   * @author Enrico Siboni
   */
-class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
+class RoomsServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT)(implicit val validationStrategy: Validation[String, User],
                            implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
   extends VertxServer with Logging {
 
   private var daoFuture: Future[RoomDAO] = _
-
-  override protected val serverPort: Int = DEFAULT_PORT
 
   override protected def initRouter(router: Router): Unit = {
     router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler
@@ -299,9 +297,9 @@ class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, U
   */
 object RoomsServiceVerticle {
 
-  def apply(implicit validationStrategy: Validation[String, User],
+  def apply(implicit port: Int = DEFAULT_PORT, validationStrategy: Validation[String, User],
             clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
-    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+    new RoomsServiceVerticle(port)(validationStrategy, clientCommunicationStrategy)
 
   private val INVALID_PARAMETER_ERROR: String = "Invalid parameters: "
 

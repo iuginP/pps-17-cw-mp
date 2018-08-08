@@ -23,7 +23,7 @@ object RoomsServiceMain extends App with VertxInstance with Logging {
   for (
     // Check for the presence of an AuthenticationApiWrapper
     (host, port) <- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
-    _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
+    _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(current_port, AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
   ) yield {
     log.info("RoomsService up and running!")
     discoveryApiWrapper.publish(Service.DISCOVERY_NAME, current_host, current_port)
