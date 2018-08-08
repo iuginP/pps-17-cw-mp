@@ -1,6 +1,6 @@
 package it.cwmp.model
 
-import org.scalatest.FunSpec
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
 
 /**
   * Simple class that models the basic logic to test a standard model class
@@ -8,7 +8,7 @@ import org.scalatest.FunSpec
   *
   * @author Elia Di Pasquale
   */
-abstract class ModelBaseTest(val className: String)extends FunSpec {
+abstract class ModelBaseTest(val className: String) extends FunSpec {
 
   describe(s"An instance of $className") {
 
