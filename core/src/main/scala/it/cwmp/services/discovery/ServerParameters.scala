@@ -1,0 +1,14 @@
+package it.cwmp.services.discovery
+
+/**
+  * An object containing Authentication Service info
+  */
+object ServerParameters {
+
+  val DEFAULT_PORT = 7777
+
+  private val API_BASE_PATH = "/api/discovery"
+  val API_PUBLISH_SERVICE = s"$API_BASE_PATH/publish"
+  val API_UNPUBLISH_SERVICE = s"$API_BASE_PATH/unPublish"
+  val API_DISCOVER_SERVICE = s"$API_BASE_PATH/discover"
+}
