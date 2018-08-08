@@ -40,6 +40,8 @@ case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrappe
     Future {
       val user = authenticatedUser(userToken)
       val room = getRoomFromID(roomID)
+      if (rooms.exists(room => room.participants.exists(_.username == user.username))) throw HTTPException(BAD_REQUEST)
+
       rooms = rooms.filterNot(_ == room) :+ Room(
         room.identifier,
         room.name,
@@ -68,6 +70,7 @@ case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrappe
     Future {
       val user = authenticatedUser(userToken)
       val room = getRoomFromID(roomID)
+      if (!room.participants.exists(_.username == user.username)) throw HTTPException(BAD_REQUEST)
       if (room.participants.size == room.neededPlayersNumber) {
         throw HTTPException(BAD_REQUEST)
       } else {
