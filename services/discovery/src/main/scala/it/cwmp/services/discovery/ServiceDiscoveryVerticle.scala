@@ -76,9 +76,9 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
 
   private def getRecordFromRequest: Option[Record] =
     for (
-      name <- request.getHeader("Name");
-      host <- request.getHeader("host");
-      portString <- request.getHeader("port");
+      name <- request.getParam(PARAMETER_NAME);
+      host <- request.getParam(PARAMETER_HOST);
+      portString <- request.getParam(PARAMETER_PORT);
       port = Integer.parseInt(portString);
       record = HttpEndpoint.createRecord(name, host, port, "/")
     ) yield record
@@ -86,7 +86,7 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
   private def handlerDiscoverService: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received discover request.")
     (for (
-      name <- request.getHeader("Name")
+      name <- request.getParam(PARAMETER_NAME)
     ) yield {
       //publish the service
       discovery.getRecordFuture(_.getName() == name) onComplete {
