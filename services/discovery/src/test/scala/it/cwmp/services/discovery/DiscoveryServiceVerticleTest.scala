@@ -1,6 +1,7 @@
 package it.cwmp.services.discovery
 
 import io.netty.handler.codec.http.HttpResponseStatus._
+import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.services.discovery.ServerParameters._
 import it.cwmp.services.testing.discovery.DiscoveryWebServiceTesting
@@ -86,7 +87,12 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
         apiRequest = client.get(API_DISCOVER_SERVICE)
           .addQueryParam(PARAMETER_NAME, name)
           .sendFuture();
-        assertion <- apiRequest shouldAnswerWith OK
+        assertion <- apiRequest shouldAnswerWith(OK, body => {
+          body
+            .map(new JsonObject(_))
+            .filter(_.getString("host").nonEmpty)
+            .exists(_.getInteger("port", -1) != -1)
+        })
       ) yield assertion
     }
 

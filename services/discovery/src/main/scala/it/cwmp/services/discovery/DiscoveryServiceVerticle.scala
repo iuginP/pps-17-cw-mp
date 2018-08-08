@@ -94,7 +94,7 @@ case class DiscoveryServiceVerticle() extends VertxServer with Logging {
         case Success(record) if record.getStatus == Status.UP =>
           // Publication successful
           log.info(s"Service $name successfully found!")
-          val metadata: JsonObject = record.getMetadata
+          val metadata: JsonObject = record.getLocation
           sendResponse(OK, Some(metadata toString))
         case _ =>
           // publication failed
