@@ -3,6 +3,7 @@ package it.cwmp.services.discovery
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.vertx.core.Handler
 import io.vertx.lang.scala.json.JsonObject
+import io.vertx.scala.core.http.HttpServerRequest
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import io.vertx.scala.servicediscovery.types.HttpEndpoint
 import io.vertx.scala.servicediscovery.{Record, ServiceDiscovery, ServiceDiscoveryOptions}
@@ -13,7 +14,7 @@ import it.cwmp.utils.{Logging, VertxServer}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
+case class DiscoveryServiceVerticle() extends VertxServer with Logging {
 
   override protected val serverPort: Int = DEFAULT_PORT
 
@@ -41,7 +42,7 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
   private def handlerPublishService: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received publish request.")
     (for (
-      record <- getRecordFromRequest
+      record <- getRecordFromRequest(request)
     ) yield {
       //publish the service
       discovery.publishFuture(record) onComplete {
@@ -59,7 +60,7 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
   private def handlerUnPublishService: Handler[RoutingContext] = implicit routingContext => {
     log.debug("Received un-publish request.")
     (for (
-      record <- getRecordFromRequest
+      record <- getRecordFromRequest(request)
     ) yield {
       //publish the service
       discovery.unpublishFuture(record.getRegistration) onComplete {
@@ -74,7 +75,7 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
     }) orElse Some(sendResponse(BAD_REQUEST))
   }
 
-  private def getRecordFromRequest: Option[Record] =
+  private def getRecordFromRequest(request: HttpServerRequest): Option[Record] =
     for (
       name <- request.getParam(PARAMETER_NAME);
       host <- request.getParam(PARAMETER_HOST);
@@ -89,7 +90,7 @@ case class ServiceDiscoveryVerticle() extends VertxServer with Logging {
       name <- request.getParam(PARAMETER_NAME)
     ) yield {
       //publish the service
-      discovery.getRecordFuture(_.getName() == name) onComplete {
+      discovery.getRecordFuture(_.getName == name) onComplete {
         case Success(record) =>
           // Publication successful
           log.info(s"Service $name successfully found!")
