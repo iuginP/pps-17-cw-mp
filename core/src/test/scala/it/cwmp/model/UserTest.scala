@@ -13,8 +13,8 @@ import it.cwmp.model.User.Converters._
   */
 class UserTest extends ModelBaseTest("User") {
 
-  private var userName = "general_name"
-  private var user = User(userName)
+  private val userName = "general_name"
+  private val user = User(userName)
 
 
   override protected def declarationInputTests(): Unit = assert(user.username == userName)

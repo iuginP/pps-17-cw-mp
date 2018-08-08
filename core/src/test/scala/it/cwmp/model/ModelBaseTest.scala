@@ -1,6 +1,6 @@
 package it.cwmp.model
 
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
+import org.scalatest.FunSpec
 
 /**
   * Simple class that models the basic logic to test a standard model class
