@@ -23,7 +23,10 @@ case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrappe
   private var rooms: Seq[Room] = Seq(
     Room(publicPrefix + Utils.randomString(ROOM_ID_LENGTH), publicPrefix + 2, 2, Seq())
   )
-  private var roomsParticipantAddresses: Map[String, Seq[String]] = Map()
+
+  private var roomsParticipantAddresses: Map[String, Seq[String]] = Map(
+    rooms.head.identifier -> Seq()
+  )
 
   override def createRoom(roomName: String, playersNumber: Int)
                          (implicit userToken: String): Future[String] =
@@ -91,15 +94,11 @@ case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrappe
 
   override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
                               (implicit userToken: String): Future[Unit] =
-    Future {
-      authenticatedUser(userToken)
-      enterRoom(getPublicRoomIDFromPlayersNumber(playersNumber), userAddress, notificationAddress)
-    }
+    enterRoom(getPublicRoomIDFromPlayersNumber(playersNumber), userAddress, notificationAddress)
 
   override def publicRoomInfo(playersNumber: Int)
                              (implicit userToken: String): Future[Room] =
     Future {
-      authenticatedUser(userToken)
       roomInfo(getPublicRoomIDFromPlayersNumber(playersNumber)).value match {
         case Some(Success(room)) => room
         case Some(Failure(ex)) => throw ex
@@ -109,10 +108,7 @@ case class FakeRoomsApiWrapper(authenticationApiWrapper: AuthenticationApiWrappe
 
   override def exitPublicRoom(playersNumber: Int)
                              (implicit userToken: String): Future[Unit] =
-    Future {
-      authenticatedUser(userToken)
-      exitRoom(getPublicRoomIDFromPlayersNumber(playersNumber))
-    }
+    exitRoom(getPublicRoomIDFromPlayersNumber(playersNumber))
 
   /**
     * Handle method get user authenticated with provided token in this mocked version of ApiWrapper

@@ -86,7 +86,7 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
         cleanUpPrivateRoom(roomID)
       }
 
-      "block him from entering a room twice" in {
+      "block him from entering a private room twice" in {
         val roomID = createPrivateRoomAndGetID(roomName, playersNumber)
         actor ! RoomsRequests.ServiceEnterPrivate(roomID, playerAddress, playerNotificationAddress, token)
         expectMsg(RoomsResponses.EnterPrivateSuccess)
@@ -97,7 +97,7 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
         cleanUpPrivateRoom(roomID)
       }
 
-      "block him if entering a room when being inside another" in {
+      "block him if entering a private room when being inside another" in {
         val roomID = createPrivateRoomAndGetID(roomName, playersNumber)
         val otherRoomID = createPrivateRoomAndGetID(roomName, playersNumber)
         actor ! RoomsRequests.ServiceEnterPrivate(roomID, playerAddress, playerNotificationAddress, token)
@@ -131,15 +131,15 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
         cleanUpPublicRoom(playersNumber)
       }
 
-//      "block him from entering twice" in {
-//        actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, token)
-//        expectMsg(RoomsResponses.EnterPublicSuccess)
-//
-//        actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, token)
-//        expectMsgType[RoomsResponses.EnterPublicFailure]
-//
-//        cleanUpPublicRoom(playersNumber)
-//      }
+      "block him from entering public room twice" in {
+        actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, token)
+        expectMsg(RoomsResponses.EnterPublicSuccess)
+
+        actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, token)
+        expectMsgType[RoomsResponses.EnterPublicFailure]
+
+        cleanUpPublicRoom(playersNumber)
+      }
 
       "let him exit a public room" in {
         actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, token)
@@ -147,6 +147,11 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
 
         actor ! RoomsRequests.ServiceExitPublic(playersNumber, token)
         expectMsg(RoomsResponses.ExitPublicSuccess)
+      }
+
+      "block him from exiting a non entered public room" in {
+        actor ! RoomsRequests.ServiceExitPublic(playersNumber, token)
+        expectMsgType[RoomsResponses.ExitPublicFailure]
       }
     }
 
