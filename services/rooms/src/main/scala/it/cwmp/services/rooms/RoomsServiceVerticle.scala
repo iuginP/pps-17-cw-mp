@@ -297,6 +297,10 @@ class RoomsServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT
   */
 object RoomsServiceVerticle {
 
+  def apply(implicit validationStrategy: Validation[String, User],
+            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle(DEFAULT_PORT)(validationStrategy, clientCommunicationStrategy)
+
   def apply(implicit port: Int = DEFAULT_PORT, validationStrategy: Validation[String, User],
             clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
     new RoomsServiceVerticle(port)(validationStrategy, clientCommunicationStrategy)
