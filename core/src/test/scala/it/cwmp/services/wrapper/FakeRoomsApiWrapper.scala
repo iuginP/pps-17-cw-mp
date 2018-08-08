@@ -3,7 +3,6 @@ package it.cwmp.services.wrapper
 import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, NOT_FOUND, UNAUTHORIZED}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, Room, User}
-import it.cwmp.services.rooms.RoomsLocalDAO
 import it.cwmp.utils.Utils
 import it.cwmp.utils.Utils.httpStatusNameToCode
 
@@ -26,9 +25,10 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
   )
 
   private val ROOM_ID_LENGTH = 10
+  private val publicPrefix = "public"
 
   private var rooms: Seq[Room] = Seq(
-    Room(RoomsLocalDAO.publicPrefix + Utils.randomString(ROOM_ID_LENGTH), RoomsLocalDAO.publicPrefix + 2, 2, Seq())
+    Room(publicPrefix + Utils.randomString(ROOM_ID_LENGTH), publicPrefix + 2, 2, Seq())
   )
   private var roomsParticipantAddresses: Map[String, Seq[String]] = Map()
 
@@ -90,7 +90,7 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
   override def listPublicRooms()(implicit userToken: String): Future[Seq[Room]] =
     Future {
       checkAuthentication(userToken)
-      rooms.filter(_.identifier.startsWith(RoomsLocalDAO.publicPrefix))
+      rooms.filter(_.identifier.startsWith(publicPrefix))
     }
 
   override def enterPublicRoom(playersNumber: Int, userAddress: Address, notificationAddress: Address)
@@ -143,7 +143,7 @@ case class FakeRoomsApiWrapper() extends RoomsApiWrapper {
     * @return the roomID retrieved of exception if not found
     */
   private def getPublicRoomIDFromPlayersNumber(playersNumber: Int): String =
-    rooms.find(room => room.identifier.startsWith(RoomsLocalDAO.publicPrefix) && room.neededPlayersNumber == playersNumber) match {
+    rooms.find(room => room.identifier.startsWith(publicPrefix) && room.neededPlayersNumber == playersNumber) match {
       case Some(room) => room.identifier
       case _ => throw HTTPException(NOT_FOUND)
     }
