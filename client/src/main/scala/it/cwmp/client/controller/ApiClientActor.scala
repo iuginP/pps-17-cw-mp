@@ -5,7 +5,7 @@ import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
-import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
+import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
 import it.cwmp.utils.Utils.stringToOption
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,7 +15,23 @@ import scala.util.{Failure, Success, Try}
 /**
   * A class that implements the actor that will manage communications with services APIs
   */
-case class ApiClientActor() extends Actor {
+case class ApiClientActor(discovery_host: String, discovery_port: Int) extends Actor {
+
+  var authenticationApiWrapper: AuthenticationApiWrapper = _
+
+  var roomApiWrapper: RoomsApiWrapper = _
+
+  override def preStart(): Unit = {
+    val discoveryApiWrapper = DiscoveryApiWrapper()
+    // scalastyle:off import.grouping
+    import discoveryApiWrapper._
+    // scalastyle:on import.grouping
+
+    discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME)
+      .map(config => authenticationApiWrapper = AuthenticationApiWrapper(config._1, config._2))
+    discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME)
+      .map(config => roomApiWrapper = RoomsApiWrapper(config._1, config._2))
+  }
 
   override def receive: Receive = authenticationBehaviour orElse roomsBehaviour
 
@@ -23,66 +39,54 @@ case class ApiClientActor() extends Actor {
     * @return the behaviour of authenticating user online
     */
   private def authenticationBehaviour: Receive = {
-    val authenticationApiWrapper = AuthenticationApiWrapper()
-    // scalastyle:off import.grouping
-    import authenticationApiWrapper._
-    // scalastyle:on import.grouping
-    {
-      case LogIn(username, password) =>
-        val senderTmp = sender
-        login(username, password).onComplete(replyWith(
-          token => senderTmp ! LogInSuccess(token),
-          exception => senderTmp ! LogInFailure(exception.getMessage)
-        ))
-      case SignUp(username, password) =>
-        val senderTmp = sender
-        signUp(username, password).onComplete(replyWith(
-          token => senderTmp ! SignUpSuccess(token),
-          exception => senderTmp ! SignUpFailure(exception.getMessage)
-        ))
-    }
+    case LogIn(username, password) =>
+      val senderTmp = sender
+      authenticationApiWrapper.login(username, password).onComplete(replyWith(
+        token => senderTmp ! LogInSuccess(token),
+        exception => senderTmp ! LogInFailure(exception.getMessage)
+      ))
+    case SignUp(username, password) =>
+      val senderTmp = sender
+      authenticationApiWrapper.signUp(username, password).onComplete(replyWith(
+        token => senderTmp ! SignUpSuccess(token),
+        exception => senderTmp ! SignUpFailure(exception.getMessage)
+      ))
   }
 
   /**
     * @return the behaviour of managing the rooms online
     */
   private def roomsBehaviour: Receive = {
-    val roomApiWrapper = RoomsApiWrapper()
-    // scalastyle:off import.grouping
-    import roomApiWrapper._
-    // scalastyle:on import.grouping
-    {
-      case ServiceCreate(roomName, playersNumber, token) =>
-        val senderTmp = sender
-        createRoom(roomName, playersNumber)(token).onComplete(replyWith(
-          token => senderTmp ! CreateSuccess(token),
-          exception => senderTmp ! CreateFailure(exception.getMessage)
-        ))
-      case ServiceEnterPrivate(idRoom, address, webAddress, token) =>
-        val senderTmp = sender
-        enterRoom(idRoom, address, webAddress)(token).onComplete(replyWith(
-          _ => senderTmp ! EnterPrivateSuccess,
-          exception => senderTmp ! EnterPrivateFailure(exception.getMessage)
-        ))
-      case ServiceEnterPublic(nPlayer, address, webAddress, token) =>
-        val senderTmp = sender
-        enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
-          _ => senderTmp ! EnterPublicSuccess,
-          exception => senderTmp ! EnterPublicFailure(exception.getMessage)
-        ))
-      case ServiceExitPrivate(roomID, jwtToken) =>
-        val senderTmp = sender
-        exitRoom(roomID)(jwtToken).onComplete(replyWith(
-          _ => senderTmp ! ExitPrivateSuccess,
-          exception => senderTmp ! ExitPrivateFailure(exception.getMessage)
-        ))
-      case ServiceExitPublic(playersNumber, jwtToken) =>
-        val senderTmp = sender
-        exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
-          _ => senderTmp ! ExitPublicSuccess,
-          exception => senderTmp ! ExitPublicFailure(exception.getMessage)
-        ))
-    }
+    case ServiceCreate(roomName, playersNumber, token) =>
+      val senderTmp = sender
+      roomApiWrapper.createRoom(roomName, playersNumber)(token).onComplete(replyWith(
+        token => senderTmp ! CreateSuccess(token),
+        exception => senderTmp ! CreateFailure(exception.getMessage)
+      ))
+    case ServiceEnterPrivate(idRoom, address, webAddress, token) =>
+      val senderTmp = sender
+      roomApiWrapper.enterRoom(idRoom, address, webAddress)(token).onComplete(replyWith(
+        _ => senderTmp ! EnterPrivateSuccess,
+        exception => senderTmp ! EnterPrivateFailure(exception.getMessage)
+      ))
+    case ServiceEnterPublic(nPlayer, address, webAddress, token) =>
+      val senderTmp = sender
+      roomApiWrapper.enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
+        _ => senderTmp ! EnterPublicSuccess,
+        exception => senderTmp ! EnterPublicFailure(exception.getMessage)
+      ))
+    case ServiceExitPrivate(roomID, jwtToken) =>
+      val senderTmp = sender
+      roomApiWrapper.exitRoom(roomID)(jwtToken).onComplete(replyWith(
+        _ => senderTmp ! ExitPrivateSuccess,
+        exception => senderTmp ! ExitPrivateFailure(exception.getMessage)
+      ))
+    case ServiceExitPublic(playersNumber, jwtToken) =>
+      val senderTmp = sender
+      roomApiWrapper.exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
+        _ => senderTmp ! ExitPublicSuccess,
+        exception => senderTmp ! ExitPublicFailure(exception.getMessage)
+      ))
   }
 
   /**
