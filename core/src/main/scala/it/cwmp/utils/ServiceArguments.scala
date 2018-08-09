@@ -12,8 +12,8 @@ case class ServiceArguments(args: Array[String]) {
       (4) the port to reach this service
     """)
 
-  val discovery_host: String = args(0)
-  val discovery_port: Int = args(1) toInt
-  val current_host: String = args(2)
-  val current_port: Int = args(3) toInt
+  val discoveryHost: String = args(0)
+  val discoveryPort: Int = args(1) toInt
+  val currentHost: String = args(2)
+  val currentPort: Int = args(3) toInt
 }

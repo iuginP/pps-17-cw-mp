@@ -17,12 +17,12 @@ object AuthenticationServiceMain extends App with VertxInstance with Logging {
 
   // Executing the app
   log.info("Deploying AuthenticationService... ")
-  vertx.deployVerticleFuture(AuthenticationServiceVerticle(current_port))
+  vertx.deployVerticleFuture(AuthenticationServiceVerticle(currentPort))
     .andThen {
       case Success(_) =>
         log.info("AuthenticationService up and running!")
-        DiscoveryApiWrapper(discovery_host, discovery_port)
-          .publish(Service.DISCOVERY_NAME, current_host, current_port)
+        DiscoveryApiWrapper(discoveryHost, discoveryPort)
+          .publish(Service.DISCOVERY_NAME, currentHost, currentPort)
       case Failure(ex) => log.info("Error deploying AuthenticationService", ex)
     }
 }

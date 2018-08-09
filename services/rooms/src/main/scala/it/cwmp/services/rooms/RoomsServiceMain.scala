@@ -17,16 +17,16 @@ object RoomsServiceMain extends App with VertxInstance with Logging {
   import arguments._
   // scalastyle:on import.grouping
 
-  private val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discovery_host, discovery_port)
+  private val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discoveryHost, discoveryPort)
 
   log.info("Deploying RoomService...")
   for (
     // Check for the presence of an AuthenticationApiWrapper
     (host, port) <- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
-    _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(current_port, AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
+    _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(currentPort, AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
   ) yield {
     log.info("RoomsService up and running!")
-    discoveryApiWrapper.publish(Service.DISCOVERY_NAME, current_host, current_port)
+    discoveryApiWrapper.publish(Service.DISCOVERY_NAME, currentHost, currentPort)
   } andThen {
     case Failure(ex) => log.info("Error deploying RoomsService", ex)
   }
