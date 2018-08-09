@@ -15,9 +15,7 @@ import scala.util.{Failure, Success}
 /**
   * Class that implements the Authentication micro-service
   */
-case class AuthenticationServiceVerticle() extends VertxServer with Logging {
-
-  override protected val serverPort: Int = DEFAULT_PORT
+case class AuthenticationServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT) extends VertxServer with Logging {
 
   private var storageFuture: Future[AuthenticationDAO] = _
 
