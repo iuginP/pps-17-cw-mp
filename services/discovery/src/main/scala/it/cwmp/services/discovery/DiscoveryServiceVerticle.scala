@@ -7,9 +7,10 @@ import io.vertx.scala.ext.web.{Router, RoutingContext}
 import io.vertx.scala.servicediscovery.types.HttpEndpoint
 import io.vertx.scala.servicediscovery.{Record, ServiceDiscovery, ServiceDiscoveryOptions}
 import io.vertx.servicediscovery.Status
+import it.cwmp.services.VertxServer
 import it.cwmp.services.discovery.ServerParameters._
+import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.{Logging, VertxServer}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

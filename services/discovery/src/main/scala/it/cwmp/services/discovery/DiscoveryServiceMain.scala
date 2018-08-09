@@ -1,6 +1,7 @@
 package it.cwmp.services.discovery
 
-import it.cwmp.utils.{Logging, VertxInstance}
+import it.cwmp.services.VertxInstance
+import it.cwmp.utils.Logging
 
 import scala.util.{Failure, Success}
 

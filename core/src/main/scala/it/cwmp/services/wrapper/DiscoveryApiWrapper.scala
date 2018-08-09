@@ -2,9 +2,9 @@ package it.cwmp.services.wrapper
 
 import io.netty.handler.codec.http.HttpResponseStatus.{CREATED, OK}
 import io.vertx.scala.ext.web.client.WebClientOptions
+import it.cwmp.services.{VertxClient, VertxInstance}
 import it.cwmp.services.discovery.ServerParameters._
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.{VertxClient, VertxInstance}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
