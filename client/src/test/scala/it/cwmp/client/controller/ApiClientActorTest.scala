@@ -169,22 +169,29 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
 
     "user not authenticated" must {
       val badToken = "myBadToken"
+      val placeHolderRoomID = "roomID"
 
-      "return failed messages" in {
-        val placeHolderRoomID = "roomID"
-
+      "return failed messages when creating room" in {
         actor ! RoomsRequests.ServiceCreate(roomName, playersNumber, badToken)
         expectMsgType[RoomsResponses.CreateFailure]
+      }
 
+      "return failed messages when entering private room" in {
         actor ! RoomsRequests.ServiceEnterPrivate(placeHolderRoomID, playerAddress, playerNotificationAddress, badToken)
         expectMsgType[RoomsResponses.EnterPrivateFailure]
+      }
 
+      "return failed messages when exiting private room" in {
         actor ! RoomsRequests.ServiceExitPrivate(placeHolderRoomID, badToken)
         expectMsgType[RoomsResponses.ExitPrivateFailure]
+      }
 
+      "return failed messages entering public room" in {
         actor ! RoomsRequests.ServiceEnterPublic(playersNumber, playerAddress, playerNotificationAddress, badToken)
         expectMsgType[RoomsResponses.EnterPublicFailure]
+      }
 
+      "return failed messages exiting public room" in {
         actor ! RoomsRequests.ServiceExitPublic(playersNumber, badToken)
         expectMsgType[RoomsResponses.ExitPublicFailure]
       }
