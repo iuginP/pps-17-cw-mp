@@ -62,7 +62,7 @@ object ClientMain extends App with VertxInstance with Logging {
       system.actorOf(Props(ClientControllerActor(apiClientActor)), ClientControllerActor.getClass.getName)
       log.info("Client up and running!")
     }) andThen {
-      case Failure(ex) => log.info("Error deploying RoomsService", ex)
+      case Failure(ex) => log.info("Error discovering services", ex)
     }
   }
 }
