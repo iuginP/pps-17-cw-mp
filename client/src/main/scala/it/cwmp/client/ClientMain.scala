@@ -17,12 +17,12 @@ object ClientMain extends App {
       (2) the port of the discovery service
     """)
 
-  val discovery_host: String = args(0)
-  val discovery_port: Int = args(1) toInt
+  val discoveryHost: String = args(0)
+  val discoveryPort: Int = args(1) toInt
 
   val APP_NAME = "CellWarsClient"
 
   private val config = ConfigFactory.parseString("akka.remote.netty.tcp.port=0").withFallback(ConfigFactory.load())
   val system = ActorSystem(APP_NAME, config)
-  val clientControllerActor = system.actorOf(Props(classOf[ClientControllerActor], discovery_host, discovery_port), ClientControllerActor.getClass.getName)
+  val clientControllerActor = system.actorOf(Props(classOf[ClientControllerActor], discoveryHost, discoveryPort), ClientControllerActor.getClass.getName)
 }

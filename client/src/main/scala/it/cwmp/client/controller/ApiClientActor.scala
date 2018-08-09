@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * A class that implements the actor that will manage communications with services APIs
   */
-case class ApiClientActor(discovery_host: String, discovery_port: Int) extends Actor {
+case class ApiClientActor(discoveryHost: String, discoveryPort: Int) extends Actor {
 
   var authenticationApiWrapper: AuthenticationApiWrapper = _
 
