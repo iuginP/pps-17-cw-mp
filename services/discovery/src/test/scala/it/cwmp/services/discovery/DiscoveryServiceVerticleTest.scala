@@ -31,7 +31,7 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
       client.post(API_PUBLISH_SERVICE)
         .addQueryParam(PARAMETER_NAME, name)
         .addQueryParam(PARAMETER_HOST, host)
-        .addQueryParam(PARAMETER_PORT, port toString)
+        .addQueryParam(PARAMETER_PORT, port.toString)
         .sendFuture()
         .shouldAnswerWith(CREATED, _.exists(_.nonEmpty))
     }
@@ -51,10 +51,10 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
         record <- client.post(API_PUBLISH_SERVICE)
           .addQueryParam(PARAMETER_NAME, name)
           .addQueryParam(PARAMETER_HOST, host)
-          .addQueryParam(PARAMETER_PORT, port toString)
+          .addQueryParam(PARAMETER_PORT, port.toString)
           .sendFuture()
           .mapBody(body => Future.successful(body.getOrElse("")));
-        apiRequest = client.delete(API_UNPUBLISH_SERVICE)
+        apiRequest = client.delete(API_UN_PUBLISH_SERVICE)
           .addQueryParam(PARAMETER_REGISTRATION, record)
           .sendFuture();
         assertion <- apiRequest shouldAnswerWith OK
@@ -62,13 +62,13 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
     }
 
     it("when empty parameters should fail") {
-      client.delete(API_UNPUBLISH_SERVICE) sendFuture() shouldAnswerWith BAD_REQUEST
+      client.delete(API_UN_PUBLISH_SERVICE) sendFuture() shouldAnswerWith BAD_REQUEST
     }
 
     it("when invalid service should fail") {
       val record = "INVALID"
 
-      client.delete(API_UNPUBLISH_SERVICE)
+      client.delete(API_UN_PUBLISH_SERVICE)
         .addQueryParam(PARAMETER_REGISTRATION, record)
         .sendFuture()
         .shouldAnswerWith(BAD_REQUEST)
@@ -85,7 +85,7 @@ class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
         _ <- client.post(API_PUBLISH_SERVICE)
           .addQueryParam(PARAMETER_NAME, name)
           .addQueryParam(PARAMETER_HOST, host)
-          .addQueryParam(PARAMETER_PORT, port toString)
+          .addQueryParam(PARAMETER_PORT, port.toString)
           .sendFuture();
         apiRequest = client.get(API_DISCOVER_SERVICE)
           .addQueryParam(PARAMETER_NAME, name)

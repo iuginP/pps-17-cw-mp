@@ -42,7 +42,7 @@ case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEF
 
   override protected def initRouter(router: Router): Unit = {
     router post API_PUBLISH_SERVICE handler handlerPublishService
-    router delete API_UNPUBLISH_SERVICE handler handlerUnPublishService
+    router delete API_UN_PUBLISH_SERVICE handler handlerUnPublishService
     router get API_DISCOVER_SERVICE handler handlerDiscoverService
   }
 
