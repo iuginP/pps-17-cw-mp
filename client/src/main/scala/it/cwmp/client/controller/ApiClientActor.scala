@@ -15,23 +15,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * A class that implements the actor that will manage communications with services APIs
   */
-case class ApiClientActor(discoveryHost: String, discoveryPort: Int) extends Actor {
-
-  var authenticationApiWrapper: AuthenticationApiWrapper = _
-
-  var roomApiWrapper: RoomsApiWrapper = _
-
-  override def preStart(): Unit = {
-    val discoveryApiWrapper = DiscoveryApiWrapper()
-    // scalastyle:off import.grouping
-    import discoveryApiWrapper._
-    // scalastyle:on import.grouping
-
-    discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME)
-      .map(config => authenticationApiWrapper = AuthenticationApiWrapper(config._1, config._2))
-    discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME)
-      .map(config => roomApiWrapper = RoomsApiWrapper(config._1, config._2))
-  }
+case class ApiClientActor(private val authenticationApiWrapper: AuthenticationApiWrapper, private val roomApiWrapper: RoomsApiWrapper) extends Actor {
 
   override def receive: Receive = authenticationBehaviour orElse roomsBehaviour
 
