@@ -17,8 +17,6 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  // TODO launch the server before
-
   override def afterAll {
     TestKit.shutdownActorSystem(system)
   }
@@ -51,6 +49,15 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
       expectMsgType[AuthenticationResponses.SignUpSuccess]
     }
 
+    "return an error when signUp fails" in {
+      val username = nextUsername
+      val password = nextPassword
+      actor ! AuthenticationRequests.SignUp(username, password)
+      expectMsgType[AuthenticationResponses.SignUpSuccess]
+      actor ! AuthenticationRequests.SignUp(username, password)
+      expectMsgType[AuthenticationResponses.SignUpFailure]
+    }
+
     "return the token when successful login" in {
       val username = nextUsername
       val password = nextPassword
@@ -58,6 +65,11 @@ class ApiClientActorTest extends TestKit(ActorSystem("MySpec")) with ImplicitSen
       expectMsgType[AuthenticationResponses.SignUpSuccess]
       actor ! AuthenticationRequests.LogIn(username, password)
       expectMsgType[AuthenticationResponses.LogInSuccess]
+    }
+
+    "return an error when login fails" in {
+      actor ! AuthenticationRequests.LogIn(nextUsername, nextPassword)
+      expectMsgType[AuthenticationResponses.LogInFailure]
     }
 
   }
