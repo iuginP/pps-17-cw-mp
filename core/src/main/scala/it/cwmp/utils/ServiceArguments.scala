@@ -1,7 +1,7 @@
 package it.cwmp.utils
 
 /**
-  * This class is used to retrive the basic arguments needed to launch a service
+  * This class is used to retrieve the basic arguments needed to launch a service
   * and publish it on the discovery service.
   *
   * @param args the list of arguments where the first 4 are used to get the parameters of execution.
