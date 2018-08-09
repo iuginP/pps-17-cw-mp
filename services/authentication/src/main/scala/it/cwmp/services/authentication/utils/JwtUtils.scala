@@ -1,4 +1,4 @@
-package it.cwmp.services.authentication
+package it.cwmp.services.authentication.utils
 
 import io.vertx.core.json.JsonObject
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
