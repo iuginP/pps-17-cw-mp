@@ -3,7 +3,7 @@ package it.cwmp.services.roomreceiver
 /**
   * An object containing RoomReceiver Service info
   */
-object ServerParameters {
+object Service {
 
   /**
     * Generates a one-time url with provided token

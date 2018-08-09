@@ -1,7 +1,7 @@
 package it.cwmp.services.rooms
 
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomReceiverApiWrapper}
-import it.cwmp.services.{ServiceLauncher, VertxInstance, discovery, rooms}
+import it.cwmp.services.{ServiceLauncher, VertxInstance, discovery}
 import it.cwmp.utils.{HostAndPortArguments, Logging}
 import it.cwmp.view.TwoAddressesInput
 
@@ -14,7 +14,22 @@ import scala.util.Failure
   */
 object RoomsServiceMain extends App with VertxInstance with Logging with ServiceLauncher {
 
-  private val SERVICE_NAME = "Rooms Service"
+  try {
+    val hostPortPairs = HostAndPortArguments(args, 2, ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs
+    val discoveryService = hostPortPairs.head
+    val myService = hostPortPairs(1)
+
+    launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+  } catch {
+    case _: IllegalArgumentException =>
+      TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs => {
+        val discoveryService = discoveryAndMyHostPortPairs._1
+        val myService = discoveryAndMyHostPortPairs._2
+
+        launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+      })(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+        secondDefaultPort = Service.DEFAULT_PORT.toString)
+  }
 
   override def launch(discoveryHost: String, discoveryPort: String, myHost: String, myPort: String): Unit = {
     val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
@@ -30,23 +45,5 @@ object RoomsServiceMain extends App with VertxInstance with Logging with Service
     } andThen {
       case Failure(ex) => log.info("Error deploying RoomsService", ex)
     }
-  }
-
-
-  try {
-    val hostPortPairs = HostAndPortArguments(args, 2, ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs
-    val discoveryService = hostPortPairs.head
-    val myService = hostPortPairs(1)
-
-    launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
-  } catch {
-    case _: IllegalArgumentException =>
-      TwoAddressesInput(SERVICE_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs => {
-        val discoveryService = discoveryAndMyHostPortPairs._1
-        val myService = discoveryAndMyHostPortPairs._2
-
-        launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
-      })(firstDefaultPort = discovery.ServerParameters.DEFAULT_PORT.toString,
-        secondDefaultPort = rooms.ServerParameters.DEFAULT_PORT.toString)
   }
 }

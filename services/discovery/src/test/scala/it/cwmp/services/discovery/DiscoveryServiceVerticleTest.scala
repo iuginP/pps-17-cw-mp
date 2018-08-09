@@ -4,7 +4,7 @@ import io.netty.handler.codec.http.HttpResponseStatus._
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.services.VertxClient
-import it.cwmp.services.discovery.ServerParameters._
+import it.cwmp.services.discovery.Service._
 import it.cwmp.services.testing.discovery.DiscoveryWebServiceTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.Utils.httpStatusNameToCode

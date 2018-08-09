@@ -3,8 +3,11 @@ package it.cwmp.services.discovery
 /**
   * An object containing Discovery Service info
   */
-object ServerParameters {
+object Service {
 
+  /**
+    * Discovery Service default port
+    */
   val DEFAULT_PORT = 7777
 
   private val API_BASE_PATH = "/api/discovery"
