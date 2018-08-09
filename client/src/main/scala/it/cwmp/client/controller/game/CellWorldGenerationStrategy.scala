@@ -3,8 +3,8 @@ package it.cwmp.client.controller.game
 import java.time.Instant
 
 import it.cwmp.client.controller.game.CellWorldGenerationStrategy.{MINIMUM_DISTANCE_BETWEEN_CELLS, MINIMUM_DISTANCE_FROM_BORDER, randomPoint}
-import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.model.CellView
 import it.cwmp.model.User
 
