@@ -1,6 +1,7 @@
 package it.cwmp.services.authentication
 
-import it.cwmp.utils.{Logging, VertxInstance}
+import it.cwmp.services.VertxInstance
+import it.cwmp.utils.Logging
 
 /**
   * AuthenticationService entry-point

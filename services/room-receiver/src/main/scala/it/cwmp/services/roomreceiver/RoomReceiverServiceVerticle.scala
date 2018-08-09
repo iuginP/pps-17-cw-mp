@@ -7,9 +7,10 @@ import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
+import it.cwmp.services.VertxServer
 import it.cwmp.services.roomreceiver.ServerParameters._
 import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-import it.cwmp.utils.{Logging, VertxServer}
+import it.cwmp.utils.Logging
 
 /**
   * A class implementing a one-time service provided by clients to receive room information
