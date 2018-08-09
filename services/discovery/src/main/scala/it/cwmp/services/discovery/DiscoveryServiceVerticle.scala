@@ -14,9 +14,14 @@ import it.cwmp.utils.{Logging, VertxServer}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-case class DiscoveryServiceVerticle() extends VertxServer with Logging {
-
-  override protected val serverPort: Int = DEFAULT_PORT
+/**
+  * This class represents the verticle containing the discovery web service.
+  * This verticle is composed by the web handler and the ServiceDiscovery.
+  * It is a middleware used to publish, un-publish and lookup for a specific type of service.
+  *
+  * @param serverPort The port on which the web handler have to listen.
+  */
+case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT) extends VertxServer with Logging {
 
   var discovery: ServiceDiscovery = _
 
@@ -29,6 +34,7 @@ case class DiscoveryServiceVerticle() extends VertxServer with Logging {
   }
 
   override def stopFuture(): Future[_] = {
+    // Before closing the service, the discovery service is closed
     discovery.close()
     super.stopFuture()
   }

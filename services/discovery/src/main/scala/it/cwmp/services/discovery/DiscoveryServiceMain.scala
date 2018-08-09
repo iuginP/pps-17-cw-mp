@@ -5,7 +5,7 @@ import it.cwmp.utils.{Logging, VertxInstance}
 import scala.util.{Failure, Success}
 
 /**
-  * AuthenticationService entry-point
+  * DiscoveryService entry-point
   */
 object DiscoveryServiceMain extends App with VertxInstance with Logging {
 
