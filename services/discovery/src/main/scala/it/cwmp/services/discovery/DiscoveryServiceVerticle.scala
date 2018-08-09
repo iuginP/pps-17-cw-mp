@@ -102,7 +102,7 @@ case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEF
           // Publication successful
           log.info(s"Service $name successfully found!")
           val metadata: JsonObject = record.getLocation
-          sendResponse(OK, Some(metadata toString))
+          sendResponse(OK, Some(metadata.toString))
         case _ =>
           // publication failed
           sendResponse(BAD_REQUEST)
