@@ -90,24 +90,24 @@ abstract class AbstractAddressInput[Result](viewTitle: String, message: String, 
     addressPortField = ipAndPortFields._2
 
     // attach listeners for changes that update button state
-    ipAndPortFields._1.textProperty.addListener((_, _, newValue) => {
+    addressIpField.textProperty.addListener((_, _, newValue) => {
       this.ipAddressValid = ipAddressValid(newValue)
       updateButtonState()
     })
-    ipAndPortFields._2.textProperty.addListener((_, _, newValue) => {
+    addressPortField.textProperty.addListener((_, _, newValue) => {
       this.portValid = portValid(newValue)
       updateButtonState()
     })
 
-    ipAndPortFields._1.setText(defaultIP)
-    ipAndPortFields._2.setText(defaultPort)
+    addressIpField.setText(defaultIP)
+    addressPortField.setText(defaultPort)
 
     // Request focus on the first field by default.
-    ipAndPortFields._1.requestFocus()
+    addressIpField.requestFocus()
 
     gridPane.add(new Label(ADDRESS_LABEL), 0, 0)
-    gridPane.add(ipAndPortFields._1, 1, 0)
-    gridPane.add(ipAndPortFields._2, 2, 0)
+    gridPane.add(addressIpField, 1, 0)
+    gridPane.add(addressPortField, 2, 0)
   }
 
   // Initialization of View
@@ -138,13 +138,13 @@ object AbstractAddressInput {
   private val IP_ADDRESS_TEXT = "IP Address"
   private val PORT_ADDRESS_TEXT = "Address Port"
 
-  private val ADDRESS_LABEL = "Address: "
-
   private val IP_ADDRESS_PATTERN =
     "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
       "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
       "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
       "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
+
+  val ADDRESS_LABEL = "Address: "
 
   /**
     * @return the local network IP address
