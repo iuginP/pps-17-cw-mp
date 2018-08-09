@@ -3,8 +3,8 @@ package it.cwmp.model
 import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
-import org.scalatest.FunSpec
 import it.cwmp.model.Address.Converters._
+import org.scalatest.FunSpec
 
 
 /**

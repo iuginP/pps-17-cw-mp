@@ -4,7 +4,8 @@ import java.time.Duration
 import java.util.Objects.requireNonNull
 
 import it.cwmp.client.controller.game.GameConstants.{CELL_ENERGY_WHEN_BORN, MILLIS_TO_ENERGY_CONVERSION_RATE}
-import it.cwmp.client.model.game.{Character, EvolutionStrategy, GeometricUtils}
+import it.cwmp.client.model.game.{Character, EvolutionStrategy}
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.model.User
 
 /**

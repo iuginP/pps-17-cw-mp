@@ -3,7 +3,7 @@ package it.cwmp.client.model.game.impl
 import java.time.Duration
 
 import it.cwmp.client.controller.game.GameConstants
-import it.cwmp.client.model.game.GeometricUtils
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.model.User
 import org.scalatest.FunSpec
 

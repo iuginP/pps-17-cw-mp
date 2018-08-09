@@ -2,8 +2,9 @@ package it.cwmp.client.view.game.model
 
 import java.time.{Duration, Instant}
 
+import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Point, Tentacle}
-import it.cwmp.client.model.game.{GeometricUtils, SizingStrategy}
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.ColoringStrategy
 import javafx.scene.paint.Color
 

@@ -1,4 +1,4 @@
-package it.cwmp.utils
+package it.cwmp.services
 
 import io.vertx.lang.scala.json.JsonArray
 import io.vertx.scala.ext.jdbc.JDBCClient

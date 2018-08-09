@@ -4,10 +4,11 @@ import java.net.InetAddress
 
 import it.cwmp.client.controller.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
 import it.cwmp.model.{Address, Participant}
+import it.cwmp.services.VertxInstance
 import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
 import it.cwmp.services.roomreceiver.ServerParameters._
 import it.cwmp.utils.Utils.stringToOption
-import it.cwmp.utils.{Logging, Utils, VertxInstance}
+import it.cwmp.utils.{Logging, Utils}
 
 import scala.concurrent.Future
 import scala.util.Success

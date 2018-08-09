@@ -1,4 +1,4 @@
-package it.cwmp.utils
+package it.cwmp.services
 
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
