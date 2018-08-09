@@ -7,9 +7,9 @@ import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Room}
-import it.cwmp.services.{VertxClient, VertxInstance}
 import it.cwmp.services.rooms.RoomApiWrapperUtils
 import it.cwmp.services.rooms.ServerParameters._
+import it.cwmp.services.{VertxClient, VertxInstance}
 import it.cwmp.utils.Utils.httpStatusNameToCode
 
 import scala.concurrent.Future

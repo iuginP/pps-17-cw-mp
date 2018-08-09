@@ -8,8 +8,8 @@ import it.cwmp.services.Validation
 import it.cwmp.services.rooms.RoomsServiceVerticle
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.testing.VerticleBeforeAndAfterEach
-import it.cwmp.utils.Utils.httpStatusNameToCode
 import it.cwmp.utils.HttpUtils
+import it.cwmp.utils.Utils.httpStatusNameToCode
 
 import scala.concurrent.Future
 

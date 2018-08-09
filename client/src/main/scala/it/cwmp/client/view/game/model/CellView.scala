@@ -2,8 +2,8 @@ package it.cwmp.client.view.game.model
 
 import com.github.tkqubo.colorHash.{ColorHash, Rgb}
 import it.cwmp.client.controller.game.GameConstants
-import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.model.game.SizingStrategy
+import it.cwmp.client.model.game.impl.{Cell, Point}
 import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.GameViewConstants.{GAME_DEFAULT_FONT_COLOR, GAME_TIME_TEXT_COLOR, RGB_RANGE}
 import it.cwmp.client.view.game.{ColoringStrategy, GameViewConstants}

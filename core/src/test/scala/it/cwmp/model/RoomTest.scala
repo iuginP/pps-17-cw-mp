@@ -2,9 +2,9 @@ package it.cwmp.model
 
 import java.text.ParseException
 
+import io.vertx.lang.scala.json.{Json, JsonObject}
 import it.cwmp.model.Room.Converters._
 import org.scalatest.FunSpec
-import io.vertx.lang.scala.json.{Json, JsonObject}
 
 
 /**
