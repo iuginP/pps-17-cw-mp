@@ -3,7 +3,6 @@ package it.cwmp.services.wrapper
 import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, UNAUTHORIZED}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Participant, User}
-import it.cwmp.utils.HttpUtils
 import it.cwmp.utils.Utils.httpStatusNameToCode
 
 import scala.concurrent.Future
@@ -44,13 +43,17 @@ case class FakeAuthenticationApiWrapper() extends AuthenticationApiWrapper {
       .getOrElse(Future.failed(HTTPException(UNAUTHORIZED)))
   }).getOrElse(Future.failed(HTTPException(BAD_REQUEST)))
 
-  override def validate(authorizationHeader: String): Future[User] = HttpUtils.readJwtAuthentication(authorizationHeader) match {
-    case Some(token) => participants.get(token) match {
+  override def validate(token: String): Future[User] =
+    participants.get(token) match {
       case Some(participant) => Future.successful(participant)
       case _ => Future.failed(HTTPException(UNAUTHORIZED))
     }
-    case _ => Future.failed(HTTPException(UNAUTHORIZED))
-  }
 
+  /**
+    * Handle method to create a fake token from username
+    *
+    * @param username the username to use
+    * @return the fake token
+    */
   private def tokenFromUsername(username: String): String = "TOKEN_" + username
 }
