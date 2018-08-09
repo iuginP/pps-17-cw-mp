@@ -32,6 +32,11 @@ object TentacleView {
   val TENTACLE_DEFAULT_THICKNESS = 3d
 
   /**
+    * Provides tentacle default color opacity
+    */
+  val TENTACLE_COLOR_OPACITY = 0.6
+
+  /**
     * Conversion from Tentacle to TentacleView
     *
     * @param tentacle      the tentacle to convert
@@ -48,6 +53,7 @@ object TentacleView {
     */
   val coloringStrategy: ColoringStrategy[Tentacle, Color] =
     (tentacle: Tentacle) => CellView.coloringStrategy(tentacle.from)
+      .deriveColor(0, 1, 1, TENTACLE_COLOR_OPACITY)
 
   /**
     * Default tentacle thickness strategy
