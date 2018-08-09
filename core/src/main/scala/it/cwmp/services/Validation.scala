@@ -1,4 +1,4 @@
-package it.cwmp.utils
+package it.cwmp.services
 
 import scala.concurrent.Future
 

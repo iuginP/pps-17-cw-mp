@@ -1,7 +1,7 @@
-package it.cwmp.client.model.game
+package it.cwmp.client.utils
 
-import it.cwmp.client.model.game.GeometricUtils.RichDouble
 import it.cwmp.client.model.game.impl.Point
+import it.cwmp.client.utils.GeometricUtils.RichDouble
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 

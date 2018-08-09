@@ -12,12 +12,20 @@ import scala.language.implicitConversions
 object Utils {
 
   /**
-    * Generates a random string of specified length
+    * Generates a random string of the specified length
     *
     * @param length the length of the random String
     * @return the random string
     */
   def randomString(length: Int): String = scala.util.Random.alphanumeric.take(length).mkString
+
+  /**
+    * Generates a random integer at most great as max
+    *
+    * @param max the maximum value the random value can assume
+    * @return the random integer
+    */
+  def randomInt(max: Int): Int = scala.util.Random.nextInt(max)
 
   /**
     * Utility method to test if a string is empty
