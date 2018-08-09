@@ -112,6 +112,8 @@ abstract class AbstractAddressInput[Result](viewTitle: String, message: String, 
 
   // Initialization of View
   Platform.runLater(() => {
+    Platform setImplicitExit false
+
     dialog = new Dialog[Result]
     dialog.setTitle(viewTitle)
     dialog.setHeaderText(message)
