@@ -11,6 +11,9 @@ import it.cwmp.utils.VertxClient
 
 import scala.concurrent.Future
 
+/**
+  * This test verifies that the discovery web service is working correctly.
+  */
 class DiscoveryServiceVerticleTest extends DiscoveryWebServiceTesting
   with HttpMatchers with FutureMatchers with VertxClient {
 

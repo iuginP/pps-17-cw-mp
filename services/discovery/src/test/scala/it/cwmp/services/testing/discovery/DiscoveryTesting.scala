@@ -6,7 +6,7 @@ import it.cwmp.utils.Utils
 import org.scalatest.Matchers
 
 /**
-  * A base class for testing Authentication service
+  * A base class for testing Discovery service
   */
 abstract class DiscoveryTesting extends VertxTest with Matchers {
 
