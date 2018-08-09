@@ -1,10 +1,11 @@
 package it.cwmp.server
 
+import it.cwmp.services.VertxInstance
 import it.cwmp.services.authentication.AuthenticationServiceVerticle
 import it.cwmp.services.discovery.DiscoveryServiceVerticle
 import it.cwmp.services.rooms.RoomsServiceVerticle
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomReceiverApiWrapper}
-import it.cwmp.utils.{Logging, VertxInstance}
+import it.cwmp.utils.Logging
 
 import scala.util.{Failure, Success}
 

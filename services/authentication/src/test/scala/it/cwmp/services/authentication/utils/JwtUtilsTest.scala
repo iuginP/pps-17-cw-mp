@@ -1,4 +1,4 @@
-package it.cwmp.services.authentication
+package it.cwmp.services.authentication.utils
 
 import org.scalatest.FunSpec
 import pdi.jwt.JwtClaim

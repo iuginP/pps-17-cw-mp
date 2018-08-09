@@ -1,8 +1,9 @@
-package it.cwmp.utils
+package it.cwmp.services
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.vertx.scala.ext.web.client.{HttpRequest, HttpResponse, WebClient, WebClientOptions}
 import it.cwmp.exceptions.HTTPException
+import it.cwmp.utils.HttpUtils
 
 import scala.concurrent.Future
 import scala.language.implicitConversions

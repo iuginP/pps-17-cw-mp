@@ -4,9 +4,9 @@ import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.model.game.GeometricUtils
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.utils.Logging
@@ -96,9 +96,9 @@ case class GameViewActor() extends Actor with Logging {
 
     case RemoveAttack(pointOnAttackView) =>
       log.info(s"RemoveAttack pointOnView:$pointOnAttackView")
-      val attack = findTentacleNearTo(pointOnAttackView, tempWorld.attacks)
-      attack match {
-        case Some(tentacle) if tentacle.from.owner.username == playerName =>
+      val attacks = findTentaclesNearTo(pointOnAttackView, tempWorld.attacks)
+      attacks.find(_.from.owner.username == playerName) match {
+        case Some(tentacle) =>
           log.debug(s"Removing this attack: $tentacle ...")
           parentActor ! UpdateState(tempWorld -- tentacle)
         case tmp@_ => log.debug(s"No attack detected or not $playerName attack $tmp")
@@ -184,9 +184,9 @@ object GameViewActor {
     *
     * @param clickedPoint the clicked point on view
     * @param tentacles    the collection of attacks on screen
-    * @return optionally the tentacle near the clicked point
+    * @return the sequence of tentacles near the clicked point
     */
-  private def findTentacleNearTo(clickedPoint: Point, tentacles: Seq[Tentacle]): Option[Tentacle] =
-    tentacles.find(tentacle => GeometricUtils.
+  private def findTentaclesNearTo(clickedPoint: Point, tentacles: Seq[Tentacle]): Seq[Tentacle] =
+    tentacles.filter(tentacle => GeometricUtils.
       pointDistanceFromStraightLine(clickedPoint, tentacle.from.position, tentacle.to.position) <= TentacleView.thicknessStrategy(tentacle))
 }

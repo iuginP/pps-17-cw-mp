@@ -11,8 +11,9 @@ import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
 import it.cwmp.services.rooms.ServerParameters._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
+import it.cwmp.services.{Validation, VertxServer}
+import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

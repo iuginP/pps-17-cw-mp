@@ -1,7 +1,8 @@
 package it.cwmp.services.authentication
 
+import it.cwmp.services.VertxInstance
 import it.cwmp.services.wrapper.DiscoveryApiWrapper
-import it.cwmp.utils.{Logging, ServiceArguments, VertxInstance}
+import it.cwmp.utils.{Logging, ServiceArguments}
 
 import scala.util.{Failure, Success}
 

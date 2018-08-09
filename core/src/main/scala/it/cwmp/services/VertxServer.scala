@@ -1,4 +1,4 @@
-package it.cwmp.utils
+package it.cwmp.services
 
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
@@ -7,8 +7,9 @@ import io.vertx.scala.core.http.{HttpServer, HttpServerRequest, HttpServerRespon
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
+import it.cwmp.services.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
+import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-import it.cwmp.utils.VertxServer.NO_AUTH_HEADER_IN_REQUEST_ERROR
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

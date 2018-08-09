@@ -1,7 +1,8 @@
 package it.cwmp.services.rooms
 
+import it.cwmp.services.VertxInstance
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomReceiverApiWrapper}
-import it.cwmp.utils.{Logging, ServiceArguments, VertxInstance}
+import it.cwmp.utils.{Logging, ServiceArguments}
 
 import scala.util.Failure
 
