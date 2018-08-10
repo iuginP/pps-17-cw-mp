@@ -5,8 +5,8 @@ import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
 import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.services.{Validation, VertxClient, VertxInstance}
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.{Validation, VertxClient, VertxInstance}
 
 import scala.concurrent.Future
 

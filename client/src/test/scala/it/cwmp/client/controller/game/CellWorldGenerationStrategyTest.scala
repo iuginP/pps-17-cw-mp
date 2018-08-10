@@ -33,7 +33,7 @@ class CellWorldGenerationStrategyTest extends FunSpec {
         assert(cellWorld.characters.size == myParticipants.size + passiveCells)
       }
       it("should generate a world with correct number of passive cells") {
-        assert(cellWorld.characters.count(_.owner == Cell.Passive.NO_OWNER) == passiveCells)
+        assert(cellWorld.characters.count(Cell.isPassiveCell) == passiveCells)
       }
       it("should generate a CellWorld with no attacks") {
         assert(cellWorld.attacks.isEmpty)

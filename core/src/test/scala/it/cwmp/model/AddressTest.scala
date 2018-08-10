@@ -4,6 +4,7 @@ import java.text.ParseException
 
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import it.cwmp.model.Address.Converters._
+import org.scalatest.FunSpec
 
 
 /**

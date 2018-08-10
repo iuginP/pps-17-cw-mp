@@ -4,7 +4,8 @@ import java.time.Duration
 import java.util.Objects.requireNonNull
 
 import it.cwmp.client.controller.game.GameConstants.{CELL_ENERGY_WHEN_BORN, MILLIS_TO_ENERGY_CONVERSION_RATE}
-import it.cwmp.client.model.game.{Character, EvolutionStrategy, GeometricUtils}
+import it.cwmp.client.model.game.{Character, EvolutionStrategy}
+import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.model.User
 
 /**
@@ -55,6 +56,14 @@ object Cell {
     */
   def ownerAndPositionMatch(cell1: Cell, cell2: Cell): Boolean =
     cell1.owner == cell2.owner && cell1.position == cell2.position
+
+  /**
+    * Tells if the cell is Passive
+    *
+    * @param cell the cell to check
+    * @return true if cell is passive, false otherwise
+    */
+  def isPassiveCell(cell: Cell): Boolean = cell.owner == Passive.NO_OWNER
 
   /**
     * A class to manipulate cells

@@ -1,10 +1,9 @@
 package it.cwmp.client.view.game
 
 import akka.actor.ActorRef
-import it.cwmp.client.model.game.impl.{CellWorld, Point}
+import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
 import it.cwmp.client.view.FXRunOnUIThread
-import it.cwmp.client.view.game.model.CellView._
-import it.cwmp.client.view.game.model.TentacleView
+import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -28,13 +27,16 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with
   private var root: Group = _
   private var canvas: Canvas = _
 
+  private var playerName: String = _
+
   /**
     * Initializes the GUI
     *
     * @param title the GUI title
     * @param size  the Window size
     */
-  def start(title: String, size: Int): Unit = {
+  def start(title: String, size: Int, playerName: String): Unit = {
+    this.playerName = playerName
     new JFXPanel() // initializes JavaFX
     runOnUIThread(() => {
       stage = new Stage
@@ -82,6 +84,14 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with
       root.getChildren.addAll(graphicElementsToDraw.asJava)
     })
   }
+
+  /**
+    * Implicit method to convert a cell to corresponding View
+    *
+    * @param cell the cell to draw
+    * @return the CellView for the cell
+    */
+  implicit def cellToView(cell: Cell): CellView = CellView.cellToView(cell, playerName)
 
   /**
     * An object that wraps logic behind user events un GUI

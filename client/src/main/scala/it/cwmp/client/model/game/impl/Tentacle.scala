@@ -101,6 +101,17 @@ object Tentacle {
   /**
     * An ordering for tentacles based on launchInstant
     */
-  val orderByLaunchInstant: Ordering[Tentacle] = (x: Tentacle, y: Tentacle) => x.launchInstant.compareTo(y.launchInstant)
+  val orderByLaunchInstant: Ordering[Tentacle] = (first: Tentacle, second: Tentacle) => first.launchInstant.compareTo(second.launchInstant)
+
+  /**
+    * An ordering for tentacles based on effective attack duration
+    *
+    * @param actualInstant the actual instant to calculate attack duration
+    */
+  def orderByAttackDuration(actualInstant: Instant): Ordering[Tentacle] = (first: Tentacle, second: Tentacle) => {
+    val firstAttackDuration = first.hasReachedDestinationFor(actualInstant)
+    val secondAttackDuration = second.hasReachedDestinationFor(actualInstant)
+    firstAttackDuration.compareTo(secondAttackDuration)
+  }
 
 }

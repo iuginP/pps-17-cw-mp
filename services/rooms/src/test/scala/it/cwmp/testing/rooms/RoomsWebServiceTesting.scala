@@ -4,11 +4,12 @@ import io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
 import io.vertx.lang.scala.ScalaVerticle
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.{Address, Participant, User}
+import it.cwmp.services.Validation
 import it.cwmp.services.rooms.RoomsServiceVerticle
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.testing.VerticleBeforeAndAfterEach
+import it.cwmp.utils.HttpUtils
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.{HttpUtils, Validation}
 
 import scala.concurrent.Future
 

@@ -27,8 +27,8 @@ subprojects {
     apply plugin: 'scalaStyle'
 
     sourceCompatibility = "$jdkVersion"
-    javadoc.destinationDir = file("$docsFolderJava/${it.path}")
-    scaladoc.destinationDir = file("$docsFolderScala/${it.path}")
+    javadoc.destinationDir = file("$docsFolderJava/${project.name}")
+    scaladoc.destinationDir = file("$docsFolderScala/${project.name}")
 
     dependencies {
         if (project.name != 'core') {
@@ -50,7 +50,7 @@ subprojects {
         scoverage 'org.scoverage:scalac-scoverage-runtime_2.12:1.3.1'
     }
 
-    if (project.name == 'client' || project.name == 'rooms' || project.name == 'authentication') {
+    if (project.name == 'client' || project.name == 'discovery' || project.name == 'rooms' || project.name == 'authentication') {
         apply plugin: 'com.github.johnrengelman.shadow'
 
         shadowJar {

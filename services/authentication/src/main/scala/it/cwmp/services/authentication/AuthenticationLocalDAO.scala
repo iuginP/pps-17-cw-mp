@@ -1,8 +1,9 @@
 package it.cwmp.services.authentication
 
+import it.cwmp.services.VertxJDBC.stringsToJsonArray
 import it.cwmp.services.authentication.AuthenticationLocalDAO._
-import it.cwmp.utils.VertxJDBC.stringsToJsonArray
-import it.cwmp.utils.{Logging, VertxInstance, VertxJDBC}
+import it.cwmp.services.{VertxInstance, VertxJDBC}
+import it.cwmp.utils.Logging
 
 import scala.concurrent._
 

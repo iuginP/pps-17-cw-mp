@@ -31,7 +31,7 @@ class GameEngineTest extends FunSpec with Logging {
 
   // this is a world where Elia and Davide are attacking Enrico...
   // Elia attacked Enrico 500 milliseconds before Davide
-  // after some time Enrico will be conquered by Elia, because he is the first attacker
+  // after some time Enrico will be conquered by Elia, because he has been attacking for more time
   // Davide will conquer a passive cell near him
   private val myCellWorld = CellWorld(worldInstant, cells, tentacles)
 
@@ -79,12 +79,12 @@ class GameEngineTest extends FunSpec with Logging {
         val noAttacksWorld = CellWorld(worldInstant, cells, Seq())
         val noAttacksWorldEvolved = GameEngine(noAttacksWorld, notEnoughTimeToReachCell)
         val baseAndEvolvedPair = noAttacksWorld.characters.zipAll(noAttacksWorldEvolved.characters, cells.head, cells.head)
-        assert(baseAndEvolvedPair.filter(_._1.owner != NO_OWNER).forall(pair => pair._1.energy < pair._2.energy))
+        assert(baseAndEvolvedPair.filter(cellPair => !Cell.isPassiveCell(cellPair._1)).forall(pair => pair._1.energy < pair._2.energy))
       }
 
       it("not evolving passive cell energy") {
-        val passiveCells = myCellWorld.characters.filter(_.owner == NO_OWNER)
-        val passiveEvolvedCells = beforeAttackWorld.characters.filter(_.owner == NO_OWNER)
+        val passiveCells = myCellWorld.characters.filter(Cell.isPassiveCell)
+        val passiveEvolvedCells = beforeAttackWorld.characters.filter(Cell.isPassiveCell)
         assert(passiveCells.zip(passiveEvolvedCells)
           .forall(cellPair => cellPair._1.energy == cellPair._2.energy))
       }
@@ -118,7 +118,7 @@ class GameEngineTest extends FunSpec with Logging {
           assert(!afterConquerOfCellWorld.characters.exists(_.owner.username == enricoUsername))
         }
         it("conquering passive cells") {
-          assert(!afterConquerOfCellWorld.characters.exists(_.owner == NO_OWNER))
+          assert(!afterConquerOfCellWorld.characters.exists(Cell.isPassiveCell))
         }
       }
 
