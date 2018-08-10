@@ -62,10 +62,10 @@ object GameConstants {
   /**
     * The minimum time that will last between two clients synchronizations in millis
     */
-  val MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 1000
+  val MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 4000
 
   /**
     * The maximum time that will last between two client synchronizations in millis
     */
-  val MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 2000
+  val MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 8000
 }
