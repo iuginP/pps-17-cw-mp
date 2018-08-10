@@ -1,6 +1,7 @@
 package it.cwmp.client.view
 
 import javafx.application.Platform
+import javafx.embed.swing.JFXPanel
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.layout.Pane
@@ -57,6 +58,8 @@ trait FXViewController {
     * Initialization of the view
     */
   private def initGUI(): Unit = {
+    new JFXPanel // initializes JavaFX
+
     // creates an instance of layout
     val loader = new FXMLLoader(getClass.getResource(layout))
     loader.setController(controller)
@@ -66,5 +69,6 @@ trait FXViewController {
     stage setOnCloseRequest (_ => onCloseAction())
     stage setScene new Scene(pane)
     stage setResizable false
+    Platform setImplicitExit false
   }
 }
