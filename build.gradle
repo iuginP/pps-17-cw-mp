@@ -27,8 +27,8 @@ subprojects {
     apply plugin: 'scalaStyle'
 
     sourceCompatibility = "$jdkVersion"
-    javadoc.destinationDir = file("$docsFolderJava/${it.path}")
-    scaladoc.destinationDir = file("$docsFolderScala/${it.path}")
+    javadoc.destinationDir = file("$docsFolderJava/${project.name}")
+    scaladoc.destinationDir = file("$docsFolderScala/${project.name}")
 
     dependencies {
         if (project.name != 'core') {
