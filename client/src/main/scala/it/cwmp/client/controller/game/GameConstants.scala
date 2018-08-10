@@ -58,4 +58,14 @@ object GameConstants {
     * The number of passive cells in generated world
     */
   val PASSIVE_CELLS_NUMBER = 5
+
+  /**
+    * The minimum time that will last between two clients synchronizations in millis
+    */
+  val MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 1000
+
+  /**
+    * The maximum time that will last between two client synchronizations in millis
+    */
+  val MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION = 2000
 }
