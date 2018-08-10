@@ -1,7 +1,10 @@
 package it.cwmp.client.view.game
 
+import java.util.concurrent.ThreadLocalRandom
+
 import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.ViewVisibilityMessages.Hide
+import it.cwmp.client.controller.game.GameConstants.{MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION}
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
@@ -25,9 +28,12 @@ case class GameViewActor() extends Actor with Logging {
 
   private val gameFX: GameFX = GameFX(self)
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 350.millis
+  private val WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION = ThreadLocalRandom.current()
+    .nextInt(MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION).millis
 
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
+  private var synchronizationSchedule: Cancellable = _
   private var tempWorld: CellWorld = _
   private var playerName: String = _
 
@@ -61,6 +67,7 @@ case class GameViewActor() extends Actor with Logging {
   private def newWorldBehaviour: Receive = {
     case NewWorld(world) =>
       tempWorld = world
+      restartSynchronizationSchedule(WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION)
       if (updatingSchedule == null) {
         updatingSchedule = context.system.scheduler
           .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)
@@ -91,6 +98,7 @@ case class GameViewActor() extends Actor with Logging {
         case (Some(attacker), Some(attacked)) if canAddAttack(attacker, attacked, tempWorld.attacks) =>
           log.debug(s"Adding attack from $attacker to $attacked ...")
           parentActor ! UpdateState(tempWorld ++ Tentacle(attacker, attacked, tempWorld.instant))
+          restartSynchronizationSchedule(WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION)
         case tmp@_ => log.debug(s"No cells detected or auto-attack or not $playerName cell $tmp")
       }
 
@@ -101,8 +109,13 @@ case class GameViewActor() extends Actor with Logging {
         case Some(tentacle) =>
           log.debug(s"Removing this attack: $tentacle ...")
           parentActor ! UpdateState(tempWorld -- tentacle)
+          restartSynchronizationSchedule(WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION)
         case tmp@_ => log.debug(s"No attack detected or not $playerName attack $tmp")
       }
+
+    case SynchronizeWorld =>
+      log.info("Time to synchronize other clients because of no user actions")
+      parentActor ! UpdateState(tempWorld)
   }
 
   /**
@@ -119,6 +132,16 @@ case class GameViewActor() extends Actor with Logging {
       !currentAttacks.exists(tentacle => // no already present attacks
         Cell.ownerAndPositionMatch(tentacle.from, attacker) &&
           Cell.ownerAndPositionMatch(tentacle.to, attacked))
+  }
+
+  /**
+    * Utility method to restart the world synchronization schedule
+    */
+  private def restartSynchronizationSchedule(waitTime: FiniteDuration): Unit = {
+    if (synchronizationSchedule != null) synchronizationSchedule.cancel()
+
+    synchronizationSchedule = context.system.scheduler
+      .schedule(waitTime, waitTime, self, SynchronizeWorld)(context.dispatcher)
   }
 }
 
@@ -153,6 +176,11 @@ object GameViewActor {
     * Updates GUI of the world making it "move"
     */
   case object UpdateGUI
+
+  /**
+    * Makes Actor send a distributed world that's equal to current one
+    */
+  case object SynchronizeWorld
 
   /**
     * A message stating that an attack has been launched from one point to another
