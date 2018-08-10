@@ -8,7 +8,7 @@ import io.vertx.scala.servicediscovery.types.HttpEndpoint
 import io.vertx.scala.servicediscovery.{Record, ServiceDiscovery, ServiceDiscoveryOptions}
 import io.vertx.servicediscovery.Status
 import it.cwmp.services.VertxServer
-import it.cwmp.services.discovery.ServerParameters._
+import it.cwmp.services.discovery.Service._
 import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.httpStatusNameToCode
 
@@ -42,7 +42,7 @@ case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEF
 
   override protected def initRouter(router: Router): Unit = {
     router post API_PUBLISH_SERVICE handler handlerPublishService
-    router delete API_UNPUBLISH_SERVICE handler handlerUnPublishService
+    router delete API_UN_PUBLISH_SERVICE handler handlerUnPublishService
     router get API_DISCOVER_SERVICE handler handlerDiscoverService
   }
 
@@ -102,7 +102,7 @@ case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEF
           // Publication successful
           log.info(s"Service $name successfully found!")
           val metadata: JsonObject = record.getLocation
-          sendResponse(OK, Some(metadata toString))
+          sendResponse(OK, Some(metadata.toString))
         case _ =>
           // publication failed
           sendResponse(BAD_REQUEST)

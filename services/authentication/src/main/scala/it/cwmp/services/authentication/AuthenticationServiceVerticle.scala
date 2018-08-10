@@ -4,7 +4,7 @@ import io.netty.handler.codec.http.HttpResponseStatus._
 import io.vertx.core.Handler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import it.cwmp.services.VertxServer
-import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.services.authentication.Service._
 import it.cwmp.services.authentication.utils.JwtUtils
 import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
 import it.cwmp.utils.{HttpUtils, Logging}

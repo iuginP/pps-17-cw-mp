@@ -6,7 +6,7 @@ import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.Participant.Converters._
 import it.cwmp.services.VertxClient
-import it.cwmp.services.roomreceiver.ServerParameters._
+import it.cwmp.services.roomreceiver.Service._
 import it.cwmp.services.testing.roomreceiver.RoomReceiverWebTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.Utils.httpStatusNameToCode

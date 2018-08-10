@@ -1,8 +1,9 @@
 package it.cwmp.services.rooms
 
-import it.cwmp.services.VertxInstance
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomReceiverApiWrapper}
-import it.cwmp.utils.{Logging, ServiceArguments}
+import it.cwmp.services.{ServiceLauncher, VertxInstance, discovery}
+import it.cwmp.utils.{HostAndPortArguments, Logging}
+import it.cwmp.view.TwoAddressesInput
 
 import scala.util.Failure
 
@@ -11,24 +12,38 @@ import scala.util.Failure
   *
   * @author Enrico Siboni
   */
-object RoomsServiceMain extends App with VertxInstance with Logging {
+object RoomsServiceMain extends App with VertxInstance with Logging with ServiceLauncher {
 
-  val arguments = ServiceArguments(args)
-  // scalastyle:off import.grouping
-  import arguments._
-  // scalastyle:on import.grouping
+  try {
+    val hostPortPairs = HostAndPortArguments(args, 2, ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs
+    val discoveryService = hostPortPairs.head
+    val myService = hostPortPairs(1)
 
-  private val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discoveryHost, discoveryPort)
+    launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+  } catch {
+    case _: IllegalArgumentException =>
+      TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs => {
+        val discoveryService = discoveryAndMyHostPortPairs._1
+        val myService = discoveryAndMyHostPortPairs._2
 
-  log.info("Deploying RoomService...")
-  for (
-    // Check for the presence of an AuthenticationApiWrapper
-    (host, port) <- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
-    _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(currentPort, AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
-  ) yield {
-    log.info("RoomsService up and running!")
-    discoveryApiWrapper.publish(Service.DISCOVERY_NAME, currentHost, currentPort)
-  } andThen {
-    case Failure(ex) => log.info("Error deploying RoomsService", ex)
+        launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+      })(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+        secondDefaultPort = Service.DEFAULT_PORT.toString)
+  }
+
+  override def launch(discoveryHost: String, discoveryPort: String, myHost: String, myPort: String): Unit = {
+    val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
+
+    log.info("Deploying RoomService...")
+    for (
+      // Check for the presence of an AuthenticationApiWrapper
+      (host, port) <- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
+      _ <- vertx.deployVerticleFuture(RoomsServiceVerticle(myPort.toInt, AuthenticationApiWrapper(host, port), RoomReceiverApiWrapper()))
+    ) yield {
+      log.info("RoomsService up and running!")
+      discoveryApiWrapper.publish(Service.DISCOVERY_NAME, myHost, myPort.toInt)
+    } andThen {
+      case Failure(ex) => log.info("Error deploying RoomsService", ex)
+    }
   }
 }

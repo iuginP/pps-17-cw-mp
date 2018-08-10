@@ -3,7 +3,7 @@ package it.cwmp.services.wrapper
 import io.netty.handler.codec.http.HttpResponseStatus.{CREATED, OK}
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.services.{VertxClient, VertxInstance}
-import it.cwmp.services.discovery.ServerParameters._
+import it.cwmp.services.discovery.Service._
 import it.cwmp.utils.Utils.httpStatusNameToCode
 
 import scala.concurrent.Future
@@ -72,17 +72,17 @@ object DiscoveryApiWrapper {
       client.post(API_PUBLISH_SERVICE)
         .addQueryParam(PARAMETER_NAME, name)
         .addQueryParam(PARAMETER_HOST, host)
-        .addQueryParam(PARAMETER_PORT, port toString)
+        .addQueryParam(PARAMETER_PORT, port.toString)
         .sendFuture()
         .expectStatus(CREATED)
         .map(_ => ())
     }
 
     override def unPublish(name: String, host: String, port: Int): Future[Unit] = {
-      client.delete(API_UNPUBLISH_SERVICE)
+      client.delete(API_UN_PUBLISH_SERVICE)
         .addQueryParam(PARAMETER_NAME, name)
         .addQueryParam(PARAMETER_HOST, host)
-        .addQueryParam(PARAMETER_PORT, port toString)
+        .addQueryParam(PARAMETER_PORT, port.toString)
         .sendFuture()
         .expectStatus(OK)
         .map(_ => ())
