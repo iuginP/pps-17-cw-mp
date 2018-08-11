@@ -31,17 +31,16 @@ subprojects {
     scaladoc.destinationDir = file("$docsFolderScala/${project.name}")
 
     dependencies {
-        if (project.name != 'core') {
+        if (project.name != 'core')
             implementation project(':core')
-        }
+
         implementation 'org.scala-lang:scala-library:2.12.2'
         implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.9.0'
 
-        if (project.name != 'core-testing') {
+        if (project.name != 'core-testing')
             testImplementation project(':core-testing')
-        }
+
         testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
-        testImplementation 'org.scalamock:scalamock-scalatest-support_2.12:3.5.0'
 
         testRuntime 'org.pegdown:pegdown:1.6.0'
 
