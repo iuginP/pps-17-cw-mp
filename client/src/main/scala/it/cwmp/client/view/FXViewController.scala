@@ -57,7 +57,7 @@ trait FXViewController {
   /**
     * Initialization of the view
     */
-  private def initGUI(): Unit = {
+  protected def initGUI(): Unit = {
     new JFXPanel // initializes JavaFX
 
     // creates an instance of layout
