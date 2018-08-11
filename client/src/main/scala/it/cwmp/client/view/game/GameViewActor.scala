@@ -7,13 +7,15 @@ import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameConstants.{MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION}
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.controller.{ActorAlertManagement, AlertMessages}
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
-import it.cwmp.client.view.FXRunOnUIThread
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
+import it.cwmp.client.view.{FXAlertsController, FXRunOnUIThread}
 import it.cwmp.utils.Logging
+import it.cwmp.utils.Utils.stringToOption
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -25,7 +27,7 @@ import scala.util.{Failure, Success}
   *
   * @author contributor Enrico Siboni
   */
-case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
+case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertManagement with Logging {
 
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 350.millis
   private val WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION = ThreadLocalRandom.current()
@@ -38,8 +40,15 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
   private var tempWorld: CellWorld = _
   private var playerName: String = _
 
+  override protected def fxController: FXAlertsController = gameFX
+
   override def receive: Receive = showGUIBehaviour orElse {
     case Initialize => parentActor = sender()
+  }
+
+  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
+    super.onInfoAlertReceived(title, message)
+    context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -54,7 +63,7 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
         gameFX.showGUI()
       })
 
-      context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
+      context.become(alertBehaviour orElse hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -77,6 +86,11 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
       if (updatingSchedule == null) {
         updatingSchedule = context.system.scheduler
           .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)
+      }
+      gameEnded(world) match {
+        case Some(winnerName) if winnerName == playerName => self ! AlertMessages.Info(playerName + YOU_WON_TITLE, YOU_WON)
+        case Some(_) => self ! AlertMessages.Info(playerName + YOU_LOST_TITLE, YOU_LOST)
+        case None =>
       }
 
     case UpdateGUI =>
@@ -149,6 +163,17 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
     synchronizationSchedule = context.system.scheduler
       .schedule(waitTime, waitTime, self, SynchronizeWorld)(context.dispatcher)
   }
+
+  /**
+    * Checks if the game has ended
+    *
+    * @param cellWorld the cellWorld to check
+    * @return optionally the winner name
+    */
+  private def gameEnded(cellWorld: CellWorld): Option[String] =
+    if (cellWorld.characters.forall(_.owner == cellWorld.characters.head.owner)) {
+      cellWorld.characters.head.owner.username
+    } else None
 }
 
 /**
@@ -202,6 +227,12 @@ object GameViewActor {
     * @param pointOnAttackView the point clicked by the player to remove the attack
     */
   case class RemoveAttack(pointOnAttackView: Point)
+
+  private val YOU_WON_TITLE = "HAI VINTO!!!"
+  private val YOU_WON = "Hai conquistato tutti gli avversari, complimenti"
+
+  private val YOU_LOST_TITLE = "HAI PERSO..."
+  private val YOU_LOST = "Sei stato sterminato dagli avversari, la prossima volta sarai più fortunato..."
 
   /**
     * A method to find a cell near to a clicked point on view, according to actual cell sizing

@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
 import it.cwmp.client.utils.LayoutRes
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
-import it.cwmp.client.view.{FXRunOnUIThread, FXViewController}
+import it.cwmp.client.view.{FXAlertsController, FXViewController}
 import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas
 import javafx.scene.input.MouseEvent
@@ -23,7 +23,7 @@ import scala.language.implicitConversions
   * @author contributor Enrico Siboni
   */
 case class GameFX(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
-  extends CellWorldObjectDrawer with FXViewController with FXRunOnUIThread {
+  extends CellWorldObjectDrawer with FXViewController with FXAlertsController {
 
   @FXML private var root: Group = _
 
