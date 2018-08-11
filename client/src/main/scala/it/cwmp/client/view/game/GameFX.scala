@@ -6,11 +6,13 @@ import it.cwmp.client.utils.LayoutRes
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.client.view.{FXRunOnUIThread, FXViewController}
 import javafx.fxml.FXML
-import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.canvas.Canvas
 import javafx.scene.input.MouseEvent
 import javafx.scene.{Group, Node}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.implicitConversions
 
 /**
@@ -20,23 +22,17 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX(viewManagerActor: ActorRef,
-                  override val title: String,
-                  viewSize: Int,
-                  playerName: String) extends CellWorldObjectDrawer with FXViewController with FXRunOnUIThread {
+case class GameFX(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
+  extends CellWorldObjectDrawer with FXViewController with FXRunOnUIThread {
 
   @FXML private var root: Group = _
-
-  private var canvas: Canvas = _
 
   override protected val layout: String = LayoutRes.gameLayout
   override protected val controller: FXViewController = this
 
   override protected def initGUI(): Unit = {
     super.initGUI()
-
-    canvas = new Canvas(viewSize, viewSize)
-    root.getChildren.add(canvas)
+    root.getChildren.add(new Canvas(viewSize, viewSize))
 
     UserEventHandler.initializeEventHandlers(root, viewManagerActor)
   }
@@ -46,7 +42,7 @@ case class GameFX(viewManagerActor: ActorRef,
     *
     * @param world the new world to draw
     */
-  def updateWorld(world: CellWorld): Unit = {
+  def updateWorld(world: CellWorld): Unit = Future {
     val graphicElementsToDraw: Seq[Node] =
       Seq(
         world.attacks.map(tentacle => drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))),
