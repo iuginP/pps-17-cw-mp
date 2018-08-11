@@ -29,8 +29,8 @@ class AuthenticationFXController(strategy: AuthenticationStrategy) extends FXVie
   @FXML private var btnSignUp: Button = _
   @FXML private var btnSignUpReset: Button = _
 
-  override def showGUI(): Unit = {
-    super.showGUI()
+  override protected def initGUI(): Unit = {
+    super.initGUI()
     // adds a listener to reset fields on tab change
     tpMain.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
     btnSignIn.setDefaultButton(true)
