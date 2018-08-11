@@ -38,6 +38,11 @@ subprojects {
         implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.9.0'
         implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
 
+        if (project.name == "core" || project.parent.name == "services") {
+            implementation 'io.vertx:vertx-web-scala_2.12:3.5.2'
+            implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
+        }
+
         if (project.name != 'core-testing')
             testImplementation project(':core-testing')
 
