@@ -10,7 +10,7 @@ def scalaStyleOutputPath = "${buildDir.path}$scalaStyleOutput"
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
-    apply plugin: "com.dorongold.task-tree"
+    apply plugin: 'com.dorongold.task-tree'
 
     repositories {
         // Repositories where to find libraries
@@ -31,18 +31,22 @@ subprojects {
     scaladoc.destinationDir = file("$docsFolderScala/${project.name}")
 
     dependencies {
-        if (project.name != 'core') {
+        if (project.name != 'core')
             implementation project(':core')
-        }
+
         implementation 'org.scala-lang:scala-library:2.12.2'
         implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.9.0'
-        implementation 'ch.qos.logback:logback-classic:1.2.3'
+        implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
 
-        if (project.name != 'core-testing') {
-            testImplementation project(':core-testing')
+        if (project.name == "core" || project.parent.name == "services") {
+            implementation 'io.vertx:vertx-web-scala_2.12:3.5.2'
+            implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
         }
+
+        if (project.name != 'core-testing')
+            testImplementation project(':core-testing')
+
         testImplementation 'org.scalatest:scalatest_2.12:3.0.1'
-        testImplementation 'org.scalamock:scalamock-scalatest-support_2.12:3.5.0'
 
         testRuntime 'org.pegdown:pegdown:1.6.0'
 
@@ -60,6 +64,13 @@ subprojects {
 
             destinationDir = file(jarDestinationFolder)
             mergeServiceFiles('reference.conf') // solves problems with AKKA
+        }
+    }
+
+    if (project.name == 'core' || project.parent.name == 'services') {
+        // tests that use database, should run sequentially
+        tasks.withType(Test) {
+            maxParallelForks = 1
         }
     }
 
@@ -87,25 +98,6 @@ subprojects {
     build.finalizedBy scalaStyle
 }
 
-configure(subprojects.findAll { it.name == 'core' || it.name == 'server' || it.parent.name == 'services' }) {
-
-    dependencies {
-        implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
-        implementation 'io.vertx:vertx-web-scala_2.12:3.5.2'
-        implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
-        implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
-        implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
-
-        runtimeOnly 'mysql:mysql-connector-java:5.1.13'
-
-        testRuntimeOnly 'org.hsqldb:hsqldb:2.4.1'
-    }
-
-    tasks.withType(Test) {
-        maxParallelForks = 1
-    }
-}
-
 buildscript {
     repositories {
         maven {
@@ -113,14 +105,20 @@ buildscript {
         }
     }
     dependencies {
-        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3"
-
         classpath "gradle.plugin.org.scoverage:gradle-scoverage:2.3.0"
         classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
 
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-
+        // Plug-in to show scalaStyle warnings
+        // Usage: gradlew <project> scalaStyle
         classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_2.11:1.0.1"
+
+        // Plug-in to show task dependencies tree
+        // Usage: gradlew <task 1>...<task N> taskTree
+        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3"
+
+        // Plug-in to create executable jars
+        // Usage: gradlew <project> shadowJar
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
