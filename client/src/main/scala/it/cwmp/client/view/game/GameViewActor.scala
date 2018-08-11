@@ -10,6 +10,7 @@ import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
+import it.cwmp.client.view.{FXAlertsController, FXRunOnUIThread}
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.utils.Logging
@@ -24,13 +25,13 @@ import scala.util.{Failure, Success}
   *
   * @author contributor Enrico Siboni
   */
-case class GameViewActor() extends Actor with Logging {
+case class GameViewActor() extends Actor with FXRunOnUIThread with Logging {
 
-  private val gameFX: GameFX = GameFX(self)
   private val TIME_BETWEEN_FRAMES: FiniteDuration = 350.millis
   private val WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION = ThreadLocalRandom.current()
     .nextInt(MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION).millis
 
+  private var gameFX: GameFX = _
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
   private var synchronizationSchedule: Cancellable = _
@@ -47,7 +48,12 @@ case class GameViewActor() extends Actor with Logging {
   private def showGUIBehaviour: Receive = {
     case ShowGUIWithName(name) =>
       playerName = name
-      gameFX.start(s"$VIEW_TITLE_PREFIX$name", VIEW_SIZE, name)
+
+      runOnUIThread(() => {
+        gameFX = GameFX(self, VIEW_TITLE_PREFIX + name, VIEW_SIZE, name)
+        gameFX.showGUI()
+      })
+
       context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
@@ -57,7 +63,7 @@ case class GameViewActor() extends Actor with Logging {
   private def hideGUIBehaviour: Receive = { // TODO: remove, no-one ever sends this message here
     case Hide =>
       if (updatingSchedule != null) updatingSchedule.cancel()
-      gameFX.close()
+      runOnUIThread { () => gameFX.hideGUI() }
       context.become(showGUIBehaviour)
   }
 
@@ -78,7 +84,7 @@ case class GameViewActor() extends Actor with Logging {
         tempWorld = GameEngine(tempWorld, java.time.Duration.ofMillis(TIME_BETWEEN_FRAMES.toMillis))
         tempWorld
       } andThen {
-        case Success(cellWorld) => gameFX.updateWorld(cellWorld)
+        case Success(cellWorld) => runOnUIThread { () => gameFX.updateWorld(cellWorld) }
         case Failure(ex) =>
           updatingSchedule.cancel()
           log.error("Error calculating next CellWorld", ex)

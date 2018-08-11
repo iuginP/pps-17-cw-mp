@@ -1,6 +1,7 @@
 package it.cwmp.client.view
 
 import javafx.application.Platform
+import javafx.embed.swing.JFXPanel
 
 /**
   * A trait that gives a way to run tasks on JavaFX Application Thread without overhead
@@ -14,7 +15,9 @@ trait FXRunOnUIThread {
     *
     * @param task the task to run on GUI thread
     */
-  def runOnUIThread(task: Runnable): Unit =
+  def runOnUIThread(task: Runnable): Unit = {
+    new JFXPanel // initializes JavaFX
     if (Platform.isFxApplicationThread) task.run() else Platform.runLater(task)
+  }
 
 }
