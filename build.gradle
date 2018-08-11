@@ -38,17 +38,6 @@ subprojects {
         implementation 'com.typesafe.scala-logging:scala-logging_2.12:3.9.0'
         implementation 'io.vertx:vertx-lang-scala_2.12:3.5.2'
 
-        if (project.name == 'core' || project.name == 'server' || project.parent.name == 'services') {
-            implementation 'io.vertx:vertx-web-scala_2.12:3.5.2'
-            implementation 'io.vertx:vertx-web-client-scala_2.12:3.5.2'
-            implementation 'io.vertx:vertx-jdbc-client-scala_2.12:3.5.2'
-            implementation 'io.vertx:vertx-mysql-postgresql-client:3.5.2'
-
-            runtimeOnly 'mysql:mysql-connector-java:5.1.13'
-
-            testRuntimeOnly 'org.hsqldb:hsqldb:2.4.1'
-        }
-
         if (project.name != 'core-testing')
             testImplementation project(':core-testing')
 
