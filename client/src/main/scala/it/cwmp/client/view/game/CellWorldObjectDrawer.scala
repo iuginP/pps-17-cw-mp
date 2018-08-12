@@ -3,7 +3,6 @@ package it.cwmp.client.view.game
 import java.time.{Duration, Instant}
 
 import it.cwmp.client.view.game.model._
-import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
@@ -79,11 +78,10 @@ trait CellWorldObjectDrawer {
     * A method to draw elapsed time on GUI
     *
     * @param actualWorldInstant the actual World Instant
-    * @param graphicsContext    the graphic context on which to draw
+    * @param viewWidth          the view Width
     * @return the text to draw
     */
-  def drawInstant(actualWorldInstant: Instant)
-                 (implicit graphicsContext: GraphicsContext): Text = {
+  def drawInstant(actualWorldInstant: Instant, viewWidth: Double): Text = {
     val elapsedTimeFromBeginning: Duration = firstWorldInstantOption match {
       case Some(firstWorldInstant) => Duration.between(firstWorldInstant, actualWorldInstant)
       case None =>
@@ -95,7 +93,7 @@ trait CellWorldObjectDrawer {
     val instantText = new Text(GameViewConstants.GAME_TIME_TEXT_FORMAT.format(minutes, seconds))
     instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
     instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
-    instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
+    instantText.setX((viewWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
     instantText.setY(instantText.getLayoutBounds.getHeight)
     instantText
   }

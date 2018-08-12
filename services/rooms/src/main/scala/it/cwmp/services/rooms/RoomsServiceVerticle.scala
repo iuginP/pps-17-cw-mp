@@ -9,7 +9,7 @@ import it.cwmp.model.Address.Converters._
 import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
-import it.cwmp.services.rooms.ServerParameters._
+import it.cwmp.services.rooms.Service._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
 import it.cwmp.services.{Validation, VertxServer}
 import it.cwmp.utils.Logging

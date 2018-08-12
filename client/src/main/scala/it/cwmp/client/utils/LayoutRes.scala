@@ -8,4 +8,6 @@ object LayoutRes {
   val authenticationLayout: String = "/layouts/authenticationManagerLayout.fxml"
 
   val roomManagerLayout: String = "/layouts/roomManagerLayout.fxml"
+
+  val gameLayout:String = "/layouts/gameViewLayout.fxml"
 }

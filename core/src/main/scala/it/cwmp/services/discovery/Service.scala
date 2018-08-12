@@ -1,15 +1,18 @@
 package it.cwmp.services.discovery
 
 /**
-  * An object containing Authentication Service info
+  * An object containing Discovery Service info
   */
-object ServerParameters {
+object Service {
 
+  /**
+    * Discovery Service default port
+    */
   val DEFAULT_PORT = 7777
 
   private val API_BASE_PATH = "/api/discovery"
   val API_PUBLISH_SERVICE = s"$API_BASE_PATH/publish"
-  val API_UNPUBLISH_SERVICE = s"$API_BASE_PATH/unPublish"
+  val API_UN_PUBLISH_SERVICE = s"$API_BASE_PATH/unPublish"
   val API_DISCOVER_SERVICE = s"$API_BASE_PATH/discover"
 
   val PARAMETER_REGISTRATION = "service_registration"
