@@ -1,0 +1,522 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/game/distributed/impl/LWWCellWorld.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game.distributed.impl
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.Actor.Receive
+</span>4 <span style=''>import akka.actor.ActorRef
+</span>5 <span style=''>import akka.cluster.Cluster
+</span>6 <span style=''>import akka.cluster.ddata.Replicator.Update
+</span>7 <span style=''>import akka.cluster.ddata._
+</span>8 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState
+</span>9 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
+</span>10 <span style=''>import it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
+</span>11 <span style=''>import it.cwmp.client.model.game.impl.CellWorld
+</span>12 <span style=''>
+</span>13 <span style=''>import scala.language.implicitConversions
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Distributed representation of the world where &quot;Latest Write Wins&quot;
+</span>17 <span style=''>  *
+</span>18 <span style=''>  * @param onWorldUpdate   the strategy to adopt on world changes
+</span>19 <span style=''>  * @param replicatorActor the actor that will distribute the data
+</span>20 <span style=''>  * @param cluster         the cluster where this distributed data are exchanged
+</span>21 <span style=''>  * @author Eugenio Pierfederici
+</span>22 <span style=''>  * @author contributor Enrico Siboni
+</span>23 <span style=''>  */
+</span>24 <span style=''>case class LWWCellWorld(onWorldUpdate: CellWorld =&gt; Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
+</span>25 <span style=''>  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
+</span>26 <span style=''>
+</span>27 <span style=''>  override type ReplicatedDataType = LWWRegister[CellWorld]
+</span>28 <span style=''>
+</span>29 <span style=''>  override protected val distributedKey: LWWRegisterKey[CellWorld] = </span><span style='background: #F0ADAD'>LWWRegisterKey(DISTRIBUTED_KEY_NAME)</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>  override protected def activeBehaviour: Receive = {
+</span>32 <span style=''>    case UpdateState(state: CellWorld) =&gt;
+</span>33 <span style=''>      log.debug(&quot;Updating distributed state&quot;)
+</span>34 <span style=''>      </span><span style='background: #F0ADAD'>updateDistributedStateTo(state)</span><span style=''>
+</span>35 <span style=''>  }
+</span>36 <span style=''>
+</span>37 <span style=''>  override protected def updateDistributedStateTo(state: CellWorld): Unit =
+</span>38 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Update(distributedKey, LWWRegister(state), consistencyPolicy)(distributedModify(_, state))</span><span style=''>
+</span>39 <span style=''>
+</span>40 <span style=''>  override protected def distributedModify(oldDistributedState: LWWRegister[CellWorld], newState: CellWorld): LWWRegister[CellWorld] =
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>oldDistributedState.withValue(newState)</span><span style=''>
+</span>42 <span style=''>
+</span>43 <span style=''>  override protected def parseFromDistributed(distributedData: LWWRegister[CellWorld]): CellWorld = </span><span style='background: #F0ADAD'>distributedData.value</span><span style=''>
+</span>44 <span style=''>}
+</span>45 <span style=''>
+</span>46 <span style=''>/**
+</span>47 <span style=''>  * Companion Object
+</span>48 <span style=''>  */
+</span>49 <span style=''>object LWWCellWorld {
+</span>50 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
+</span>51 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          666
+        </td>
+        <td>
+          1216
+          -
+          1236
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          667
+        </td>
+        <td>
+          1201
+          -
+          1237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegisterKey.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.LWWRegisterKey.apply[it.cwmp.client.model.game.impl.CellWorld](it.cwmp.client.model.game.distributed.impl.LWWCellWorld.DISTRIBUTED_KEY_NAME)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          669
+        </td>
+        <td>
+          1291
+          -
+          1291
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          668
+        </td>
+        <td>
+          1387
+          -
+          1418
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.updateDistributedStateTo
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.updateDistributedStateTo(state)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          678
+        </td>
+        <td>
+          1522
+          -
+          1612
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Update.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.LWWRegister[it.cwmp.client.model.game.impl.CellWorld]](LWWCellWorld.this.distributedKey, {
+  &lt;artifact&gt; val x$2: it.cwmp.client.model.game.impl.CellWorld = state;
+  &lt;artifact&gt; val x$3: akka.cluster.Cluster = LWWCellWorld.this.cluster;
+  &lt;artifact&gt; val x$4: akka.cluster.ddata.LWWRegister.Clock[it.cwmp.client.model.game.impl.CellWorld] @scala.reflect.internal.annotations.uncheckedBounds = akka.cluster.ddata.LWWRegister.apply$default$3[it.cwmp.client.model.game.impl.CellWorld](x$2);
+  akka.cluster.ddata.LWWRegister.apply[it.cwmp.client.model.game.impl.CellWorld](x$2)(x$3, x$4)
+}, LWWCellWorld.this.consistencyPolicy, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.LWWRegister[it.cwmp.client.model.game.impl.CellWorld]) =&gt; LWWCellWorld.this.distributedModify(x$1, state)))
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          672
+        </td>
+        <td>
+          1556
+          -
+          1556
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          675
+        </td>
+        <td>
+          1565
+          -
+          1582
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.consistencyPolicy
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.consistencyPolicy
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          677
+        </td>
+        <td>
+          1584
+          -
+          1611
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.distributedModify
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.distributedModify(x$1, state)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          671
+        </td>
+        <td>
+          1529
+          -
+          1543
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          680
+        </td>
+        <td>
+          1504
+          -
+          1612
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(LWWCellWorld.this.replicatorActor).!(akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.LWWRegister[it.cwmp.client.model.game.impl.CellWorld]](LWWCellWorld.this.distributedKey, {
+  &lt;artifact&gt; val x$2: it.cwmp.client.model.game.impl.CellWorld = state;
+  &lt;artifact&gt; val x$3: akka.cluster.Cluster = LWWCellWorld.this.cluster;
+  &lt;artifact&gt; val x$4: akka.cluster.ddata.LWWRegister.Clock[it.cwmp.client.model.game.impl.CellWorld] @scala.reflect.internal.annotations.uncheckedBounds = akka.cluster.ddata.LWWRegister.apply$default$3[it.cwmp.client.model.game.impl.CellWorld](x$2);
+  akka.cluster.ddata.LWWRegister.apply[it.cwmp.client.model.game.impl.CellWorld](x$2)(x$3, x$4)
+}, LWWCellWorld.this.consistencyPolicy, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.LWWRegister[it.cwmp.client.model.game.impl.CellWorld]) =&gt; LWWCellWorld.this.distributedModify(x$1, state))))(LWWCellWorld.this.replicatorActor)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          674
+        </td>
+        <td>
+          1545
+          -
+          1563
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.LWWRegister.apply[it.cwmp.client.model.game.impl.CellWorld](x$2)(x$3, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          673
+        </td>
+        <td>
+          1556
+          -
+          1556
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.LWWRegister.apply$default$3[it.cwmp.client.model.game.impl.CellWorld](x$2)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          676
+        </td>
+        <td>
+          1522
+          -
+          1522
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Update.apply$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          679
+        </td>
+        <td>
+          1520
+          -
+          1520
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          670
+        </td>
+        <td>
+          1504
+          -
+          1519
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          681
+        </td>
+        <td>
+          1782
+          -
+          1782
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.LWWCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          LWWCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          683
+        </td>
+        <td>
+          1753
+          -
+          1792
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.withValue
+        </td>
+        <td style="background: #F0ADAD">
+          oldDistributedState.withValue(x$5)(x$6, x$7)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          682
+        </td>
+        <td>
+          1782
+          -
+          1782
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.withValue$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          oldDistributedState.withValue$default$3(x$5)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          684
+        </td>
+        <td>
+          1894
+          -
+          1915
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.value
+        </td>
+        <td style="background: #F0ADAD">
+          distributedData.value
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          685
+        </td>
+        <td>
+          2008
+          -
+          2024
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;distributedKey&quot;
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

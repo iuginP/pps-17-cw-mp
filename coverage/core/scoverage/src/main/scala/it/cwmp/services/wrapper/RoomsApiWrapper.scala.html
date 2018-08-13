@@ -32,9 +32,9 @@
 </span>8 <span style=''>import it.cwmp.model.Room.Converters._
 </span>9 <span style=''>import it.cwmp.model.{Address, Room}
 </span>10 <span style=''>import it.cwmp.services.rooms.RoomApiWrapperUtils
-</span>11 <span style=''>import it.cwmp.services.rooms.ServerParameters._
-</span>12 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
-</span>13 <span style=''>import it.cwmp.utils.{VertxClient, VertxInstance}
+</span>11 <span style=''>import it.cwmp.services.rooms.Service._
+</span>12 <span style=''>import it.cwmp.services.{VertxClient, VertxInstance}
+</span>13 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
 </span>14 <span style=''>
 </span>15 <span style=''>import scala.concurrent.Future
 </span>16 <span style=''>import scala.language.implicitConversions
@@ -245,12 +245,12 @@
           127
         </td>
         <td>
-          283
+          466
         </td>
         <td>
-          4753
+          4747
           -
-          4764
+          4758
         </td>
         <td>
           Literal
@@ -266,12 +266,12 @@
           129
         </td>
         <td>
-          286
+          469
         </td>
         <td>
-          4799
+          4793
           -
-          4842
+          4836
         </td>
         <td>
           Apply
@@ -280,40 +280,40 @@
           it.cwmp.services.wrapper.RoomsApiWrapper.apply
         </td>
         <td style="background: #AEF1AE">
-          RoomsApiWrapper.apply(RoomsApiWrapper.this.DEFAULT_HOST, it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT)
+          RoomsApiWrapper.apply(RoomsApiWrapper.this.DEFAULT_HOST, it.cwmp.services.rooms.Service.DEFAULT_PORT)
         </td>
       </tr><tr>
         <td>
           129
         </td>
         <td>
-          285
+          468
         </td>
         <td>
-          4829
+          4823
           -
-          4841
+          4835
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.rooms.Service.DEFAULT_PORT
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.rooms.Service.DEFAULT_PORT
         </td>
       </tr><tr>
         <td>
           129
         </td>
         <td>
-          284
+          467
         </td>
         <td>
-          4815
+          4809
           -
-          4827
+          4821
         </td>
         <td>
           Select
@@ -329,12 +329,12 @@
           131
         </td>
         <td>
-          288
+          471
         </td>
         <td>
-          4889
+          4883
           -
-          4924
+          4918
         </td>
         <td>
           Apply
@@ -343,40 +343,40 @@
           it.cwmp.services.wrapper.RoomsApiWrapper.apply
         </td>
         <td style="background: #F0ADAD">
-          RoomsApiWrapper.apply(host, it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT)
+          RoomsApiWrapper.apply(host, it.cwmp.services.rooms.Service.DEFAULT_PORT)
         </td>
       </tr><tr>
         <td>
           131
         </td>
         <td>
-          287
+          470
         </td>
         <td>
-          4911
+          4905
           -
-          4923
+          4917
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.rooms.Service.DEFAULT_PORT
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.rooms.Service.DEFAULT_PORT
         </td>
       </tr><tr>
         <td>
           133
         </td>
         <td>
-          290
+          473
         </td>
         <td>
-          4982
+          4976
           -
-          5080
+          5074
         </td>
         <td>
           Apply
@@ -392,12 +392,12 @@
           135
         </td>
         <td>
-          289
+          472
         </td>
         <td>
-          5009
+          5003
           -
-          5079
+          5073
         </td>
         <td>
           Apply
@@ -413,18 +413,18 @@
           148
         </td>
         <td>
-          291
+          474
         </td>
         <td>
-          5614
+          5608
           -
-          5614
+          5608
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -434,33 +434,12 @@
           149
         </td>
         <td>
-          292
+          477
         </td>
         <td>
-          5678
+          5584
           -
-          5749
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.handleResponse[String](scala.concurrent.Future.successful[String](response.bodyAsString().get), it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED))(response)
-        </td>
-      </tr><tr>
-        <td>
-          149
-        </td>
-        <td>
-          294
-        </td>
-        <td>
-          5590
-          -
-          5750
+          5744
         </td>
         <td>
           ApplyToImplicitArgs
@@ -476,39 +455,60 @@
           149
         </td>
         <td>
-          293
+          476
         </td>
         <td>
-          5656
+          5650
           -
-          5656
+          5650
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
         </td>
       </tr><tr>
         <td>
+          149
+        </td>
+        <td>
+          475
+        </td>
+        <td>
+          5672
+          -
+          5743
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.RoomsApiWrapperDefault.handleResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.handleResponse[String](scala.concurrent.Future.successful[String](response.bodyAsString().get), it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED))(response)
+        </td>
+      </tr><tr>
+        <td>
           153
         </td>
         <td>
-          295
+          478
         </td>
         <td>
-          5947
+          5941
           -
-          5947
+          5941
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -518,12 +518,12 @@
           154
         </td>
         <td>
-          298
+          481
         </td>
         <td>
-          5924
+          5918
           -
-          6070
+          6064
         </td>
         <td>
           ApplyToImplicitArgs
@@ -539,18 +539,18 @@
           154
         </td>
         <td>
-          297
+          480
         </td>
         <td>
-          6006
+          6000
           -
-          6006
+          6000
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -560,12 +560,12 @@
           154
         </td>
         <td>
-          296
+          479
         </td>
         <td>
-          6028
+          6022
           -
-          6069
+          6063
         </td>
         <td>
           ApplyToImplicitArgs
@@ -581,18 +581,18 @@
           158
         </td>
         <td>
-          299
+          482
         </td>
         <td>
-          6212
+          6206
           -
-          6212
+          6206
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -602,33 +602,12 @@
           159
         </td>
         <td>
-          301
+          485
         </td>
         <td>
-          6237
+          6184
           -
-          6237
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          159
-        </td>
-        <td>
-          302
-        </td>
-        <td>
-          6190
-          -
-          6366
+          6360
         </td>
         <td>
           ApplyToImplicitArgs
@@ -641,15 +620,36 @@
         </td>
       </tr><tr>
         <td>
+          159
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          6231
+          -
+          6231
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
           160
         </td>
         <td>
-          300
+          483
         </td>
         <td>
-          6269
+          6263
           -
-          6365
+          6359
         </td>
         <td>
           ApplyToImplicitArgs
@@ -665,18 +665,18 @@
           164
         </td>
         <td>
-          303
+          486
         </td>
         <td>
-          6508
+          6502
           -
-          6508
+          6502
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -686,12 +686,12 @@
           165
         </td>
         <td>
-          304
+          487
         </td>
         <td>
-          6555
+          6549
           -
-          6596
+          6590
         </td>
         <td>
           ApplyToImplicitArgs
@@ -707,12 +707,12 @@
           165
         </td>
         <td>
-          306
+          489
         </td>
         <td>
-          6486
+          6480
           -
-          6597
+          6591
         </td>
         <td>
           ApplyToImplicitArgs
@@ -728,18 +728,18 @@
           165
         </td>
         <td>
-          305
+          488
         </td>
         <td>
-          6533
+          6527
           -
-          6533
+          6527
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -749,18 +749,18 @@
           168
         </td>
         <td>
-          307
+          490
         </td>
         <td>
-          6711
+          6705
           -
-          6711
+          6705
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -770,39 +770,18 @@
           169
         </td>
         <td>
-          310
+          492
         </td>
         <td>
-          6689
+          6724
           -
-          7019
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.flatMap
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsApiWrapperDefault.this.listPublicRoomsRequest()(RoomsApiWrapperDefault.this.client, userToken).flatMap[Seq[it.cwmp.model.Room]](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]](scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])), it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          169
-        </td>
-        <td>
-          309
-        </td>
-        <td>
-          6730
-          -
-          6730
+          6724
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -812,12 +791,12 @@
           169
         </td>
         <td>
-          308
+          491
         </td>
         <td>
-          6752
+          6746
           -
-          7018
+          7012
         </td>
         <td>
           ApplyToImplicitArgs
@@ -830,21 +809,42 @@
         </td>
       </tr><tr>
         <td>
+          169
+        </td>
+        <td>
+          493
+        </td>
+        <td>
+          6683
+          -
+          7013
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsApiWrapperDefault.this.listPublicRoomsRequest()(RoomsApiWrapperDefault.this.client, userToken).flatMap[Seq[it.cwmp.model.Room]](((implicit response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; RoomsApiWrapperDefault.this.handleResponse[Seq[it.cwmp.model.Room]](scala.concurrent.Future.successful[Seq[it.cwmp.model.Room]](scala.Predef.refArrayOps[Object](io.vertx.lang.scala.json.Json.fromArrayString(response.bodyAsString().get).stream().toArray()).toSeq.map[String, Seq[String]](((x$1: Object) =&gt; x$1.toString()))(collection.this.Seq.canBuildFrom[String]).map[it.cwmp.model.Room, Seq[it.cwmp.model.Room]](((jsonString: String) =&gt; it.cwmp.model.Room.Converters.JsonRoomConverter(io.vertx.lang.scala.json.Json.fromObjectString(jsonString)).toRoom))(collection.this.Seq.canBuildFrom[it.cwmp.model.Room])), it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))(response)))(RoomsApiWrapperDefault.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
           179
         </td>
         <td>
-          311
+          494
         </td>
         <td>
-          7231
+          7225
           -
-          7231
+          7225
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -854,18 +854,18 @@
           180
         </td>
         <td>
-          313
+          496
         </td>
         <td>
-          7297
+          7291
           -
-          7297
+          7291
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -875,12 +875,12 @@
           180
         </td>
         <td>
-          312
+          495
         </td>
         <td>
-          7319
+          7313
           -
-          7360
+          7354
         </td>
         <td>
           ApplyToImplicitArgs
@@ -896,12 +896,12 @@
           180
         </td>
         <td>
-          314
+          497
         </td>
         <td>
-          7209
+          7203
           -
-          7361
+          7355
         </td>
         <td>
           ApplyToImplicitArgs
@@ -917,18 +917,18 @@
           184
         </td>
         <td>
-          315
+          498
         </td>
         <td>
-          7518
+          7512
           -
-          7518
+          7512
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -938,12 +938,12 @@
           185
         </td>
         <td>
-          318
+          501
         </td>
         <td>
-          7497
+          7491
           -
-          7679
+          7673
         </td>
         <td>
           ApplyToImplicitArgs
@@ -959,18 +959,18 @@
           185
         </td>
         <td>
-          317
+          500
         </td>
         <td>
-          7550
+          7544
           -
-          7550
+          7544
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -980,12 +980,12 @@
           186
         </td>
         <td>
-          316
+          499
         </td>
         <td>
-          7582
+          7576
           -
-          7678
+          7672
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1001,18 +1001,18 @@
           190
         </td>
         <td>
-          319
+          502
         </td>
         <td>
-          7836
+          7830
           -
-          7836
+          7830
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxClient.client
+          it.cwmp.services.VertxClient.client
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.client
@@ -1022,12 +1022,12 @@
           191
         </td>
         <td>
-          322
+          505
         </td>
         <td>
-          7815
+          7809
           -
-          7932
+          7926
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1043,18 +1043,18 @@
           191
         </td>
         <td>
-          321
+          504
         </td>
         <td>
-          7868
+          7862
           -
-          7868
+          7862
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           RoomsApiWrapperDefault.this.vertxExecutionContext
@@ -1064,12 +1064,12 @@
           191
         </td>
         <td>
-          320
+          503
         </td>
         <td>
-          7890
+          7884
           -
-          7931
+          7925
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1085,12 +1085,12 @@
           198
         </td>
         <td>
-          325
+          508
         </td>
         <td>
-          8177
+          8171
           -
-          8225
+          8219
         </td>
         <td>
           Apply
@@ -1106,12 +1106,12 @@
           198
         </td>
         <td>
-          324
+          507
         </td>
         <td>
-          8200
+          8194
           -
-          8224
+          8218
         </td>
         <td>
           Apply
@@ -1127,12 +1127,12 @@
           198
         </td>
         <td>
-          323
+          506
         </td>
         <td>
-          8205
+          8199
           -
-          8224
+          8218
         </td>
         <td>
           Apply
@@ -1148,12 +1148,12 @@
           200
         </td>
         <td>
-          326
+          509
         </td>
         <td>
-          8295
+          8289
           -
-          8316
+          8310
         </td>
         <td>
           Apply
@@ -1169,33 +1169,12 @@
           201
         </td>
         <td>
-          328
+          510
         </td>
         <td>
-          8368
+          8376
           -
-          8408
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.exceptions.HTTPException.apply
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.exceptions.HTTPException.apply(response.statusCode(), body)
-        </td>
-      </tr><tr>
-        <td>
-          201
-        </td>
-        <td>
-          327
-        </td>
-        <td>
-          8382
-          -
-          8401
+          8395
         </td>
         <td>
           Apply
@@ -1211,12 +1190,12 @@
           201
         </td>
         <td>
-          329
+          512
         </td>
         <td>
-          8354
+          8348
           -
-          8409
+          8403
         </td>
         <td>
           Apply
@@ -1229,15 +1208,36 @@
         </td>
       </tr><tr>
         <td>
+          201
+        </td>
+        <td>
+          511
+        </td>
+        <td>
+          8362
+          -
+          8402
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.exceptions.HTTPException.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.exceptions.HTTPException.apply(response.statusCode(), body)
+        </td>
+      </tr><tr>
+        <td>
           202
         </td>
         <td>
-          331
+          514
         </td>
         <td>
-          8447
+          8441
           -
-          8447
+          8441
         </td>
         <td>
           Select
@@ -1253,33 +1253,12 @@
           202
         </td>
         <td>
-          330
+          516
         </td>
         <td>
-          8461
+          8427
           -
-          8480
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.web.client.HttpResponse.statusCode
-        </td>
-        <td style="background: #AEF1AE">
-          response.statusCode()
-        </td>
-      </tr><tr>
-        <td>
-          202
-        </td>
-        <td>
-          333
-        </td>
-        <td>
-          8433
-          -
-          8482
+          8476
         </td>
         <td>
           Apply
@@ -1295,12 +1274,33 @@
           202
         </td>
         <td>
-          332
+          513
         </td>
         <td>
-          8447
+          8455
           -
-          8481
+          8474
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpResponse.statusCode
+        </td>
+        <td style="background: #AEF1AE">
+          response.statusCode()
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          515
+        </td>
+        <td>
+          8441
+          -
+          8475
         </td>
         <td>
           Apply

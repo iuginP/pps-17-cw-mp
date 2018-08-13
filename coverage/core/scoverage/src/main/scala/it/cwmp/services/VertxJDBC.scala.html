@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/utils/VertxJDBC.scala.html
+          src/main/scala/it/cwmp/services/VertxJDBC.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,7 +22,7 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services
 </span>2 <span style=''>
 </span>3 <span style=''>import io.vertx.lang.scala.json.JsonArray
 </span>4 <span style=''>import io.vertx.scala.ext.jdbc.JDBCClient
@@ -146,12 +146,12 @@
           20
         </td>
         <td>
-          431
+          191
         </td>
         <td>
-          546
+          549
           -
-          550
+          553
         </td>
         <td>
           Select
@@ -167,12 +167,12 @@
           22
         </td>
         <td>
-          432
+          192
         </td>
         <td>
-          596
+          599
           -
-          623
+          626
         </td>
         <td>
           Literal
@@ -188,18 +188,39 @@
           26
         </td>
         <td>
-          433
+          194
         </td>
         <td>
-          739
+          714
           -
-          758
+          762
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.configurationPath.getOrElse[String](VertxJDBC.this.DEFAULT_CONFIG_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          742
+          -
+          761
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.DEFAULT_CONFIG_PATH
+          it.cwmp.services.VertxJDBC.DEFAULT_CONFIG_PATH
         </td>
         <td style="background: #F0ADAD">
           VertxJDBC.this.DEFAULT_CONFIG_PATH
@@ -209,12 +230,12 @@
           26
         </td>
         <td>
-          447
+          207
         </td>
         <td>
-          678
+          681
           -
-          1013
+          1016
         </td>
         <td>
           ApplyToImplicitArgs
@@ -233,18 +254,18 @@ else
           26
         </td>
         <td>
-          435
+          195
         </td>
         <td>
-          710
+          713
           -
-          710
+          713
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -254,54 +275,33 @@ else
           26
         </td>
         <td>
-          446
+          206
         </td>
         <td>
-          701
+          704
           -
-          701
+          704
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          434
-        </td>
-        <td>
-          711
-          -
-          759
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.getOrElse
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.configurationPath.getOrElse[String](VertxJDBC.this.DEFAULT_CONFIG_PATH)
         </td>
       </tr><tr>
         <td>
           27
         </td>
         <td>
-          445
+          205
         </td>
         <td>
-          768
+          771
           -
-          1013
+          1016
         </td>
         <td>
           ApplyToImplicitArgs
@@ -320,18 +320,18 @@ else
           27
         </td>
         <td>
-          444
+          204
         </td>
         <td>
-          781
+          784
           -
-          781
+          784
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -341,18 +341,18 @@ else
           28
         </td>
         <td>
-          442
+          202
         </td>
         <td>
-          850
+          853
           -
-          850
+          853
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -362,18 +362,18 @@ else
           28
         </td>
         <td>
-          436
+          196
         </td>
         <td>
-          903
+          906
           -
-          913
+          916
         </td>
         <td>
           Ident
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.configPath
+          it.cwmp.services.VertxJDBC.configPath
         </td>
         <td style="background: #F0ADAD">
           configPath
@@ -383,18 +383,18 @@ else
           28
         </td>
         <td>
-          438
+          198
         </td>
         <td>
-          919
+          922
           -
-          938
+          941
         </td>
         <td>
           Block
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.DEFAULT_CONFIG_PATH
+          it.cwmp.services.VertxJDBC.DEFAULT_CONFIG_PATH
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.DEFAULT_CONFIG_PATH
@@ -404,12 +404,12 @@ else
           28
         </td>
         <td>
-          443
+          203
         </td>
         <td>
-          833
+          836
           -
-          1013
+          1016
         </td>
         <td>
           ApplyToImplicitArgs
@@ -428,18 +428,18 @@ else
           28
         </td>
         <td>
-          437
+          197
         </td>
         <td>
-          919
+          922
           -
-          938
+          941
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.DEFAULT_CONFIG_PATH
+          it.cwmp.services.VertxJDBC.DEFAULT_CONFIG_PATH
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.DEFAULT_CONFIG_PATH
@@ -449,54 +449,12 @@ else
           29
         </td>
         <td>
-          439
+          200
         </td>
         <td>
-          976
+          986
           -
-          981
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertx
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertx
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          441
-        </td>
-        <td>
-          952
-          -
-          1013
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.jdbc.JDBCClient.createShared
-        </td>
-        <td style="background: #AEF1AE">
-          io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())
-        </td>
-      </tr><tr>
-        <td>
-          29
-        </td>
-        <td>
-          440
-        </td>
-        <td>
-          983
-          -
-          1012
+          1015
         </td>
         <td>
           Apply
@@ -509,15 +467,57 @@ else
         </td>
       </tr><tr>
         <td>
+          29
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          979
+          -
+          984
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertx
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertx
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          955
+          -
+          1016
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.jdbc.JDBCClient.createShared
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.ext.jdbc.JDBCClient.createShared(VertxJDBC.this.vertx, configFileBuffer.toJsonObject())
+        </td>
+      </tr><tr>
+        <td>
           31
         </td>
         <td>
-          448
+          208
         </td>
         <td>
-          1073
+          1076
           -
-          1085
+          1088
         </td>
         <td>
           Apply
@@ -533,12 +533,33 @@ else
           39
         </td>
         <td>
-          454
+          209
         </td>
         <td>
-          1252
+          1276
           -
-          1376
+          1299
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.sql.SQLClient.getConnectionFuture
+        </td>
+        <td style="background: #AEF1AE">
+          x$1.getConnectionFuture()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          1255
+          -
+          1379
         </td>
         <td>
           ApplyToImplicitArgs
@@ -570,18 +591,18 @@ else
           39
         </td>
         <td>
-          450
+          210
         </td>
         <td>
-          1272
+          1275
           -
-          1272
+          1275
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -591,18 +612,18 @@ else
           39
         </td>
         <td>
-          453
+          213
         </td>
         <td>
-          1306
+          1309
           -
-          1306
+          1309
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -612,54 +633,33 @@ else
           39
         </td>
         <td>
-          452
+          212
         </td>
         <td>
-          1306
+          1309
           -
-          1306
+          1309
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.$anonfun.&lt;init&gt;
+          it.cwmp.services.VertxJDBC.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #AEF1AE">
           new $anonfun()
         </td>
       </tr><tr>
         <td>
-          39
-        </td>
-        <td>
-          449
-        </td>
-        <td>
-          1273
-          -
-          1296
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.sql.SQLClient.getConnectionFuture
-        </td>
-        <td style="background: #AEF1AE">
-          x$1.getConnectionFuture()
-        </td>
-      </tr><tr>
-        <td>
           40
         </td>
         <td>
-          451
+          211
         </td>
         <td>
-          1342
+          1345
           -
-          1370
+          1373
         </td>
         <td>
           Apply
@@ -675,12 +675,12 @@ else
           50
         </td>
         <td>
-          455
+          215
         </td>
         <td>
-          1603
+          1606
           -
-          1631
+          1634
         </td>
         <td>
           Apply
@@ -696,12 +696,12 @@ else
           51
         </td>
         <td>
-          456
+          216
         </td>
         <td>
-          1636
+          1639
           -
-          1654
+          1657
         </td>
         <td>
           Apply
@@ -717,33 +717,12 @@ else
           57
         </td>
         <td>
-          457
+          218
         </td>
         <td>
-          1813
+          1793
           -
-          1831
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.closeConnection(x$2)
-        </td>
-      </tr><tr>
-        <td>
-          57
-        </td>
-        <td>
-          458
-        </td>
-        <td>
-          1790
-          -
-          1832
+          1835
         </td>
         <td>
           Apply
@@ -756,15 +735,36 @@ else
         </td>
       </tr><tr>
         <td>
+          57
+        </td>
+        <td>
+          217
+        </td>
+        <td>
+          1816
+          -
+          1834
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.VertxJDBC.closeConnection
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.closeConnection(x$2)
+        </td>
+      </tr><tr>
+        <td>
           63
         </td>
         <td>
-          460
+          220
         </td>
         <td>
-          2005
+          2008
           -
-          2024
+          2027
         </td>
         <td>
           Select
@@ -780,12 +780,12 @@ else
           63
         </td>
         <td>
-          463
+          223
         </td>
         <td>
-          1960
+          1963
           -
-          1960
+          1963
         </td>
         <td>
           Literal
@@ -801,12 +801,12 @@ else
           63
         </td>
         <td>
-          459
+          219
         </td>
         <td>
-          1964
+          1967
           -
-          1987
+          1990
         </td>
         <td>
           Select
@@ -822,18 +822,18 @@ else
           63
         </td>
         <td>
-          462
+          222
         </td>
         <td>
-          1989
+          1992
           -
-          2025
+          2028
         </td>
         <td>
           Block
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
+          it.cwmp.services.VertxJDBC.closeConnection
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
@@ -843,18 +843,18 @@ else
           63
         </td>
         <td>
-          461
+          221
         </td>
         <td>
-          1989
+          1992
           -
-          2025
+          2028
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.closeConnection
+          it.cwmp.services.VertxJDBC.closeConnection
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.closeConnection(VertxJDBC.this.connectionList.last)
@@ -864,12 +864,12 @@ else
           63
         </td>
         <td>
-          464
+          224
         </td>
         <td>
-          1960
+          1963
           -
-          1960
+          1963
         </td>
         <td>
           Block
@@ -885,18 +885,60 @@ else
           80
         </td>
         <td>
-          465
+          227
         </td>
         <td>
-          2635
+          2626
           -
-          2656
+          2626
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          VertxJDBC.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          226
+        </td>
+        <td>
+          2626
+          -
+          2626
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.closeAllConnections
+          it.cwmp.services.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          2638
+          -
+          2659
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.VertxJDBC.closeAllConnections
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.closeAllConnections()
@@ -906,12 +948,12 @@ else
           80
         </td>
         <td>
-          468
+          228
         </td>
         <td>
-          2608
+          2611
           -
-          2658
+          2661
         </td>
         <td>
           ApplyToImplicitArgs
@@ -940,63 +982,21 @@ else
         </td>
       </tr><tr>
         <td>
-          80
-        </td>
-        <td>
-          467
-        </td>
-        <td>
-          2623
-          -
-          2623
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          VertxJDBC.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          80
-        </td>
-        <td>
-          466
-        </td>
-        <td>
-          2623
-          -
-          2623
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
           89
         </td>
         <td>
-          469
+          229
         </td>
         <td>
-          3031
+          3034
           -
-          3058
+          3061
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.closeLastOpenedConnection
+          it.cwmp.services.VertxJDBC.closeLastOpenedConnection
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.closeLastOpenedConnection()
@@ -1006,12 +1006,12 @@ else
           89
         </td>
         <td>
-          472
+          232
         </td>
         <td>
-          3004
+          3007
           -
-          3060
+          3063
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1043,18 +1043,18 @@ else
           89
         </td>
         <td>
-          471
+          231
         </td>
         <td>
-          3019
+          3022
           -
-          3019
+          3022
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           VertxJDBC.this.vertxExecutionContext
@@ -1064,18 +1064,18 @@ else
           89
         </td>
         <td>
-          470
+          230
         </td>
         <td>
-          3019
+          3022
           -
-          3019
+          3022
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
+          it.cwmp.services.VertxJDBC.RichFuture.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #AEF1AE">
           new $anonfun()
@@ -1085,12 +1085,33 @@ else
           106
         </td>
         <td>
-          474
+          235
         </td>
         <td>
-          3327
+          3296
           -
-          3335
+          3339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.foldLeft
+        </td>
+        <td style="background: #AEF1AE">
+          arguments.foldLeft[io.vertx.core.json.JsonArray](new io.vertx.lang.scala.json.`package`.JsonArray())(((x$3: io.vertx.core.json.JsonArray, x$4: String) =&gt; x$3.add(x$4)))
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          234
+        </td>
+        <td>
+          3330
+          -
+          3338
         </td>
         <td>
           Apply
@@ -1106,12 +1127,12 @@ else
           106
         </td>
         <td>
-          473
+          233
         </td>
         <td>
-          3312
+          3315
           -
-          3325
+          3328
         </td>
         <td>
           Apply
@@ -1121,27 +1142,6 @@ else
         </td>
         <td style="background: #AEF1AE">
           new io.vertx.lang.scala.json.`package`.JsonArray()
-        </td>
-      </tr><tr>
-        <td>
-          106
-        </td>
-        <td>
-          475
-        </td>
-        <td>
-          3293
-          -
-          3336
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableOnce.foldLeft
-        </td>
-        <td style="background: #AEF1AE">
-          arguments.foldLeft[io.vertx.core.json.JsonArray](new io.vertx.lang.scala.json.`package`.JsonArray())(((x$3: io.vertx.core.json.JsonArray, x$4: String) =&gt; x$3.add(x$4)))
         </td>
       </tr>
     </table>

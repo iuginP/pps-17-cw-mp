@@ -77,7 +77,7 @@
 </span>53 <span style=''>    * @return the evolved cell
 </span>54 <span style=''>    */
 </span>55 <span style=''>  private def naturallyEvolveCell(cell: Cell, elapsedTime: Duration): Cell = {
-</span>56 <span style=''>    if (</span><span style='background: #AEF1AE'>cell.owner == Cell.Passive.NO_OWNER</span><span style=''>) {
+</span>56 <span style=''>    if (</span><span style='background: #AEF1AE'>Cell.isPassiveCell(cell)</span><span style=''>) {
 </span>57 <span style=''>      </span><span style='background: #AEF1AE'>cell.evolve(elapsedTime, Cell.Passive.defaultEvolutionStrategy)</span><span style=''>
 </span>58 <span style=''>    } else {
 </span>59 <span style=''>      </span><span style='background: #AEF1AE'>cell.evolve(elapsedTime)</span><span style=''>
@@ -97,16 +97,16 @@
 </span>73 <span style=''>    var cellAndCanAttack = </span><span style='background: #AEF1AE'>(cell, true)</span><span style=''>
 </span>74 <span style=''>
 </span>75 <span style=''>    // all tentacles leaving from cell, checking if can still attack
-</span>76 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) &amp;&amp; cellAndCanAttack._2;
-</span>77 <span style=''></span><span style='background: #AEF1AE'>         addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant);
-</span>78 <span style=''></span><span style='background: #AEF1AE'>         attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)) {
+</span>76 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tentacles if Cell.ownerAndPositionMatch(tentacle.from, cell) &amp;&amp; cellAndCanAttack._2) {
+</span>77 <span style=''></span><span style='background: #AEF1AE'>      val addedTentacleLength = tentacle.length(oldWorldInstant.plus(elapsedTime)) - tentacle.length(oldWorldInstant)
+</span>78 <span style=''></span><span style='background: #AEF1AE'>      val attackerEnergyReduction = CellWorld.lengthToEnergyReductionStrategy(addedTentacleLength)
 </span>79 <span style=''></span><span style='background: #AEF1AE'>
 </span>80 <span style=''></span><span style='background: #AEF1AE'>      if (cellAndCanAttack._1.energy &lt;= attackerEnergyReduction) {
 </span>81 <span style=''></span><span style='background: #AEF1AE'>        cellAndCanAttack = (cellAndCanAttack._1, false) // if no more energy, the cell should not attack anymore
 </span>82 <span style=''></span><span style='background: #AEF1AE'>      } else {
 </span>83 <span style=''></span><span style='background: #AEF1AE'>        cellAndCanAttack = (cellAndCanAttack._1 -- attackerEnergyReduction, cellAndCanAttack._2)
-</span>84 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
-</span>85 <span style=''>    }
+</span>84 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>85 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
 </span>86 <span style=''>    cellAndCanAttack
 </span>87 <span style=''>  }
 </span>88 <span style=''>
@@ -148,92 +148,95 @@
 </span>124 <span style=''>                                          (implicit oldWorldInstant: Instant, elapsedTime: Duration): Cell = {
 </span>125 <span style=''>    var toReturnCell = cell
 </span>126 <span style=''>    val tentaclesToAttackedCell = </span><span style='background: #AEF1AE'>allTentacles.filter(tentacle =&gt; Cell.ownerAndPositionMatch(tentacle.to, toReturnCell))</span><span style=''>
-</span>127 <span style=''>
-</span>128 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tentaclesToAttackedCell;
-</span>129 <span style=''></span><span style='background: #AEF1AE'>         actualAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant.plus(elapsedTime));
-</span>130 <span style=''></span><span style='background: #AEF1AE'>         oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant);
-</span>131 <span style=''></span><span style='background: #AEF1AE'>         addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)) {
-</span>132 <span style=''></span><span style='background: #AEF1AE'>
-</span>133 <span style=''></span><span style='background: #AEF1AE'>      val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
-</span>134 <span style=''></span><span style='background: #AEF1AE'>
-</span>135 <span style=''></span><span style='background: #AEF1AE'>      if (toReturnCell.owner == tentacle.from.owner) {
-</span>136 <span style=''></span><span style='background: #AEF1AE'>        // owner of the cell is attacking his own cells -&gt; heals the cell
-</span>137 <span style=''></span><span style='background: #AEF1AE'>        toReturnCell = toReturnCell ++ energyDelta
-</span>138 <span style=''></span><span style='background: #AEF1AE'>
-</span>139 <span style=''></span><span style='background: #AEF1AE'>      } else if (toReturnCell.owner != Cell.Passive.NO_OWNER) {
-</span>140 <span style=''></span><span style='background: #AEF1AE'>        // attacking others cell -&gt; damages the cell
-</span>141 <span style=''></span><span style='background: #AEF1AE'>
-</span>142 <span style=''></span><span style='background: #AEF1AE'>        if (toReturnCell.energy - energyDelta &lt;= 0) {
-</span>143 <span style=''></span><span style='background: #AEF1AE'>          // if cell reaches 0 energy is conquered
-</span>144 <span style=''></span><span style='background: #AEF1AE'>
-</span>145 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell,
-</span>146 <span style=''></span><span style='background: #AEF1AE'>            GameConstants.CELL_ENERGY_WHEN_BORN + (energyDelta - toReturnCell.energy))
-</span>147 <span style=''></span><span style='background: #AEF1AE'>        } else {
-</span>148 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = toReturnCell -- energyDelta
-</span>149 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>150 <span style=''></span><span style='background: #AEF1AE'>      } else {
-</span>151 <span style=''></span><span style='background: #AEF1AE'>        // attacking passive cell
-</span>152 <span style=''></span><span style='background: #AEF1AE'>        if (actualAttackDuration.toMillis &gt;= GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER) {
-</span>153 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
-</span>154 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>155 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>156 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>157 <span style=''>    toReturnCell
-</span>158 <span style=''>  }
-</span>159 <span style=''>
+</span>127 <span style=''>    val actualInstant = </span><span style='background: #AEF1AE'>oldWorldInstant.plus(elapsedTime)</span><span style=''>
+</span>128 <span style=''>
+</span>129 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tentaclesToAttackedCell) {
+</span>130 <span style=''></span><span style='background: #AEF1AE'>      val actualAttackDuration = tentacle.hasReachedDestinationFor(actualInstant)
+</span>131 <span style=''></span><span style='background: #AEF1AE'>      val oldAttackDuration = tentacle.hasReachedDestinationFor(oldWorldInstant)
+</span>132 <span style=''></span><span style='background: #AEF1AE'>      val addedAttackDuration = actualAttackDuration.minus(oldAttackDuration)
+</span>133 <span style=''></span><span style='background: #AEF1AE'>
+</span>134 <span style=''></span><span style='background: #AEF1AE'>      val energyDelta = CellWorld.durationToEnergyConversionStrategy(addedAttackDuration)
+</span>135 <span style=''></span><span style='background: #AEF1AE'>
+</span>136 <span style=''></span><span style='background: #AEF1AE'>      if (toReturnCell.owner == tentacle.from.owner) {
+</span>137 <span style=''></span><span style='background: #AEF1AE'>        // owner of the cell is attacking his own cells -&gt; heals the cell
+</span>138 <span style=''></span><span style='background: #AEF1AE'>        toReturnCell = toReturnCell ++ energyDelta
+</span>139 <span style=''></span><span style='background: #AEF1AE'>
+</span>140 <span style=''></span><span style='background: #AEF1AE'>      } else if (!Cell.isPassiveCell(toReturnCell)) {
+</span>141 <span style=''></span><span style='background: #AEF1AE'>        // attacking others cell -&gt; damages the cell
+</span>142 <span style=''></span><span style='background: #AEF1AE'>
+</span>143 <span style=''></span><span style='background: #AEF1AE'>        if (toReturnCell.energy - energyDelta &lt;= 0) {
+</span>144 <span style=''></span><span style='background: #AEF1AE'>          // if cell reaches 0 energy is conquered
+</span>145 <span style=''></span><span style='background: #AEF1AE'>
+</span>146 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant,
+</span>147 <span style=''></span><span style='background: #AEF1AE'>            GameConstants.CELL_ENERGY_WHEN_BORN + (energyDelta - toReturnCell.energy))
+</span>148 <span style=''></span><span style='background: #AEF1AE'>        } else {
+</span>149 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = toReturnCell -- energyDelta
+</span>150 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>151 <span style=''></span><span style='background: #AEF1AE'>      } else {
+</span>152 <span style=''></span><span style='background: #AEF1AE'>        // attacking passive cell
+</span>153 <span style=''></span><span style='background: #AEF1AE'>        if (actualAttackDuration.toMillis &gt;= GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER) {
+</span>154 <span style=''></span><span style='background: #AEF1AE'>          toReturnCell = cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
+</span>155 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>156 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>157 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>158 <span style=''>    toReturnCell
+</span>159 <span style=''>  }
 </span>160 <span style=''>
-</span>161 <span style=''>  /**
-</span>162 <span style=''>    * Defines how to behave after a cell conquer
-</span>163 <span style=''>    *
-</span>164 <span style=''>    * @param cell                    the cell that has been conquered
-</span>165 <span style=''>    * @param tentaclesToAttackedCell the active tentacles attacking provided cell
-</span>166 <span style=''>    * @param newEnergy               the energy the cell should have
-</span>167 <span style=''>    * @return the new cell after conquer
-</span>168 <span style=''>    */
-</span>169 <span style=''>  private def cellAfterConquer(cell: Cell,
-</span>170 <span style=''>                               tentaclesToAttackedCell: Seq[Tentacle],
-</span>171 <span style=''>                               newEnergy: Double): Cell = {
-</span>172 <span style=''>    val firstAttackerOfCell = </span><span style='background: #AEF1AE'>tentaclesToAttackedCell.min(Tentacle.orderByLaunchInstant).from.owner</span><span style=''>
-</span>173 <span style=''>    </span><span style='background: #AEF1AE'>Cell(firstAttackerOfCell, cell.position, newEnergy)</span><span style=''>
-</span>174 <span style=''>  }
-</span>175 <span style=''>
-</span>176 <span style=''>  /**
-</span>177 <span style=''>    * A method that takes a world where to find if some cells that have been conquered had attacks ongoing
-</span>178 <span style=''>    * In that case those are cancelled
-</span>179 <span style=''>    *
-</span>180 <span style=''>    * @param world the world to evolve
-</span>181 <span style=''>    * @param cells the cells to use
-</span>182 <span style=''>    * @return a world where all attacks come from actual cells
-</span>183 <span style=''>    */
-</span>184 <span style=''>  private def cancelPendingAttacksOfConqueredCells(world: CellWorld,
-</span>185 <span style=''>                                                   cells: Seq[Cell]): CellWorld = {
-</span>186 <span style=''>    var tempWorld = </span><span style='background: #AEF1AE'>CellWorld(world.instant, cells, world.attacks)</span><span style=''>
-</span>187 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.from))) {
-</span>188 <span style=''></span><span style='background: #AEF1AE'>      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle))</span><span style=''>
-</span>189 <span style=''>    }
-</span>190 <span style=''>    tempWorld
-</span>191 <span style=''>  }
-</span>192 <span style=''>
-</span>193 <span style=''>  /**
-</span>194 <span style=''>    * A method that updates all attacks that were directed to a cell that has been conquered
-</span>195 <span style=''>    *
-</span>196 <span style=''>    * @param world the world
-</span>197 <span style=''>    * @param cells the evolved cells
-</span>198 <span style=''>    * @return a world where all attacks directed to no more &quot;existing&quot; cells (intended as pair owner-position)
-</span>199 <span style=''>    *         will be redirected to cells in same position, updating tentacles
-</span>200 <span style=''>    */
-</span>201 <span style=''>  private def updateAttacksToConqueredCells(world: CellWorld,
-</span>202 <span style=''>                                            cells: Seq[Cell]): CellWorld = {
-</span>203 <span style=''>
-</span>204 <span style=''>    var tempWorld = </span><span style='background: #AEF1AE'>CellWorld(world.instant, cells, world.attacks)</span><span style=''>
-</span>205 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.to))) {
-</span>206 <span style=''></span><span style='background: #AEF1AE'>      val destinationUpdate = cells.filter(_.position == tentacle.to.position).head
-</span>207 <span style=''></span><span style='background: #AEF1AE'>      val updatedTentacle = Tentacle(tentacle.from, destinationUpdate, tentacle.launchInstant)
-</span>208 <span style=''></span><span style='background: #AEF1AE'>      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle) :+ updatedTentacle)
-</span>209 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>210 <span style=''>    tempWorld
-</span>211 <span style=''>  }
-</span>212 <span style=''>}
+</span>161 <span style=''>
+</span>162 <span style=''>  /**
+</span>163 <span style=''>    * Defines how to behave after a cell conquer
+</span>164 <span style=''>    *
+</span>165 <span style=''>    * @param cell                    the cell that has been conquered
+</span>166 <span style=''>    * @param tentaclesToAttackedCell the active tentacles attacking provided cell
+</span>167 <span style=''>    * @param conquerInstant          the instant when conquer occurred
+</span>168 <span style=''>    * @param newEnergy               the energy the cell should have
+</span>169 <span style=''>    * @return the new cell after conquer
+</span>170 <span style=''>    */
+</span>171 <span style=''>  private def cellAfterConquer(cell: Cell,
+</span>172 <span style=''>                               tentaclesToAttackedCell: Seq[Tentacle],
+</span>173 <span style=''>                               conquerInstant: Instant,
+</span>174 <span style=''>                               newEnergy: Double): Cell = {
+</span>175 <span style=''>    val firstAttackerOfCell = </span><span style='background: #AEF1AE'>tentaclesToAttackedCell.max(Tentacle.orderByAttackDuration(conquerInstant)).from.owner</span><span style=''>
+</span>176 <span style=''>    </span><span style='background: #AEF1AE'>Cell(firstAttackerOfCell, cell.position, newEnergy)</span><span style=''>
+</span>177 <span style=''>  }
+</span>178 <span style=''>
+</span>179 <span style=''>  /**
+</span>180 <span style=''>    * A method that takes a world where to find if some cells that have been conquered had attacks ongoing
+</span>181 <span style=''>    * In that case those are cancelled
+</span>182 <span style=''>    *
+</span>183 <span style=''>    * @param world the world to evolve
+</span>184 <span style=''>    * @param cells the cells to use
+</span>185 <span style=''>    * @return a world where all attacks come from actual cells
+</span>186 <span style=''>    */
+</span>187 <span style=''>  private def cancelPendingAttacksOfConqueredCells(world: CellWorld,
+</span>188 <span style=''>                                                   cells: Seq[Cell]): CellWorld = {
+</span>189 <span style=''>    var tempWorld = </span><span style='background: #AEF1AE'>CellWorld(world.instant, cells, world.attacks)</span><span style=''>
+</span>190 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.from))) {
+</span>191 <span style=''></span><span style='background: #AEF1AE'>      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle))</span><span style=''>
+</span>192 <span style=''>    }
+</span>193 <span style=''>    tempWorld
+</span>194 <span style=''>  }
+</span>195 <span style=''>
+</span>196 <span style=''>  /**
+</span>197 <span style=''>    * A method that updates all attacks that were directed to a cell that has been conquered
+</span>198 <span style=''>    *
+</span>199 <span style=''>    * @param world the world
+</span>200 <span style=''>    * @param cells the evolved cells
+</span>201 <span style=''>    * @return a world where all attacks directed to no more &quot;existing&quot; cells (intended as pair owner-position)
+</span>202 <span style=''>    *         will be redirected to cells in same position, updating tentacles
+</span>203 <span style=''>    */
+</span>204 <span style=''>  private def updateAttacksToConqueredCells(world: CellWorld,
+</span>205 <span style=''>                                            cells: Seq[Cell]): CellWorld = {
+</span>206 <span style=''>
+</span>207 <span style=''>    var tempWorld = </span><span style='background: #AEF1AE'>CellWorld(world.instant, cells, world.attacks)</span><span style=''>
+</span>208 <span style=''>    </span><span style='background: #AEF1AE'>for (tentacle &lt;- tempWorld.attacks if !cells.exists(Cell.ownerAndPositionMatch(_, tentacle.to))) {
+</span>209 <span style=''></span><span style='background: #AEF1AE'>      val destinationUpdate = cells.filter(_.position == tentacle.to.position).head
+</span>210 <span style=''></span><span style='background: #AEF1AE'>      val updatedTentacle = Tentacle(tentacle.from, destinationUpdate, tentacle.launchInstant)
+</span>211 <span style=''></span><span style='background: #AEF1AE'>      tempWorld = CellWorld(world.instant, cells, tempWorld.attacks.filterNot(_ == tentacle) :+ updatedTentacle)
+</span>212 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>213 <span style=''>    tempWorld
+</span>214 <span style=''>  }
+</span>215 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -250,7 +253,7 @@
           27
         </td>
         <td>
-          471
+          505
         </td>
         <td>
           866
@@ -271,7 +274,7 @@
           28
         </td>
         <td>
-          472
+          506
         </td>
         <td>
           934
@@ -292,7 +295,7 @@
           31
         </td>
         <td>
-          473
+          507
         </td>
         <td>
           1101
@@ -313,7 +316,7 @@
           34
         </td>
         <td>
-          474
+          508
         </td>
         <td>
           1190
@@ -334,7 +337,7 @@
           34
         </td>
         <td>
-          475
+          509
         </td>
         <td>
           1189
@@ -355,7 +358,28 @@
           35
         </td>
         <td>
-          478
+          510
+        </td>
+        <td>
+          1268
+          -
+          1321
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.client.controller.game.GameEngine.attackConsequencesOnAttackers
+        </td>
+        <td style="background: #AEF1AE">
+          GameEngine.this.attackConsequencesOnAttackers(x$2, oldToEvolve.attacks)(oldWorldInstant, elapsedTimeImplicit)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          512
         </td>
         <td>
           1163
@@ -376,7 +400,7 @@
           35
         </td>
         <td>
-          477
+          511
         </td>
         <td>
           1267
@@ -394,31 +418,10 @@
         </td>
       </tr><tr>
         <td>
-          35
-        </td>
-        <td>
-          476
-        </td>
-        <td>
-          1268
-          -
-          1321
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.client.controller.game.GameEngine.attackConsequencesOnAttackers
-        </td>
-        <td style="background: #AEF1AE">
-          GameEngine.this.attackConsequencesOnAttackers(x$2, oldToEvolve.attacks)(oldWorldInstant, elapsedTimeImplicit)
-        </td>
-      </tr><tr>
-        <td>
           37
         </td>
         <td>
-          479
+          513
         </td>
         <td>
           1412
@@ -439,28 +442,7 @@
           40
         </td>
         <td>
-          481
-        </td>
-        <td>
-          1619
-          -
-          1619
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          480
+          514
         </td>
         <td>
           1620
@@ -481,7 +463,7 @@
           40
         </td>
         <td>
-          482
+          516
         </td>
         <td>
           1595
@@ -499,10 +481,31 @@
         </td>
       </tr><tr>
         <td>
+          40
+        </td>
+        <td>
+          515
+        </td>
+        <td>
+          1619
+          -
+          1619
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
           42
         </td>
         <td>
-          483
+          517
         </td>
         <td>
           1689
@@ -523,7 +526,7 @@
           43
         </td>
         <td>
-          485
+          519
         </td>
         <td>
           1767
@@ -544,7 +547,7 @@
           43
         </td>
         <td>
-          484
+          518
         </td>
         <td>
           1808
@@ -565,28 +568,7 @@
           45
         </td>
         <td>
-          487
-        </td>
-        <td>
-          1882
-          -
-          1902
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorld.characters
-        </td>
-        <td style="background: #AEF1AE">
-          tempWorld.characters
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          489
+          523
         </td>
         <td>
           1835
@@ -607,28 +589,7 @@
           45
         </td>
         <td>
-          486
-        </td>
-        <td>
-          1845
-          -
-          1880
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.time.Instant.plus
-        </td>
-        <td style="background: #AEF1AE">
-          tempWorld.instant.plus(elapsedTime)
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          488
+          522
         </td>
         <td>
           1904
@@ -646,57 +607,78 @@
         </td>
       </tr><tr>
         <td>
-          56
+          45
         </td>
         <td>
-          490
+          521
         </td>
         <td>
-          2220
+          1882
           -
-          2241
+          1902
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+          it.cwmp.client.model.game.impl.CellWorld.characters
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+          tempWorld.characters
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          520
+        </td>
+        <td>
+          1845
+          -
+          1880
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Instant.plus
+        </td>
+        <td style="background: #AEF1AE">
+          tempWorld.instant.plus(elapsedTime)
         </td>
       </tr><tr>
         <td>
           56
         </td>
         <td>
-          491
+          524
         </td>
         <td>
           2206
           -
-          2241
+          2230
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.==
+          it.cwmp.client.model.game.impl.Cell.isPassiveCell
         </td>
         <td style="background: #AEF1AE">
-          cell.owner.==(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER)
+          it.cwmp.client.model.game.impl.Cell.isPassiveCell(cell)
         </td>
       </tr><tr>
         <td>
           57
         </td>
         <td>
-          492
+          525
         </td>
         <td>
-          2276
+          2265
           -
-          2313
+          2302
         </td>
         <td>
           Select
@@ -712,12 +694,12 @@
           57
         </td>
         <td>
-          494
+          527
         </td>
         <td>
-          2251
+          2240
           -
-          2314
+          2303
         </td>
         <td>
           Block
@@ -733,12 +715,12 @@
           57
         </td>
         <td>
-          493
+          526
         </td>
         <td>
-          2251
+          2240
           -
-          2314
+          2303
         </td>
         <td>
           Apply
@@ -754,59 +736,12 @@
           59
         </td>
         <td>
-          496
+          528
         </td>
         <td>
-          2339
+          2323
           -
-          2339
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.CellManipulator.evolve$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          qual$1.evolve$default$2
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          498
-        </td>
-        <td>
-          2334
-          -
-          2358
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          {
-  &lt;artifact&gt; val qual$1: it.cwmp.client.model.game.impl.Cell.CellManipulator = impl.this.Cell.CellManipulator(cell);
-  &lt;artifact&gt; val x$16: java.time.Duration = elapsedTime;
-  &lt;artifact&gt; val x$17: it.cwmp.client.model.game.EvolutionStrategy[it.cwmp.client.model.game.impl.Cell,java.time.Duration] @scala.reflect.internal.annotations.uncheckedBounds = qual$1.evolve$default$2;
-  qual$1.evolve(x$16, x$17)
-}
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          495
-        </td>
-        <td>
-          2334
-          -
-          2338
+          2327
         </td>
         <td>
           ApplyImplicitView
@@ -822,12 +757,38 @@
           59
         </td>
         <td>
-          497
+          531
         </td>
         <td>
-          2334
+          2323
           -
-          2358
+          2347
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  &lt;artifact&gt; val qual$1: it.cwmp.client.model.game.impl.Cell.CellManipulator = impl.this.Cell.CellManipulator(cell);
+  &lt;artifact&gt; val x$14: java.time.Duration = elapsedTime;
+  &lt;artifact&gt; val x$15: it.cwmp.client.model.game.EvolutionStrategy[it.cwmp.client.model.game.impl.Cell,java.time.Duration] @scala.reflect.internal.annotations.uncheckedBounds = qual$1.evolve$default$2;
+  qual$1.evolve(x$14, x$15)
+}
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          530
+        </td>
+        <td>
+          2323
+          -
+          2347
         </td>
         <td>
           Apply
@@ -836,19 +797,40 @@
           it.cwmp.client.model.game.impl.Cell.CellManipulator.evolve
         </td>
         <td style="background: #AEF1AE">
-          qual$1.evolve(x$16, x$17)
+          qual$1.evolve(x$14, x$15)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          529
+        </td>
+        <td>
+          2328
+          -
+          2328
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.CellManipulator.evolve$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.evolve$default$2
         </td>
       </tr><tr>
         <td>
           73
         </td>
         <td>
-          499
+          532
         </td>
         <td>
-          2903
+          2892
           -
-          2915
+          2904
         </td>
         <td>
           Apply
@@ -864,52 +846,12 @@
           76
         </td>
         <td>
-          523
+          534
         </td>
         <td>
-          2990
+          3060
           -
-          3611
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #AEF1AE">
-          tentacles.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.from, cell).&amp;&amp;(cellAndCanAttack._2))).map[(it.cwmp.client.model.game.impl.Tentacle, Long, Double), Seq[(it.cwmp.client.model.game.impl.Tentacle, Long, Double)]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
-  val addedTentacleLength: Long = {
-  &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-  &lt;artifact&gt; val x$18: java.time.Instant = oldWorldInstant.plus(elapsedTime);
-  &lt;artifact&gt; val x$19: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.length$default$2;
-  qual$2.length(x$18, x$19)
-}.-({
-    &lt;artifact&gt; val qual$3: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-    &lt;artifact&gt; val x$20: java.time.Instant = oldWorldInstant;
-    &lt;artifact&gt; val x$21: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$3.length$default$2;
-    qual$3.length(x$20, x$21)
-  });
-  val attackerEnergyReduction: Double = it.cwmp.client.model.game.impl.CellWorld.lengthToEnergyReductionStrategy.apply(addedTentacleLength);
-  scala.Tuple3.apply[it.cwmp.client.model.game.impl.Tentacle, Long, Double](tentacle, addedTentacleLength, attackerEnergyReduction)
-}))(collection.this.Seq.canBuildFrom[(it.cwmp.client.model.game.impl.Tentacle, Long, Double)]).foreach[Unit](((x$4: (it.cwmp.client.model.game.impl.Tentacle, Long, Double)) =&gt; (x$4: (it.cwmp.client.model.game.impl.Tentacle, Long, Double) @unchecked) match {
-  case (_1: it.cwmp.client.model.game.impl.Tentacle, _2: Long, _3: Double)(it.cwmp.client.model.game.impl.Tentacle, Long, Double)((tentacle @ _), (addedTentacleLength @ _), (attackerEnergyReduction @ _)) =&gt; if (cellAndCanAttack._1.energy.&lt;=(attackerEnergyReduction))
-    cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
-  else
-    cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](impl.this.Cell.CellManipulator(cellAndCanAttack._1).--(attackerEnergyReduction), cellAndCanAttack._2)
-}))
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          501
-        </td>
-        <td>
-          3071
-          -
-          3090
+          3079
         </td>
         <td>
           Select
@@ -925,54 +867,12 @@
           76
         </td>
         <td>
-          513
+          533
         </td>
         <td>
-          3004
+          3036
           -
-          3004
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[(it.cwmp.client.model.game.impl.Tentacle, Long, Double)]
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          512
-        </td>
-        <td>
-          2995
-          -
-          2995
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple3.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Tuple3.apply[it.cwmp.client.model.game.impl.Tentacle, Long, Double](tentacle, addedTentacleLength, attackerEnergyReduction)
-        </td>
-      </tr><tr>
-        <td>
-          76
-        </td>
-        <td>
-          500
-        </td>
-        <td>
-          3047
-          -
-          3060
+          3049
         </td>
         <td>
           Select
@@ -988,12 +888,50 @@
           76
         </td>
         <td>
-          502
+          554
         </td>
         <td>
-          3020
+          2979
           -
-          3090
+          3606
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.FilterMonadic.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          tentacles.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(tentacle.from, cell).&amp;&amp;(cellAndCanAttack._2))).foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
+  val addedTentacleLength: Long = {
+  &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+  &lt;artifact&gt; val x$16: java.time.Instant = oldWorldInstant.plus(elapsedTime);
+  &lt;artifact&gt; val x$17: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.length$default$2;
+  qual$2.length(x$16, x$17)
+}.-({
+    &lt;artifact&gt; val qual$3: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+    &lt;artifact&gt; val x$18: java.time.Instant = oldWorldInstant;
+    &lt;artifact&gt; val x$19: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$3.length$default$2;
+    qual$3.length(x$18, x$19)
+  });
+  val attackerEnergyReduction: Double = it.cwmp.client.model.game.impl.CellWorld.lengthToEnergyReductionStrategy.apply(addedTentacleLength);
+  if (cellAndCanAttack._1.energy.&lt;=(attackerEnergyReduction))
+    cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
+  else
+    cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](impl.this.Cell.CellManipulator(cellAndCanAttack._1).--(attackerEnergyReduction), cellAndCanAttack._2)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          535
+        </td>
+        <td>
+          3009
+          -
+          3079
         </td>
         <td>
           Apply
@@ -1009,33 +947,12 @@
           77
         </td>
         <td>
-          505
+          541
         </td>
         <td>
-          3132
+          3177
           -
-          3132
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          qual$2.length$default$2
-        </td>
-      </tr><tr>
-        <td>
-          77
-        </td>
-        <td>
-          508
-        </td>
-        <td>
-          3185
-          -
-          3185
+          3177
         </td>
         <td>
           Select
@@ -1051,12 +968,12 @@
           77
         </td>
         <td>
-          507
+          540
         </td>
         <td>
-          3176
+          3168
           -
-          3184
+          3176
         </td>
         <td>
           ApplyImplicitView
@@ -1072,12 +989,12 @@
           77
         </td>
         <td>
-          510
+          543
         </td>
         <td>
-          3123
+          3115
           -
-          3208
+          3200
         </td>
         <td>
           Apply
@@ -1088,14 +1005,14 @@
         <td style="background: #AEF1AE">
           {
   &lt;artifact&gt; val qual$2: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-  &lt;artifact&gt; val x$18: java.time.Instant = oldWorldInstant.plus(elapsedTime);
-  &lt;artifact&gt; val x$19: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.length$default$2;
-  qual$2.length(x$18, x$19)
+  &lt;artifact&gt; val x$16: java.time.Instant = oldWorldInstant.plus(elapsedTime);
+  &lt;artifact&gt; val x$17: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$2.length$default$2;
+  qual$2.length(x$16, x$17)
 }.-({
   &lt;artifact&gt; val qual$3: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-  &lt;artifact&gt; val x$20: java.time.Instant = oldWorldInstant;
-  &lt;artifact&gt; val x$21: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$3.length$default$2;
-  qual$3.length(x$20, x$21)
+  &lt;artifact&gt; val x$18: java.time.Instant = oldWorldInstant;
+  &lt;artifact&gt; val x$19: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$3.length$default$2;
+  qual$3.length(x$18, x$19)
 })
         </td>
       </tr><tr>
@@ -1103,12 +1020,12 @@
           77
         </td>
         <td>
-          504
+          537
         </td>
         <td>
-          3139
+          3131
           -
-          3172
+          3164
         </td>
         <td>
           Apply
@@ -1124,12 +1041,54 @@
           77
         </td>
         <td>
-          503
+          539
         </td>
         <td>
-          3123
+          3115
           -
-          3131
+          3165
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.length(x$16, x$17)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          542
+        </td>
+        <td>
+          3168
+          -
+          3200
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
+        </td>
+        <td style="background: #AEF1AE">
+          qual$3.length(x$18, x$19)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          536
+        </td>
+        <td>
+          3115
+          -
+          3123
         </td>
         <td>
           ApplyImplicitView
@@ -1145,54 +1104,33 @@
           77
         </td>
         <td>
-          506
+          538
         </td>
         <td>
-          3123
+          3124
           -
-          3173
+          3124
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length$default$2
         </td>
         <td style="background: #AEF1AE">
-          qual$2.length(x$18, x$19)
-        </td>
-      </tr><tr>
-        <td>
-          77
-        </td>
-        <td>
-          509
-        </td>
-        <td>
-          3176
-          -
-          3208
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
-        </td>
-        <td style="background: #AEF1AE">
-          qual$3.length(x$20, x$21)
+          qual$2.length$default$2
         </td>
       </tr><tr>
         <td>
           78
         </td>
         <td>
-          511
+          544
         </td>
         <td>
-          3245
+          3237
           -
-          3307
+          3299
         </td>
         <td>
           Apply
@@ -1208,12 +1146,12 @@
           80
         </td>
         <td>
-          514
+          545
         </td>
         <td>
-          3322
+          3311
           -
-          3375
+          3364
         </td>
         <td>
           Apply
@@ -1229,54 +1167,33 @@
           81
         </td>
         <td>
-          517
+          549
         </td>
         <td>
-          3406
+          3376
           -
-          3434
+          3423
         </td>
         <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple2.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
-        </td>
-      </tr><tr>
-        <td>
-          81
-        </td>
-        <td>
-          516
-        </td>
-        <td>
-          3428
-          -
-          3433
-        </td>
-        <td>
-          Literal
+          Assign
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          false
+          cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
         </td>
       </tr><tr>
         <td>
           81
         </td>
         <td>
-          515
+          546
         </td>
         <td>
-          3407
+          3396
           -
-          3426
+          3415
         </td>
         <td>
           Select
@@ -1292,33 +1209,54 @@
           81
         </td>
         <td>
-          518
+          548
         </td>
         <td>
-          3387
+          3395
           -
-          3434
+          3423
         </td>
         <td>
-          Assign
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          547
+        </td>
+        <td>
+          3417
+          -
+          3422
+        </td>
+        <td>
+          Literal
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](cellAndCanAttack._1, false)
+          false
         </td>
       </tr><tr>
         <td>
           83
         </td>
         <td>
-          519
+          550
         </td>
         <td>
-          3535
+          3524
           -
-          3581
+          3570
         </td>
         <td>
           Apply
@@ -1334,33 +1272,12 @@
           83
         </td>
         <td>
-          522
+          552
         </td>
         <td>
-          3515
+          3523
           -
-          3603
-        </td>
-        <td>
-          Assign
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](impl.this.Cell.CellManipulator(cellAndCanAttack._1).--(attackerEnergyReduction), cellAndCanAttack._2)
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          521
-        </td>
-        <td>
-          3534
-          -
-          3603
+          3592
         </td>
         <td>
           Apply
@@ -1376,12 +1293,12 @@
           83
         </td>
         <td>
-          520
+          551
         </td>
         <td>
-          3583
+          3572
           -
-          3602
+          3591
         </td>
         <td>
           Select
@@ -1394,36 +1311,36 @@
         </td>
       </tr><tr>
         <td>
-          101
+          83
         </td>
         <td>
-          525
+          553
         </td>
         <td>
-          4449
+          3504
           -
-          4453
+          3592
         </td>
         <td>
-          Select
+          Assign
         </td>
         <td>
-          scala.Tuple2._1
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          x$5._1
+          cellAndCanAttack = scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, Boolean](impl.this.Cell.CellManipulator(cellAndCanAttack._1).--(attackerEnergyReduction), cellAndCanAttack._2)
         </td>
       </tr><tr>
         <td>
           101
         </td>
         <td>
-          528
+          559
         </td>
         <td>
-          4456
+          4445
           -
-          4469
+          4458
         </td>
         <td>
           Select
@@ -1439,12 +1356,33 @@
           101
         </td>
         <td>
-          524
+          558
         </td>
         <td>
-          4412
+          4416
           -
-          4425
+          4443
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          cellsAndCanAttack.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$4: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$4._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          555
+        </td>
+        <td>
+          4401
+          -
+          4414
         </td>
         <td>
           Select
@@ -1460,33 +1398,12 @@
           101
         </td>
         <td>
-          527
+          557
         </td>
         <td>
-          4427
+          4437
           -
-          4454
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.TraversableLike.map
-        </td>
-        <td style="background: #AEF1AE">
-          cellsAndCanAttack.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$5: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$5._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
-        </td>
-      </tr><tr>
-        <td>
-          101
-        </td>
-        <td>
-          526
-        </td>
-        <td>
-          4448
-          -
-          4448
+          4437
         </td>
         <td>
           TypeApply
@@ -1502,12 +1419,12 @@
           101
         </td>
         <td>
-          529
+          560
         </td>
         <td>
-          4402
+          4391
           -
-          4470
+          4459
         </td>
         <td>
           Apply
@@ -1516,40 +1433,19 @@
           it.cwmp.client.model.game.impl.CellWorld.apply
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cellsAndCanAttack.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$5: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$5._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]), world.attacks)
+          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cellsAndCanAttack.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$4: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$4._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]), world.attacks)
         </td>
       </tr><tr>
         <td>
-          102
+          101
         </td>
         <td>
-          532
+          556
         </td>
         <td>
-          4549
+          4438
           -
-          4549
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
-        </td>
-      </tr><tr>
-        <td>
-          102
-        </td>
-        <td>
-          531
-        </td>
-        <td>
-          4550
-          -
-          4554
+          4442
         </td>
         <td>
           Select
@@ -1558,19 +1454,19 @@
           scala.Tuple2._1
         </td>
         <td style="background: #AEF1AE">
-          x$7._1
+          x$4._1
         </td>
       </tr><tr>
         <td>
           102
         </td>
         <td>
-          530
+          561
         </td>
         <td>
-          4540
+          4529
           -
-          4544
+          4533
         </td>
         <td>
           Select
@@ -1579,19 +1475,19 @@
           scala.Tuple2._2
         </td>
         <td style="background: #AEF1AE">
-          x$6._2
+          x$5._2
         </td>
       </tr><tr>
         <td>
           102
         </td>
         <td>
-          533
+          564
         </td>
         <td>
-          4512
+          4501
           -
-          4555
+          4544
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1600,103 +1496,19 @@
           scala.collection.TraversableLike.map
         </td>
         <td style="background: #AEF1AE">
-          cellsAndCanAttack.filterNot(((x$6: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$6._2)).map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$7: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$7._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
+          cellsAndCanAttack.filterNot(((x$5: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$5._2)).map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$6: (it.cwmp.client.model.game.impl.Cell, Boolean)) =&gt; x$6._1))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell])
         </td>
       </tr><tr>
         <td>
-          103
+          102
         </td>
         <td>
-          543
+          563
         </td>
         <td>
-          4560
+          4538
           -
-          4943
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.generic.FilterMonadic.foreach
-        </td>
-        <td style="background: #AEF1AE">
-          cellsThatCannotAffordAttacking.withFilter(((poorCell: it.cwmp.client.model.game.impl.Cell) =&gt; world.attacks.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$8: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$8.from))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]).exists(((x$9: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, poorCell))))).foreach[Unit](((poorCell: it.cwmp.client.model.game.impl.Cell) =&gt; tempWorld = impl.this.CellWorld.CellWorldManipulator(tempWorld).--(world.attacks.filter(((t: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(t.from, poorCell))).max[it.cwmp.client.model.game.impl.Tentacle](it.cwmp.client.model.game.impl.Tentacle.orderByLaunchInstant))))
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          534
-        </td>
-        <td>
-          4638
-          -
-          4644
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
-        </td>
-        <td style="background: #AEF1AE">
-          x$8.from
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          537
-        </td>
-        <td>
-          4620
-          -
-          4693
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.exists
-        </td>
-        <td style="background: #AEF1AE">
-          world.attacks.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$8: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$8.from))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]).exists(((x$9: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, poorCell)))
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          536
-        </td>
-        <td>
-          4653
-          -
-          4692
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, poorCell)
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          535
-        </td>
-        <td>
-          4637
-          -
-          4637
+          4538
         </td>
         <td>
           TypeApply
@@ -1709,15 +1521,141 @@
         </td>
       </tr><tr>
         <td>
+          102
+        </td>
+        <td>
+          562
+        </td>
+        <td>
+          4539
+          -
+          4543
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #AEF1AE">
+          x$6._1
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          574
+        </td>
+        <td>
+          4549
+          -
+          4932
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.FilterMonadic.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          cellsThatCannotAffordAttacking.withFilter(((poorCell: it.cwmp.client.model.game.impl.Cell) =&gt; world.attacks.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$7: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$7.from))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]).exists(((x$8: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$8, poorCell))))).foreach[Unit](((poorCell: it.cwmp.client.model.game.impl.Cell) =&gt; tempWorld = impl.this.CellWorld.CellWorldManipulator(tempWorld).--(world.attacks.filter(((t: it.cwmp.client.model.game.impl.Tentacle) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(t.from, poorCell))).max[it.cwmp.client.model.game.impl.Tentacle](it.cwmp.client.model.game.impl.Tentacle.orderByLaunchInstant))))
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          568
+        </td>
+        <td>
+          4609
+          -
+          4682
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.exists
+        </td>
+        <td style="background: #AEF1AE">
+          world.attacks.map[it.cwmp.client.model.game.impl.Cell, Seq[it.cwmp.client.model.game.impl.Cell]](((x$7: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$7.from))(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]).exists(((x$8: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$8, poorCell)))
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          567
+        </td>
+        <td>
+          4642
+          -
+          4681
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$8, poorCell)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          566
+        </td>
+        <td>
+          4626
+          -
+          4626
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          565
+        </td>
+        <td>
+          4627
+          -
+          4633
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          x$7.from
+        </td>
+      </tr><tr>
+        <td>
           106
         </td>
         <td>
-          542
+          573
         </td>
         <td>
-          4806
+          4795
           -
-          4943
+          4932
         </td>
         <td>
           Apply
@@ -1733,12 +1671,12 @@
           107
         </td>
         <td>
-          539
+          570
         </td>
         <td>
-          4854
+          4843
           -
-          4898
+          4887
         </td>
         <td>
           Apply
@@ -1754,12 +1692,12 @@
           107
         </td>
         <td>
-          538
+          569
         </td>
         <td>
-          4881
+          4870
           -
-          4887
+          4876
         </td>
         <td>
           Select
@@ -1775,12 +1713,12 @@
           108
         </td>
         <td>
-          541
+          572
         </td>
         <td>
-          4819
+          4808
           -
-          4943
+          4932
         </td>
         <td>
           Apply
@@ -1796,12 +1734,12 @@
           108
         </td>
         <td>
-          540
+          571
         </td>
         <td>
-          4913
+          4902
           -
-          4942
+          4931
         </td>
         <td>
           Select
@@ -1817,12 +1755,12 @@
           126
         </td>
         <td>
-          546
+          577
         </td>
         <td>
-          5684
+          5673
           -
-          5770
+          5759
         </td>
         <td>
           Apply
@@ -1838,12 +1776,12 @@
           126
         </td>
         <td>
-          545
+          576
         </td>
         <td>
-          5716
+          5705
           -
-          5769
+          5758
         </td>
         <td>
           Apply
@@ -1859,12 +1797,12 @@
           126
         </td>
         <td>
-          544
+          575
         </td>
         <td>
-          5743
+          5732
           -
-          5754
+          5743
         </td>
         <td>
           Select
@@ -1877,152 +1815,15 @@
         </td>
       </tr><tr>
         <td>
-          128
+          127
         </td>
         <td>
-          555
+          578
         </td>
         <td>
-          5781
+          5784
           -
-          5781
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple4.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Tuple4.apply[it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration](tentacle, actualAttackDuration, oldAttackDuration, addedAttackDuration)
-        </td>
-      </tr><tr>
-        <td>
-          128
-        </td>
-        <td>
-          582
-        </td>
-        <td>
-          5776
-          -
-          7093
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.IterableLike.foreach
-        </td>
-        <td style="background: #AEF1AE">
-          tentaclesToAttackedCell.map[(it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration), Seq[(it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration)]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
-  val actualAttackDuration: java.time.Duration = {
-    &lt;artifact&gt; val qual$4: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-    &lt;artifact&gt; val x$22: java.time.Instant = oldWorldInstant.plus(elapsedTime);
-    &lt;artifact&gt; val x$23: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$4.hasReachedDestinationFor$default$2;
-    qual$4.hasReachedDestinationFor(x$22, x$23)
-  };
-  val oldAttackDuration: java.time.Duration = {
-    &lt;artifact&gt; val qual$5: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
-    &lt;artifact&gt; val x$24: java.time.Instant = oldWorldInstant;
-    &lt;artifact&gt; val x$25: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$5.hasReachedDestinationFor$default$2;
-    qual$5.hasReachedDestinationFor(x$24, x$25)
-  };
-  val addedAttackDuration: java.time.Duration = actualAttackDuration.minus(oldAttackDuration);
-  scala.Tuple4.apply[it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration](tentacle, actualAttackDuration, oldAttackDuration, addedAttackDuration)
-}))(collection.this.Seq.canBuildFrom[(it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration)]).foreach[Unit](((x$10: (it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration)) =&gt; (x$10: (it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration) @unchecked) match {
-  case (_1: it.cwmp.client.model.game.impl.Tentacle, _2: java.time.Duration, _3: java.time.Duration, _4: java.time.Duration)(it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration)((tentacle @ _), (actualAttackDuration @ _), (oldAttackDuration @ _), (addedAttackDuration @ _)) =&gt; {
-    val energyDelta: Double = it.cwmp.client.model.game.impl.CellWorld.durationToEnergyConversionStrategy.apply(addedAttackDuration);
-    if (toReturnCell.owner.==(tentacle.from.owner))
-      toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).++(energyDelta)
-    else
-      if (toReturnCell.owner.!=(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER))
-        if (toReturnCell.energy.-(energyDelta).&lt;=(0))
-          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
-        else
-          toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
-      else
-        if (actualAttackDuration.toMillis().&gt;=(GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER))
-          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
-        else
-          ()
-  }
-}))
-        </td>
-      </tr><tr>
-        <td>
-          128
-        </td>
-        <td>
-          556
-        </td>
-        <td>
-          5790
-          -
-          5790
-        </td>
-        <td>
-          TypeApply
-        </td>
-        <td>
-          scala.collection.Seq.canBuildFrom
-        </td>
-        <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[(it.cwmp.client.model.game.impl.Tentacle, java.time.Duration, java.time.Duration, java.time.Duration)]
-        </td>
-      </tr><tr>
-        <td>
-          129
-        </td>
-        <td>
-          550
-        </td>
-        <td>
-          5850
-          -
-          5918
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
-        </td>
-        <td style="background: #AEF1AE">
-          qual$4.hasReachedDestinationFor(x$22, x$23)
-        </td>
-      </tr><tr>
-        <td>
-          129
-        </td>
-        <td>
-          549
-        </td>
-        <td>
-          5859
-          -
-          5859
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
-        </td>
-        <td style="background: #AEF1AE">
-          qual$4.hasReachedDestinationFor$default$2
-        </td>
-      </tr><tr>
-        <td>
-          129
-        </td>
-        <td>
-          548
-        </td>
-        <td>
-          5884
-          -
-          5917
+          5817
         </td>
         <td>
           Apply
@@ -2038,12 +1839,61 @@
           129
         </td>
         <td>
-          547
+          610
         </td>
         <td>
-          5850
+          5823
           -
-          5858
+          7140
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IterableLike.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          tentaclesToAttackedCell.foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
+  val actualAttackDuration: java.time.Duration = {
+    &lt;artifact&gt; val qual$4: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+    &lt;artifact&gt; val x$20: java.time.Instant = actualInstant;
+    &lt;artifact&gt; val x$21: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$4.hasReachedDestinationFor$default$2;
+    qual$4.hasReachedDestinationFor(x$20, x$21)
+  };
+  val oldAttackDuration: java.time.Duration = {
+    &lt;artifact&gt; val qual$5: it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation = impl.this.Tentacle.TentacleManipulation(tentacle);
+    &lt;artifact&gt; val x$22: java.time.Instant = oldWorldInstant;
+    &lt;artifact&gt; val x$23: it.cwmp.client.model.game.SizingStrategy[java.time.Duration,Long] @scala.reflect.internal.annotations.uncheckedBounds = qual$5.hasReachedDestinationFor$default$2;
+    qual$5.hasReachedDestinationFor(x$22, x$23)
+  };
+  val addedAttackDuration: java.time.Duration = actualAttackDuration.minus(oldAttackDuration);
+  val energyDelta: Double = it.cwmp.client.model.game.impl.CellWorld.durationToEnergyConversionStrategy.apply(addedAttackDuration);
+  if (toReturnCell.owner.==(tentacle.from.owner))
+    toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).++(energyDelta)
+  else
+    if (it.cwmp.client.model.game.impl.Cell.isPassiveCell(toReturnCell).unary_!)
+      if (toReturnCell.energy.-(energyDelta).&lt;=(0))
+        toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
+      else
+        toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
+    else
+      if (actualAttackDuration.toMillis().&gt;=(GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER))
+        toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
+      else
+        ()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          579
+        </td>
+        <td>
+          5900
+          -
+          5908
         </td>
         <td>
           ApplyImplicitView
@@ -2059,12 +1909,96 @@
           130
         </td>
         <td>
-          552
+          581
         </td>
         <td>
-          5958
+          5900
           -
-          5958
+          5948
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
+        </td>
+        <td style="background: #AEF1AE">
+          qual$4.hasReachedDestinationFor(x$20, x$21)
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          580
+        </td>
+        <td>
+          5909
+          -
+          5909
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          qual$4.hasReachedDestinationFor$default$2
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          582
+        </td>
+        <td>
+          5979
+          -
+          5987
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
+        </td>
+        <td style="background: #AEF1AE">
+          impl.this.Tentacle.TentacleManipulation(tentacle)
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          584
+        </td>
+        <td>
+          5979
+          -
+          6029
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
+        </td>
+        <td style="background: #AEF1AE">
+          qual$5.hasReachedDestinationFor(x$22, x$23)
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          583
+        </td>
+        <td>
+          5988
+          -
+          5988
         </td>
         <td>
           Select
@@ -2077,57 +2011,15 @@
         </td>
       </tr><tr>
         <td>
-          130
+          132
         </td>
         <td>
-          551
+          585
         </td>
         <td>
-          5949
+          6062
           -
-          5957
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
-        </td>
-        <td style="background: #AEF1AE">
-          impl.this.Tentacle.TentacleManipulation(tentacle)
-        </td>
-      </tr><tr>
-        <td>
-          130
-        </td>
-        <td>
-          553
-        </td>
-        <td>
-          5949
-          -
-          5999
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
-        </td>
-        <td style="background: #AEF1AE">
-          qual$5.hasReachedDestinationFor(x$24, x$25)
-        </td>
-      </tr><tr>
-        <td>
-          131
-        </td>
-        <td>
-          554
-        </td>
-        <td>
-          6032
-          -
-          6077
+          6107
         </td>
         <td>
           Apply
@@ -2140,15 +2032,15 @@
         </td>
       </tr><tr>
         <td>
-          133
+          134
         </td>
         <td>
-          557
+          586
         </td>
         <td>
-          6106
+          6133
           -
-          6171
+          6198
         </td>
         <td>
           Apply
@@ -2161,15 +2053,15 @@
         </td>
       </tr><tr>
         <td>
-          135
+          136
         </td>
         <td>
-          559
+          588
         </td>
         <td>
-          6183
+          6210
           -
-          6224
+          6251
         </td>
         <td>
           Apply
@@ -2182,15 +2074,15 @@
         </td>
       </tr><tr>
         <td>
-          135
+          136
         </td>
         <td>
-          558
+          587
         </td>
         <td>
-          6205
+          6232
           -
-          6224
+          6251
         </td>
         <td>
           Select
@@ -2203,15 +2095,15 @@
         </td>
       </tr><tr>
         <td>
-          137
+          138
         </td>
         <td>
-          561
+          590
         </td>
         <td>
-          6310
+          6337
           -
-          6352
+          6379
         </td>
         <td>
           Assign
@@ -2224,15 +2116,15 @@
         </td>
       </tr><tr>
         <td>
-          137
+          138
         </td>
         <td>
-          560
+          589
         </td>
         <td>
-          6325
-          -
           6352
+          -
+          6379
         </td>
         <td>
           Apply
@@ -2245,36 +2137,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          140
         </td>
         <td>
-          563
+          609
         </td>
         <td>
-          6371
+          6394
           -
-          6414
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #AEF1AE">
-          toReturnCell.owner.!=(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER)
-        </td>
-      </tr><tr>
-        <td>
-          139
-        </td>
-        <td>
-          581
-        </td>
-        <td>
-          6367
-          -
-          7087
+          7134
         </td>
         <td>
           If
@@ -2283,49 +2154,73 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          if (toReturnCell.owner.!=(it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER))
+          if (it.cwmp.client.model.game.impl.Cell.isPassiveCell(toReturnCell).unary_!)
   if (toReturnCell.energy.-(energyDelta).&lt;=(0))
-    toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
+    toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
   else
     toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
 else
   if (actualAttackDuration.toMillis().&gt;=(GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER))
-    toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+    toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
   else
     ()
         </td>
       </tr><tr>
         <td>
-          139
+          140
         </td>
         <td>
-          562
+          591
         </td>
         <td>
-          6393
+          6398
           -
-          6414
+          6431
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+          scala.Boolean.unary_!
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.Passive.NO_OWNER
+          it.cwmp.client.model.game.impl.Cell.isPassiveCell(toReturnCell).unary_!
         </td>
       </tr><tr>
         <td>
-          142
+          143
         </td>
         <td>
-          564
+          600
         </td>
         <td>
-          6484
+          6497
           -
-          6522
+          6857
+        </td>
+        <td>
+          If
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          if (toReturnCell.energy.-(energyDelta).&lt;=(0))
+  toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
+else
+  toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
+        </td>
+      </tr><tr>
+        <td>
+          143
+        </td>
+        <td>
+          592
+        </td>
+        <td>
+          6501
+          -
+          6539
         </td>
         <td>
           Apply
@@ -2338,60 +2233,15 @@ else
         </td>
       </tr><tr>
         <td>
-          142
+          146
         </td>
         <td>
-          572
+          597
         </td>
         <td>
-          6480
+          6605
           -
-          6825
-        </td>
-        <td>
-          If
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          if (toReturnCell.energy.-(energyDelta).&lt;=(0))
-  toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
-else
-  toReturnCell = impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
-        </td>
-      </tr><tr>
-        <td>
-          145
-        </td>
-        <td>
-          568
-        </td>
-        <td>
-          6603
-          -
-          6745
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.game.GameEngine.cellAfterConquer
-        </td>
-        <td style="background: #AEF1AE">
-          GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
-        </td>
-      </tr><tr>
-        <td>
-          145
-        </td>
-        <td>
-          569
-        </td>
-        <td>
-          6588
-          -
-          6745
+          6777
         </td>
         <td>
           Assign
@@ -2400,40 +2250,40 @@ else
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
+          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
         </td>
       </tr><tr>
         <td>
           146
         </td>
         <td>
-          567
+          596
         </td>
         <td>
-          6671
+          6620
           -
-          6744
+          6777
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Double.+
+          it.cwmp.client.controller.game.GameEngine.cellAfterConquer
         </td>
         <td style="background: #AEF1AE">
-          GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy))
+          GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy)))
         </td>
       </tr><tr>
         <td>
-          146
+          147
         </td>
         <td>
-          566
+          594
         </td>
         <td>
-          6710
+          6742
           -
-          6743
+          6775
         </td>
         <td>
           Apply
@@ -2446,15 +2296,15 @@ else
         </td>
       </tr><tr>
         <td>
-          146
+          147
         </td>
         <td>
-          565
+          593
         </td>
         <td>
-          6724
+          6756
           -
-          6743
+          6775
         </td>
         <td>
           Select
@@ -2467,36 +2317,36 @@ else
         </td>
       </tr><tr>
         <td>
-          148
+          147
         </td>
         <td>
-          570
+          595
         </td>
         <td>
-          6788
+          6703
           -
-          6815
+          6776
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Cell.CellManipulator.--
+          scala.Double.+
         </td>
         <td style="background: #AEF1AE">
-          impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
+          GameConstants.CELL_ENERGY_WHEN_BORN.+(energyDelta.-(toReturnCell.energy))
         </td>
       </tr><tr>
         <td>
-          148
+          149
         </td>
         <td>
-          571
+          599
         </td>
         <td>
-          6773
+          6805
           -
-          6815
+          6847
         </td>
         <td>
           Assign
@@ -2509,57 +2359,36 @@ else
         </td>
       </tr><tr>
         <td>
-          152
+          149
         </td>
         <td>
-          579
+          598
         </td>
         <td>
-          6883
+          6820
           -
-          6883
+          6847
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          it.cwmp.client.model.game.impl.Cell.CellManipulator.--
         </td>
         <td style="background: #AEF1AE">
-          ()
+          impl.this.Cell.CellManipulator(toReturnCell).--(energyDelta)
         </td>
       </tr><tr>
         <td>
-          152
+          153
         </td>
         <td>
-          573
+          606
         </td>
         <td>
-          6920
+          6915
           -
-          6964
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.game.GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER
-        </td>
-        <td style="background: #AEF1AE">
-          GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER
-        </td>
-      </tr><tr>
-        <td>
-          152
-        </td>
-        <td>
-          578
-        </td>
-        <td>
-          6883
-          -
-          6883
+          6915
         </td>
         <td>
           Literal
@@ -2572,15 +2401,15 @@ else
         </td>
       </tr><tr>
         <td>
-          152
+          153
         </td>
         <td>
-          580
+          608
         </td>
         <td>
-          6883
+          6915
           -
-          7079
+          7126
         </td>
         <td>
           If
@@ -2590,21 +2419,21 @@ else
         </td>
         <td style="background: #AEF1AE">
           if (actualAttackDuration.toMillis().&gt;=(GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER))
-  toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+  toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
 else
   ()
         </td>
       </tr><tr>
         <td>
-          152
+          153
         </td>
         <td>
-          574
+          602
         </td>
         <td>
-          6887
+          6919
           -
-          6964
+          6996
         </td>
         <td>
           Apply
@@ -2620,54 +2449,54 @@ else
           153
         </td>
         <td>
-          577
+          607
         </td>
         <td>
-          6978
+          6915
           -
-          7069
+          6915
         </td>
         <td>
-          Assign
+          Block
         </td>
         <td>
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+          ()
         </td>
       </tr><tr>
         <td>
           153
         </td>
         <td>
-          576
+          601
         </td>
         <td>
-          6993
+          6952
           -
-          7069
+          6996
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.controller.game.GameEngine.cellAfterConquer
+          it.cwmp.client.controller.game.GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER
         </td>
         <td style="background: #AEF1AE">
-          GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, toReturnCell.energy)
+          GameConstants.MILLIS_TO_PASSIVE_CELL_CONQUER
         </td>
       </tr><tr>
         <td>
-          153
+          154
         </td>
         <td>
-          575
+          603
         </td>
         <td>
-          7049
+          7096
           -
-          7068
+          7115
         </td>
         <td>
           Select
@@ -2680,15 +2509,57 @@ else
         </td>
       </tr><tr>
         <td>
-          172
+          154
         </td>
         <td>
-          584
+          605
         </td>
         <td>
-          7651
+          7010
           -
-          7720
+          7116
+        </td>
+        <td>
+          Assign
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          toReturnCell = GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          604
+        </td>
+        <td>
+          7025
+          -
+          7116
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.game.GameEngine.cellAfterConquer
+        </td>
+        <td style="background: #AEF1AE">
+          GameEngine.this.cellAfterConquer(toReturnCell, tentaclesToAttackedCell, actualInstant, toReturnCell.energy)
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          612
+        </td>
+        <td>
+          7825
+          -
+          7911
         </td>
         <td>
           Select
@@ -2697,61 +2568,40 @@ else
           it.cwmp.client.model.game.impl.Cell.owner
         </td>
         <td style="background: #AEF1AE">
-          tentaclesToAttackedCell.min[it.cwmp.client.model.game.impl.Tentacle](it.cwmp.client.model.game.impl.Tentacle.orderByLaunchInstant).from.owner
+          tentaclesToAttackedCell.max[it.cwmp.client.model.game.impl.Tentacle](it.cwmp.client.model.game.impl.Tentacle.orderByAttackDuration(conquerInstant)).from.owner
         </td>
       </tr><tr>
         <td>
-          172
+          175
         </td>
         <td>
-          583
+          611
         </td>
         <td>
-          7679
+          7853
           -
-          7708
+          7899
         </td>
         <td>
-          Select
+          Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.orderByLaunchInstant
+          it.cwmp.client.model.game.impl.Tentacle.orderByAttackDuration
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Tentacle.orderByLaunchInstant
+          it.cwmp.client.model.game.impl.Tentacle.orderByAttackDuration(conquerInstant)
         </td>
       </tr><tr>
         <td>
-          173
+          176
         </td>
         <td>
-          585
+          614
         </td>
         <td>
-          7751
+          7916
           -
-          7764
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.position
-        </td>
-        <td style="background: #AEF1AE">
-          cell.position
-        </td>
-      </tr><tr>
-        <td>
-          173
-        </td>
-        <td>
-          586
-        </td>
-        <td>
-          7725
-          -
-          7776
+          7967
         </td>
         <td>
           Apply
@@ -2764,36 +2614,36 @@ else
         </td>
       </tr><tr>
         <td>
-          186
+          176
         </td>
         <td>
-          588
+          613
         </td>
         <td>
-          8290
+          7942
           -
-          8303
+          7955
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorld.attacks
+          it.cwmp.client.model.game.impl.Cell.position
         </td>
         <td style="background: #AEF1AE">
-          world.attacks
+          cell.position
         </td>
       </tr><tr>
         <td>
-          186
+          189
         </td>
         <td>
-          587
+          615
         </td>
         <td>
-          8268
+          8459
           -
-          8281
+          8472
         </td>
         <td>
           Select
@@ -2806,15 +2656,15 @@ else
         </td>
       </tr><tr>
         <td>
-          186
+          189
         </td>
         <td>
-          589
+          617
         </td>
         <td>
-          8258
+          8449
           -
-          8304
+          8495
         </td>
         <td>
           Apply
@@ -2827,57 +2677,36 @@ else
         </td>
       </tr><tr>
         <td>
-          187
+          189
         </td>
         <td>
-          597
+          616
         </td>
         <td>
-          8309
+          8481
           -
-          8503
+          8494
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.collection.generic.FilterMonadic.foreach
+          it.cwmp.client.model.game.impl.CellWorld.attacks
         </td>
         <td style="background: #AEF1AE">
-          tempWorld.attacks.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; cells.exists(((x$11: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.from))).unary_!)).foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; tempWorld = it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$12: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$12.==(tentacle))))))
+          world.attacks
         </td>
       </tr><tr>
         <td>
-          187
+          190
         </td>
         <td>
-          591
+          618
         </td>
         <td>
-          8361
+          8582
           -
-          8405
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.from)
-        </td>
-      </tr><tr>
-        <td>
-          187
-        </td>
-        <td>
-          590
-        </td>
-        <td>
-          8391
-          -
-          8404
+          8595
         </td>
         <td>
           Select
@@ -2890,15 +2719,15 @@ else
         </td>
       </tr><tr>
         <td>
-          187
+          190
         </td>
         <td>
-          592
+          620
         </td>
         <td>
-          8347
+          8538
           -
-          8406
+          8597
         </td>
         <td>
           Select
@@ -2907,40 +2736,61 @@ else
           scala.Boolean.unary_!
         </td>
         <td style="background: #AEF1AE">
-          cells.exists(((x$11: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.from))).unary_!
+          cells.exists(((x$9: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, tentacle.from))).unary_!
         </td>
       </tr><tr>
         <td>
-          188
+          190
         </td>
         <td>
-          594
+          625
         </td>
         <td>
-          8488
+          8500
           -
-          8501
+          8694
         </td>
         <td>
           Apply
         </td>
         <td>
-          java.lang.Object.==
+          scala.collection.generic.FilterMonadic.foreach
         </td>
         <td style="background: #AEF1AE">
-          x$12.==(tentacle)
+          tempWorld.attacks.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; cells.exists(((x$9: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, tentacle.from))).unary_!)).foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; tempWorld = it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$10: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$10.==(tentacle))))))
         </td>
       </tr><tr>
         <td>
-          188
+          190
         </td>
         <td>
-          593
+          619
         </td>
         <td>
-          8438
+          8552
           -
-          8451
+          8596
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$9, tentacle.from)
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          621
+        </td>
+        <td>
+          8629
+          -
+          8642
         </td>
         <td>
           Select
@@ -2953,15 +2803,15 @@ else
         </td>
       </tr><tr>
         <td>
-          188
+          191
         </td>
         <td>
-          596
+          624
         </td>
         <td>
-          8428
+          8619
           -
-          8503
+          8694
         </td>
         <td>
           Apply
@@ -2970,19 +2820,19 @@ else
           it.cwmp.client.model.game.impl.CellWorld.apply
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$12: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$12.==(tentacle))))
+          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$10: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$10.==(tentacle))))
         </td>
       </tr><tr>
         <td>
-          188
+          191
         </td>
         <td>
-          595
+          623
         </td>
         <td>
-          8460
+          8651
           -
-          8502
+          8693
         </td>
         <td>
           Apply
@@ -2991,40 +2841,40 @@ else
           scala.collection.TraversableLike.filterNot
         </td>
         <td style="background: #AEF1AE">
-          tempWorld.attacks.filterNot(((x$12: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$12.==(tentacle)))
+          tempWorld.attacks.filterNot(((x$10: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$10.==(tentacle)))
         </td>
       </tr><tr>
         <td>
-          204
+          191
         </td>
         <td>
-          600
+          622
         </td>
         <td>
-          9057
+          8679
           -
-          9103
+          8692
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.CellWorld.apply
+          java.lang.Object.==
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, world.attacks)
+          x$10.==(tentacle)
         </td>
       </tr><tr>
         <td>
-          204
+          207
         </td>
         <td>
-          599
+          627
         </td>
         <td>
-          9089
+          9280
           -
-          9102
+          9293
         </td>
         <td>
           Select
@@ -3037,15 +2887,15 @@ else
         </td>
       </tr><tr>
         <td>
-          204
+          207
         </td>
         <td>
-          598
+          626
         </td>
         <td>
-          9067
+          9258
           -
-          9080
+          9271
         </td>
         <td>
           Select
@@ -3058,61 +2908,36 @@ else
         </td>
       </tr><tr>
         <td>
-          205
+          207
         </td>
         <td>
-          603
+          628
         </td>
         <td>
-          9146
+          9248
           -
-          9203
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Boolean.unary_!
-        </td>
-        <td style="background: #AEF1AE">
-          cells.exists(((x$13: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$13, tentacle.to))).unary_!
-        </td>
-      </tr><tr>
-        <td>
-          205
-        </td>
-        <td>
-          615
-        </td>
-        <td>
-          9108
-          -
-          9504
+          9294
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.FilterMonadic.foreach
+          it.cwmp.client.model.game.impl.CellWorld.apply
         </td>
         <td style="background: #AEF1AE">
-          tempWorld.attacks.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; cells.exists(((x$13: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$13, tentacle.to))).unary_!)).foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
-  val destinationUpdate: it.cwmp.client.model.game.impl.Cell = cells.filter(((x$14: it.cwmp.client.model.game.impl.Cell) =&gt; x$14.position.==(tentacle.to.position))).head;
-  val updatedTentacle: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(tentacle.from, destinationUpdate, tentacle.launchInstant);
-  tempWorld = it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]))
-}))
+          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, world.attacks)
         </td>
       </tr><tr>
         <td>
-          205
+          208
         </td>
         <td>
-          602
+          630
         </td>
         <td>
-          9160
+          9351
           -
-          9202
+          9393
         </td>
         <td>
           Apply
@@ -3121,19 +2946,19 @@ else
           it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$13, tentacle.to)
+          it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.to)
         </td>
       </tr><tr>
         <td>
-          205
+          208
         </td>
         <td>
-          601
+          629
         </td>
         <td>
-          9190
+          9381
           -
-          9201
+          9392
         </td>
         <td>
           Select
@@ -3146,36 +2971,61 @@ else
         </td>
       </tr><tr>
         <td>
-          206
+          208
         </td>
         <td>
-          606
+          631
         </td>
         <td>
-          9237
+          9337
           -
-          9290
+          9394
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.collection.IterableLike.head
+          scala.Boolean.unary_!
         </td>
         <td style="background: #AEF1AE">
-          cells.filter(((x$14: it.cwmp.client.model.game.impl.Cell) =&gt; x$14.position.==(tentacle.to.position))).head
+          cells.exists(((x$11: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.to))).unary_!
         </td>
       </tr><tr>
         <td>
-          206
+          208
         </td>
         <td>
-          605
+          643
         </td>
         <td>
-          9250
+          9299
           -
-          9284
+          9695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.FilterMonadic.foreach
+        </td>
+        <td style="background: #AEF1AE">
+          tempWorld.attacks.withFilter(((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; cells.exists(((x$11: it.cwmp.client.model.game.impl.Cell) =&gt; it.cwmp.client.model.game.impl.Cell.ownerAndPositionMatch(x$11, tentacle.to))).unary_!)).foreach[Unit](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; {
+  val destinationUpdate: it.cwmp.client.model.game.impl.Cell = cells.filter(((x$12: it.cwmp.client.model.game.impl.Cell) =&gt; x$12.position.==(tentacle.to.position))).head;
+  val updatedTentacle: it.cwmp.client.model.game.impl.Tentacle = it.cwmp.client.model.game.impl.Tentacle.apply(tentacle.from, destinationUpdate, tentacle.launchInstant);
+  tempWorld = it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$13: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$13.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          633
+        </td>
+        <td>
+          9441
+          -
+          9475
         </td>
         <td>
           Apply
@@ -3184,19 +3034,19 @@ else
           java.lang.Object.==
         </td>
         <td style="background: #AEF1AE">
-          x$14.position.==(tentacle.to.position)
+          x$12.position.==(tentacle.to.position)
         </td>
       </tr><tr>
         <td>
-          206
+          209
         </td>
         <td>
-          604
+          632
         </td>
         <td>
-          9264
+          9455
           -
-          9284
+          9475
         </td>
         <td>
           Select
@@ -3209,36 +3059,36 @@ else
         </td>
       </tr><tr>
         <td>
-          207
+          209
         </td>
         <td>
-          609
+          634
         </td>
         <td>
-          9319
+          9428
           -
-          9385
+          9481
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Tentacle.apply
+          scala.collection.IterableLike.head
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.Tentacle.apply(tentacle.from, destinationUpdate, tentacle.launchInstant)
+          cells.filter(((x$12: it.cwmp.client.model.game.impl.Cell) =&gt; x$12.position.==(tentacle.to.position))).head
         </td>
       </tr><tr>
         <td>
-          207
+          210
         </td>
         <td>
-          608
+          636
         </td>
         <td>
-          9362
+          9553
           -
-          9384
+          9575
         </td>
         <td>
           Select
@@ -3251,15 +3101,15 @@ else
         </td>
       </tr><tr>
         <td>
-          207
+          210
         </td>
         <td>
-          607
+          635
         </td>
         <td>
-          9328
+          9519
           -
-          9341
+          9532
         </td>
         <td>
           Select
@@ -3272,36 +3122,36 @@ else
         </td>
       </tr><tr>
         <td>
-          208
+          210
         </td>
         <td>
-          612
+          637
         </td>
         <td>
-          9479
+          9510
           -
-          9479
+          9576
         </td>
         <td>
-          TypeApply
+          Apply
         </td>
         <td>
-          scala.collection.Seq.canBuildFrom
+          it.cwmp.client.model.game.impl.Tentacle.apply
         </td>
         <td style="background: #AEF1AE">
-          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]
+          it.cwmp.client.model.game.impl.Tentacle.apply(tentacle.from, destinationUpdate, tentacle.launchInstant)
         </td>
       </tr><tr>
         <td>
-          208
+          211
         </td>
         <td>
-          611
+          639
         </td>
         <td>
-          9464
+          9655
           -
-          9477
+          9668
         </td>
         <td>
           Apply
@@ -3310,19 +3160,19 @@ else
           java.lang.Object.==
         </td>
         <td style="background: #AEF1AE">
-          x$15.==(tentacle)
+          x$13.==(tentacle)
         </td>
       </tr><tr>
         <td>
-          208
+          211
         </td>
         <td>
-          614
+          642
         </td>
         <td>
-          9404
+          9595
           -
-          9498
+          9689
         </td>
         <td>
           Apply
@@ -3331,19 +3181,19 @@ else
           it.cwmp.client.model.game.impl.CellWorld.apply
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]))
+          it.cwmp.client.model.game.impl.CellWorld.apply(world.instant, cells, tempWorld.attacks.filterNot(((x$13: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$13.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]))
         </td>
       </tr><tr>
         <td>
-          208
+          211
         </td>
         <td>
-          613
+          641
         </td>
         <td>
-          9436
+          9627
           -
-          9497
+          9688
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3352,19 +3202,19 @@ else
           scala.collection.SeqLike.:+
         </td>
         <td style="background: #AEF1AE">
-          tempWorld.attacks.filterNot(((x$15: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$15.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle])
+          tempWorld.attacks.filterNot(((x$13: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$13.==(tentacle))).:+[it.cwmp.client.model.game.impl.Tentacle, Seq[it.cwmp.client.model.game.impl.Tentacle]](updatedTentacle)(collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle])
         </td>
       </tr><tr>
         <td>
-          208
+          211
         </td>
         <td>
-          610
+          638
         </td>
         <td>
-          9414
+          9605
           -
-          9427
+          9618
         </td>
         <td>
           Select
@@ -3374,6 +3224,27 @@ else
         </td>
         <td style="background: #AEF1AE">
           world.instant
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          9670
+          -
+          9670
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.collection.Seq.canBuildFrom
+        </td>
+        <td style="background: #AEF1AE">
+          collection.this.Seq.canBuildFrom[it.cwmp.client.model.game.impl.Tentacle]
         </td>
       </tr>
     </table>

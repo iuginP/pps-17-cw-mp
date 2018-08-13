@@ -24,17 +24,47 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication
 </span>2 <span style=''>
-</span>3 <span style=''>import it.cwmp.utils.{Logging, VertxInstance}
-</span>4 <span style=''>
-</span>5 <span style=''>/**
-</span>6 <span style=''>  * AuthenticationService entry-point
-</span>7 <span style=''>  */
-</span>8 <span style=''>object AuthenticationServiceMain extends App with VertxInstance with Logging {
+</span>3 <span style=''>import it.cwmp.services.wrapper.DiscoveryApiWrapper
+</span>4 <span style=''>import it.cwmp.services.{ServiceLauncher, VertxInstance, _}
+</span>5 <span style=''>import it.cwmp.utils.{HostAndPortArguments, Logging}
+</span>6 <span style=''>import it.cwmp.view.TwoAddressesInput
+</span>7 <span style=''>
+</span>8 <span style=''>import scala.util.{Failure, Success}
 </span>9 <span style=''>
-</span>10 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticle(new AuthenticationServiceVerticle)</span><span style=''>
-</span>11 <span style=''>
-</span>12 <span style=''>  log.info(&quot;Deploying AuthenticationServiceVerticle... &quot;)
-</span>13 <span style=''>}
+</span>10 <span style=''>/**
+</span>11 <span style=''>  * AuthenticationService entry-point
+</span>12 <span style=''>  */
+</span>13 <span style=''>object AuthenticationServiceMain extends App with VertxInstance with Logging with ServiceLauncher {
+</span>14 <span style=''>
+</span>15 <span style=''>  try {
+</span>16 <span style=''>    </span><span style='background: #F0ADAD'>val hostPortPairs = HostAndPortArguments(args, 2, ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs
+</span>17 <span style=''></span><span style='background: #F0ADAD'>    val discoveryService = hostPortPairs.head
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    val myService = hostPortPairs(1)
+</span>19 <span style=''></span><span style='background: #F0ADAD'>
+</span>20 <span style=''></span><span style='background: #F0ADAD'>    launch(discoveryService._1, discoveryService._2, myService._1, myService._2)</span><span style=''>
+</span>21 <span style=''>  } catch {
+</span>22 <span style=''>    case _: IllegalArgumentException =&gt;
+</span>23 <span style=''>      </span><span style='background: #F0ADAD'>TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs =&gt; {
+</span>24 <span style=''></span><span style='background: #F0ADAD'>        val discoveryService = discoveryAndMyHostPortPairs._1
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        val myService = discoveryAndMyHostPortPairs._2
+</span>26 <span style=''></span><span style='background: #F0ADAD'>
+</span>27 <span style=''></span><span style='background: #F0ADAD'>        launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+</span>28 <span style=''></span><span style='background: #F0ADAD'>      })(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+</span>29 <span style=''></span><span style='background: #F0ADAD'>        secondDefaultPort = Service.DEFAULT_PORT.toString)</span><span style=''>
+</span>30 <span style=''>  }
+</span>31 <span style=''>
+</span>32 <span style=''>  override def launch(discoveryHost: String, discoveryPort: String, myHost: String, myPort: String): Unit = {
+</span>33 <span style=''>    log.info(&quot;Deploying AuthenticationService... &quot;)
+</span>34 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(AuthenticationServiceVerticle(myPort.toInt))
+</span>35 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
+</span>36 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt;
+</span>37 <span style=''></span><span style='background: #F0ADAD'>          log.info(&quot;AuthenticationService up and running!&quot;)
+</span>38 <span style=''></span><span style='background: #F0ADAD'>          DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>            .publish(Service.DISCOVERY_NAME, myHost, myPort.toInt)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>        case Failure(ex) =&gt; log.info(&quot;Error deploying AuthenticationService&quot;, ex)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>42 <span style=''>  }
+</span>43 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -48,45 +78,791 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          10
+          15
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          443
+          -
+          709
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val hostPortPairs: Seq[(String, String)] = it.cwmp.utils.HostAndPortArguments.apply(AuthenticationServiceMain.this.args, 2, it.cwmp.services.ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs;
+  val discoveryService: (String, String) = hostPortPairs.head;
+  val myService: (String, String) = hostPortPairs.apply(1);
+  AuthenticationServiceMain.this.launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+}
+        </td>
+      </tr><tr>
+        <td>
+          16
         </td>
         <td>
           125
         </td>
         <td>
-          217
+          490
           -
-          272
+          491
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          io.vertx.scala.core.Vertx.deployVerticle
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          AuthenticationServiceMain.this.vertx.deployVerticle(new AuthenticationServiceVerticle())
+          2
         </td>
       </tr><tr>
         <td>
-          10
+          16
         </td>
         <td>
           124
         </td>
         <td>
-          238
+          484
           -
-          271
+          488
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.App.args
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.args
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          463
+          -
+          544
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HostAndPortArguments.pairs
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.HostAndPortArguments.apply(AuthenticationServiceMain.this.args, 2, it.cwmp.services.ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR).pairs
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          493
+          -
+          537
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.ServiceLauncher.COMMAND_LINE_ARGUMENTS_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          572
+          -
+          590
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.IterableLike.head
+        </td>
+        <td style="background: #F0ADAD">
+          hostPortPairs.head
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          611
+          -
+          627
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.services.authentication.AuthenticationServiceVerticle.&lt;init&gt;
+          scala.collection.SeqLike.apply
         </td>
         <td style="background: #F0ADAD">
-          new AuthenticationServiceVerticle()
+          hostPortPairs.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          661
+          -
+          680
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._2
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          633
+          -
+          709
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceMain.launch
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          696
+          -
+          708
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          myService._2
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          640
+          -
+          659
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._1
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          682
+          -
+          694
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          myService._1
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          807
+          -
+          844
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.ServiceLauncher.GUI_INSERTION_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.ServiceLauncher.GUI_INSERTION_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          786
+          -
+          805
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.Service.COMMON_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          Service.COMMON_NAME
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          785
+          -
+          785
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply$default$6
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply$default$6(x$1, x$2, x$3)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          785
+          -
+          785
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply$default$4(x$1, x$2, x$3)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          910
+          -
+          940
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryAndMyHostPortPairs._1
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          965
+          -
+          995
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryAndMyHostPortPairs._2
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          1012
+          -
+          1031
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._1
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          1054
+          -
+          1066
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          myService._1
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          1033
+          -
+          1052
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._2
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          1005
+          -
+          1081
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceMain.launch
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          1068
+          -
+          1080
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          myService._2
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          768
+          -
+          1209
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply(x$1, x$2, x$3)(x$6, x$4, x$7, x$5)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          1110
+          -
+          1149
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.discovery.Service.DEFAULT_PORT.toString()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          1179
+          -
+          1208
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          Service.DEFAULT_PORT.toString()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          1408
+          -
+          1451
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceVerticle.apply(scala.Predef.augmentString(myPort).toInt)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          1438
+          -
+          1450
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(myPort).toInt
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          1381
+          -
+          1779
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.vertx.deployVerticleFuture(AuthenticationServiceVerticle.apply(scala.Predef.augmentString(myPort).toInt)).andThen[Any](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],Any] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; Any&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[String], B1 &gt;: Any](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; {
+        (if (AuthenticationServiceMain.this.log.underlying.isInfoEnabled())
+          AuthenticationServiceMain.this.log.underlying.info(&quot;AuthenticationService up and running!&quot;)
+        else
+          (): Unit);
+        it.cwmp.services.wrapper.DiscoveryApiWrapper.apply(discoveryHost, scala.Predef.augmentString(discoveryPort).toInt).publish(Service.DISCOVERY_NAME, myHost, scala.Predef.augmentString(myPort).toInt)
+      }
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; (if (AuthenticationServiceMain.this.log.underlying.isInfoEnabled())
+        AuthenticationServiceMain.this.log.underlying.info(&quot;Error deploying AuthenticationService&quot;, ex)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: scala.util.Try[String]): Boolean = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; true
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[String],Any]))(AuthenticationServiceMain.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          1468
+          -
+          1468
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          1468
+          -
+          1468
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          1468
+          -
+          1468
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          1602
+          -
+          1621
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(discoveryPort).toInt
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          1567
+          -
+          1689
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.publish
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply(discoveryHost, scala.Predef.augmentString(discoveryPort).toInt).publish(Service.DISCOVERY_NAME, myHost, scala.Predef.augmentString(myPort).toInt)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          1676
+          -
+          1688
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(myPort).toInt
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          1644
+          -
+          1666
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.Service.DISCOVERY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          Service.DISCOVERY_NAME
         </td>
       </tr>
     </table>

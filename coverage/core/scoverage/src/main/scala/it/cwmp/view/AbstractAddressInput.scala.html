@@ -1,0 +1,1971 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/view/AbstractAddressInput.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.view
+</span>2 <span style=''>
+</span>3 <span style=''>import java.net.InetAddress
+</span>4 <span style=''>
+</span>5 <span style=''>import it.cwmp.view.AbstractAddressInput._
+</span>6 <span style=''>import javafx.application.Platform
+</span>7 <span style=''>import javafx.embed.swing.JFXPanel
+</span>8 <span style=''>import javafx.scene.control._
+</span>9 <span style=''>import javafx.scene.layout.GridPane
+</span>10 <span style=''>
+</span>11 <span style=''>/**
+</span>12 <span style=''>  * A view to select an IP address and port
+</span>13 <span style=''>  *
+</span>14 <span style=''>  * @param viewTitle     the view title
+</span>15 <span style=''>  * @param message       the message to show the user
+</span>16 <span style=''>  * @param onResultReady the action on result ready
+</span>17 <span style=''>  * @param defaultIP     the default IP for IP field
+</span>18 <span style=''>  * @param defaultPort   default port for Port field
+</span>19 <span style=''>  * @tparam Result the type of result
+</span>20 <span style=''>  * @author Enrico Siboni
+</span>21 <span style=''>  */
+</span>22 <span style=''>abstract class AbstractAddressInput[Result](viewTitle: String, message: String, onResultReady: Result =&gt; Unit)
+</span>23 <span style=''>                                           (defaultIP: String = localIP, defaultPort: String = defaultPort) {
+</span>24 <span style=''>  </span><span style='background: #F0ADAD'>new JFXPanel</span><span style=''> // initializes JavaFX
+</span>25 <span style=''>
+</span>26 <span style=''>  private var dialog: Dialog[Result] = _
+</span>27 <span style=''>  private val dialogButtonType: ButtonType = </span><span style='background: #F0ADAD'>ButtonType.FINISH</span><span style=''>
+</span>28 <span style=''>  private var bodyGrid: GridPane = _
+</span>29 <span style=''>
+</span>30 <span style=''>  private var ipAddressValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>31 <span style=''>  private var portValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>32 <span style=''>
+</span>33 <span style=''>  protected var addressIpField: TextField = _
+</span>34 <span style=''>  protected var addressPortField: TextField = _
+</span>35 <span style=''>
+</span>36 <span style=''>  /**
+</span>37 <span style=''>    * Validates IP Address
+</span>38 <span style=''>    *
+</span>39 <span style=''>    * @param ipAddress the ip address to validate
+</span>40 <span style=''>    * @return true if IP address is valid, false otherwise
+</span>41 <span style=''>    */
+</span>42 <span style=''>  protected def ipAddressValid(ipAddress: String): Boolean = </span><span style='background: #F0ADAD'>ipAddress.nonEmpty &amp;&amp; ipAddress.matches(IP_ADDRESS_PATTERN)</span><span style=''>
+</span>43 <span style=''>
+</span>44 <span style=''>  /**
+</span>45 <span style=''>    * Validate port
+</span>46 <span style=''>    *
+</span>47 <span style=''>    * @param port the port to validate
+</span>48 <span style=''>    * @return true if port is valid, false otherwise
+</span>49 <span style=''>    */
+</span>50 <span style=''>  protected def portValid(port: String): Boolean = </span><span style='background: #F0ADAD'>port.nonEmpty &amp;&amp; port.forall(Character.isDigit)</span><span style=''>
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * @return true if whole input is valid, false otherwise
+</span>54 <span style=''>    */
+</span>55 <span style=''>  protected def wholeInputValid: Boolean = </span><span style='background: #F0ADAD'>ipAddressValid &amp;&amp; portValid</span><span style=''>
+</span>56 <span style=''>
+</span>57 <span style=''>  /**
+</span>58 <span style=''>    * Updates the state of the button in view
+</span>59 <span style=''>    */
+</span>60 <span style=''>  protected def updateButtonState(): Unit =
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>dialog.getDialogPane.lookupButton(dialogButtonType).setDisable(!wholeInputValid)</span><span style=''>
+</span>62 <span style=''>
+</span>63 <span style=''>  /**
+</span>64 <span style=''>    * @return the result of user input
+</span>65 <span style=''>    */
+</span>66 <span style=''>  protected def getResult: Result
+</span>67 <span style=''>
+</span>68 <span style=''>  /**
+</span>69 <span style=''>    * @return a pair of IP address and port TextFields
+</span>70 <span style=''>    */
+</span>71 <span style=''>  protected def createIpAndPortFields(): (TextField, TextField) = {
+</span>72 <span style=''>    val ipField = </span><span style='background: #F0ADAD'>new TextField()</span><span style=''>
+</span>73 <span style=''>    </span><span style='background: #F0ADAD'>ipField.setPromptText(IP_ADDRESS_TEXT)</span><span style=''>
+</span>74 <span style=''>
+</span>75 <span style=''>    val portField = </span><span style='background: #F0ADAD'>new TextField()</span><span style=''>
+</span>76 <span style=''>    </span><span style='background: #F0ADAD'>portField.setPromptText(PORT_ADDRESS_TEXT)</span><span style=''>
+</span>77 <span style=''>
+</span>78 <span style=''>    </span><span style='background: #F0ADAD'>(ipField, portField)</span><span style=''>
+</span>79 <span style=''>  }
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * Fills the body grid of view
+</span>83 <span style=''>    *
+</span>84 <span style=''>    * @param gridPane the grid to fill
+</span>85 <span style=''>    */
+</span>86 <span style=''>  protected def bodyGridFill(gridPane: GridPane): Unit = {
+</span>87 <span style=''>    // Create a pair of fields IP and Address
+</span>88 <span style=''>    val ipAndPortFields = </span><span style='background: #F0ADAD'>createIpAndPortFields()</span><span style=''>
+</span>89 <span style=''>    </span><span style='background: #F0ADAD'>addressIpField = ipAndPortFields._1</span><span style=''>
+</span>90 <span style=''>    </span><span style='background: #F0ADAD'>addressPortField = ipAndPortFields._2</span><span style=''>
+</span>91 <span style=''>
+</span>92 <span style=''>    // attach listeners for changes that update button state
+</span>93 <span style=''>    </span><span style='background: #F0ADAD'>addressIpField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>94 <span style=''></span><span style='background: #F0ADAD'>      this.ipAddressValid = ipAddressValid(newValue)
+</span>95 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>96 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>addressPortField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>98 <span style=''></span><span style='background: #F0ADAD'>      this.portValid = portValid(newValue)
+</span>99 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>100 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>101 <span style=''>
+</span>102 <span style=''>    </span><span style='background: #F0ADAD'>addressIpField.setText(defaultIP)</span><span style=''>
+</span>103 <span style=''>    </span><span style='background: #F0ADAD'>addressPortField.setText(defaultPort)</span><span style=''>
+</span>104 <span style=''>
+</span>105 <span style=''>    // Request focus on the first field by default.
+</span>106 <span style=''>    </span><span style='background: #F0ADAD'>addressIpField.requestFocus()</span><span style=''>
+</span>107 <span style=''>
+</span>108 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(new Label(ADDRESS_LABEL), 0, 0)</span><span style=''>
+</span>109 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(addressIpField, 1, 0)</span><span style=''>
+</span>110 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(addressPortField, 2, 0)</span><span style=''>
+</span>111 <span style=''>  }
+</span>112 <span style=''>
+</span>113 <span style=''>  // Initialization of View
+</span>114 <span style=''>  </span><span style='background: #F0ADAD'>Platform.runLater(() =&gt; {
+</span>115 <span style=''></span><span style='background: #F0ADAD'>    Platform setImplicitExit false
+</span>116 <span style=''></span><span style='background: #F0ADAD'>
+</span>117 <span style=''></span><span style='background: #F0ADAD'>    dialog = new Dialog[Result]
+</span>118 <span style=''></span><span style='background: #F0ADAD'>    dialog.setTitle(viewTitle)
+</span>119 <span style=''></span><span style='background: #F0ADAD'>    dialog.setHeaderText(message)
+</span>120 <span style=''></span><span style='background: #F0ADAD'>    dialog.getDialogPane.getButtonTypes.add(dialogButtonType)
+</span>121 <span style=''></span><span style='background: #F0ADAD'>
+</span>122 <span style=''></span><span style='background: #F0ADAD'>    bodyGrid = new GridPane
+</span>123 <span style=''></span><span style='background: #F0ADAD'>    bodyGridFill(bodyGrid)
+</span>124 <span style=''></span><span style='background: #F0ADAD'>
+</span>125 <span style=''></span><span style='background: #F0ADAD'>    dialog.getDialogPane.setContent(bodyGrid)
+</span>126 <span style=''></span><span style='background: #F0ADAD'>
+</span>127 <span style=''></span><span style='background: #F0ADAD'>    dialog.setOnCloseRequest((event) =&gt; {
+</span>128 <span style=''></span><span style='background: #F0ADAD'>      if (wholeInputValid) onResultReady(getResult)
+</span>129 <span style=''></span><span style='background: #F0ADAD'>      else event.consume()
+</span>130 <span style=''></span><span style='background: #F0ADAD'>    })
+</span>131 <span style=''></span><span style='background: #F0ADAD'>
+</span>132 <span style=''></span><span style='background: #F0ADAD'>    dialog.show()
+</span>133 <span style=''></span><span style='background: #F0ADAD'>  })</span><span style=''>
+</span>134 <span style=''>}
+</span>135 <span style=''>
+</span>136 <span style=''>/**
+</span>137 <span style=''>  * Companion object
+</span>138 <span style=''>  */
+</span>139 <span style=''>object AbstractAddressInput {
+</span>140 <span style=''>  private val IP_ADDRESS_TEXT = </span><span style='background: #F0ADAD'>&quot;IP Address&quot;</span><span style=''>
+</span>141 <span style=''>  private val PORT_ADDRESS_TEXT = </span><span style='background: #F0ADAD'>&quot;Address Port&quot;</span><span style=''>
+</span>142 <span style=''>
+</span>143 <span style=''>  private val IP_ADDRESS_PATTERN =
+</span>144 <span style=''>    </span><span style='background: #F0ADAD'>&quot;^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.&quot; +
+</span>145 <span style=''></span><span style='background: #F0ADAD'>      &quot;([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.&quot; +
+</span>146 <span style=''></span><span style='background: #F0ADAD'>      &quot;([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.&quot; +
+</span>147 <span style=''></span><span style='background: #F0ADAD'>      &quot;([01]?\\d\\d?|2[0-4]\\d|25[0-5])$&quot;</span><span style=''>
+</span>148 <span style=''>
+</span>149 <span style=''>  val ADDRESS_LABEL = </span><span style='background: #F0ADAD'>&quot;Address: &quot;</span><span style=''>
+</span>150 <span style=''>
+</span>151 <span style=''>  /**
+</span>152 <span style=''>    * @return the local network IP address
+</span>153 <span style=''>    */
+</span>154 <span style=''>  def localIP: String = </span><span style='background: #F0ADAD'>InetAddress.getLocalHost.getHostAddress</span><span style=''>
+</span>155 <span style=''>
+</span>156 <span style=''>  /**
+</span>157 <span style=''>    * @return the default port
+</span>158 <span style=''>    */
+</span>159 <span style=''>  def defaultPort: String = </span><span style='background: #F0ADAD'>0.toString</span><span style=''>
+</span>160 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          581
+        </td>
+        <td>
+          827
+          -
+          839
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.embed.swing.JFXPanel.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.embed.swing.JFXPanel()
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          582
+        </td>
+        <td>
+          949
+          -
+          966
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.control.ButtonType.FINISH
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.control.ButtonType.FINISH
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          583
+        </td>
+        <td>
+          1036
+          -
+          1040
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          584
+        </td>
+        <td>
+          1067
+          -
+          1071
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          585
+        </td>
+        <td>
+          1424
+          -
+          1442
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.IP_ADDRESS_PATTERN
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.AbstractAddressInput.IP_ADDRESS_PATTERN
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          587
+        </td>
+        <td>
+          1384
+          -
+          1443
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(ipAddress).nonEmpty.&amp;&amp;(ipAddress.matches(it.cwmp.view.AbstractAddressInput.IP_ADDRESS_PATTERN))
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          586
+        </td>
+        <td>
+          1406
+          -
+          1443
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.matches
+        </td>
+        <td style="background: #F0ADAD">
+          ipAddress.matches(it.cwmp.view.AbstractAddressInput.IP_ADDRESS_PATTERN)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          588
+        </td>
+        <td>
+          1656
+          -
+          1673
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Character.isDigit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.Character.isDigit(x$1)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          590
+        </td>
+        <td>
+          1627
+          -
+          1674
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(port).nonEmpty.&amp;&amp;(scala.Predef.augmentString(port).forall({
+  ((x$1: Char) =&gt; java.lang.Character.isDigit(x$1))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          589
+        </td>
+        <td>
+          1644
+          -
+          1674
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.IndexedSeqOptimized.forall
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(port).forall({
+  ((x$1: Char) =&gt; java.lang.Character.isDigit(x$1))
+})
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          591
+        </td>
+        <td>
+          1810
+          -
+          1819
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.portValid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.portValid
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          592
+        </td>
+        <td>
+          1792
+          -
+          1819
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.ipAddressValid.&amp;&amp;(AbstractAddressInput.this.portValid)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          594
+        </td>
+        <td>
+          1991
+          -
+          2007
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Boolean.unary_!
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.wholeInputValid.unary_!
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          593
+        </td>
+        <td>
+          1962
+          -
+          1978
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.dialogButtonType
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialogButtonType
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          595
+        </td>
+        <td>
+          1928
+          -
+          2008
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.setDisable
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.getDialogPane().lookupButton(AbstractAddressInput.this.dialogButtonType).setDisable(AbstractAddressInput.this.wholeInputValid.unary_!)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          596
+        </td>
+        <td>
+          2251
+          -
+          2266
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextField.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.TextField()
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          597
+        </td>
+        <td>
+          2293
+          -
+          2308
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.IP_ADDRESS_TEXT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.AbstractAddressInput.IP_ADDRESS_TEXT
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          598
+        </td>
+        <td>
+          2271
+          -
+          2309
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setPromptText
+        </td>
+        <td style="background: #F0ADAD">
+          ipField.setPromptText(it.cwmp.view.AbstractAddressInput.IP_ADDRESS_TEXT)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          599
+        </td>
+        <td>
+          2331
+          -
+          2346
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextField.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.TextField()
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          600
+        </td>
+        <td>
+          2375
+          -
+          2392
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.PORT_ADDRESS_TEXT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.AbstractAddressInput.PORT_ADDRESS_TEXT
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          601
+        </td>
+        <td>
+          2351
+          -
+          2393
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setPromptText
+        </td>
+        <td style="background: #F0ADAD">
+          portField.setPromptText(it.cwmp.view.AbstractAddressInput.PORT_ADDRESS_TEXT)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          602
+        </td>
+        <td>
+          2399
+          -
+          2419
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[javafx.scene.control.TextField, javafx.scene.control.TextField](ipField, portField)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          603
+        </td>
+        <td>
+          2648
+          -
+          2671
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.createIpAndPortFields
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.createIpAndPortFields()
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          605
+        </td>
+        <td>
+          2676
+          -
+          2711
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.addressIpField_=
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressIpField_=(ipAndPortFields._1)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          604
+        </td>
+        <td>
+          2693
+          -
+          2711
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          ipAndPortFields._1
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          606
+        </td>
+        <td>
+          2735
+          -
+          2753
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          ipAndPortFields._2
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          607
+        </td>
+        <td>
+          2716
+          -
+          2753
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.addressPortField_=
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressPortField_=(ipAndPortFields._2)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          611
+        </td>
+        <td>
+          2820
+          -
+          2967
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.beans.value.ObservableValue.addListener
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressIpField.textProperty().addListener(((x$1: javafx.beans.value.ObservableValue[_ &lt;: String], x$2: String, newValue: String) =&gt; {
+  this.ipAddressValid_=(AbstractAddressInput.this.ipAddressValid(newValue));
+  AbstractAddressInput.this.updateButtonState()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          609
+        </td>
+        <td>
+          2888
+          -
+          2934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ipAddressValid_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.ipAddressValid_=(AbstractAddressInput.this.ipAddressValid(newValue))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          608
+        </td>
+        <td>
+          2910
+          -
+          2934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ipAddressValid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.ipAddressValid(newValue)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          610
+        </td>
+        <td>
+          2941
+          -
+          2960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.updateButtonState
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.updateButtonState()
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          615
+        </td>
+        <td>
+          2972
+          -
+          3111
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.beans.value.ObservableValue.addListener
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressPortField.textProperty().addListener(((x$3: javafx.beans.value.ObservableValue[_ &lt;: String], x$4: String, newValue: String) =&gt; {
+  this.portValid_=(AbstractAddressInput.this.portValid(newValue));
+  AbstractAddressInput.this.updateButtonState()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          612
+        </td>
+        <td>
+          3059
+          -
+          3078
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.portValid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.portValid(newValue)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          613
+        </td>
+        <td>
+          3042
+          -
+          3078
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.portValid_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.portValid_=(AbstractAddressInput.this.portValid(newValue))
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          614
+        </td>
+        <td>
+          3085
+          -
+          3104
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.updateButtonState
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.updateButtonState()
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          617
+        </td>
+        <td>
+          3117
+          -
+          3150
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setText
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressIpField.setText(AbstractAddressInput.this.defaultIP)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          616
+        </td>
+        <td>
+          3140
+          -
+          3149
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.defaultIP
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.defaultIP
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          618
+        </td>
+        <td>
+          3180
+          -
+          3191
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.defaultPort
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.defaultPort
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          619
+        </td>
+        <td>
+          3155
+          -
+          3192
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setText
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressPortField.setText(AbstractAddressInput.this.defaultPort)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          620
+        </td>
+        <td>
+          3250
+          -
+          3279
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.requestFocus
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressIpField.requestFocus()
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          621
+        </td>
+        <td>
+          3308
+          -
+          3321
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          624
+        </td>
+        <td>
+          3327
+          -
+          3328
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          623
+        </td>
+        <td>
+          3324
+          -
+          3325
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          622
+        </td>
+        <td>
+          3298
+          -
+          3322
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Label.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Label(it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL)
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          625
+        </td>
+        <td>
+          3285
+          -
+          3329
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(new javafx.scene.control.Label(it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL), 0, 0)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          627
+        </td>
+        <td>
+          3363
+          -
+          3364
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          626
+        </td>
+        <td>
+          3347
+          -
+          3361
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.addressIpField
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressIpField
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          629
+        </td>
+        <td>
+          3334
+          -
+          3368
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(AbstractAddressInput.this.addressIpField, 1, 0)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          628
+        </td>
+        <td>
+          3366
+          -
+          3367
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          630
+        </td>
+        <td>
+          3386
+          -
+          3402
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.addressPortField
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.addressPortField
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          633
+        </td>
+        <td>
+          3373
+          -
+          3409
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(AbstractAddressInput.this.addressPortField, 2, 0)
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          3407
+          -
+          3408
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          631
+        </td>
+        <td>
+          3404
+          -
+          3405
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          2
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          3445
+          -
+          3921
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.runLater
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.runLater((() =&gt; {
+  javafx.application.Platform.setImplicitExit(false);
+  AbstractAddressInput.this.dialog_=(new javafx.scene.control.Dialog[Result]());
+  AbstractAddressInput.this.dialog.setTitle(AbstractAddressInput.this.viewTitle);
+  AbstractAddressInput.this.dialog.setHeaderText(AbstractAddressInput.this.message);
+  AbstractAddressInput.this.dialog.getDialogPane().getButtonTypes().add(AbstractAddressInput.this.dialogButtonType);
+  AbstractAddressInput.this.bodyGrid_=(new javafx.scene.layout.GridPane());
+  AbstractAddressInput.this.bodyGridFill(AbstractAddressInput.this.bodyGrid);
+  AbstractAddressInput.this.dialog.getDialogPane().setContent(AbstractAddressInput.this.bodyGrid);
+  AbstractAddressInput.this.dialog.setOnCloseRequest(((event: javafx.scene.control.DialogEvent) =&gt; if (AbstractAddressInput.this.wholeInputValid)
+    AbstractAddressInput.this.onResultReady.apply(AbstractAddressInput.this.getResult)
+  else
+    event.consume()));
+  AbstractAddressInput.this.dialog.show()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          634
+        </td>
+        <td>
+          3475
+          -
+          3505
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.application.Platform.setImplicitExit
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.application.Platform.setImplicitExit(false)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          636
+        </td>
+        <td>
+          3511
+          -
+          3538
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.dialog_=
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog_=(new javafx.scene.control.Dialog[Result]())
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          635
+        </td>
+        <td>
+          3520
+          -
+          3538
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Dialog[Result]()
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          638
+        </td>
+        <td>
+          3543
+          -
+          3569
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setTitle
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.setTitle(AbstractAddressInput.this.viewTitle)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          637
+        </td>
+        <td>
+          3559
+          -
+          3568
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.viewTitle
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.viewTitle
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          639
+        </td>
+        <td>
+          3595
+          -
+          3602
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.message
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.message
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          3574
+          -
+          3603
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setHeaderText
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.setHeaderText(AbstractAddressInput.this.message)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          3608
+          -
+          3665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.util.List.add
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.getDialogPane().getButtonTypes().add(AbstractAddressInput.this.dialogButtonType)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          3648
+          -
+          3664
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.dialogButtonType
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialogButtonType
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          3671
+          -
+          3694
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.bodyGrid_=
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.bodyGrid_=(new javafx.scene.layout.GridPane())
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          643
+        </td>
+        <td>
+          3682
+          -
+          3694
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.layout.GridPane()
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          3712
+          -
+          3720
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.bodyGrid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.bodyGrid
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          3699
+          -
+          3721
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.bodyGridFill
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.bodyGridFill(AbstractAddressInput.this.bodyGrid)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          3727
+          -
+          3768
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.DialogPane.setContent
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.getDialogPane().setContent(AbstractAddressInput.this.bodyGrid)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          3759
+          -
+          3767
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.bodyGrid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.bodyGrid
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          655
+        </td>
+        <td>
+          3774
+          -
+          3897
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.setOnCloseRequest
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.setOnCloseRequest(((event: javafx.scene.control.DialogEvent) =&gt; if (AbstractAddressInput.this.wholeInputValid)
+  AbstractAddressInput.this.onResultReady.apply(AbstractAddressInput.this.getResult)
+else
+  event.consume()))
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          3839
+          -
+          3863
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.onResultReady.apply(AbstractAddressInput.this.getResult)
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          3853
+          -
+          3862
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.getResult
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.getResult
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          3822
+          -
+          3837
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.wholeInputValid
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.wholeInputValid
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          3839
+          -
+          3863
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.onResultReady.apply(AbstractAddressInput.this.getResult)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          3875
+          -
+          3890
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          javafx.event.Event.consume
+        </td>
+        <td style="background: #F0ADAD">
+          event.consume()
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          3875
+          -
+          3890
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.event.Event.consume
+        </td>
+        <td style="background: #F0ADAD">
+          event.consume()
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          656
+        </td>
+        <td>
+          3903
+          -
+          3916
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Dialog.show
+        </td>
+        <td style="background: #F0ADAD">
+          AbstractAddressInput.this.dialog.show()
+        </td>
+      </tr><tr>
+        <td>
+          140
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          4017
+          -
+          4029
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;IP Address&quot;
+        </td>
+      </tr><tr>
+        <td>
+          141
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          4064
+          -
+          4078
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Address Port&quot;
+        </td>
+      </tr><tr>
+        <td>
+          146
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          4119
+          -
+          4293
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$&quot;
+        </td>
+      </tr><tr>
+        <td>
+          149
+        </td>
+        <td>
+          661
+        </td>
+        <td>
+          4317
+          -
+          4328
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Address: &quot;
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          662
+        </td>
+        <td>
+          4410
+          -
+          4449
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.net.InetAddress.getHostAddress
+        </td>
+        <td style="background: #F0ADAD">
+          java.net.InetAddress.getLocalHost().getHostAddress()
+        </td>
+      </tr><tr>
+        <td>
+          159
+        </td>
+        <td>
+          663
+        </td>
+        <td>
+          4523
+          -
+          4533
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          0.toString()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

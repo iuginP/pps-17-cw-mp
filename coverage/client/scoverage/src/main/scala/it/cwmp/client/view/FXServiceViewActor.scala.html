@@ -27,48 +27,40 @@
 </span>3 <span style=''>import akka.actor.{Actor, ActorRef}
 </span>4 <span style=''>import it.cwmp.client.controller.messages.Initialize
 </span>5 <span style=''>import it.cwmp.client.controller.{ActorAlertManagement, ActorViewVisibilityManagement}
-</span>6 <span style=''>import javafx.application.Platform
-</span>7 <span style=''>import javafx.embed.swing.JFXPanel
-</span>8 <span style=''>
-</span>9 <span style=''>/**
-</span>10 <span style=''>  * A base class representing a Service View actor with JavaFX underlying
-</span>11 <span style=''>  *
-</span>12 <span style=''>  * @author Enrico Siboni
-</span>13 <span style=''>  */
-</span>14 <span style=''>abstract class FXServiceViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * A base class representing a Service View actor with JavaFX underlying
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * @author Enrico Siboni
+</span>11 <span style=''>  */
+</span>12 <span style=''>abstract class FXServiceViewActor extends Actor with ActorAlertManagement with ActorViewVisibilityManagement {
+</span>13 <span style=''>
+</span>14 <span style=''>  protected def fxController: FXViewController with FXAlertsController with FXInputViewController
 </span>15 <span style=''>
-</span>16 <span style=''>  protected def fxController: FXViewController with FXAlertsController with FXInputViewController
+</span>16 <span style=''>  protected var controllerActor: ActorRef = _
 </span>17 <span style=''>
-</span>18 <span style=''>  protected var controllerActor: ActorRef = _
-</span>19 <span style=''>
-</span>20 <span style=''>  override def preStart(): Unit = {
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>super.preStart()</span><span style=''>
-</span>22 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel</span><span style=''> // initializes JavaFX
-</span>23 <span style=''>    </span><span style='background: #F0ADAD'>Platform setImplicitExit false</span><span style=''>
-</span>24 <span style=''>  }
-</span>25 <span style=''>
-</span>26 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>alertBehaviour orElse visibilityBehaviour orElse {
-</span>27 <span style=''></span><span style='background: #F0ADAD'>    case Initialize =&gt; controllerActor = sender()
-</span>28 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
-</span>29 <span style=''>
-</span>30 <span style=''>  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
-</span>31 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
-</span>32 <span style=''>    </span><span style='background: #F0ADAD'>super.onErrorAlertReceived(title, message)</span><span style=''>
-</span>33 <span style=''>  }
-</span>34 <span style=''>
-</span>35 <span style=''>  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
-</span>36 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
+</span>18 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>alertBehaviour orElse visibilityBehaviour orElse {
+</span>19 <span style=''></span><span style='background: #F0ADAD'>    case Initialize =&gt; controllerActor = sender()
+</span>20 <span style=''></span><span style='background: #F0ADAD'>  }</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>  override protected def onErrorAlertReceived(title: String, message: String): Unit = {
+</span>23 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
+</span>24 <span style=''>    </span><span style='background: #F0ADAD'>super.onErrorAlertReceived(title, message)</span><span style=''>
+</span>25 <span style=''>  }
+</span>26 <span style=''>
+</span>27 <span style=''>  override protected def onInfoAlertReceived(title: String, message: String): Unit = {
+</span>28 <span style=''>    </span><span style='background: #F0ADAD'>onServiceResponseReceived()</span><span style=''>
+</span>29 <span style=''>  }
+</span>30 <span style=''>
+</span>31 <span style=''>  /**
+</span>32 <span style=''>    * When receiving a response from contacted service should enable buttons and hide loading
+</span>33 <span style=''>    */
+</span>34 <span style=''>  protected def onServiceResponseReceived(): Unit = {
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>fxController enableViewComponents()</span><span style=''>
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>fxController hideLoading()</span><span style=''>
 </span>37 <span style=''>  }
 </span>38 <span style=''>
-</span>39 <span style=''>  /**
-</span>40 <span style=''>    * When receiving a response from contacted service should enable buttons and hide loading
-</span>41 <span style=''>    */
-</span>42 <span style=''>  protected def onServiceResponseReceived(): Unit = {
-</span>43 <span style=''>    </span><span style='background: #F0ADAD'>fxController enableViewComponents()</span><span style=''>
-</span>44 <span style=''>    </span><span style='background: #F0ADAD'>fxController hideLoading()</span><span style=''>
-</span>45 <span style=''>  }
-</span>46 <span style=''>
-</span>47 <span style=''>}
+</span>39 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -82,78 +74,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          21
+          18
         </td>
         <td>
-          1034
+          1079
         </td>
         <td>
-          687
+          633
           -
-          703
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Actor.preStart
-        </td>
-        <td style="background: #F0ADAD">
-          FXServiceViewActor.super.preStart()
-        </td>
-      </tr><tr>
-        <td>
-          22
-        </td>
-        <td>
-          1035
-        </td>
-        <td>
-          708
-          -
-          720
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.embed.swing.JFXPanel.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new javafx.embed.swing.JFXPanel()
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1036
-        </td>
-        <td>
-          747
-          -
-          777
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.application.Platform.setImplicitExit
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.application.Platform.setImplicitExit(false)
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          1037
-        </td>
-        <td>
-          839
-          -
-          858
+          652
         </td>
         <td>
           Select
@@ -166,15 +95,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          18
         </td>
         <td>
-          1040
+          1082
         </td>
         <td>
-          866
+          660
           -
-          866
+          660
         </td>
         <td>
           Apply
@@ -187,15 +116,15 @@
         </td>
       </tr><tr>
         <td>
-          26
+          18
         </td>
         <td>
-          1041
+          1083
         </td>
         <td>
-          817
+          611
           -
-          921
+          715
         </td>
         <td>
           Apply
@@ -224,15 +153,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          19
         </td>
         <td>
-          1039
+          1081
         </td>
         <td>
-          891
+          685
           -
-          917
+          711
         </td>
         <td>
           Apply
@@ -245,15 +174,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          19
         </td>
         <td>
-          1038
+          1080
         </td>
         <td>
-          909
+          703
           -
-          917
+          711
         </td>
         <td>
           Apply
@@ -266,15 +195,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          23
         </td>
         <td>
-          1042
+          1084
         </td>
         <td>
-          1015
+          809
           -
-          1042
+          836
         </td>
         <td>
           Apply
@@ -287,15 +216,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          24
         </td>
         <td>
-          1043
+          1085
         </td>
         <td>
-          1047
+          841
           -
-          1089
+          883
         </td>
         <td>
           Apply
@@ -308,15 +237,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          28
         </td>
         <td>
-          1044
+          1086
         </td>
         <td>
-          1186
+          980
           -
-          1213
+          1007
         </td>
         <td>
           Apply
@@ -329,15 +258,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          35
         </td>
         <td>
-          1045
+          1087
         </td>
         <td>
-          1384
+          1178
           -
-          1419
+          1213
         </td>
         <td>
           Apply
@@ -350,15 +279,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          36
         </td>
         <td>
-          1046
+          1088
         </td>
         <td>
-          1424
+          1218
           -
-          1450
+          1244
         </td>
         <td>
           Apply

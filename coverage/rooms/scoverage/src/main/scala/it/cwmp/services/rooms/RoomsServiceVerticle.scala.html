@@ -33,324 +33,327 @@
 </span>9 <span style=''>import it.cwmp.model.Room.Converters._
 </span>10 <span style=''>import it.cwmp.model.{Address, Participant, Room, User}
 </span>11 <span style=''>import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
-</span>12 <span style=''>import it.cwmp.services.rooms.ServerParameters._
+</span>12 <span style=''>import it.cwmp.services.rooms.Service._
 </span>13 <span style=''>import it.cwmp.services.wrapper.RoomReceiverApiWrapper
-</span>14 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-</span>15 <span style=''>import it.cwmp.utils.{Logging, Validation, VertxServer}
-</span>16 <span style=''>
-</span>17 <span style=''>import scala.concurrent.{ExecutionContext, Future}
-</span>18 <span style=''>import scala.util.{Failure, Success, Try}
-</span>19 <span style=''>
-</span>20 <span style=''>/**
-</span>21 <span style=''>  * Class that implements the Rooms micro-service
-</span>22 <span style=''>  *
-</span>23 <span style=''>  * @author Enrico Siboni
-</span>24 <span style=''>  */
-</span>25 <span style=''>class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
-</span>26 <span style=''>                           implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
-</span>27 <span style=''>  extends VertxServer with Logging {
-</span>28 <span style=''>
-</span>29 <span style=''>  private var daoFuture: Future[RoomDAO] = _
-</span>30 <span style=''>
-</span>31 <span style=''>  override protected val serverPort: Int = </span><span style='background: #AEF1AE'>DEFAULT_PORT</span><span style=''>
-</span>32 <span style=''>
-</span>33 <span style=''>  override protected def initRouter(router: Router): Unit = {
-</span>34 <span style=''>    </span><span style='background: #AEF1AE'>router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler</span><span style=''>
-</span>35 <span style=''>    </span><span style='background: #AEF1AE'>router put API_ENTER_PRIVATE_ROOM_URL handler enterPrivateRoomHandler</span><span style=''>
-</span>36 <span style=''>    </span><span style='background: #AEF1AE'>router get API_PRIVATE_ROOM_INFO_URL handler privateRoomInfoHandler</span><span style=''>
-</span>37 <span style=''>    </span><span style='background: #AEF1AE'>router delete API_EXIT_PRIVATE_ROOM_URL handler exitPrivateRoomHandler</span><span style=''>
-</span>38 <span style=''>
-</span>39 <span style=''>    </span><span style='background: #AEF1AE'>router get API_LIST_PUBLIC_ROOMS_URL handler listPublicRoomsHandler</span><span style=''>
-</span>40 <span style=''>    </span><span style='background: #AEF1AE'>router put API_ENTER_PUBLIC_ROOM_URL handler enterPublicRoomHandler</span><span style=''>
-</span>41 <span style=''>    </span><span style='background: #AEF1AE'>router get API_PUBLIC_ROOM_INFO_URL handler publicRoomInfoHandler</span><span style=''>
-</span>42 <span style=''>    </span><span style='background: #AEF1AE'>router delete API_EXIT_PUBLIC_ROOM_URL handler exitPublicRoomHandler</span><span style=''>
-</span>43 <span style=''>  }
-</span>44 <span style=''>
-</span>45 <span style=''>  override protected def initServer: Future[_] = {
-</span>46 <span style=''>    val roomDAO = </span><span style='background: #AEF1AE'>RoomsLocalDAO()</span><span style=''>
-</span>47 <span style=''>    </span><span style='background: #AEF1AE'>daoFuture = roomDAO.initialize().map(_ =&gt; roomDAO)</span><span style=''>
-</span>48 <span style=''>    </span><span style='background: #AEF1AE'>daoFuture</span><span style=''>
-</span>49 <span style=''>  }
-</span>50 <span style=''>
-</span>51 <span style=''>  /**
-</span>52 <span style=''>    * Handles the creation of a private room
-</span>53 <span style=''>    */
-</span>54 <span style=''>  private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>55 <span style=''>    log.info(&quot;Create Private Room Request received...&quot;)
-</span>56 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
-</span>57 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(_ =&gt;
-</span>58 <span style=''></span><span style='background: #AEF1AE'>        extractIncomingRoomFromBody(body) match {
-</span>59 <span style=''></span><span style='background: #AEF1AE'>          case Some((roomName, neededPlayers)) =&gt;
-</span>60 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(_.createRoom(roomName, neededPlayers).onComplete {
-</span>61 <span style=''></span><span style='background: #AEF1AE'>              failureHandler orElse successHandler(generatedID =&gt; sendResponse(CREATED, generatedID))
-</span>62 <span style=''></span><span style='background: #AEF1AE'>            })
-</span>63 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt;
-</span>64 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;Request body for room creation is required!&quot;)
-</span>65 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR no Room JSON in body&quot;)
-</span>66 <span style=''></span><span style='background: #AEF1AE'>        }))</span><span style=''>
-</span>67 <span style=''>
-</span>68 <span style=''>    def extractIncomingRoomFromBody(body: Buffer): Option[(String, Int)] = {
-</span>69 <span style=''>      try {
-</span>70 <span style=''>        </span><span style='background: #AEF1AE'>val jsonObject = body.toJsonObject
-</span>71 <span style=''></span><span style='background: #AEF1AE'>        if ((jsonObject containsKey Room.FIELD_NAME) &amp;&amp; (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS)) {
-</span>72 <span style=''></span><span style='background: #AEF1AE'>          Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
-</span>73 <span style=''></span><span style='background: #AEF1AE'>        } else {
-</span>74 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
-</span>75 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>76 <span style=''>      } catch {
-</span>77 <span style=''>        case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>78 <span style=''>      }
-</span>79 <span style=''>    }
-</span>80 <span style=''>  }
-</span>81 <span style=''>
-</span>82 <span style=''>  /**
-</span>83 <span style=''>    * Handles entering in a private room
-</span>84 <span style=''>    */
-</span>85 <span style=''>  private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>86 <span style=''>    log.info(&quot;Enter Private Room Request received...&quot;)
-</span>87 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
-</span>88 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(user =&gt; {
-</span>89 <span style=''></span><span style='background: #AEF1AE'>        (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
-</span>90 <span style=''></span><span style='background: #AEF1AE'>          case (Some(roomID), Some(addresses)) =&gt;
-</span>91 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(implicit dao =&gt; dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
-</span>92 <span style=''></span><span style='background: #AEF1AE'>              failureHandler orElse successHandler(_ =&gt; handlePrivateRoomFilling(roomID) map (_ =&gt; sendResponse(OK)))
-</span>93 <span style=''></span><span style='background: #AEF1AE'>            })
-</span>94 <span style=''></span><span style='background: #AEF1AE'>
-</span>95 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt;
-</span>96 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;Player and notification address are required for entering a room!&quot;)
-</span>97 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}&quot;)
-</span>98 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>99 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
-</span>100 <span style=''>  }
-</span>101 <span style=''>
-</span>102 <span style=''>  /**
-</span>103 <span style=''>    * Handles retrieving info of a private room
-</span>104 <span style=''>    */
-</span>105 <span style=''>  private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>106 <span style=''>    log.info(&quot;Private Room Info Request received...&quot;)
-</span>107 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt; {
-</span>108 <span style=''></span><span style='background: #AEF1AE'>      getRequestParameter(Room.FIELD_IDENTIFIER) match {
-</span>109 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
-</span>110 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
-</span>111 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(room =&gt; sendResponse(OK, room.toJson.encode()))
-</span>112 <span style=''></span><span style='background: #AEF1AE'>          })
-</span>113 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}&quot;)</span><span style='background: #AEF1AE'>
-</span>114 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>115 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
-</span>116 <span style=''>  }
-</span>117 <span style=''>
-</span>118 <span style=''>  /**
-</span>119 <span style=''>    * Handles exiting a private room
-</span>120 <span style=''>    */
-</span>121 <span style=''>  private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>122 <span style=''>    log.info(&quot;Exit Private Room Request received...&quot;)
-</span>123 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(implicit user =&gt; {
-</span>124 <span style=''></span><span style='background: #AEF1AE'>      getRequestParameter(Room.FIELD_IDENTIFIER) match {
-</span>125 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
-</span>126 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.exitRoom(roomId).onComplete {
-</span>127 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(_ =&gt; sendResponse(OK))
-</span>128 <span style=''></span><span style='background: #AEF1AE'>          })
-</span>129 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}&quot;)</span><span style='background: #AEF1AE'>
-</span>130 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>131 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
-</span>132 <span style=''>  }
-</span>133 <span style=''>
-</span>134 <span style=''>  /**
-</span>135 <span style=''>    * Handles listing of public rooms
-</span>136 <span style=''>    */
-</span>137 <span style=''>  private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>138 <span style=''>    log.info(&quot;List Public Rooms Request received...&quot;)
-</span>139 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt;
-</span>140 <span style=''></span><span style='background: #AEF1AE'>      daoFuture.map(_.listPublicRooms().onComplete {
-</span>141 <span style=''></span><span style='background: #AEF1AE'>        failureHandler orElse
-</span>142 <span style=''></span><span style='background: #AEF1AE'>          successHandler(rooms =&gt; sendResponse(OK, rooms.foldLeft(Json emptyArr())(_ add _.toJson) encode()))
-</span>143 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
-</span>144 <span style=''>  }
-</span>145 <span style=''>
-</span>146 <span style=''>  /**
-</span>147 <span style=''>    * Handles entering in a public room
-</span>148 <span style=''>    */
-</span>149 <span style=''>  private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>150 <span style=''>    log.info(&quot;Enter Public Room Request received...&quot;)
-</span>151 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
-</span>152 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(user =&gt; {
-</span>153 <span style=''></span><span style='background: #AEF1AE'>        val playersNumberOption = try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
-</span>154 <span style=''></span><span style='background: #AEF1AE'>        catch {
-</span>155 <span style=''></span><span style='background: #AEF1AE'>          case _: Throwable =&gt; None
-</span>156 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>157 <span style=''></span><span style='background: #AEF1AE'>        (playersNumberOption, extractAddressesFromBody(body)) match {
-</span>158 <span style=''></span><span style='background: #AEF1AE'>          case (Some(playersNumber), Some(addresses)) =&gt;
-</span>159 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(implicit dao =&gt; dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2)
-</span>160 <span style=''></span><span style='background: #AEF1AE'>              .onComplete {
-</span>161 <span style=''></span><span style='background: #AEF1AE'>                failureHandler orElse successHandler(_ =&gt; handlePublicRoomFilling(playersNumber) map (_ =&gt; sendResponse(OK)))
-</span>162 <span style=''></span><span style='background: #AEF1AE'>              })
-</span>163 <span style=''></span><span style='background: #AEF1AE'>
-</span>164 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt;
-</span>165 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;The number of players in url and player/notification address in body are required for public room entering&quot;)
-</span>166 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}&quot;)
-</span>167 <span style=''></span><span style='background: #AEF1AE'>        }
-</span>168 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
-</span>169 <span style=''>  }
-</span>170 <span style=''>
-</span>171 <span style=''>  /**
-</span>172 <span style=''>    * Handles retrieving info of a public room
-</span>173 <span style=''>    */
-</span>174 <span style=''>  private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>175 <span style=''>    log.info(&quot;Public Room Info Request received...&quot;)
-</span>176 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt; {
-</span>177 <span style=''></span><span style='background: #AEF1AE'>      (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
-</span>178 <span style=''></span><span style='background: #AEF1AE'>      catch {
-</span>179 <span style=''></span><span style='background: #AEF1AE'>        case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
-</span>180 <span style=''></span><span style='background: #AEF1AE'>      }) match {
-</span>181 <span style=''></span><span style='background: #AEF1AE'>        case Some(playersNumber) =&gt;
-</span>182 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
-</span>183 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse { case Success(room) =&gt; sendResponse(OK, room.toJson.encode()) }
-</span>184 <span style=''></span><span style='background: #AEF1AE'>          })
-</span>185 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
-</span>186 <span style=''></span><span style='background: #AEF1AE'>          log.warn(&quot;The number of players in url is required for public room info retrieval&quot;)
-</span>187 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}&quot;)</span><span style='background: #AEF1AE'>
-</span>188 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>189 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
-</span>190 <span style=''>  }
-</span>191 <span style=''>
-</span>192 <span style=''>  /**
-</span>193 <span style=''>    * Handles exiting a public room
-</span>194 <span style=''>    */
-</span>195 <span style=''>  private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
-</span>196 <span style=''>    log.info(&quot;Exit Public Room Request received...&quot;)
-</span>197 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(implicit user =&gt; {
-</span>198 <span style=''></span><span style='background: #AEF1AE'>      (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
-</span>199 <span style=''></span><span style='background: #AEF1AE'>      catch {
-</span>200 <span style=''></span><span style='background: #AEF1AE'>        case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
-</span>201 <span style=''></span><span style='background: #AEF1AE'>      }) match {
-</span>202 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
-</span>203 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.exitPublicRoom(roomId).onComplete {
-</span>204 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(_ =&gt; sendResponse(OK))
-</span>205 <span style=''></span><span style='background: #AEF1AE'>          })
-</span>206 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
-</span>207 <span style=''></span><span style='background: #AEF1AE'>          log.warn(&quot;The number of players in url is required for public room exiting&quot;)
-</span>208 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}&quot;)</span><span style='background: #AEF1AE'>
-</span>209 <span style=''></span><span style='background: #AEF1AE'>      }
-</span>210 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
-</span>211 <span style=''>  }
+</span>14 <span style=''>import it.cwmp.services.{Validation, VertxServer}
+</span>15 <span style=''>import it.cwmp.utils.Logging
+</span>16 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
+</span>17 <span style=''>
+</span>18 <span style=''>import scala.concurrent.{ExecutionContext, Future}
+</span>19 <span style=''>import scala.util.{Failure, Success, Try}
+</span>20 <span style=''>
+</span>21 <span style=''>/**
+</span>22 <span style=''>  * Class that implements the Rooms micro-service
+</span>23 <span style=''>  *
+</span>24 <span style=''>  * @author Enrico Siboni
+</span>25 <span style=''>  */
+</span>26 <span style=''>class RoomsServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT)(implicit val validationStrategy: Validation[String, User],
+</span>27 <span style=''>                           implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
+</span>28 <span style=''>  extends VertxServer with Logging {
+</span>29 <span style=''>
+</span>30 <span style=''>  private var daoFuture: Future[RoomDAO] = _
+</span>31 <span style=''>
+</span>32 <span style=''>  override protected def initRouter(router: Router): Unit = {
+</span>33 <span style=''>    </span><span style='background: #AEF1AE'>router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler</span><span style=''>
+</span>34 <span style=''>    </span><span style='background: #AEF1AE'>router put API_ENTER_PRIVATE_ROOM_URL handler enterPrivateRoomHandler</span><span style=''>
+</span>35 <span style=''>    </span><span style='background: #AEF1AE'>router get API_PRIVATE_ROOM_INFO_URL handler privateRoomInfoHandler</span><span style=''>
+</span>36 <span style=''>    </span><span style='background: #AEF1AE'>router delete API_EXIT_PRIVATE_ROOM_URL handler exitPrivateRoomHandler</span><span style=''>
+</span>37 <span style=''>
+</span>38 <span style=''>    </span><span style='background: #AEF1AE'>router get API_LIST_PUBLIC_ROOMS_URL handler listPublicRoomsHandler</span><span style=''>
+</span>39 <span style=''>    </span><span style='background: #AEF1AE'>router put API_ENTER_PUBLIC_ROOM_URL handler enterPublicRoomHandler</span><span style=''>
+</span>40 <span style=''>    </span><span style='background: #AEF1AE'>router get API_PUBLIC_ROOM_INFO_URL handler publicRoomInfoHandler</span><span style=''>
+</span>41 <span style=''>    </span><span style='background: #AEF1AE'>router delete API_EXIT_PUBLIC_ROOM_URL handler exitPublicRoomHandler</span><span style=''>
+</span>42 <span style=''>  }
+</span>43 <span style=''>
+</span>44 <span style=''>  override protected def initServer: Future[_] = {
+</span>45 <span style=''>    val roomDAO = </span><span style='background: #AEF1AE'>RoomsLocalDAO()</span><span style=''>
+</span>46 <span style=''>    </span><span style='background: #AEF1AE'>daoFuture = roomDAO.initialize().map(_ =&gt; roomDAO)</span><span style=''>
+</span>47 <span style=''>    </span><span style='background: #AEF1AE'>daoFuture</span><span style=''>
+</span>48 <span style=''>  }
+</span>49 <span style=''>
+</span>50 <span style=''>  /**
+</span>51 <span style=''>    * Handles the creation of a private room
+</span>52 <span style=''>    */
+</span>53 <span style=''>  private def createPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>54 <span style=''>    log.info(&quot;Create Private Room Request received...&quot;)
+</span>55 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(_ =&gt;
+</span>57 <span style=''></span><span style='background: #AEF1AE'>        extractIncomingRoomFromBody(body) match {
+</span>58 <span style=''></span><span style='background: #AEF1AE'>          case Some((roomName, neededPlayers)) =&gt;
+</span>59 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(_.createRoom(roomName, neededPlayers).onComplete {
+</span>60 <span style=''></span><span style='background: #AEF1AE'>              failureHandler orElse successHandler(generatedID =&gt; sendResponse(CREATED, generatedID))
+</span>61 <span style=''></span><span style='background: #AEF1AE'>            })
+</span>62 <span style=''></span><span style='background: #AEF1AE'>          case None =&gt;
+</span>63 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;Request body for room creation is required!&quot;)
+</span>64 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR no Room JSON in body&quot;)
+</span>65 <span style=''></span><span style='background: #AEF1AE'>        }))</span><span style=''>
+</span>66 <span style=''>
+</span>67 <span style=''>    def extractIncomingRoomFromBody(body: Buffer): Option[(String, Int)] = {
+</span>68 <span style=''>      try {
+</span>69 <span style=''>        </span><span style='background: #AEF1AE'>val jsonObject = body.toJsonObject
+</span>70 <span style=''></span><span style='background: #AEF1AE'>        if ((jsonObject containsKey Room.FIELD_NAME) &amp;&amp; (jsonObject containsKey Room.FIELD_NEEDED_PLAYERS)) {
+</span>71 <span style=''></span><span style='background: #AEF1AE'>          Some((jsonObject getString Room.FIELD_NAME, jsonObject getInteger Room.FIELD_NEEDED_PLAYERS))
+</span>72 <span style=''></span><span style='background: #AEF1AE'>        } else {
+</span>73 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
+</span>74 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>75 <span style=''>      } catch {
+</span>76 <span style=''>        case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>77 <span style=''>      }
+</span>78 <span style=''>    }
+</span>79 <span style=''>  }
+</span>80 <span style=''>
+</span>81 <span style=''>  /**
+</span>82 <span style=''>    * Handles entering in a private room
+</span>83 <span style=''>    */
+</span>84 <span style=''>  private def enterPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>85 <span style=''>    log.info(&quot;Enter Private Room Request received...&quot;)
+</span>86 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
+</span>87 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(user =&gt; {
+</span>88 <span style=''></span><span style='background: #AEF1AE'>        (getRequestParameter(Room.FIELD_IDENTIFIER), extractAddressesFromBody(body)) match {
+</span>89 <span style=''></span><span style='background: #AEF1AE'>          case (Some(roomID), Some(addresses)) =&gt;
+</span>90 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(implicit dao =&gt; dao.enterRoom(roomID)(Participant(user.username, addresses._1.address), addresses._2).onComplete {
+</span>91 <span style=''></span><span style='background: #AEF1AE'>              failureHandler orElse successHandler(_ =&gt; handlePrivateRoomFilling(roomID) map (_ =&gt; sendResponse(OK)))
+</span>92 <span style=''></span><span style='background: #AEF1AE'>            })
+</span>93 <span style=''></span><span style='background: #AEF1AE'>
+</span>94 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt;
+</span>95 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;Player and notification address are required for entering a room!&quot;)
+</span>96 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER} or ${Address.FIELD_ADDRESS}&quot;)
+</span>97 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>98 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
+</span>99 <span style=''>  }
+</span>100 <span style=''>
+</span>101 <span style=''>  /**
+</span>102 <span style=''>    * Handles retrieving info of a private room
+</span>103 <span style=''>    */
+</span>104 <span style=''>  private def privateRoomInfoHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>105 <span style=''>    log.info(&quot;Private Room Info Request received...&quot;)
+</span>106 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt; {
+</span>107 <span style=''></span><span style='background: #AEF1AE'>      getRequestParameter(Room.FIELD_IDENTIFIER) match {
+</span>108 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
+</span>109 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.roomInfo(roomId).map(_._1).onComplete {
+</span>110 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(room =&gt; sendResponse(OK, room.toJson.encode()))
+</span>111 <span style=''></span><span style='background: #AEF1AE'>          })
+</span>112 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}&quot;)</span><span style='background: #AEF1AE'>
+</span>113 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>114 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
+</span>115 <span style=''>  }
+</span>116 <span style=''>
+</span>117 <span style=''>  /**
+</span>118 <span style=''>    * Handles exiting a private room
+</span>119 <span style=''>    */
+</span>120 <span style=''>  private def exitPrivateRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>121 <span style=''>    log.info(&quot;Exit Private Room Request received...&quot;)
+</span>122 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(implicit user =&gt; {
+</span>123 <span style=''></span><span style='background: #AEF1AE'>      getRequestParameter(Room.FIELD_IDENTIFIER) match {
+</span>124 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
+</span>125 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.exitRoom(roomId).onComplete {
+</span>126 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(_ =&gt; sendResponse(OK))
+</span>127 <span style=''></span><span style='background: #AEF1AE'>          })
+</span>128 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt; </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_IDENTIFIER}&quot;)</span><span style='background: #AEF1AE'>
+</span>129 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>130 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
+</span>131 <span style=''>  }
+</span>132 <span style=''>
+</span>133 <span style=''>  /**
+</span>134 <span style=''>    * Handles listing of public rooms
+</span>135 <span style=''>    */
+</span>136 <span style=''>  private def listPublicRoomsHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>137 <span style=''>    log.info(&quot;List Public Rooms Request received...&quot;)
+</span>138 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt;
+</span>139 <span style=''></span><span style='background: #AEF1AE'>      daoFuture.map(_.listPublicRooms().onComplete {
+</span>140 <span style=''></span><span style='background: #AEF1AE'>        failureHandler orElse
+</span>141 <span style=''></span><span style='background: #AEF1AE'>          successHandler(rooms =&gt; sendResponse(OK, rooms.foldLeft(Json emptyArr())(_ add _.toJson) encode()))
+</span>142 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
+</span>143 <span style=''>  }
+</span>144 <span style=''>
+</span>145 <span style=''>  /**
+</span>146 <span style=''>    * Handles entering in a public room
+</span>147 <span style=''>    */
+</span>148 <span style=''>  private def enterPublicRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>149 <span style=''>    log.info(&quot;Enter Public Room Request received...&quot;)
+</span>150 <span style=''>    </span><span style='background: #AEF1AE'>request.bodyHandler(body =&gt;
+</span>151 <span style=''></span><span style='background: #AEF1AE'>      request.checkAuthenticationOrReject.map(user =&gt; {
+</span>152 <span style=''></span><span style='background: #AEF1AE'>        val playersNumberOption = try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
+</span>153 <span style=''></span><span style='background: #AEF1AE'>        catch {
+</span>154 <span style=''></span><span style='background: #AEF1AE'>          case _: Throwable =&gt; None
+</span>155 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>156 <span style=''></span><span style='background: #AEF1AE'>        (playersNumberOption, extractAddressesFromBody(body)) match {
+</span>157 <span style=''></span><span style='background: #AEF1AE'>          case (Some(playersNumber), Some(addresses)) =&gt;
+</span>158 <span style=''></span><span style='background: #AEF1AE'>            daoFuture.map(implicit dao =&gt; dao.enterPublicRoom(playersNumber)(Participant(user.username, addresses._1.address), addresses._2)
+</span>159 <span style=''></span><span style='background: #AEF1AE'>              .onComplete {
+</span>160 <span style=''></span><span style='background: #AEF1AE'>                failureHandler orElse successHandler(_ =&gt; handlePublicRoomFilling(playersNumber) map (_ =&gt; sendResponse(OK)))
+</span>161 <span style=''></span><span style='background: #AEF1AE'>              })
+</span>162 <span style=''></span><span style='background: #AEF1AE'>
+</span>163 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt;
+</span>164 <span style=''></span><span style='background: #AEF1AE'>            log.warn(&quot;The number of players in url and player/notification address in body are required for public room entering&quot;)
+</span>165 <span style=''></span><span style='background: #AEF1AE'>            sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS} or ${Address.FIELD_ADDRESS}&quot;)
+</span>166 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>167 <span style=''></span><span style='background: #AEF1AE'>      }))</span><span style=''>
+</span>168 <span style=''>  }
+</span>169 <span style=''>
+</span>170 <span style=''>  /**
+</span>171 <span style=''>    * Handles retrieving info of a public room
+</span>172 <span style=''>    */
+</span>173 <span style=''>  private def publicRoomInfoHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>174 <span style=''>    log.info(&quot;Public Room Info Request received...&quot;)
+</span>175 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(_ =&gt; {
+</span>176 <span style=''></span><span style='background: #AEF1AE'>      (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
+</span>177 <span style=''></span><span style='background: #AEF1AE'>      catch {
+</span>178 <span style=''></span><span style='background: #AEF1AE'>        case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
+</span>179 <span style=''></span><span style='background: #AEF1AE'>      }) match {
+</span>180 <span style=''></span><span style='background: #AEF1AE'>        case Some(playersNumber) =&gt;
+</span>181 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.publicRoomInfo(playersNumber).map(_._1).onComplete {
+</span>182 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse { case Success(room) =&gt; sendResponse(OK, room.toJson.encode()) }
+</span>183 <span style=''></span><span style='background: #AEF1AE'>          })
+</span>184 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
+</span>185 <span style=''></span><span style='background: #AEF1AE'>          log.warn(&quot;The number of players in url is required for public room info retrieval&quot;)
+</span>186 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}&quot;)</span><span style='background: #AEF1AE'>
+</span>187 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>188 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
+</span>189 <span style=''>  }
+</span>190 <span style=''>
+</span>191 <span style=''>  /**
+</span>192 <span style=''>    * Handles exiting a public room
+</span>193 <span style=''>    */
+</span>194 <span style=''>  private def exitPublicRoomHandler: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>195 <span style=''>    log.info(&quot;Exit Public Room Request received...&quot;)
+</span>196 <span style=''>    </span><span style='background: #AEF1AE'>request.checkAuthenticationOrReject.map(implicit user =&gt; {
+</span>197 <span style=''></span><span style='background: #AEF1AE'>      (try getRequestParameter(Room.FIELD_NEEDED_PLAYERS).map(_.toInt)
+</span>198 <span style=''></span><span style='background: #AEF1AE'>      catch {
+</span>199 <span style=''></span><span style='background: #AEF1AE'>        case _: Throwable =&gt; </span><span style='background: #F0ADAD'>None</span><span style='background: #AEF1AE'>
+</span>200 <span style=''></span><span style='background: #AEF1AE'>      }) match {
+</span>201 <span style=''></span><span style='background: #AEF1AE'>        case Some(roomId) =&gt;
+</span>202 <span style=''></span><span style='background: #AEF1AE'>          daoFuture.map(_.exitPublicRoom(roomId).onComplete {
+</span>203 <span style=''></span><span style='background: #AEF1AE'>            failureHandler orElse successHandler(_ =&gt; sendResponse(OK))
+</span>204 <span style=''></span><span style='background: #AEF1AE'>          })
+</span>205 <span style=''></span><span style='background: #AEF1AE'>        case None =&gt;
+</span>206 <span style=''></span><span style='background: #AEF1AE'>          log.warn(&quot;The number of players in url is required for public room exiting&quot;)
+</span>207 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST, s&quot;$INVALID_PARAMETER_ERROR ${Room.FIELD_NEEDED_PLAYERS}&quot;)</span><span style='background: #AEF1AE'>
+</span>208 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>209 <span style=''></span><span style='background: #AEF1AE'>    })</span><span style=''>
+</span>210 <span style=''>  }
+</span>211 <span style=''>
 </span>212 <span style=''>
-</span>213 <span style=''>
-</span>214 <span style=''>  /**
-</span>215 <span style=''>    * Method that manages the filling of private rooms, fails if the room is not full
-</span>216 <span style=''>    */
-</span>217 <span style=''>  private def handlePrivateRoomFilling(roomID: String)
-</span>218 <span style=''>                                      (implicit roomDAO: RoomDAO,
-</span>219 <span style=''>                                       routingContext: RoutingContext,
-</span>220 <span style=''>                                       communicationStrategy: RoomReceiverApiWrapper,
-</span>221 <span style=''>                                       executionContext: ExecutionContext): Future[Unit] = {
-</span>222 <span style=''>    </span><span style='background: #AEF1AE'>handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
-</span>223 <span style=''></span><span style='background: #AEF1AE'>      onRetrievedRoomAction = (roomDAO deleteRoom roomID)
-</span>224 <span style=''></span><span style='background: #AEF1AE'>        .map(_ =&gt; sendResponse(OK)))(communicationStrategy, executionContext)</span><span style=''>
-</span>225 <span style=''>  }
-</span>226 <span style=''>
-</span>227 <span style=''>  /**
-</span>228 <span style=''>    * Method that manages the filling of public rooms, fails if the room is not full
-</span>229 <span style=''>    */
-</span>230 <span style=''>  private def handlePublicRoomFilling(playersNumber: Int)
-</span>231 <span style=''>                                     (implicit roomDAO: RoomDAO,
-</span>232 <span style=''>                                      routingContext: RoutingContext,
-</span>233 <span style=''>                                      communicationStrategy: RoomReceiverApiWrapper,
-</span>234 <span style=''>                                      executionContext: ExecutionContext): Future[Unit] = {
-</span>235 <span style=''>    </span><span style='background: #AEF1AE'>handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
-</span>236 <span style=''></span><span style='background: #AEF1AE'>      onRetrievedRoomAction = (roomDAO deleteAndRecreatePublicRoom playersNumber)
-</span>237 <span style=''></span><span style='background: #AEF1AE'>        .map(_ =&gt; sendResponse(OK)))(communicationStrategy, executionContext)</span><span style=''>
-</span>238 <span style=''>  }
-</span>239 <span style=''>
-</span>240 <span style=''>  /**
-</span>241 <span style=''>    * Describes how to behave when a room is filled out
-</span>242 <span style=''>    *
-</span>243 <span style=''>    * @param roomInformationFuture the future that will contain the room and addresses of users to contact
-</span>244 <span style=''>    * @param onRetrievedRoomAction the action to do if the room is full
-</span>245 <span style=''>    * @return a future that completes when all players received addresses
-</span>246 <span style=''>    */
-</span>247 <span style=''>  private def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])], onRetrievedRoomAction: =&gt; Future[Unit])
-</span>248 <span style=''>                               (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
-</span>249 <span style=''>    </span><span style='background: #AEF1AE'>roomInformationFuture
-</span>250 <span style=''></span><span style='background: #AEF1AE'>      .map(roomAndAddresses =&gt; roomAndAddresses._1)
-</span>251 <span style=''></span><span style='background: #AEF1AE'>      .filter(roomIsFull)
-</span>252 <span style=''></span><span style='background: #AEF1AE'>      .flatMap(_ =&gt; {
-</span>253 <span style=''></span><span style='background: #AEF1AE'>        onRetrievedRoomAction
-</span>254 <span style=''></span><span style='background: #AEF1AE'>        sendParticipantAddresses(roomInformationFuture.value.get.get)(communicationStrategy, executionContext)
-</span>255 <span style=''></span><span style='background: #AEF1AE'>      }).transform {
-</span>256 <span style=''></span><span style='background: #AEF1AE'>      case Success(_) =&gt; Failure(new Exception()) // if operation successful, outer response sending should block
-</span>257 <span style=''></span><span style='background: #AEF1AE'>      case Failure(_: NoSuchElementException) =&gt; Success(()) // if room wasn't full, let outer response sending happen
-</span>258 <span style=''></span><span style='background: #AEF1AE'>      case Failure(ex) =&gt; log.error(&quot;Error handling Room Filling&quot;, ex); Success(())
-</span>259 <span style=''></span><span style='background: #AEF1AE'>      // unexpected error, log and let outer response sending happen
-</span>260 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
-</span>261 <span style=''>  }
-</span>262 <span style=''>
-</span>263 <span style=''>  /**
-</span>264 <span style=''>    * Method to communicate to clients that the game can start because of reaching the specified number of players
-</span>265 <span style=''>    *
-</span>266 <span style=''>    * @param roomInformation the room where players are waiting in
-</span>267 <span style=''>    */
-</span>268 <span style=''>  private def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
-</span>269 <span style=''>                                      (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
-</span>270 <span style=''>    log.info(s&quot;Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...&quot;)
-</span>271 <span style=''>    val notificationAddresses = </span><span style='background: #AEF1AE'>for (notificationAddress &lt;- roomInformation._2) yield notificationAddress</span><span style=''>
-</span>272 <span style=''>    val players = </span><span style='background: #AEF1AE'>for (player &lt;- roomInformation._1.participants) yield player</span><span style=''>
-</span>273 <span style=''>    log.info(s&quot;Participant notification addresses to contact: $notificationAddresses&quot;)
-</span>274 <span style=''>    log.info(s&quot;Information to send -&gt; $players&quot;)
-</span>275 <span style=''>    </span><span style='background: #AEF1AE'>Future.sequence {
-</span>276 <span style=''></span><span style='background: #AEF1AE'>      notificationAddresses map (notificationAddress =&gt; communicationStrategy.sendParticipants(notificationAddress.address, players))
-</span>277 <span style=''></span><span style='background: #AEF1AE'>    } map (_ =&gt; log.info(&quot;Information sent.&quot;))</span><span style=''>
-</span>278 <span style=''>  }
-</span>279 <span style=''>
-</span>280 <span style=''>  /**
-</span>281 <span style=''>    * @return the common handler for failures in this service
-</span>282 <span style=''>    */
-</span>283 <span style=''>  private def failureHandler(implicit routingContext: RoutingContext): PartialFunction[Try[_], Unit] = {
-</span>284 <span style=''>    case Failure(ex: NoSuchElementException) =&gt; </span><span style='background: #AEF1AE'>sendResponse(NOT_FOUND, ex.getMessage)</span><span style=''>
-</span>285 <span style=''>    case Failure(ex) =&gt; </span><span style='background: #AEF1AE'>sendResponse(BAD_REQUEST, ex.getMessage)</span><span style=''>
-</span>286 <span style=''>  }
-</span>287 <span style=''>
-</span>288 <span style=''>  /**
-</span>289 <span style=''>    * @return the common handler for success, that does the specified action with result
-</span>290 <span style=''>    */
-</span>291 <span style=''>  private def successHandler[T](action: T =&gt; Unit)(implicit routingContext: RoutingContext): PartialFunction[Try[T], Unit] = {
-</span>292 <span style=''>    case Success(successResult) =&gt; </span><span style='background: #AEF1AE'>action(successResult)</span><span style=''>
-</span>293 <span style=''>  }
-</span>294 <span style=''>}
+</span>213 <span style=''>  /**
+</span>214 <span style=''>    * Method that manages the filling of private rooms, fails if the room is not full
+</span>215 <span style=''>    */
+</span>216 <span style=''>  private def handlePrivateRoomFilling(roomID: String)
+</span>217 <span style=''>                                      (implicit roomDAO: RoomDAO,
+</span>218 <span style=''>                                       routingContext: RoutingContext,
+</span>219 <span style=''>                                       communicationStrategy: RoomReceiverApiWrapper,
+</span>220 <span style=''>                                       executionContext: ExecutionContext): Future[Unit] = {
+</span>221 <span style=''>    </span><span style='background: #AEF1AE'>handleRoomFilling(roomInformationFuture = roomDAO.roomInfo(roomID),
+</span>222 <span style=''></span><span style='background: #AEF1AE'>      onRetrievedRoomAction = (roomDAO deleteRoom roomID)
+</span>223 <span style=''></span><span style='background: #AEF1AE'>        .map(_ =&gt; sendResponse(OK)))(communicationStrategy, executionContext)</span><span style=''>
+</span>224 <span style=''>  }
+</span>225 <span style=''>
+</span>226 <span style=''>  /**
+</span>227 <span style=''>    * Method that manages the filling of public rooms, fails if the room is not full
+</span>228 <span style=''>    */
+</span>229 <span style=''>  private def handlePublicRoomFilling(playersNumber: Int)
+</span>230 <span style=''>                                     (implicit roomDAO: RoomDAO,
+</span>231 <span style=''>                                      routingContext: RoutingContext,
+</span>232 <span style=''>                                      communicationStrategy: RoomReceiverApiWrapper,
+</span>233 <span style=''>                                      executionContext: ExecutionContext): Future[Unit] = {
+</span>234 <span style=''>    </span><span style='background: #AEF1AE'>handleRoomFilling(roomInformationFuture = roomDAO.publicRoomInfo(playersNumber),
+</span>235 <span style=''></span><span style='background: #AEF1AE'>      onRetrievedRoomAction = (roomDAO deleteAndRecreatePublicRoom playersNumber)
+</span>236 <span style=''></span><span style='background: #AEF1AE'>        .map(_ =&gt; sendResponse(OK)))(communicationStrategy, executionContext)</span><span style=''>
+</span>237 <span style=''>  }
+</span>238 <span style=''>
+</span>239 <span style=''>  /**
+</span>240 <span style=''>    * Describes how to behave when a room is filled out
+</span>241 <span style=''>    *
+</span>242 <span style=''>    * @param roomInformationFuture the future that will contain the room and addresses of users to contact
+</span>243 <span style=''>    * @param onRetrievedRoomAction the action to do if the room is full
+</span>244 <span style=''>    * @return a future that completes when all players received addresses
+</span>245 <span style=''>    */
+</span>246 <span style=''>  private def handleRoomFilling(roomInformationFuture: Future[(Room, Seq[Address])], onRetrievedRoomAction: =&gt; Future[Unit])
+</span>247 <span style=''>                               (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
+</span>248 <span style=''>    </span><span style='background: #AEF1AE'>roomInformationFuture
+</span>249 <span style=''></span><span style='background: #AEF1AE'>      .map(roomAndAddresses =&gt; roomAndAddresses._1)
+</span>250 <span style=''></span><span style='background: #AEF1AE'>      .filter(roomIsFull)
+</span>251 <span style=''></span><span style='background: #AEF1AE'>      .flatMap(_ =&gt; {
+</span>252 <span style=''></span><span style='background: #AEF1AE'>        onRetrievedRoomAction
+</span>253 <span style=''></span><span style='background: #AEF1AE'>        sendParticipantAddresses(roomInformationFuture.value.get.get)(communicationStrategy, executionContext)
+</span>254 <span style=''></span><span style='background: #AEF1AE'>      }).transform {
+</span>255 <span style=''></span><span style='background: #AEF1AE'>      case Success(_) =&gt; Failure(new Exception()) // if operation successful, outer response sending should block
+</span>256 <span style=''></span><span style='background: #AEF1AE'>      case Failure(_: NoSuchElementException) =&gt; Success(()) // if room wasn't full, let outer response sending happen
+</span>257 <span style=''></span><span style='background: #AEF1AE'>      case Failure(ex) =&gt; log.error(&quot;Error handling Room Filling&quot;, ex); Success(())
+</span>258 <span style=''></span><span style='background: #AEF1AE'>      // unexpected error, log and let outer response sending happen
+</span>259 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>260 <span style=''>  }
+</span>261 <span style=''>
+</span>262 <span style=''>  /**
+</span>263 <span style=''>    * Method to communicate to clients that the game can start because of reaching the specified number of players
+</span>264 <span style=''>    *
+</span>265 <span style=''>    * @param roomInformation the room where players are waiting in
+</span>266 <span style=''>    */
+</span>267 <span style=''>  private def sendParticipantAddresses(roomInformation: (Room, Seq[Address]))
+</span>268 <span style=''>                                      (implicit communicationStrategy: RoomReceiverApiWrapper, executionContext: ExecutionContext): Future[Unit] = {
+</span>269 <span style=''>    log.info(s&quot;Preparing to send participant list to room ${roomInformation._1.name} (with id:${roomInformation._1.identifier}) participants ...&quot;)
+</span>270 <span style=''>    val notificationAddresses = </span><span style='background: #AEF1AE'>for (notificationAddress &lt;- roomInformation._2) yield notificationAddress</span><span style=''>
+</span>271 <span style=''>    val players = </span><span style='background: #AEF1AE'>for (player &lt;- roomInformation._1.participants) yield player</span><span style=''>
+</span>272 <span style=''>    log.info(s&quot;Participant notification addresses to contact: $notificationAddresses&quot;)
+</span>273 <span style=''>    log.info(s&quot;Information to send -&gt; $players&quot;)
+</span>274 <span style=''>    </span><span style='background: #AEF1AE'>Future.sequence {
+</span>275 <span style=''></span><span style='background: #AEF1AE'>      notificationAddresses map (notificationAddress =&gt; communicationStrategy.sendParticipants(notificationAddress.address, players))
+</span>276 <span style=''></span><span style='background: #AEF1AE'>    } map (_ =&gt; log.info(&quot;Information sent.&quot;))</span><span style=''>
+</span>277 <span style=''>  }
+</span>278 <span style=''>
+</span>279 <span style=''>  /**
+</span>280 <span style=''>    * @return the common handler for failures in this service
+</span>281 <span style=''>    */
+</span>282 <span style=''>  private def failureHandler(implicit routingContext: RoutingContext): PartialFunction[Try[_], Unit] = {
+</span>283 <span style=''>    case Failure(ex: NoSuchElementException) =&gt; </span><span style='background: #AEF1AE'>sendResponse(NOT_FOUND, ex.getMessage)</span><span style=''>
+</span>284 <span style=''>    case Failure(ex) =&gt; </span><span style='background: #AEF1AE'>sendResponse(BAD_REQUEST, ex.getMessage)</span><span style=''>
+</span>285 <span style=''>  }
+</span>286 <span style=''>
+</span>287 <span style=''>  /**
+</span>288 <span style=''>    * @return the common handler for success, that does the specified action with result
+</span>289 <span style=''>    */
+</span>290 <span style=''>  private def successHandler[T](action: T =&gt; Unit)(implicit routingContext: RoutingContext): PartialFunction[Try[T], Unit] = {
+</span>291 <span style=''>    case Success(successResult) =&gt; </span><span style='background: #AEF1AE'>action(successResult)</span><span style=''>
+</span>292 <span style=''>  }
+</span>293 <span style=''>}
+</span>294 <span style=''>
 </span>295 <span style=''>
-</span>296 <span style=''>
-</span>297 <span style=''>/**
-</span>298 <span style=''>  * Companion object
-</span>299 <span style=''>  */
-</span>300 <span style=''>object RoomsServiceVerticle {
-</span>301 <span style=''>
-</span>302 <span style=''>  def apply(implicit validationStrategy: Validation[String, User],
-</span>303 <span style=''>            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
-</span>304 <span style=''>    </span><span style='background: #AEF1AE'>new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)</span><span style=''>
-</span>305 <span style=''>
-</span>306 <span style=''>  private val INVALID_PARAMETER_ERROR: String = </span><span style='background: #AEF1AE'>&quot;Invalid parameters: &quot;</span><span style=''>
-</span>307 <span style=''>
-</span>308 <span style=''>  /**
-</span>309 <span style=''>    * @param body the body where to extract
-</span>310 <span style=''>    * @return the extracted Addresses
-</span>311 <span style=''>    */
-</span>312 <span style=''>  private def extractAddressesFromBody(body: Buffer): Option[(Address, Address)] = {
-</span>313 <span style=''>    try {
-</span>314 <span style=''>      </span><span style='background: #AEF1AE'>val jsonArray = body.toJsonArray
-</span>315 <span style=''></span><span style='background: #AEF1AE'>      val userAddressJson = jsonArray.getJsonObject(0)
-</span>316 <span style=''></span><span style='background: #AEF1AE'>      val userNotificationAddressJson = jsonArray.getJsonObject(1)
-</span>317 <span style=''></span><span style='background: #AEF1AE'>      if ((userAddressJson containsKey Address.FIELD_ADDRESS) &amp;&amp; (userNotificationAddressJson containsKey Address.FIELD_ADDRESS)) {
-</span>318 <span style=''></span><span style='background: #AEF1AE'>        Some((userAddressJson.toAddress, userNotificationAddressJson.toAddress))
-</span>319 <span style=''></span><span style='background: #AEF1AE'>      } else </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>320 <span style=''>    } catch {
-</span>321 <span style=''>      case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
-</span>322 <span style=''>    }
-</span>323 <span style=''>  }
-</span>324 <span style=''>
-</span>325 <span style=''>  /**
-</span>326 <span style=''>    * Describes when a room is full
-</span>327 <span style=''>    */
-</span>328 <span style=''>  private def roomIsFull(room: Room): Boolean = </span><span style='background: #AEF1AE'>room.participants.size == room.neededPlayersNumber</span><span style=''>
-</span>329 <span style=''>}
+</span>296 <span style=''>/**
+</span>297 <span style=''>  * Companion object
+</span>298 <span style=''>  */
+</span>299 <span style=''>object RoomsServiceVerticle {
+</span>300 <span style=''>
+</span>301 <span style=''>  def apply(implicit validationStrategy: Validation[String, User],
+</span>302 <span style=''>            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+</span>303 <span style=''>    </span><span style='background: #AEF1AE'>new RoomsServiceVerticle(DEFAULT_PORT)(validationStrategy, clientCommunicationStrategy)</span><span style=''>
+</span>304 <span style=''>
+</span>305 <span style=''>  def apply(implicit port: Int = DEFAULT_PORT, validationStrategy: Validation[String, User],
+</span>306 <span style=''>            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+</span>307 <span style=''>    </span><span style='background: #F0ADAD'>new RoomsServiceVerticle(port)(validationStrategy, clientCommunicationStrategy)</span><span style=''>
+</span>308 <span style=''>
+</span>309 <span style=''>  private val INVALID_PARAMETER_ERROR: String = </span><span style='background: #AEF1AE'>&quot;Invalid parameters: &quot;</span><span style=''>
+</span>310 <span style=''>
+</span>311 <span style=''>  /**
+</span>312 <span style=''>    * @param body the body where to extract
+</span>313 <span style=''>    * @return the extracted Addresses
+</span>314 <span style=''>    */
+</span>315 <span style=''>  private def extractAddressesFromBody(body: Buffer): Option[(Address, Address)] = {
+</span>316 <span style=''>    try {
+</span>317 <span style=''>      </span><span style='background: #AEF1AE'>val jsonArray = body.toJsonArray
+</span>318 <span style=''></span><span style='background: #AEF1AE'>      val userAddressJson = jsonArray.getJsonObject(0)
+</span>319 <span style=''></span><span style='background: #AEF1AE'>      val userNotificationAddressJson = jsonArray.getJsonObject(1)
+</span>320 <span style=''></span><span style='background: #AEF1AE'>      if ((userAddressJson containsKey Address.FIELD_ADDRESS) &amp;&amp; (userNotificationAddressJson containsKey Address.FIELD_ADDRESS)) {
+</span>321 <span style=''></span><span style='background: #AEF1AE'>        Some((userAddressJson.toAddress, userNotificationAddressJson.toAddress))
+</span>322 <span style=''></span><span style='background: #AEF1AE'>      } else </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>323 <span style=''>    } catch {
+</span>324 <span style=''>      case _: Throwable =&gt; </span><span style='background: #AEF1AE'>None</span><span style=''>
+</span>325 <span style=''>    }
+</span>326 <span style=''>  }
+</span>327 <span style=''>
+</span>328 <span style=''>  /**
+</span>329 <span style=''>    * Describes when a room is full
+</span>330 <span style=''>    */
+</span>331 <span style=''>  private def roomIsFull(room: Room): Boolean = </span><span style='background: #AEF1AE'>room.participants.size == room.neededPlayersNumber</span><span style=''>
+</span>332 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -364,36 +367,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          485
+          525
         </td>
         <td>
-          1213
+          1353
           -
-          1225
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.DEFAULT_PORT
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          487
-        </td>
-        <td>
-          1341
-          -
-          1365
+          1377
         </td>
         <td>
           Select
@@ -406,36 +388,36 @@
         </td>
       </tr><tr>
         <td>
-          34
+          33
         </td>
         <td>
-          486
+          524
         </td>
         <td>
-          1305
+          1317
           -
-          1332
+          1344
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.API_CREATE_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_CREATE_PRIVATE_ROOM_URL
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_CREATE_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_CREATE_PRIVATE_ROOM_URL
         </td>
       </tr><tr>
         <td>
-          34
+          33
         </td>
         <td>
-          488
+          526
         </td>
         <td>
-          1293
+          1305
           -
-          1365
+          1377
         </td>
         <td>
           Apply
@@ -444,19 +426,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.post(it.cwmp.services.rooms.ServerParameters.API_CREATE_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.createPrivateRoomHandler)
+          router.post(it.cwmp.services.rooms.Service.API_CREATE_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.createPrivateRoomHandler)
         </td>
       </tr><tr>
         <td>
-          35
+          34
         </td>
         <td>
-          490
+          528
         </td>
         <td>
-          1416
+          1428
           -
-          1439
+          1451
         </td>
         <td>
           Select
@@ -469,36 +451,36 @@
         </td>
       </tr><tr>
         <td>
-          35
+          34
         </td>
         <td>
-          489
+          527
         </td>
         <td>
-          1381
+          1393
           -
-          1407
+          1419
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.API_ENTER_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_ENTER_PRIVATE_ROOM_URL
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_ENTER_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_ENTER_PRIVATE_ROOM_URL
         </td>
       </tr><tr>
         <td>
-          35
+          34
         </td>
         <td>
-          491
+          529
         </td>
         <td>
-          1370
+          1382
           -
-          1439
+          1451
         </td>
         <td>
           Apply
@@ -507,40 +489,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.enterPrivateRoomHandler)
+          router.put(it.cwmp.services.rooms.Service.API_ENTER_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.enterPrivateRoomHandler)
         </td>
       </tr><tr>
         <td>
-          36
+          35
         </td>
         <td>
-          492
+          532
         </td>
         <td>
-          1455
+          1456
           -
-          1480
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_PRIVATE_ROOM_INFO_URL
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_PRIVATE_ROOM_INFO_URL
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          494
-        </td>
-        <td>
-          1444
-          -
-          1511
+          1523
         </td>
         <td>
           Apply
@@ -549,19 +510,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.get(it.cwmp.services.rooms.ServerParameters.API_PRIVATE_ROOM_INFO_URL).handler(RoomsServiceVerticle.this.privateRoomInfoHandler)
+          router.get(it.cwmp.services.rooms.Service.API_PRIVATE_ROOM_INFO_URL).handler(RoomsServiceVerticle.this.privateRoomInfoHandler)
         </td>
       </tr><tr>
         <td>
-          36
+          35
         </td>
         <td>
-          493
+          531
         </td>
         <td>
-          1489
+          1501
           -
-          1511
+          1523
         </td>
         <td>
           Select
@@ -574,15 +535,36 @@
         </td>
       </tr><tr>
         <td>
-          37
+          35
         </td>
         <td>
-          496
+          530
         </td>
         <td>
-          1564
+          1467
           -
-          1586
+          1492
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_PRIVATE_ROOM_INFO_URL
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.rooms.Service.API_PRIVATE_ROOM_INFO_URL
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          534
+        </td>
+        <td>
+          1576
+          -
+          1598
         </td>
         <td>
           Select
@@ -595,36 +577,36 @@
         </td>
       </tr><tr>
         <td>
-          37
+          36
         </td>
         <td>
-          495
+          533
         </td>
         <td>
-          1530
+          1542
           -
-          1555
+          1567
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.API_EXIT_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_EXIT_PRIVATE_ROOM_URL
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_EXIT_PRIVATE_ROOM_URL
+          it.cwmp.services.rooms.Service.API_EXIT_PRIVATE_ROOM_URL
         </td>
       </tr><tr>
         <td>
-          37
+          36
         </td>
         <td>
-          497
+          535
         </td>
         <td>
-          1516
+          1528
           -
-          1586
+          1598
         </td>
         <td>
           Apply
@@ -633,19 +615,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.exitPrivateRoomHandler)
+          router.delete(it.cwmp.services.rooms.Service.API_EXIT_PRIVATE_ROOM_URL).handler(RoomsServiceVerticle.this.exitPrivateRoomHandler)
         </td>
       </tr><tr>
         <td>
-          39
+          38
         </td>
         <td>
-          499
+          537
         </td>
         <td>
-          1637
+          1649
           -
-          1659
+          1671
         </td>
         <td>
           Select
@@ -658,36 +640,36 @@
         </td>
       </tr><tr>
         <td>
-          39
+          38
         </td>
         <td>
-          498
+          536
         </td>
         <td>
-          1603
+          1615
           -
-          1628
+          1640
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.API_LIST_PUBLIC_ROOMS_URL
+          it.cwmp.services.rooms.Service.API_LIST_PUBLIC_ROOMS_URL
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_LIST_PUBLIC_ROOMS_URL
+          it.cwmp.services.rooms.Service.API_LIST_PUBLIC_ROOMS_URL
         </td>
       </tr><tr>
         <td>
-          39
+          38
         </td>
         <td>
-          500
+          538
         </td>
         <td>
-          1592
+          1604
           -
-          1659
+          1671
         </td>
         <td>
           Apply
@@ -696,40 +678,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.get(it.cwmp.services.rooms.ServerParameters.API_LIST_PUBLIC_ROOMS_URL).handler(RoomsServiceVerticle.this.listPublicRoomsHandler)
+          router.get(it.cwmp.services.rooms.Service.API_LIST_PUBLIC_ROOMS_URL).handler(RoomsServiceVerticle.this.listPublicRoomsHandler)
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          501
+          541
         </td>
         <td>
-          1675
+          1676
           -
-          1700
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_ENTER_PUBLIC_ROOM_URL
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_ENTER_PUBLIC_ROOM_URL
-        </td>
-      </tr><tr>
-        <td>
-          40
-        </td>
-        <td>
-          503
-        </td>
-        <td>
-          1664
-          -
-          1731
+          1743
         </td>
         <td>
           Apply
@@ -738,19 +699,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.put(it.cwmp.services.rooms.ServerParameters.API_ENTER_PUBLIC_ROOM_URL).handler(RoomsServiceVerticle.this.enterPublicRoomHandler)
+          router.put(it.cwmp.services.rooms.Service.API_ENTER_PUBLIC_ROOM_URL).handler(RoomsServiceVerticle.this.enterPublicRoomHandler)
         </td>
       </tr><tr>
         <td>
-          40
+          39
         </td>
         <td>
-          502
+          540
         </td>
         <td>
-          1709
+          1721
           -
-          1731
+          1743
         </td>
         <td>
           Select
@@ -763,15 +724,36 @@
         </td>
       </tr><tr>
         <td>
-          41
+          39
         </td>
         <td>
-          505
+          539
         </td>
         <td>
-          1780
+          1687
           -
-          1801
+          1712
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_ENTER_PUBLIC_ROOM_URL
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.rooms.Service.API_ENTER_PUBLIC_ROOM_URL
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          543
+        </td>
+        <td>
+          1792
+          -
+          1813
         </td>
         <td>
           Select
@@ -784,36 +766,36 @@
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          504
+          542
         </td>
         <td>
-          1747
+          1759
           -
-          1771
+          1783
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.rooms.ServerParameters.API_PUBLIC_ROOM_INFO_URL
+          it.cwmp.services.rooms.Service.API_PUBLIC_ROOM_INFO_URL
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_PUBLIC_ROOM_INFO_URL
+          it.cwmp.services.rooms.Service.API_PUBLIC_ROOM_INFO_URL
         </td>
       </tr><tr>
         <td>
-          41
+          40
         </td>
         <td>
-          506
+          544
         </td>
         <td>
-          1736
+          1748
           -
-          1801
+          1813
         </td>
         <td>
           Apply
@@ -822,19 +804,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.get(it.cwmp.services.rooms.ServerParameters.API_PUBLIC_ROOM_INFO_URL).handler(RoomsServiceVerticle.this.publicRoomInfoHandler)
+          router.get(it.cwmp.services.rooms.Service.API_PUBLIC_ROOM_INFO_URL).handler(RoomsServiceVerticle.this.publicRoomInfoHandler)
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          508
+          546
         </td>
         <td>
-          1853
+          1865
           -
-          1874
+          1886
         </td>
         <td>
           Select
@@ -847,36 +829,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          507
+          548
         </td>
         <td>
-          1820
+          1857
           -
-          1844
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_EXIT_PUBLIC_ROOM_URL
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.rooms.ServerParameters.API_EXIT_PUBLIC_ROOM_URL
-        </td>
-      </tr><tr>
-        <td>
-          42
-        </td>
-        <td>
-          510
-        </td>
-        <td>
-          1845
-          -
-          1845
+          1857
         </td>
         <td>
           Literal
@@ -889,15 +850,36 @@
         </td>
       </tr><tr>
         <td>
-          42
+          41
         </td>
         <td>
-          509
+          545
         </td>
         <td>
-          1806
+          1832
           -
-          1874
+          1856
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_EXIT_PUBLIC_ROOM_URL
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.rooms.Service.API_EXIT_PUBLIC_ROOM_URL
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          547
+        </td>
+        <td>
+          1818
+          -
+          1886
         </td>
         <td>
           Apply
@@ -906,19 +888,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.delete(it.cwmp.services.rooms.ServerParameters.API_EXIT_PUBLIC_ROOM_URL).handler(RoomsServiceVerticle.this.exitPublicRoomHandler)
+          router.delete(it.cwmp.services.rooms.Service.API_EXIT_PUBLIC_ROOM_URL).handler(RoomsServiceVerticle.this.exitPublicRoomHandler)
         </td>
       </tr><tr>
         <td>
-          46
+          45
         </td>
         <td>
-          512
+          550
         </td>
         <td>
-          1949
+          1961
           -
-          1964
+          1976
         </td>
         <td>
           Apply
@@ -931,15 +913,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          45
         </td>
         <td>
-          511
+          549
         </td>
         <td>
-          1949
+          1961
           -
-          1949
+          1961
         </td>
         <td>
           Select
@@ -952,15 +934,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          46
         </td>
         <td>
-          514
+          552
         </td>
         <td>
-          1981
+          1993
           -
-          2019
+          2031
         </td>
         <td>
           ApplyToImplicitArgs
@@ -973,15 +955,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          46
         </td>
         <td>
-          513
+          551
         </td>
         <td>
-          2005
+          2017
           -
-          2005
+          2017
         </td>
         <td>
           Select
@@ -994,15 +976,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          46
         </td>
         <td>
-          515
+          553
         </td>
         <td>
-          1969
+          1981
           -
-          2019
+          2031
         </td>
         <td>
           Apply
@@ -1015,15 +997,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          47
         </td>
         <td>
-          516
+          554
         </td>
         <td>
-          2024
+          2036
           -
-          2033
+          2045
         </td>
         <td>
           Select
@@ -1036,15 +1018,15 @@
         </td>
       </tr><tr>
         <td>
-          56
+          55
         </td>
         <td>
-          530
+          568
         </td>
         <td>
-          2252
+          2264
           -
-          2815
+          2827
         </td>
         <td>
           Apply
@@ -1069,36 +1051,57 @@
         </td>
       </tr><tr>
         <td>
-          57
+          56
         </td>
         <td>
-          517
+          567
         </td>
         <td>
-          2286
+          2337
           -
-          2293
+          2337
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          555
+        </td>
+        <td>
+          2298
+          -
+          2305
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.request(routingContext)
         </td>
       </tr><tr>
         <td>
-          57
+          56
         </td>
         <td>
-          528
+          566
         </td>
         <td>
-          2286
+          2298
           -
-          2814
+          2826
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1120,15 +1123,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          56
         </td>
         <td>
-          518
+          556
         </td>
         <td>
-          2294
+          2306
           -
-          2294
+          2306
         </td>
         <td>
           Select
@@ -1141,15 +1144,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          56
         </td>
         <td>
-          527
+          565
         </td>
         <td>
-          2325
+          2337
           -
-          2325
+          2337
         </td>
         <td>
           Select
@@ -1165,33 +1168,12 @@
           57
         </td>
         <td>
-          529
+          557
         </td>
         <td>
-          2325
+          2351
           -
-          2325
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          519
-        </td>
-        <td>
-          2339
-          -
-          2372
+          2384
         </td>
         <td>
           Apply
@@ -1204,15 +1186,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          523
+          561
         </td>
         <td>
-          2457
+          2469
           -
-          2623
+          2635
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1225,15 +1207,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          525
+          563
         </td>
         <td>
-          2443
+          2455
           -
-          2624
+          2636
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1246,15 +1228,36 @@
         </td>
       </tr><tr>
         <td>
-          60
+          59
         </td>
         <td>
-          522
+          560
         </td>
         <td>
-          2506
+          2518
           -
-          2506
+          2518
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          562
+        </td>
+        <td>
+          2468
+          -
+          2468
         </td>
         <td>
           Select
@@ -1270,33 +1273,12 @@
           60
         </td>
         <td>
-          524
+          559
         </td>
         <td>
-          2456
+          2534
           -
-          2456
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          61
-        </td>
-        <td>
-          521
-        </td>
-        <td>
-          2522
-          -
-          2609
+          2621
         </td>
         <td>
           Apply
@@ -1309,15 +1291,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          60
         </td>
         <td>
-          520
+          558
         </td>
         <td>
-          2544
+          2556
           -
-          2609
+          2621
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1330,36 +1312,36 @@
         </td>
       </tr><tr>
         <td>
-          65
+          64
         </td>
         <td>
-          526
+          564
         </td>
         <td>
-          2728
+          2740
           -
-          2803
+          2815
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; no Room JSON in body&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          69
+          68
         </td>
         <td>
-          546
+          584
         </td>
         <td>
-          2914
+          2926
           -
-          3204
+          3216
         </td>
         <td>
           Block
@@ -1378,15 +1360,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          69
         </td>
         <td>
-          531
+          569
         </td>
         <td>
-          2931
+          2943
           -
-          2948
+          2960
         </td>
         <td>
           Apply
@@ -1399,15 +1381,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          70
         </td>
         <td>
-          532
+          570
         </td>
         <td>
-          2985
+          2997
           -
-          3000
+          3012
         </td>
         <td>
           Select
@@ -1420,57 +1402,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          70
         </td>
         <td>
-          534
+          573
         </td>
         <td>
-          3006
+          2973
           -
-          3054
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.core.json.JsonObject.containsKey
-        </td>
-        <td style="background: #AEF1AE">
-          jsonObject.containsKey(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          533
-        </td>
-        <td>
-          3029
-          -
-          3054
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-      </tr><tr>
-        <td>
-          71
-        </td>
-        <td>
-          535
-        </td>
-        <td>
-          2961
-          -
-          3055
+          3067
         </td>
         <td>
           Apply
@@ -1483,99 +1423,57 @@
         </td>
       </tr><tr>
         <td>
-          72
+          70
         </td>
         <td>
-          541
+          572
         </td>
         <td>
-          3074
+          3018
           -
-          3161
+          3066
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Tuple2.apply
+          io.vertx.core.json.JsonObject.containsKey
         </td>
         <td style="background: #AEF1AE">
-          scala.Tuple2.apply[String, Int](jsonObject.getString(it.cwmp.model.Room.FIELD_NAME), scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)))
+          jsonObject.containsKey(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
         </td>
       </tr><tr>
         <td>
-          72
+          70
         </td>
         <td>
-          540
+          571
         </td>
         <td>
-          3113
+          3041
           -
-          3160
+          3066
         </td>
         <td>
-          ApplyImplicitView
+          Select
         </td>
         <td>
-          scala.Predef.Integer2int
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
         </td>
         <td style="background: #AEF1AE">
-          scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS))
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
         </td>
       </tr><tr>
         <td>
-          72
+          71
         </td>
         <td>
-          543
+          577
         </td>
         <td>
-          3069
+          3125
           -
-          3162
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Some.apply[(String, Int)](scala.Tuple2.apply[String, Int](jsonObject.getString(it.cwmp.model.Room.FIELD_NAME), scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS))))
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          537
-        </td>
-        <td>
-          3075
-          -
-          3111
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.core.json.JsonObject.getString
-        </td>
-        <td style="background: #AEF1AE">
-          jsonObject.getString(it.cwmp.model.Room.FIELD_NAME)
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          539
-        </td>
-        <td>
-          3113
-          -
-          3160
+          3172
         </td>
         <td>
           Apply
@@ -1588,15 +1486,120 @@
         </td>
       </tr><tr>
         <td>
-          72
+          71
         </td>
         <td>
-          542
+          576
         </td>
         <td>
-          3069
+          3147
           -
-          3162
+          3172
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          579
+        </td>
+        <td>
+          3086
+          -
+          3173
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[String, Int](jsonObject.getString(it.cwmp.model.Room.FIELD_NAME), scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          581
+        </td>
+        <td>
+          3081
+          -
+          3174
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[(String, Int)](scala.Tuple2.apply[String, Int](jsonObject.getString(it.cwmp.model.Room.FIELD_NAME), scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS))))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          575
+        </td>
+        <td>
+          3087
+          -
+          3123
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getString
+        </td>
+        <td style="background: #AEF1AE">
+          jsonObject.getString(it.cwmp.model.Room.FIELD_NAME)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          578
+        </td>
+        <td>
+          3125
+          -
+          3172
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          scala.Predef.Integer2int
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.Integer2int(jsonObject.getInteger(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          580
+        </td>
+        <td>
+          3081
+          -
+          3174
         </td>
         <td>
           Apply
@@ -1609,15 +1612,15 @@
         </td>
       </tr><tr>
         <td>
-          72
+          71
         </td>
         <td>
-          536
+          574
         </td>
         <td>
-          3096
+          3108
           -
-          3111
+          3123
         </td>
         <td>
           Select
@@ -1630,36 +1633,36 @@
         </td>
       </tr><tr>
         <td>
-          72
+          73
         </td>
         <td>
-          538
+          582
         </td>
         <td>
-          3135
+          3202
           -
-          3160
+          3206
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          scala.None
         </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        <td style="background: #F0ADAD">
+          scala.None
         </td>
       </tr><tr>
         <td>
-          74
+          73
         </td>
         <td>
-          545
+          583
         </td>
         <td>
-          3190
+          3202
           -
-          3194
+          3206
         </td>
         <td>
           Block
@@ -1672,36 +1675,15 @@
         </td>
       </tr><tr>
         <td>
-          74
+          76
         </td>
         <td>
-          544
+          585
         </td>
         <td>
-          3190
+          3262
           -
-          3194
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #F0ADAD">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          77
-        </td>
-        <td>
-          547
-        </td>
-        <td>
-          3250
-          -
-          3254
+          3266
         </td>
         <td>
           Select
@@ -1714,15 +1696,15 @@
         </td>
       </tr><tr>
         <td>
-          80
+          79
         </td>
         <td>
-          548
+          586
         </td>
         <td>
-          3271
+          3283
           -
-          3271
+          3283
         </td>
         <td>
           Literal
@@ -1735,36 +1717,15 @@
         </td>
       </tr><tr>
         <td>
-          87
+          86
         </td>
         <td>
-          566
+          603
         </td>
         <td>
-          3500
+          3493
           -
-          3500
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          87
-        </td>
-        <td>
-          565
-        </td>
-        <td>
-          3481
-          -
-          4232
+          4244
         </td>
         <td>
           Apply
@@ -1792,57 +1753,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          86
         </td>
         <td>
-          550
+          604
         </td>
         <td>
-          3523
+          3512
           -
-          3523
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.validationStrategy
-        </td>
-      </tr><tr>
-        <td>
-          88
-        </td>
-        <td>
-          549
-        </td>
-        <td>
-          3515
-          -
-          3522
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.request
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          88
-        </td>
-        <td>
-          564
-        </td>
-        <td>
-          3554
-          -
-          3554
+          3512
         </td>
         <td>
           Literal
@@ -1855,15 +1774,99 @@
         </td>
       </tr><tr>
         <td>
-          88
+          87
         </td>
         <td>
-          563
+          600
         </td>
         <td>
-          3515
+          3566
           -
-          4231
+          3566
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          588
+        </td>
+        <td>
+          3535
+          -
+          3535
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.validationStrategy
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          602
+        </td>
+        <td>
+          3566
+          -
+          3566
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          587
+        </td>
+        <td>
+          3527
+          -
+          3534
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.request(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          601
+        </td>
+        <td>
+          3527
+          -
+          4243
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1888,15 +1891,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          90
         </td>
         <td>
-          562
+          597
         </td>
         <td>
-          3554
+          3745
           -
-          3554
+          3745
         </td>
         <td>
           Select
@@ -1909,36 +1912,57 @@
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          559
+          591
         </td>
         <td>
-          3733
+          3784
           -
-          3733
+          3832
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Participant.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Participant.apply(user.username, addresses._1.address)
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          590
+        </td>
+        <td>
+          3811
+          -
+          3831
         </td>
         <td>
           Select
         </td>
         <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
+          it.cwmp.model.Address.address
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
+          addresses._1.address
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          558
+          596
         </td>
         <td>
-          3750
+          3762
           -
-          3980
+          3992
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1954,36 +1978,15 @@
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          552
+          595
         </td>
         <td>
-          3799
+          3859
           -
-          3819
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Address.address
-        </td>
-        <td style="background: #AEF1AE">
-          addresses._1.address
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          557
-        </td>
-        <td>
-          3847
-          -
-          3847
+          3859
         </td>
         <td>
           Select
@@ -1996,36 +1999,15 @@
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          551
+          598
         </td>
         <td>
-          3784
+          3732
           -
-          3797
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.User.username
-        </td>
-        <td style="background: #AEF1AE">
-          user.username
-        </td>
-      </tr><tr>
-        <td>
-          91
-        </td>
-        <td>
-          560
-        </td>
-        <td>
-          3720
-          -
-          3981
+          3993
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2041,15 +2023,36 @@
         </td>
       </tr><tr>
         <td>
-          91
+          90
         </td>
         <td>
-          554
+          589
         </td>
         <td>
-          3822
+          3796
           -
+          3809
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #AEF1AE">
+          user.username
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          592
+        </td>
+        <td>
           3834
+          -
+          3846
         </td>
         <td>
           Select
@@ -2065,57 +2068,12 @@
           91
         </td>
         <td>
-          553
+          594
         </td>
         <td>
-          3772
+          3875
           -
-          3820
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.model.Participant.apply
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Participant.apply(user.username, addresses._1.address)
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          555
-        </td>
-        <td>
-          3885
-          -
-          3966
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.successHandler
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.successHandler[Unit](((x$4: Unit) =&gt; {
-  RoomsServiceVerticle.this.handlePrivateRoomFilling(roomID)(dao, routingContext, RoomsServiceVerticle.this.clientCommunicationStrategy, RoomsServiceVerticle.this.executionContext).map[Unit](((x$5: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(RoomsServiceVerticle.this.executionContext);
-  ()
-}))(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          556
-        </td>
-        <td>
-          3863
-          -
-          3966
+          3978
         </td>
         <td>
           Apply
@@ -2131,120 +2089,60 @@
         </td>
       </tr><tr>
         <td>
-          97
+          91
         </td>
         <td>
-          561
+          593
         </td>
         <td>
-          4105
+          3897
           -
-          4212
+          3978
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.rooms.RoomsServiceVerticle.successHandler
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.successHandler[Unit](((x$4: Unit) =&gt; {
+  RoomsServiceVerticle.this.handlePrivateRoomFilling(roomID)(dao, routingContext, RoomsServiceVerticle.this.clientCommunicationStrategy, RoomsServiceVerticle.this.executionContext).map[Unit](((x$5: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(RoomsServiceVerticle.this.executionContext);
+  ()
+}))(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          599
+        </td>
+        <td>
+          4117
+          -
+          4224
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot; or &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_IDENTIFIER, it.cwmp.model.Address.FIELD_ADDRESS)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          107
+          106
         </td>
         <td>
-          568
+          618
         </td>
         <td>
-          4458
+          4462
           -
-          4458
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.validationStrategy
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          567
-        </td>
-        <td>
-          4450
-          -
-          4457
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.request
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          579
-        </td>
-        <td>
-          4489
-          -
-          4489
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          581
-        </td>
-        <td>
-          4489
-          -
-          4489
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          107
-        </td>
-        <td>
-          580
-        </td>
-        <td>
-          4450
-          -
-          4874
+          4886
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2260,57 +2158,36 @@
         </td>
       </tr><tr>
         <td>
-          108
+          106
         </td>
         <td>
-          569
+          606
         </td>
         <td>
-          4503
+          4470
           -
-          4545
+          4470
         </td>
         <td>
-          ApplyToImplicitArgs
+          Select
         </td>
         <td>
-          it.cwmp.utils.VertxServer.getRequestParameter
+          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_IDENTIFIER)(routingContext)
+          RoomsServiceVerticle.this.validationStrategy
         </td>
       </tr><tr>
         <td>
-          110
+          106
         </td>
         <td>
-          577
+          617
         </td>
         <td>
-          4593
+          4501
           -
-          4758
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.daoFuture.map[Unit](((x$7: it.cwmp.services.rooms.RoomDAO) =&gt; x$7.roomInfo(roomId).map[it.cwmp.model.Room](((x$8: (it.cwmp.model.Room, Seq[it.cwmp.model.Address])) =&gt; x$8._1))(RoomsServiceVerticle.this.executionContext).onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[it.cwmp.model.Room], Unit](RoomsServiceVerticle.this.successHandler[it.cwmp.model.Room](((room: it.cwmp.model.Room) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(it.cwmp.model.Room.Converters.RichRoom(room).toJson.encode()))(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
-        </td>
-      </tr><tr>
-        <td>
-          110
-        </td>
-        <td>
-          576
-        </td>
-        <td>
-          4606
-          -
-          4606
+          4501
         </td>
         <td>
           Select
@@ -2323,15 +2200,141 @@
         </td>
       </tr><tr>
         <td>
-          110
+          106
         </td>
         <td>
-          570
+          605
         </td>
         <td>
-          4630
+          4462
           -
-          4634
+          4469
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.request(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          619
+        </td>
+        <td>
+          4501
+          -
+          4501
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          607
+        </td>
+        <td>
+          4515
+          -
+          4557
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.getRequestParameter
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_IDENTIFIER)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          609
+        </td>
+        <td>
+          4641
+          -
+          4641
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          612
+        </td>
+        <td>
+          4659
+          -
+          4659
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          615
+        </td>
+        <td>
+          4605
+          -
+          4770
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.daoFuture.map[Unit](((x$7: it.cwmp.services.rooms.RoomDAO) =&gt; x$7.roomInfo(roomId).map[it.cwmp.model.Room](((x$8: (it.cwmp.model.Room, Seq[it.cwmp.model.Address])) =&gt; x$8._1))(RoomsServiceVerticle.this.executionContext).onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[it.cwmp.model.Room], Unit](RoomsServiceVerticle.this.successHandler[it.cwmp.model.Room](((room: it.cwmp.model.Room) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(it.cwmp.model.Room.Converters.RichRoom(room).toJson.encode()))(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          608
+        </td>
+        <td>
+          4642
+          -
+          4646
         </td>
         <td>
           Select
@@ -2344,15 +2347,36 @@
         </td>
       </tr><tr>
         <td>
-          110
+          109
         </td>
         <td>
-          575
+          614
         </td>
         <td>
-          4607
+          4618
           -
-          4757
+          4618
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          613
+        </td>
+        <td>
+          4619
+          -
+          4769
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2368,54 +2392,12 @@
           110
         </td>
         <td>
-          571
+          611
         </td>
         <td>
-          4629
+          4673
           -
-          4629
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          110
-        </td>
-        <td>
-          574
-        </td>
-        <td>
-          4647
-          -
-          4647
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          111
-        </td>
-        <td>
-          573
-        </td>
-        <td>
-          4661
-          -
-          4745
+          4757
         </td>
         <td>
           Apply
@@ -2428,15 +2410,15 @@
         </td>
       </tr><tr>
         <td>
-          111
+          110
         </td>
         <td>
-          572
+          610
         </td>
         <td>
-          4683
+          4695
           -
-          4745
+          4757
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2449,36 +2431,78 @@
         </td>
       </tr><tr>
         <td>
-          113
+          112
         </td>
         <td>
-          578
+          616
         </td>
         <td>
-          4780
+          4792
           -
-          4859
+          4871
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_IDENTIFIER)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          123
+          122
         </td>
         <td>
-          594
+          621
         </td>
         <td>
-          5120
+          5101
           -
-          5120
+          5101
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.validationStrategy
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          630
+        </td>
+        <td>
+          5132
+          -
+          5132
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          5132
+          -
+          5132
         </td>
         <td>
           Literal
@@ -2491,36 +2515,36 @@
         </td>
       </tr><tr>
         <td>
-          123
+          122
         </td>
         <td>
-          582
+          620
         </td>
         <td>
-          5081
+          5093
           -
-          5088
+          5100
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.request(routingContext)
         </td>
       </tr><tr>
         <td>
-          123
+          122
         </td>
         <td>
-          593
+          631
         </td>
         <td>
-          5081
+          5093
           -
-          5482
+          5494
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2539,12 +2563,33 @@
           123
         </td>
         <td>
-          592
+          622
         </td>
         <td>
-          5120
+          5158
           -
-          5120
+          5200
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.getRequestParameter
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_IDENTIFIER)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          627
+        </td>
+        <td>
+          5261
+          -
+          5261
         </td>
         <td>
           Select
@@ -2557,57 +2602,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          125
         </td>
         <td>
-          583
+          626
         </td>
         <td>
-          5089
+          5262
           -
-          5089
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.validationStrategy
-        </td>
-      </tr><tr>
-        <td>
-          124
-        </td>
-        <td>
-          584
-        </td>
-        <td>
-          5146
-          -
-          5188
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.getRequestParameter
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_IDENTIFIER)(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          126
-        </td>
-        <td>
-          588
-        </td>
-        <td>
-          5250
-          -
-          5365
+          5377
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2620,15 +2623,36 @@
         </td>
       </tr><tr>
         <td>
-          126
+          125
         </td>
         <td>
-          590
+          625
         </td>
         <td>
-          5236
+          5292
           -
-          5366
+          5292
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          628
+        </td>
+        <td>
+          5248
+          -
+          5378
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2644,75 +2668,12 @@
           126
         </td>
         <td>
-          587
+          624
         </td>
         <td>
-          5280
+          5306
           -
-          5280
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          126
-        </td>
-        <td>
-          589
-        </td>
-        <td>
-          5249
-          -
-          5249
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          127
-        </td>
-        <td>
-          585
-        </td>
-        <td>
-          5316
-          -
-          5353
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.successHandler
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.successHandler[Unit](((x$10: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          127
-        </td>
-        <td>
-          586
-        </td>
-        <td>
-          5294
-          -
-          5353
+          5365
         </td>
         <td>
           Apply
@@ -2725,36 +2686,99 @@
         </td>
       </tr><tr>
         <td>
-          129
+          126
         </td>
         <td>
-          591
+          623
         </td>
         <td>
-          5388
+          5328
           -
-          5467
+          5365
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.rooms.RoomsServiceVerticle.successHandler
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.successHandler[Unit](((x$10: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          629
+        </td>
+        <td>
+          5400
+          -
+          5479
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_IDENTIFIER)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          139
+          138
         </td>
         <td>
-          603
+          633
         </td>
         <td>
-          5729
+          5702
           -
-          5729
+          5709
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.request(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          5702
+          -
+          5949
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.RichHttpRequest(RoomsServiceVerticle.this.request(routingContext)).checkAuthenticationOrReject(RoomsServiceVerticle.this.validationStrategy, routingContext).map[scala.concurrent.Future[Unit]](((x$11: it.cwmp.model.User) =&gt; RoomsServiceVerticle.this.daoFuture.map[Unit](((x$12: it.cwmp.services.rooms.RoomDAO) =&gt; x$12.listPublicRooms().onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[Seq[it.cwmp.model.Room]], Unit](RoomsServiceVerticle.this.successHandler[Seq[it.cwmp.model.Room]](((rooms: Seq[it.cwmp.model.Room]) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(rooms.foldLeft[io.vertx.lang.scala.json.JsonArray](io.vertx.lang.scala.json.Json.emptyArr())(((x$13: io.vertx.lang.scala.json.JsonArray, x$14: it.cwmp.model.Room) =&gt; x$13.add(it.cwmp.model.Room.Converters.RichRoom(x$14).toJson))).encode()))(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          5741
+          -
+          5741
         </td>
         <td>
           Select
@@ -2767,15 +2791,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          138
         </td>
         <td>
-          596
+          634
         </td>
         <td>
-          5698
+          5710
           -
-          5698
+          5710
         </td>
         <td>
           Select
@@ -2788,15 +2812,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          138
         </td>
         <td>
-          605
+          643
         </td>
         <td>
-          5729
+          5741
           -
-          5729
+          5741
         </td>
         <td>
           Literal
@@ -2812,54 +2836,33 @@
           139
         </td>
         <td>
-          595
+          639
         </td>
         <td>
-          5690
+          5766
           -
-          5697
+          5766
         </td>
         <td>
-          ApplyToImplicitArgs
+          Select
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          io.vertx.lang.scala.ScalaVerticle.executionContext
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
+          RoomsServiceVerticle.this.executionContext
         </td>
       </tr><tr>
         <td>
           139
         </td>
         <td>
-          604
+          638
         </td>
         <td>
-          5690
+          5767
           -
-          5937
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.RichHttpRequest(RoomsServiceVerticle.this.request(routingContext)).checkAuthenticationOrReject(RoomsServiceVerticle.this.validationStrategy, routingContext).map[scala.concurrent.Future[Unit]](((x$11: it.cwmp.model.User) =&gt; RoomsServiceVerticle.this.daoFuture.map[Unit](((x$12: it.cwmp.services.rooms.RoomDAO) =&gt; x$12.listPublicRooms().onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[Seq[it.cwmp.model.Room]], Unit](RoomsServiceVerticle.this.successHandler[Seq[it.cwmp.model.Room]](((rooms: Seq[it.cwmp.model.Room]) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(rooms.foldLeft[io.vertx.lang.scala.json.JsonArray](io.vertx.lang.scala.json.Json.emptyArr())(((x$13: io.vertx.lang.scala.json.JsonArray, x$14: it.cwmp.model.Room) =&gt; x$13.add(it.cwmp.model.Room.Converters.RichRoom(x$14).toJson))).encode()))(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
-        </td>
-      </tr><tr>
-        <td>
-          140
-        </td>
-        <td>
-          600
-        </td>
-        <td>
-          5755
-          -
-          5935
+          5947
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2872,36 +2875,15 @@
         </td>
       </tr><tr>
         <td>
-          140
+          139
         </td>
         <td>
-          599
+          640
         </td>
         <td>
-          5786
+          5753
           -
-          5786
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          140
-        </td>
-        <td>
-          602
-        </td>
-        <td>
-          5741
-          -
-          5936
+          5948
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2914,15 +2896,15 @@
         </td>
       </tr><tr>
         <td>
-          140
+          139
         </td>
         <td>
-          601
+          637
         </td>
         <td>
-          5754
+          5798
           -
-          5754
+          5798
         </td>
         <td>
           Select
@@ -2935,15 +2917,15 @@
         </td>
       </tr><tr>
         <td>
-          141
+          140
         </td>
         <td>
-          598
+          636
         </td>
         <td>
-          5796
+          5808
           -
-          5927
+          5939
         </td>
         <td>
           Apply
@@ -2956,15 +2938,15 @@
         </td>
       </tr><tr>
         <td>
-          142
+          141
         </td>
         <td>
-          597
+          635
         </td>
         <td>
-          5828
+          5840
           -
-          5927
+          5939
         </td>
         <td>
           ApplyToImplicitArgs
@@ -2977,15 +2959,36 @@
         </td>
       </tr><tr>
         <td>
-          151
+          150
         </td>
         <td>
-          627
+          666
         </td>
         <td>
-          6147
+          6178
           -
-          7125
+          6178
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          150
+        </td>
+        <td>
+          665
+        </td>
+        <td>
+          6159
+          -
+          7137
         </td>
         <td>
           Apply
@@ -3023,96 +3026,33 @@
           151
         </td>
         <td>
-          628
+          645
         </td>
         <td>
-          6166
+          6201
           -
-          6166
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          152
-        </td>
-        <td>
-          606
-        </td>
-        <td>
-          6181
-          -
-          6188
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.request
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          152
-        </td>
-        <td>
-          624
-        </td>
-        <td>
-          6220
-          -
-          6220
+          6201
         </td>
         <td>
           Select
         </td>
         <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
+          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
+          RoomsServiceVerticle.this.validationStrategy
         </td>
       </tr><tr>
         <td>
-          152
+          151
         </td>
         <td>
-          626
+          663
         </td>
         <td>
-          6220
+          6193
           -
-          6220
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          152
-        </td>
-        <td>
-          625
-        </td>
-        <td>
-          6181
-          -
-          7124
+          7136
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3144,141 +3084,36 @@
         </td>
       </tr><tr>
         <td>
-          152
+          151
         </td>
         <td>
-          607
+          644
         </td>
         <td>
-          6189
+          6193
           -
-          6189
+          6200
         </td>
         <td>
-          Select
+          ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.validationStrategy
+          RoomsServiceVerticle.this.request(routingContext)
         </td>
       </tr><tr>
         <td>
-          153
+          151
         </td>
         <td>
-          609
+          662
         </td>
         <td>
-          6320
+          6232
           -
-          6327
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.immutable.StringLike.toInt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(x$15).toInt
-        </td>
-      </tr><tr>
-        <td>
-          153
-        </td>
-        <td>
-          608
-        </td>
-        <td>
-          6289
-          -
-          6314
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-      </tr><tr>
-        <td>
-          153
-        </td>
-        <td>
-          611
-        </td>
-        <td>
-          6269
-          -
-          6328
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$15: String) =&gt; scala.Predef.augmentString(x$15).toInt))
-        </td>
-      </tr><tr>
-        <td>
-          153
-        </td>
-        <td>
-          610
-        </td>
-        <td>
-          6269
-          -
-          6328
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$15: String) =&gt; scala.Predef.augmentString(x$15).toInt))
-        </td>
-      </tr><tr>
-        <td>
-          155
-        </td>
-        <td>
-          612
-        </td>
-        <td>
-          6376
-          -
-          6380
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #AEF1AE">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          159
-        </td>
-        <td>
-          621
-        </td>
-        <td>
-          6543
-          -
-          6543
+          6232
         </td>
         <td>
           Select
@@ -3291,57 +3126,141 @@
         </td>
       </tr><tr>
         <td>
-          159
+          151
         </td>
         <td>
-          615
+          664
         </td>
         <td>
-          6595
+          6232
           -
-          6643
+          6232
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          152
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          6281
+          -
+          6340
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.model.Participant.apply
+          scala.Option.map
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.model.Participant.apply(user.username, addresses._1.address)
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$15: String) =&gt; scala.Predef.augmentString(x$15).toInt))
         </td>
       </tr><tr>
         <td>
-          159
+          152
         </td>
         <td>
-          614
+          647
         </td>
         <td>
-          6622
+          6332
           -
-          6642
+          6339
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Address.address
+          scala.collection.immutable.StringLike.toInt
         </td>
         <td style="background: #AEF1AE">
-          addresses._1.address
+          scala.Predef.augmentString(x$15).toInt
         </td>
       </tr><tr>
         <td>
-          159
+          152
         </td>
         <td>
-          622
+          646
         </td>
         <td>
-          6530
+          6301
           -
-          6829
+          6326
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          152
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          6281
+          -
+          6340
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$15: String) =&gt; scala.Predef.augmentString(x$15).toInt))
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          6388
+          -
+          6392
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #AEF1AE">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          6542
+          -
+          6841
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3357,36 +3276,15 @@
         </td>
       </tr><tr>
         <td>
-          159
+          158
         </td>
         <td>
-          613
+          654
         </td>
         <td>
-          6607
-          -
-          6620
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.User.username
-        </td>
-        <td style="background: #AEF1AE">
-          user.username
-        </td>
-      </tr><tr>
-        <td>
-          159
-        </td>
-        <td>
-          616
-        </td>
-        <td>
-          6645
-          -
           6657
+          -
+          6669
         </td>
         <td>
           Select
@@ -3399,15 +3297,120 @@
         </td>
       </tr><tr>
         <td>
-          160
+          158
         </td>
         <td>
-          620
+          651
         </td>
         <td>
-          6560
+          6619
           -
-          6828
+          6632
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.User.username
+        </td>
+        <td style="background: #AEF1AE">
+          user.username
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          6555
+          -
+          6555
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          6607
+          -
+          6655
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Participant.apply
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Participant.apply(user.username, addresses._1.address)
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          6634
+          -
+          6654
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.address
+        </td>
+        <td style="background: #AEF1AE">
+          addresses._1.address
+        </td>
+      </tr><tr>
+        <td>
+          159
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          6697
+          -
+          6697
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          159
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          6572
+          -
+          6840
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3426,33 +3429,12 @@
           160
         </td>
         <td>
-          619
+          656
         </td>
         <td>
-          6685
+          6715
           -
-          6685
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          161
-        </td>
-        <td>
-          618
-        </td>
-        <td>
-          6703
-          -
-          6812
+          6824
         </td>
         <td>
           Apply
@@ -3468,15 +3450,15 @@
         </td>
       </tr><tr>
         <td>
-          161
+          160
         </td>
         <td>
-          617
+          655
         </td>
         <td>
-          6725
+          6737
           -
-          6812
+          6824
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3492,36 +3474,57 @@
         </td>
       </tr><tr>
         <td>
-          166
+          165
         </td>
         <td>
-          623
+          661
         </td>
         <td>
-          6994
+          7006
           -
-          7105
+          7117
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot; or &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS, it.cwmp.model.Address.FIELD_ADDRESS)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          176
+          175
         </td>
         <td>
-          648
+          684
         </td>
         <td>
-          7379
+          7391
           -
-          7379
+          7391
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          175
+        </td>
+        <td>
+          686
+        </td>
+        <td>
+          7391
+          -
+          7391
         </td>
         <td>
           Literal
@@ -3534,15 +3537,15 @@
         </td>
       </tr><tr>
         <td>
-          176
+          175
         </td>
         <td>
-          630
+          668
         </td>
         <td>
-          7348
+          7360
           -
-          7348
+          7360
         </td>
         <td>
           Select
@@ -3555,36 +3558,15 @@
         </td>
       </tr><tr>
         <td>
-          176
+          175
         </td>
         <td>
-          629
+          685
         </td>
         <td>
-          7340
+          7352
           -
-          7347
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.request
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          176
-        </td>
-        <td>
-          647
-        </td>
-        <td>
-          7340
-          -
-          7973
+          7985
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3626,78 +3608,36 @@
         </td>
       </tr><tr>
         <td>
+          175
+        </td>
+        <td>
+          667
+        </td>
+        <td>
+          7352
+          -
+          7359
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.request(routingContext)
+        </td>
+      </tr><tr>
+        <td>
           176
         </td>
         <td>
-          646
+          669
         </td>
         <td>
-          7379
+          7430
           -
-          7379
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          177
-        </td>
-        <td>
-          633
-        </td>
-        <td>
-          7398
-          -
-          7457
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$19: String) =&gt; scala.Predef.augmentString(x$19).toInt))
-        </td>
-      </tr><tr>
-        <td>
-          177
-        </td>
-        <td>
-          632
-        </td>
-        <td>
-          7449
-          -
-          7456
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.immutable.StringLike.toInt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(x$19).toInt
-        </td>
-      </tr><tr>
-        <td>
-          177
-        </td>
-        <td>
-          631
-        </td>
-        <td>
-          7418
-          -
-          7443
+          7455
         </td>
         <td>
           Select
@@ -3710,15 +3650,15 @@
         </td>
       </tr><tr>
         <td>
-          177
+          176
         </td>
         <td>
-          634
+          672
         </td>
         <td>
-          7398
+          7410
           -
-          7457
+          7469
         </td>
         <td>
           Block
@@ -3731,15 +3671,57 @@
         </td>
       </tr><tr>
         <td>
-          179
+          176
         </td>
         <td>
-          635
+          671
         </td>
         <td>
-          7501
+          7410
           -
-          7505
+          7469
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$19: String) =&gt; scala.Predef.augmentString(x$19).toInt))
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          670
+        </td>
+        <td>
+          7461
+          -
+          7468
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toInt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(x$19).toInt
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          673
+        </td>
+        <td>
+          7513
+          -
+          7517
         </td>
         <td>
           Select
@@ -3752,36 +3734,57 @@
         </td>
       </tr><tr>
         <td>
-          182
+          181
         </td>
         <td>
-          636
+          681
         </td>
         <td>
-          7619
+          7594
           -
-          7623
+          7594
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.Tuple2._1
+          io.vertx.lang.scala.ScalaVerticle.executionContext
         </td>
         <td style="background: #AEF1AE">
-          x$21._1
+          RoomsServiceVerticle.this.executionContext
         </td>
       </tr><tr>
         <td>
-          182
+          181
         </td>
         <td>
-          642
+          675
         </td>
         <td>
-          7583
+          7630
           -
-          7748
+          7630
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          680
+        </td>
+        <td>
+          7595
+          -
+          7760
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3810,36 +3813,36 @@
         </td>
       </tr><tr>
         <td>
-          182
+          181
         </td>
         <td>
-          641
+          674
         </td>
         <td>
-          7636
+          7631
           -
-          7636
+          7635
         </td>
         <td>
           Select
         </td>
         <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
+          scala.Tuple2._1
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
+          x$21._1
         </td>
       </tr><tr>
         <td>
-          182
+          181
         </td>
         <td>
-          644
+          682
         </td>
         <td>
-          7569
+          7581
           -
-          7749
+          7761
         </td>
         <td>
           ApplyToImplicitArgs
@@ -3868,15 +3871,15 @@
         </td>
       </tr><tr>
         <td>
-          182
+          181
         </td>
         <td>
-          643
+          679
         </td>
         <td>
-          7582
+          7648
           -
-          7582
+          7648
         </td>
         <td>
           Select
@@ -3892,75 +3895,12 @@
           182
         </td>
         <td>
-          637
+          678
         </td>
         <td>
-          7618
+          7662
           -
-          7618
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          639
-        </td>
-        <td>
-          7672
-          -
-          7672
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          638
-        </td>
-        <td>
-          7696
-          -
-          7734
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.sendResponse
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(it.cwmp.model.Room.Converters.RichRoom(room).toJson.encode()))(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          183
-        </td>
-        <td>
-          640
-        </td>
-        <td>
-          7650
-          -
-          7736
+          7748
         </td>
         <td>
           Apply
@@ -3989,99 +3929,99 @@
         </td>
       </tr><tr>
         <td>
-          187
+          182
         </td>
         <td>
-          645
+          677
         </td>
         <td>
-          7875
+          7684
           -
-          7958
+          7684
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          182
+        </td>
+        <td>
+          676
+        </td>
+        <td>
+          7708
+          -
+          7746
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(it.cwmp.model.Room.Converters.RichRoom(room).toJson.encode()))(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          186
+        </td>
+        <td>
+          683
+        </td>
+        <td>
+          7887
+          -
+          7970
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          197
+          196
         </td>
         <td>
-          663
+          687
         </td>
         <td>
-          8216
+          8189
           -
-          8216
+          8196
         </td>
         <td>
-          Select
+          ApplyToImplicitArgs
         </td>
         <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
+          RoomsServiceVerticle.this.request(routingContext)
         </td>
       </tr><tr>
         <td>
-          197
+          196
         </td>
         <td>
-          650
+          702
         </td>
         <td>
-          8185
+          8189
           -
-          8185
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.validationStrategy
-        </td>
-      </tr><tr>
-        <td>
-          197
-        </td>
-        <td>
-          665
-        </td>
-        <td>
-          8216
-          -
-          8216
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          197
-        </td>
-        <td>
-          664
-        </td>
-        <td>
-          8177
-          -
-          8764
+          8776
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4107,141 +4047,15 @@
         </td>
       </tr><tr>
         <td>
-          197
+          196
         </td>
         <td>
-          649
+          701
         </td>
         <td>
-          8177
+          8228
           -
-          8184
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.request
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.request(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          198
-        </td>
-        <td>
-          654
-        </td>
-        <td>
-          8247
-          -
-          8306
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$22: String) =&gt; scala.Predef.augmentString(x$22).toInt))
-        </td>
-      </tr><tr>
-        <td>
-          198
-        </td>
-        <td>
-          651
-        </td>
-        <td>
-          8267
-          -
-          8292
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-      </tr><tr>
-        <td>
-          198
-        </td>
-        <td>
-          653
-        </td>
-        <td>
-          8247
-          -
-          8306
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$22: String) =&gt; scala.Predef.augmentString(x$22).toInt))
-        </td>
-      </tr><tr>
-        <td>
-          198
-        </td>
-        <td>
-          652
-        </td>
-        <td>
-          8298
-          -
-          8305
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.collection.immutable.StringLike.toInt
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Predef.augmentString(x$22).toInt
-        </td>
-      </tr><tr>
-        <td>
-          200
-        </td>
-        <td>
-          655
-        </td>
-        <td>
-          8350
-          -
-          8354
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.None
-        </td>
-        <td style="background: #F0ADAD">
-          scala.None
-        </td>
-      </tr><tr>
-        <td>
-          203
-        </td>
-        <td>
-          660
-        </td>
-        <td>
-          8424
-          -
-          8424
+          8228
         </td>
         <td>
           Select
@@ -4254,15 +4068,225 @@
         </td>
       </tr><tr>
         <td>
-          203
+          196
         </td>
         <td>
-          659
+          703
         </td>
         <td>
-          8425
+          8228
           -
-          8546
+          8228
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          8197
+          -
+          8197
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.validationStrategy
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.validationStrategy
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          690
+        </td>
+        <td>
+          8310
+          -
+          8317
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.toInt
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.augmentString(x$22).toInt
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          8259
+          -
+          8318
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$22: String) =&gt; scala.Predef.augmentString(x$22).toInt))
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          689
+        </td>
+        <td>
+          8279
+          -
+          8304
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          197
+        </td>
+        <td>
+          691
+        </td>
+        <td>
+          8259
+          -
+          8318
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.getRequestParameter(it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)(routingContext).map[Int](((x$22: String) =&gt; scala.Predef.augmentString(x$22).toInt))
+        </td>
+      </tr><tr>
+        <td>
+          199
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          8362
+          -
+          8366
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #F0ADAD">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          8473
+          -
+          8473
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          8423
+          -
+          8559
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.daoFuture.map[Unit](((x$23: it.cwmp.services.rooms.RoomDAO) =&gt; x$23.exitPublicRoom(roomId)(user).onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[Unit], Unit](RoomsServiceVerticle.this.successHandler[Unit](((x$24: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          698
+        </td>
+        <td>
+          8436
+          -
+          8436
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          RoomsServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          8437
+          -
+          8558
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4278,54 +4302,12 @@
           203
         </td>
         <td>
-          658
+          695
         </td>
         <td>
-          8461
+          8487
           -
-          8461
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          203
-        </td>
-        <td>
-          661
-        </td>
-        <td>
-          8411
-          -
-          8547
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          RoomsServiceVerticle.this.daoFuture.map[Unit](((x$23: it.cwmp.services.rooms.RoomDAO) =&gt; x$23.exitPublicRoom(roomId)(user).onComplete[Unit](RoomsServiceVerticle.this.failureHandler(routingContext).orElse[scala.util.Try[Unit], Unit](RoomsServiceVerticle.this.successHandler[Unit](((x$24: Unit) =&gt; RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), RoomsServiceVerticle.this.sendResponse$default$2)(routingContext)))(routingContext)))(RoomsServiceVerticle.this.executionContext)))(RoomsServiceVerticle.this.executionContext)
-        </td>
-      </tr><tr>
-        <td>
-          204
-        </td>
-        <td>
-          657
-        </td>
-        <td>
-          8475
-          -
-          8534
+          8546
         </td>
         <td>
           Apply
@@ -4338,15 +4320,15 @@
         </td>
       </tr><tr>
         <td>
-          204
+          203
         </td>
         <td>
-          656
+          694
         </td>
         <td>
-          8497
+          8509
           -
-          8534
+          8546
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4359,36 +4341,36 @@
         </td>
       </tr><tr>
         <td>
-          208
+          207
         </td>
         <td>
-          662
+          700
         </td>
         <td>
-          8666
+          8678
           -
-          8749
+          8761
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot;&quot;).s(it.cwmp.services.rooms.RoomsServiceVerticle.INVALID_PARAMETER_ERROR, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)))(routingContext)
         </td>
       </tr><tr>
         <td>
-          224
+          223
         </td>
         <td>
-          666
+          704
         </td>
         <td>
-          9245
+          9257
           -
-          9448
+          9460
         </td>
         <td>
           Apply
@@ -4401,15 +4383,15 @@
         </td>
       </tr><tr>
         <td>
-          237
+          236
         </td>
         <td>
-          667
+          705
         </td>
         <td>
-          9926
+          9938
           -
-          10166
+          10178
         </td>
         <td>
           Apply
@@ -4422,15 +4404,15 @@
         </td>
       </tr><tr>
         <td>
-          255
+          254
         </td>
         <td>
-          668
+          706
         </td>
         <td>
-          10771
+          10783
           -
-          11446
+          11458
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4458,15 +4440,36 @@
         </td>
       </tr><tr>
         <td>
-          271
+          270
         </td>
         <td>
-          669
+          708
         </td>
         <td>
-          12084
+          12071
           -
-          12084
+          12144
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #AEF1AE">
+          roomInformation._2.map[it.cwmp.model.Address, Seq[it.cwmp.model.Address]](((notificationAddress: it.cwmp.model.Address) =&gt; notificationAddress))(collection.this.Seq.canBuildFrom[it.cwmp.model.Address])
+        </td>
+      </tr><tr>
+        <td>
+          270
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          12096
+          -
+          12096
         </td>
         <td>
           TypeApply
@@ -4482,33 +4485,12 @@
           271
         </td>
         <td>
-          670
+          710
         </td>
         <td>
-          12059
+          12163
           -
-          12132
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.TraversableLike.map
-        </td>
-        <td style="background: #AEF1AE">
-          roomInformation._2.map[it.cwmp.model.Address, Seq[it.cwmp.model.Address]](((notificationAddress: it.cwmp.model.Address) =&gt; notificationAddress))(collection.this.Seq.canBuildFrom[it.cwmp.model.Address])
-        </td>
-      </tr><tr>
-        <td>
-          272
-        </td>
-        <td>
-          672
-        </td>
-        <td>
-          12151
-          -
-          12211
+          12223
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4521,15 +4503,15 @@
         </td>
       </tr><tr>
         <td>
-          272
+          271
         </td>
         <td>
-          671
+          709
         </td>
         <td>
-          12163
+          12175
           -
-          12163
+          12175
         </td>
         <td>
           TypeApply
@@ -4542,15 +4524,15 @@
         </td>
       </tr><tr>
         <td>
-          277
+          276
         </td>
         <td>
-          673
+          711
         </td>
         <td>
-          12352
+          12364
           -
-          12550
+          12562
         </td>
         <td>
           ApplyToImplicitArgs
@@ -4566,15 +4548,15 @@ else
         </td>
       </tr><tr>
         <td>
-          283
+          282
         </td>
         <td>
-          676
+          714
         </td>
         <td>
-          12734
+          12746
           -
-          12734
+          12746
         </td>
         <td>
           Apply
@@ -4587,57 +4569,57 @@ else
         </td>
       </tr><tr>
         <td>
-          284
+          283
         </td>
         <td>
-          674
+          712
         </td>
         <td>
-          12784
+          12796
           -
-          12822
+          12834
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND), it.cwmp.utils.Utils.stringToOption(ex.getMessage()))(routingContext)
         </td>
       </tr><tr>
         <td>
-          285
+          284
         </td>
         <td>
-          675
+          713
         </td>
         <td>
-          12847
+          12859
           -
-          12887
+          12899
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           RoomsServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), it.cwmp.utils.Utils.stringToOption(ex.getMessage()))(routingContext)
         </td>
       </tr><tr>
         <td>
-          291
+          290
         </td>
         <td>
-          678
+          716
         </td>
         <td>
-          13120
+          13132
           -
-          13120
+          13132
         </td>
         <td>
           Apply
@@ -4650,15 +4632,15 @@ else
         </td>
       </tr><tr>
         <td>
-          292
+          291
         </td>
         <td>
-          677
+          715
         </td>
         <td>
-          13157
+          13169
           -
-          13178
+          13190
         </td>
         <td>
           Apply
@@ -4671,15 +4653,15 @@ else
         </td>
       </tr><tr>
         <td>
-          304
+          303
         </td>
         <td>
-          679
+          717
         </td>
         <td>
-          13408
+          13420
           -
-          13483
+          13507
         </td>
         <td>
           Apply
@@ -4688,19 +4670,40 @@ else
           it.cwmp.services.rooms.RoomsServiceVerticle.&lt;init&gt;
         </td>
         <td style="background: #AEF1AE">
-          new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+          new RoomsServiceVerticle(it.cwmp.services.rooms.Service.DEFAULT_PORT)(validationStrategy, clientCommunicationStrategy)
         </td>
       </tr><tr>
         <td>
-          306
+          307
         </td>
         <td>
-          680
+          718
         </td>
         <td>
-          13533
+          13695
           -
-          13555
+          13774
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new RoomsServiceVerticle(port)(validationStrategy, clientCommunicationStrategy)
+        </td>
+      </tr><tr>
+        <td>
+          309
+        </td>
+        <td>
+          719
+        </td>
+        <td>
+          13824
+          -
+          13846
         </td>
         <td>
           Literal
@@ -4713,15 +4716,15 @@ else
         </td>
       </tr><tr>
         <td>
-          313
+          316
         </td>
         <td>
-          695
+          734
         </td>
         <td>
-          13753
+          14044
           -
-          14138
+          14429
         </td>
         <td>
           Block
@@ -4742,15 +4745,15 @@ else
         </td>
       </tr><tr>
         <td>
-          314
+          317
         </td>
         <td>
-          681
+          720
         </td>
         <td>
-          13769
+          14060
           -
-          13785
+          14076
         </td>
         <td>
           Apply
@@ -4763,15 +4766,15 @@ else
         </td>
       </tr><tr>
         <td>
-          315
+          318
         </td>
         <td>
-          682
+          721
         </td>
         <td>
-          13814
+          14105
           -
-          13840
+          14131
         </td>
         <td>
           Apply
@@ -4784,15 +4787,15 @@ else
         </td>
       </tr><tr>
         <td>
-          316
+          319
         </td>
         <td>
-          683
+          722
         </td>
         <td>
-          13881
+          14172
           -
-          13907
+          14198
         </td>
         <td>
           Apply
@@ -4805,15 +4808,36 @@ else
         </td>
       </tr><tr>
         <td>
-          317
+          320
         </td>
         <td>
-          687
+          723
         </td>
         <td>
-          13918
+          14238
           -
-          14036
+          14259
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Address.FIELD_ADDRESS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Address.FIELD_ADDRESS
+        </td>
+      </tr><tr>
+        <td>
+          320
+        </td>
+        <td>
+          726
+        </td>
+        <td>
+          14209
+          -
+          14327
         </td>
         <td>
           Apply
@@ -4826,36 +4850,15 @@ else
         </td>
       </tr><tr>
         <td>
-          317
+          320
         </td>
         <td>
-          684
+          725
         </td>
         <td>
-          13947
+          14265
           -
-          13968
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Address.FIELD_ADDRESS
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Address.FIELD_ADDRESS
-        </td>
-      </tr><tr>
-        <td>
-          317
-        </td>
-        <td>
-          686
-        </td>
-        <td>
-          13974
-          -
-          14035
+          14326
         </td>
         <td>
           Apply
@@ -4868,15 +4871,15 @@ else
         </td>
       </tr><tr>
         <td>
-          317
+          320
         </td>
         <td>
-          685
+          724
         </td>
         <td>
-          14014
+          14305
           -
-          14035
+          14326
         </td>
         <td>
           Select
@@ -4889,15 +4892,15 @@ else
         </td>
       </tr><tr>
         <td>
-          318
+          321
         </td>
         <td>
-          690
+          729
         </td>
         <td>
-          14053
+          14344
           -
-          14119
+          14410
         </td>
         <td>
           Apply
@@ -4910,36 +4913,15 @@ else
         </td>
       </tr><tr>
         <td>
-          318
+          321
         </td>
         <td>
-          692
+          728
         </td>
         <td>
-          14048
+          14372
           -
-          14120
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          scala.Some.apply
-        </td>
-        <td style="background: #AEF1AE">
-          scala.Some.apply[(it.cwmp.model.Address, it.cwmp.model.Address)](scala.Tuple2.apply[it.cwmp.model.Address, it.cwmp.model.Address](it.cwmp.model.Address.Converters.JsonToAddressConverter(userAddressJson).toAddress, it.cwmp.model.Address.Converters.JsonToAddressConverter(userNotificationAddressJson).toAddress))
-        </td>
-      </tr><tr>
-        <td>
-          318
-        </td>
-        <td>
-          689
-        </td>
-        <td>
-          14081
-          -
-          14118
+          14409
         </td>
         <td>
           Select
@@ -4952,18 +4934,18 @@ else
         </td>
       </tr><tr>
         <td>
-          318
+          321
         </td>
         <td>
-          691
+          731
         </td>
         <td>
-          14048
+          14339
           -
-          14120
+          14411
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
           scala.Some.apply
@@ -4973,15 +4955,15 @@ else
         </td>
       </tr><tr>
         <td>
-          318
+          321
         </td>
         <td>
-          688
+          727
         </td>
         <td>
-          14054
+          14345
           -
-          14079
+          14370
         </td>
         <td>
           Select
@@ -4994,15 +4976,36 @@ else
         </td>
       </tr><tr>
         <td>
-          319
+          321
         </td>
         <td>
-          693
+          730
         </td>
         <td>
-          14134
+          14339
           -
-          14138
+          14411
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[(it.cwmp.model.Address, it.cwmp.model.Address)](scala.Tuple2.apply[it.cwmp.model.Address, it.cwmp.model.Address](it.cwmp.model.Address.Converters.JsonToAddressConverter(userAddressJson).toAddress, it.cwmp.model.Address.Converters.JsonToAddressConverter(userNotificationAddressJson).toAddress))
+        </td>
+      </tr><tr>
+        <td>
+          322
+        </td>
+        <td>
+          732
+        </td>
+        <td>
+          14425
+          -
+          14429
         </td>
         <td>
           Select
@@ -5015,15 +5018,15 @@ else
         </td>
       </tr><tr>
         <td>
-          319
+          322
         </td>
         <td>
-          694
+          733
         </td>
         <td>
-          14134
+          14425
           -
-          14138
+          14429
         </td>
         <td>
           Block
@@ -5036,15 +5039,15 @@ else
         </td>
       </tr><tr>
         <td>
-          321
+          324
         </td>
         <td>
-          696
+          735
         </td>
         <td>
-          14180
+          14471
           -
-          14184
+          14475
         </td>
         <td>
           Select
@@ -5057,15 +5060,15 @@ else
         </td>
       </tr><tr>
         <td>
-          328
+          331
         </td>
         <td>
-          698
+          737
         </td>
         <td>
-          14293
+          14584
           -
-          14343
+          14634
         </td>
         <td>
           Apply
@@ -5078,15 +5081,15 @@ else
         </td>
       </tr><tr>
         <td>
-          328
+          331
         </td>
         <td>
-          697
+          736
         </td>
         <td>
-          14319
+          14610
           -
-          14343
+          14634
         </td>
         <td>
           Select

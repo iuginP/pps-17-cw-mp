@@ -1,0 +1,1543 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/discovery/DiscoveryServiceVerticle.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.discovery
+</span>2 <span style=''>
+</span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus._
+</span>4 <span style=''>import io.vertx.core.Handler
+</span>5 <span style=''>import io.vertx.core.json.JsonObject
+</span>6 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
+</span>7 <span style=''>import io.vertx.scala.servicediscovery.types.HttpEndpoint
+</span>8 <span style=''>import io.vertx.scala.servicediscovery.{Record, ServiceDiscovery, ServiceDiscoveryOptions}
+</span>9 <span style=''>import io.vertx.servicediscovery.Status
+</span>10 <span style=''>import it.cwmp.services.VertxServer
+</span>11 <span style=''>import it.cwmp.services.discovery.Service._
+</span>12 <span style=''>import it.cwmp.utils.Logging
+</span>13 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
+</span>14 <span style=''>
+</span>15 <span style=''>import scala.concurrent.Future
+</span>16 <span style=''>import scala.util.{Failure, Success}
+</span>17 <span style=''>
+</span>18 <span style=''>/**
+</span>19 <span style=''>  * This class represents the verticle containing the discovery web service.
+</span>20 <span style=''>  * This verticle is composed by the web handler and the ServiceDiscovery.
+</span>21 <span style=''>  * It is a middleware used to publish, un-publish and lookup for a specific type of service.
+</span>22 <span style=''>  *
+</span>23 <span style=''>  * @param serverPort The port on which the web handler have to listen.
+</span>24 <span style=''>  */
+</span>25 <span style=''>case class DiscoveryServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT) extends VertxServer with Logging {
+</span>26 <span style=''>
+</span>27 <span style=''>  var discovery: ServiceDiscovery = _
+</span>28 <span style=''>
+</span>29 <span style=''>  override protected def initServer: Future[_] = {
+</span>30 <span style=''>    </span><span style='background: #AEF1AE'>discovery = ServiceDiscovery.create(vertx,
+</span>31 <span style=''></span><span style='background: #AEF1AE'>      ServiceDiscoveryOptions()
+</span>32 <span style=''></span><span style='background: #AEF1AE'>        .setAnnounceAddress(&quot;service-announce&quot;)
+</span>33 <span style=''></span><span style='background: #AEF1AE'>        .setName(&quot;my-name&quot;))</span><span style=''>
+</span>34 <span style=''>    </span><span style='background: #AEF1AE'>Future.successful(())</span><span style=''>
+</span>35 <span style=''>  }
+</span>36 <span style=''>
+</span>37 <span style=''>  override def stopFuture(): Future[_] = {
+</span>38 <span style=''>    // Before closing the service, the discovery service is closed
+</span>39 <span style=''>    </span><span style='background: #AEF1AE'>discovery.close()</span><span style=''>
+</span>40 <span style=''>    </span><span style='background: #AEF1AE'>super.stopFuture()</span><span style=''>
+</span>41 <span style=''>  }
+</span>42 <span style=''>
+</span>43 <span style=''>  override protected def initRouter(router: Router): Unit = {
+</span>44 <span style=''>    </span><span style='background: #AEF1AE'>router post API_PUBLISH_SERVICE handler handlerPublishService</span><span style=''>
+</span>45 <span style=''>    </span><span style='background: #AEF1AE'>router delete API_UN_PUBLISH_SERVICE handler handlerUnPublishService</span><span style=''>
+</span>46 <span style=''>    </span><span style='background: #AEF1AE'>router get API_DISCOVER_SERVICE handler handlerDiscoverService</span><span style=''>
+</span>47 <span style=''>  }
+</span>48 <span style=''>
+</span>49 <span style=''>  private def handlerPublishService: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>50 <span style=''>    log.debug(&quot;Received publish request.&quot;)
+</span>51 <span style=''>    </span><span style='background: #AEF1AE'>(for (
+</span>52 <span style=''></span><span style='background: #AEF1AE'>      name &lt;- request.getParam(PARAMETER_NAME);
+</span>53 <span style=''></span><span style='background: #AEF1AE'>      host &lt;- request.getParam(PARAMETER_HOST);
+</span>54 <span style=''></span><span style='background: #AEF1AE'>      portString &lt;- request.getParam(PARAMETER_PORT);
+</span>55 <span style=''></span><span style='background: #AEF1AE'>      port = Integer.parseInt(portString);
+</span>56 <span style=''></span><span style='background: #AEF1AE'>      requestRecord = HttpEndpoint.createRecord(name, host, port, &quot;/&quot;)
+</span>57 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>58 <span style=''></span><span style='background: #AEF1AE'>      //publish the service
+</span>59 <span style=''></span><span style='background: #AEF1AE'>      discovery.publishFuture(requestRecord) onComplete {
+</span>60 <span style=''></span><span style='background: #AEF1AE'>        case Success(record) =&gt;
+</span>61 <span style=''></span><span style='background: #AEF1AE'>          // Publication successful
+</span>62 <span style=''></span><span style='background: #AEF1AE'>          log.info(s&quot;Service ${record.getName} successfully published!&quot;)
+</span>63 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(CREATED, Some(record.asJava.toJson.toString))
+</span>64 <span style=''></span><span style='background: #AEF1AE'>        case Failure(_) =&gt;
+</span>65 <span style=''></span><span style='background: #AEF1AE'>          // Publication failed
+</span>66 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST)</span><span style='background: #AEF1AE'>
+</span>67 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>68 <span style=''></span><span style='background: #AEF1AE'>    }) orElse Some(sendResponse(BAD_REQUEST))</span><span style=''>
+</span>69 <span style=''>  }
+</span>70 <span style=''>
+</span>71 <span style=''>  private def handlerUnPublishService: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>72 <span style=''>    log.debug(&quot;Received un-publish request.&quot;)
+</span>73 <span style=''>    </span><span style='background: #AEF1AE'>(for (
+</span>74 <span style=''></span><span style='background: #AEF1AE'>      recordJson &lt;- request.getParam(PARAMETER_REGISTRATION);
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      record &lt;- try {
+</span>76 <span style=''></span><span style='background: #AEF1AE'>        Some(Record.fromJson(new JsonObject(recordJson)))
+</span>77 <span style=''></span><span style='background: #AEF1AE'>      } catch {
+</span>78 <span style=''></span><span style='background: #AEF1AE'>        case _: Throwable =&gt; None
+</span>79 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>80 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>81 <span style=''></span><span style='background: #AEF1AE'>      //publish the service
+</span>82 <span style=''></span><span style='background: #AEF1AE'>      discovery.unpublishFuture(record.getRegistration) onComplete {
+</span>83 <span style=''></span><span style='background: #AEF1AE'>        case Success(_) =&gt;
+</span>84 <span style=''></span><span style='background: #AEF1AE'>          // Un-publication successful
+</span>85 <span style=''></span><span style='background: #AEF1AE'>          log.info(s&quot;Service ${record.getName} successfully un-published!&quot;)
+</span>86 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(OK)
+</span>87 <span style=''></span><span style='background: #AEF1AE'>        case Failure(_) =&gt;
+</span>88 <span style=''></span><span style='background: #AEF1AE'>          // Un-publication failed
+</span>89 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>sendResponse(BAD_REQUEST)</span><span style='background: #AEF1AE'>
+</span>90 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>91 <span style=''></span><span style='background: #AEF1AE'>    }) orElse Some(sendResponse(BAD_REQUEST))</span><span style=''>
+</span>92 <span style=''>  }
+</span>93 <span style=''>
+</span>94 <span style=''>  private def handlerDiscoverService: Handler[RoutingContext] = implicit routingContext =&gt; {
+</span>95 <span style=''>    log.debug(&quot;Received discover request.&quot;)
+</span>96 <span style=''>    </span><span style='background: #AEF1AE'>(for (
+</span>97 <span style=''></span><span style='background: #AEF1AE'>      name &lt;- request.getParam(PARAMETER_NAME)
+</span>98 <span style=''></span><span style='background: #AEF1AE'>    ) yield {
+</span>99 <span style=''></span><span style='background: #AEF1AE'>      //publish the service
+</span>100 <span style=''></span><span style='background: #AEF1AE'>      discovery.getRecordFuture(_.getName == name) onComplete {
+</span>101 <span style=''></span><span style='background: #AEF1AE'>        case Success(record) if record.getStatus == Status.UP =&gt;
+</span>102 <span style=''></span><span style='background: #AEF1AE'>          // Publication successful
+</span>103 <span style=''></span><span style='background: #AEF1AE'>          log.info(s&quot;Service $name successfully found!&quot;)
+</span>104 <span style=''></span><span style='background: #AEF1AE'>          val metadata: JsonObject = record.getLocation
+</span>105 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(OK, Some(metadata.toString))
+</span>106 <span style=''></span><span style='background: #AEF1AE'>        case _ =&gt;
+</span>107 <span style=''></span><span style='background: #AEF1AE'>          // publication failed
+</span>108 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(BAD_REQUEST)
+</span>109 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>110 <span style=''></span><span style='background: #AEF1AE'>    }) orElse Some(sendResponse(BAD_REQUEST))</span><span style=''>
+</span>111 <span style=''>  }
+</span>112 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          1193
+          -
+          1332
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.ServiceDiscovery.create
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.servicediscovery.ServiceDiscovery.create(DiscoveryServiceVerticle.this.vertx, io.vertx.scala.servicediscovery.ServiceDiscoveryOptions.apply().setAnnounceAddress(&quot;service-announce&quot;).setName(&quot;my-name&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          1181
+          -
+          1332
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.discovery_=
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.discovery_=(io.vertx.scala.servicediscovery.ServiceDiscovery.create(DiscoveryServiceVerticle.this.vertx, io.vertx.scala.servicediscovery.ServiceDiscoveryOptions.apply().setAnnounceAddress(&quot;service-announce&quot;).setName(&quot;my-name&quot;)))
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          1217
+          -
+          1222
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.vertx
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.vertx
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          1230
+          -
+          1331
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.ServiceDiscoveryOptions.setName
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.servicediscovery.ServiceDiscoveryOptions.apply().setAnnounceAddress(&quot;service-announce&quot;).setName(&quot;my-name&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          1337
+          -
+          1358
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.successful
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.successful[Unit](())
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          1478
+          -
+          1495
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.ServiceDiscovery.close
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.discovery.close()
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          1500
+          -
+          1518
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.stopFuture
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.super.stopFuture()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          1630
+          -
+          1651
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.handlerPublishService
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.handlerPublishService
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          1602
+          -
+          1621
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.API_PUBLISH_SERVICE
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.API_PUBLISH_SERVICE
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          1590
+          -
+          1651
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.Route.handler
+        </td>
+        <td style="background: #AEF1AE">
+          router.post(it.cwmp.services.discovery.Service.API_PUBLISH_SERVICE).handler(DiscoveryServiceVerticle.this.handlerPublishService)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          1701
+          -
+          1724
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.handlerUnPublishService
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.handlerUnPublishService
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          1670
+          -
+          1692
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.API_UN_PUBLISH_SERVICE
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.API_UN_PUBLISH_SERVICE
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1656
+          -
+          1724
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.Route.handler
+        </td>
+        <td style="background: #AEF1AE">
+          router.delete(it.cwmp.services.discovery.Service.API_UN_PUBLISH_SERVICE).handler(DiscoveryServiceVerticle.this.handlerUnPublishService)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1769
+          -
+          1791
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.handlerDiscoverService
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.handlerDiscoverService
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          1761
+          -
+          1761
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1740
+          -
+          1760
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.API_DISCOVER_SERVICE
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.API_DISCOVER_SERVICE
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1729
+          -
+          1791
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.Route.handler
+        </td>
+        <td style="background: #AEF1AE">
+          router.get(it.cwmp.services.discovery.Service.API_DISCOVER_SERVICE).handler(DiscoveryServiceVerticle.this.handlerDiscoverService)
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1974
+          -
+          1988
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.PARAMETER_NAME
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.PARAMETER_NAME
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          34
+        </td>
+        <td>
+          1997
+          -
+          2619
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_HOST).flatMap[Unit](((host: String) =&gt; DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_PORT).map[(String, Int, io.vertx.scala.servicediscovery.Record)](((portString: String) =&gt; {
+  val port: Int = java.lang.Integer.parseInt(portString);
+  val requestRecord: io.vertx.scala.servicediscovery.Record = io.vertx.scala.servicediscovery.types.HttpEndpoint.createRecord(name, host, port, &quot;/&quot;);
+  scala.Tuple3.apply[String, Int, io.vertx.scala.servicediscovery.Record](portString, port, requestRecord)
+})).map[Unit](((x$1: (String, Int, io.vertx.scala.servicediscovery.Record)) =&gt; (x$1: (String, Int, io.vertx.scala.servicediscovery.Record) @unchecked) match {
+  case (_1: String, _2: Int, _3: io.vertx.scala.servicediscovery.Record)(String, Int, io.vertx.scala.servicediscovery.Record)((portString @ _), (port @ _), (requestRecord @ _)) =&gt; DiscoveryServiceVerticle.this.discovery.publishFuture(requestRecord).onComplete[Unit](((x0$1: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$1 match {
+    case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) =&gt; {
+      (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+        DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully published!&quot;, record.getName)
+      else
+        (): Unit);
+      DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), scala.Some.apply[String](record.asJava.toJson().toString()))(routingContext)
+    }
+    case (exception: Throwable)scala.util.Failure[io.vertx.scala.servicediscovery.Record](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }))(DiscoveryServiceVerticle.this.executionContext)
+}))))
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          2022
+          -
+          2036
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.PARAMETER_HOST
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.PARAMETER_HOST
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          2076
+          -
+          2090
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.PARAMETER_PORT
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.PARAMETER_PORT
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          28
+        </td>
+        <td>
+          2045
+          -
+          2045
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple3.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple3.apply[String, Int, io.vertx.scala.servicediscovery.Record](portString, port, requestRecord)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          33
+        </td>
+        <td>
+          2045
+          -
+          2619
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_PORT).map[(String, Int, io.vertx.scala.servicediscovery.Record)](((portString: String) =&gt; {
+  val port: Int = java.lang.Integer.parseInt(portString);
+  val requestRecord: io.vertx.scala.servicediscovery.Record = io.vertx.scala.servicediscovery.types.HttpEndpoint.createRecord(name, host, port, &quot;/&quot;);
+  scala.Tuple3.apply[String, Int, io.vertx.scala.servicediscovery.Record](portString, port, requestRecord)
+})).map[Unit](((x$1: (String, Int, io.vertx.scala.servicediscovery.Record)) =&gt; (x$1: (String, Int, io.vertx.scala.servicediscovery.Record) @unchecked) match {
+  case (_1: String, _2: Int, _3: io.vertx.scala.servicediscovery.Record)(String, Int, io.vertx.scala.servicediscovery.Record)((portString @ _), (port @ _), (requestRecord @ _)) =&gt; DiscoveryServiceVerticle.this.discovery.publishFuture(requestRecord).onComplete[Unit](((x0$1: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$1 match {
+    case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) =&gt; {
+      (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+        DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully published!&quot;, record.getName)
+      else
+        (): Unit);
+      DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), scala.Some.apply[String](record.asJava.toJson().toString()))(routingContext)
+    }
+    case (exception: Throwable)scala.util.Failure[io.vertx.scala.servicediscovery.Record](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }))(DiscoveryServiceVerticle.this.executionContext)
+}))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          2106
+          -
+          2134
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Integer.parseInt
+        </td>
+        <td style="background: #AEF1AE">
+          java.lang.Integer.parseInt(portString)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          2158
+          -
+          2206
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.types.HttpEndpoint.createRecord
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.servicediscovery.types.HttpEndpoint.createRecord(name, host, port, &quot;/&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          2255
+          -
+          2619
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.discovery.publishFuture(requestRecord).onComplete[Unit](((x0$1: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$1 match {
+  case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully published!&quot;, record.getName)
+    else
+      (): Unit);
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), scala.Some.apply[String](record.asJava.toJson().toString()))(routingContext)
+  }
+  case (exception: Throwable)scala.util.Failure[io.vertx.scala.servicediscovery.Record](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          31
+        </td>
+        <td>
+          2294
+          -
+          2294
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          2458
+          -
+          2516
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), scala.Some.apply[String](record.asJava.toJson().toString()))(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          30
+        </td>
+        <td>
+          2586
+          -
+          2611
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          35
+        </td>
+        <td>
+          2639
+          -
+          2664
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          38
+        </td>
+        <td>
+          2627
+          -
+          2627
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          37
+        </td>
+        <td>
+          1936
+          -
+          2665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.orElse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_NAME).flatMap[Unit](((name: String) =&gt; DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_HOST).flatMap[Unit](((host: String) =&gt; DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_PORT).map[(String, Int, io.vertx.scala.servicediscovery.Record)](((portString: String) =&gt; {
+  val port: Int = java.lang.Integer.parseInt(portString);
+  val requestRecord: io.vertx.scala.servicediscovery.Record = io.vertx.scala.servicediscovery.types.HttpEndpoint.createRecord(name, host, port, &quot;/&quot;);
+  scala.Tuple3.apply[String, Int, io.vertx.scala.servicediscovery.Record](portString, port, requestRecord)
+})).map[Unit](((x$1: (String, Int, io.vertx.scala.servicediscovery.Record)) =&gt; (x$1: (String, Int, io.vertx.scala.servicediscovery.Record) @unchecked) match {
+  case (_1: String, _2: Int, _3: io.vertx.scala.servicediscovery.Record)(String, Int, io.vertx.scala.servicediscovery.Record)((portString @ _), (port @ _), (requestRecord @ _)) =&gt; DiscoveryServiceVerticle.this.discovery.publishFuture(requestRecord).onComplete[Unit](((x0$1: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$1 match {
+    case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) =&gt; {
+      (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+        DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully published!&quot;, record.getName)
+      else
+        (): Unit);
+      DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), scala.Some.apply[String](record.asJava.toJson().toString()))(routingContext)
+    }
+    case (exception: Throwable)scala.util.Failure[io.vertx.scala.servicediscovery.Record](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }))(DiscoveryServiceVerticle.this.executionContext)
+})))))).orElse[Unit](scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)))
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          36
+        </td>
+        <td>
+          2634
+          -
+          2665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext))
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          39
+        </td>
+        <td>
+          2859
+          -
+          2881
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.PARAMETER_REGISTRATION
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.PARAMETER_REGISTRATION
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          50
+        </td>
+        <td>
+          2890
+          -
+          3407
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #AEF1AE">
+          try {
+  scala.Some.apply[io.vertx.scala.servicediscovery.Record](io.vertx.scala.servicediscovery.Record.fromJson(new io.vertx.core.json.JsonObject(recordJson)))
+} catch {
+  case (_: Throwable) =&gt; scala.None
+}.map[Unit](((record: io.vertx.scala.servicediscovery.Record) =&gt; DiscoveryServiceVerticle.this.discovery.unpublishFuture(record.getRegistration).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully un-published!&quot;, record.getName)
+    else
+      (): Unit);
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }
+  case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext)))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          2919
+          -
+          2962
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.Record.fromJson
+        </td>
+        <td style="background: #AEF1AE">
+          io.vertx.scala.servicediscovery.Record.fromJson(new io.vertx.core.json.JsonObject(recordJson))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          40
+        </td>
+        <td>
+          2935
+          -
+          2961
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new io.vertx.core.json.JsonObject(recordJson)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          43
+        </td>
+        <td>
+          2914
+          -
+          2963
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[io.vertx.scala.servicediscovery.Record](io.vertx.scala.servicediscovery.Record.fromJson(new io.vertx.core.json.JsonObject(recordJson)))
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          42
+        </td>
+        <td>
+          2914
+          -
+          2963
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[io.vertx.scala.servicediscovery.Record](io.vertx.scala.servicediscovery.Record.fromJson(new io.vertx.core.json.JsonObject(recordJson)))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          44
+        </td>
+        <td>
+          3009
+          -
+          3013
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.None
+        </td>
+        <td style="background: #AEF1AE">
+          scala.None
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          49
+        </td>
+        <td>
+          3070
+          -
+          3407
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.discovery.unpublishFuture(record.getRegistration).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully un-published!&quot;, record.getName)
+    else
+      (): Unit);
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }
+  case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          45
+        </td>
+        <td>
+          3096
+          -
+          3118
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.Record.getRegistration
+        </td>
+        <td style="background: #AEF1AE">
+          record.getRegistration
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          48
+        </td>
+        <td>
+          3120
+          -
+          3120
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          46
+        </td>
+        <td>
+          3285
+          -
+          3301
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          47
+        </td>
+        <td>
+          3374
+          -
+          3399
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          53
+        </td>
+        <td>
+          2815
+          -
+          3453
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.orElse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_REGISTRATION).flatMap[Unit](((recordJson: String) =&gt; try {
+  scala.Some.apply[io.vertx.scala.servicediscovery.Record](io.vertx.scala.servicediscovery.Record.fromJson(new io.vertx.core.json.JsonObject(recordJson)))
+} catch {
+  case (_: Throwable) =&gt; scala.None
+}.map[Unit](((record: io.vertx.scala.servicediscovery.Record) =&gt; DiscoveryServiceVerticle.this.discovery.unpublishFuture(record.getRegistration).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully un-published!&quot;, record.getName)
+    else
+      (): Unit);
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+  }
+  case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext))))).orElse[Unit](scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)))
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          52
+        </td>
+        <td>
+          3422
+          -
+          3453
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext))
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          54
+        </td>
+        <td>
+          3415
+          -
+          3415
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          51
+        </td>
+        <td>
+          3427
+          -
+          3452
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          55
+        </td>
+        <td>
+          3638
+          -
+          3652
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.PARAMETER_NAME
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.discovery.Service.PARAMETER_NAME
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          62
+        </td>
+        <td>
+          3702
+          -
+          4119
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.discovery.getRecordFuture(((x$2: io.vertx.scala.servicediscovery.Record) =&gt; x$2.getName.==(name))).onComplete[Unit](((x0$3: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$3 match {
+  case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) if record.getStatus.==(UP) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully found!&quot;, name)
+    else
+      (): Unit);
+    val metadata: io.vertx.core.json.JsonObject = record.getLocation;
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), scala.Some.apply[String](metadata.toString()))(routingContext)
+  }
+  case _ =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          56
+        </td>
+        <td>
+          3728
+          -
+          3745
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          x$2.getName.==(name)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          61
+        </td>
+        <td>
+          3747
+          -
+          3747
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          57
+        </td>
+        <td>
+          3792
+          -
+          3821
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.==
+        </td>
+        <td style="background: #AEF1AE">
+          record.getStatus.==(UP)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          58
+        </td>
+        <td>
+          3955
+          -
+          3973
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.scala.servicediscovery.Record.getLocation
+        </td>
+        <td style="background: #AEF1AE">
+          record.getLocation
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          59
+        </td>
+        <td>
+          3984
+          -
+          4025
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), scala.Some.apply[String](metadata.toString()))(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          60
+        </td>
+        <td>
+          4086
+          -
+          4111
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          65
+        </td>
+        <td>
+          3600
+          -
+          4165
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.orElse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.request(routingContext).getParam(it.cwmp.services.discovery.Service.PARAMETER_NAME).map[Unit](((name: String) =&gt; DiscoveryServiceVerticle.this.discovery.getRecordFuture(((x$2: io.vertx.scala.servicediscovery.Record) =&gt; x$2.getName.==(name))).onComplete[Unit](((x0$3: scala.util.Try[io.vertx.scala.servicediscovery.Record]) =&gt; x0$3 match {
+  case (value: io.vertx.scala.servicediscovery.Record)scala.util.Success[io.vertx.scala.servicediscovery.Record]((record @ _)) if record.getStatus.==(UP) =&gt; {
+    (if (DiscoveryServiceVerticle.this.log.underlying.isInfoEnabled())
+      DiscoveryServiceVerticle.this.log.underlying.info(&quot;Service {} successfully found!&quot;, name)
+    else
+      (): Unit);
+    val metadata: io.vertx.core.json.JsonObject = record.getLocation;
+    DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), scala.Some.apply[String](metadata.toString()))(routingContext)
+  }
+  case _ =&gt; DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(DiscoveryServiceVerticle.this.executionContext))).orElse[Unit](scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)))
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          64
+        </td>
+        <td>
+          4134
+          -
+          4165
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Some.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Some.apply[Unit](DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext))
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          63
+        </td>
+        <td>
+          4139
+          -
+          4164
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          DiscoveryServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), DiscoveryServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          66
+        </td>
+        <td>
+          4127
+          -
+          4127
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

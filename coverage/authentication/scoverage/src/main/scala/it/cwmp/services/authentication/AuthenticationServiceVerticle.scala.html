@@ -27,19 +27,19 @@
 </span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus._
 </span>4 <span style=''>import io.vertx.core.Handler
 </span>5 <span style=''>import io.vertx.scala.ext.web.{Router, RoutingContext}
-</span>6 <span style=''>import it.cwmp.services.authentication.ServerParameters._
-</span>7 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-</span>8 <span style=''>import it.cwmp.utils.{HttpUtils, Logging, VertxServer}
-</span>9 <span style=''>
-</span>10 <span style=''>import scala.concurrent.Future
-</span>11 <span style=''>import scala.util.{Failure, Success}
-</span>12 <span style=''>
-</span>13 <span style=''>/**
-</span>14 <span style=''>  * Class that implements the Authentication micro-service
-</span>15 <span style=''>  */
-</span>16 <span style=''>case class AuthenticationServiceVerticle() extends VertxServer with Logging {
-</span>17 <span style=''>
-</span>18 <span style=''>  override protected val serverPort: Int = </span><span style='background: #AEF1AE'>DEFAULT_PORT</span><span style=''>
+</span>6 <span style=''>import it.cwmp.services.VertxServer
+</span>7 <span style=''>import it.cwmp.services.authentication.Service._
+</span>8 <span style=''>import it.cwmp.services.authentication.utils.JwtUtils
+</span>9 <span style=''>import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
+</span>10 <span style=''>import it.cwmp.utils.{HttpUtils, Logging}
+</span>11 <span style=''>
+</span>12 <span style=''>import scala.concurrent.Future
+</span>13 <span style=''>import scala.util.{Failure, Success}
+</span>14 <span style=''>
+</span>15 <span style=''>/**
+</span>16 <span style=''>  * Class that implements the Authentication micro-service
+</span>17 <span style=''>  */
+</span>18 <span style=''>case class AuthenticationServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT) extends VertxServer with Logging {
 </span>19 <span style=''>
 </span>20 <span style=''>  private var storageFuture: Future[AuthenticationDAO] = _
 </span>21 <span style=''>
@@ -137,36 +137,57 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          18
+          23
         </td>
         <td>
-          126
+          160
         </td>
         <td>
-          620
+          836
           -
-          632
+          847
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.authentication.Service.API_SIGN_UP
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
+          it.cwmp.services.authentication.Service.API_SIGN_UP
         </td>
       </tr><tr>
         <td>
           23
         </td>
         <td>
-          128
+          162
         </td>
         <td>
-          792
+          824
           -
-          805
+          869
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.Route.handler
+        </td>
+        <td style="background: #AEF1AE">
+          router.post(it.cwmp.services.authentication.Service.API_SIGN_UP).handler(AuthenticationServiceVerticle.this.handlerSignUp)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          856
+          -
+          869
         </td>
         <td>
           Select
@@ -179,57 +200,15 @@
         </td>
       </tr><tr>
         <td>
-          23
-        </td>
-        <td>
-          127
-        </td>
-        <td>
-          772
-          -
-          783
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_SIGN_UP
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.API_SIGN_UP
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          129
-        </td>
-        <td>
-          760
-          -
-          805
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          io.vertx.scala.ext.web.Route.handler
-        </td>
-        <td style="background: #AEF1AE">
-          router.post(it.cwmp.services.authentication.ServerParameters.API_SIGN_UP).handler(AuthenticationServiceVerticle.this.handlerSignUp)
-        </td>
-      </tr><tr>
-        <td>
           24
         </td>
         <td>
-          131
+          164
         </td>
         <td>
-          843
+          907
           -
-          857
+          921
         </td>
         <td>
           Select
@@ -245,33 +224,33 @@
           24
         </td>
         <td>
-          130
+          163
         </td>
         <td>
-          822
+          886
           -
-          834
+          898
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.ServerParameters.API_SIGN_OUT
+          it.cwmp.services.authentication.Service.API_SIGN_OUT
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.API_SIGN_OUT
+          it.cwmp.services.authentication.Service.API_SIGN_OUT
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          132
+          165
         </td>
         <td>
-          810
+          874
           -
-          857
+          921
         </td>
         <td>
           Apply
@@ -280,19 +259,19 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.post(it.cwmp.services.authentication.ServerParameters.API_SIGN_OUT).handler(AuthenticationServiceVerticle.this.handlerSignOut)
+          router.post(it.cwmp.services.authentication.Service.API_SIGN_OUT).handler(AuthenticationServiceVerticle.this.handlerSignOut)
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          134
+          167
         </td>
         <td>
-          891
+          955
           -
-          903
+          967
         </td>
         <td>
           Select
@@ -308,33 +287,33 @@
           25
         </td>
         <td>
-          133
+          166
         </td>
         <td>
-          873
+          937
           -
-          882
+          946
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.ServerParameters.API_LOGIN
+          it.cwmp.services.authentication.Service.API_LOGIN
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.API_LOGIN
+          it.cwmp.services.authentication.Service.API_LOGIN
         </td>
       </tr><tr>
         <td>
           25
         </td>
         <td>
-          135
+          168
         </td>
         <td>
-          862
+          926
           -
-          903
+          967
         </td>
         <td>
           Apply
@@ -343,61 +322,40 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.get(it.cwmp.services.authentication.ServerParameters.API_LOGIN).handler(AuthenticationServiceVerticle.this.handlerLogin)
+          router.get(it.cwmp.services.authentication.Service.API_LOGIN).handler(AuthenticationServiceVerticle.this.handlerLogin)
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          137
+          169
         </td>
         <td>
-          940
+          983
           -
-          957
+          995
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.AuthenticationServiceVerticle.handlerValidation
+          it.cwmp.services.authentication.Service.API_VALIDATE
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.handlerValidation
+          it.cwmp.services.authentication.Service.API_VALIDATE
         </td>
       </tr><tr>
         <td>
           26
         </td>
         <td>
-          136
+          172
         </td>
         <td>
-          919
+          996
           -
-          931
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_VALIDATE
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.API_VALIDATE
-        </td>
-      </tr><tr>
-        <td>
-          26
-        </td>
-        <td>
-          139
-        </td>
-        <td>
-          932
-          -
-          932
+          996
         </td>
         <td>
           Literal
@@ -413,12 +371,12 @@
           26
         </td>
         <td>
-          138
+          171
         </td>
         <td>
-          908
+          972
           -
-          957
+          1021
         </td>
         <td>
           Apply
@@ -427,19 +385,40 @@
           io.vertx.scala.ext.web.Route.handler
         </td>
         <td style="background: #AEF1AE">
-          router.get(it.cwmp.services.authentication.ServerParameters.API_VALIDATE).handler(AuthenticationServiceVerticle.this.handlerValidation)
+          router.get(it.cwmp.services.authentication.Service.API_VALIDATE).handler(AuthenticationServiceVerticle.this.handlerValidation)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          1004
+          -
+          1021
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.handlerValidation
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.handlerValidation
         </td>
       </tr><tr>
         <td>
           30
         </td>
         <td>
-          140
+          173
         </td>
         <td>
-          1032
+          1096
           -
-          1032
+          1096
         </td>
         <td>
           Select
@@ -455,12 +434,12 @@
           30
         </td>
         <td>
-          141
+          174
         </td>
         <td>
-          1032
+          1096
           -
-          1056
+          1120
         </td>
         <td>
           Apply
@@ -476,12 +455,33 @@
           31
         </td>
         <td>
-          142
+          176
         </td>
         <td>
-          1101
+          1141
           -
-          1101
+          1179
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          storage.initialize().map[it.cwmp.services.authentication.AuthenticationLocalDAO](((x$1: Unit) =&gt; storage))(AuthenticationServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          175
+        </td>
+        <td>
+          1165
+          -
+          1165
         </td>
         <td>
           Select
@@ -497,12 +497,12 @@
           31
         </td>
         <td>
-          144
+          177
         </td>
         <td>
-          1061
+          1125
           -
-          1115
+          1179
         </td>
         <td>
           Apply
@@ -515,36 +515,15 @@
         </td>
       </tr><tr>
         <td>
-          31
-        </td>
-        <td>
-          143
-        </td>
-        <td>
-          1077
-          -
-          1115
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          storage.initialize().map[it.cwmp.services.authentication.AuthenticationLocalDAO](((x$1: Unit) =&gt; storage))(AuthenticationServiceVerticle.this.executionContext)
-        </td>
-      </tr><tr>
-        <td>
           32
         </td>
         <td>
-          145
+          178
         </td>
         <td>
-          1120
+          1184
           -
-          1133
+          1197
         </td>
         <td>
           Select
@@ -560,18 +539,18 @@
           38
         </td>
         <td>
-          146
+          179
         </td>
         <td>
-          1306
+          1370
           -
-          1313
+          1377
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.request(routingContext)
@@ -581,12 +560,12 @@
           39
         </td>
         <td>
-          154
+          187
         </td>
         <td>
-          1345
+          1409
           -
-          1761
+          1825
         </td>
         <td>
           Apply
@@ -605,7 +584,7 @@
         AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed up.&quot;, username)
       else
         (): Unit);
-      JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
+      it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
     }
     case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
   }))(AuthenticationServiceVerticle.this.executionContext)
@@ -616,12 +595,12 @@
           41
         </td>
         <td>
-          148
+          185
         </td>
         <td>
-          1458
+          1567
           -
-          1458
+          1567
         </td>
         <td>
           Select
@@ -637,12 +616,33 @@
           41
         </td>
         <td>
-          147
+          181
         </td>
         <td>
-          1467
+          1522
           -
-          1501
+          1522
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          180
+        </td>
+        <td>
+          1531
+          -
+          1565
         </td>
         <td>
           Apply
@@ -658,12 +658,12 @@
           41
         </td>
         <td>
-          153
+          186
         </td>
         <td>
-          1444
+          1508
           -
-          1761
+          1825
         </td>
         <td>
           ApplyToImplicitArgs
@@ -678,49 +678,28 @@
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed up.&quot;, username)
     else
       (): Unit);
-    JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
+    it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
   }
   case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
 }))(AuthenticationServiceVerticle.this.executionContext)
         </td>
       </tr><tr>
         <td>
-          41
-        </td>
-        <td>
-          152
-        </td>
-        <td>
-          1503
-          -
-          1503
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
           46
         </td>
         <td>
-          149
+          182
         </td>
         <td>
-          1675
+          1739
           -
-          1699
+          1763
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)
@@ -730,12 +709,12 @@
           46
         </td>
         <td>
-          150
+          183
         </td>
         <td>
-          1602
+          1666
           -
-          1700
+          1764
         </td>
         <td>
           Apply
@@ -744,25 +723,25 @@
           scala.Option.foreach
         </td>
         <td style="background: #AEF1AE">
-          JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
+          it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
         </td>
       </tr><tr>
         <td>
           47
         </td>
         <td>
-          151
+          184
         </td>
         <td>
-          1728
+          1792
           -
-          1753
+          1817
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -772,33 +751,12 @@
           49
         </td>
         <td>
-          155
+          191
         </td>
         <td>
-          1781
+          1833
           -
-          1806
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.sendResponse
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          158
-        </td>
-        <td>
-          1769
-          -
-          1769
+          1833
         </td>
         <td>
           Literal
@@ -814,12 +772,12 @@
           49
         </td>
         <td>
-          157
+          190
         </td>
         <td>
-          1270
+          1334
           -
-          1807
+          1871
         </td>
         <td>
           Apply
@@ -838,7 +796,7 @@
         AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed up.&quot;, username)
       else
         (): Unit);
-      JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
+      it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$3: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED), it.cwmp.utils.Utils.stringToOption(x$3))(routingContext)))
     }
     case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
   }))(AuthenticationServiceVerticle.this.executionContext)
@@ -849,12 +807,12 @@
           49
         </td>
         <td>
-          156
+          189
         </td>
         <td>
-          1776
+          1840
           -
-          1807
+          1871
         </td>
         <td>
           Apply
@@ -867,21 +825,42 @@
         </td>
       </tr><tr>
         <td>
-          55
+          49
         </td>
         <td>
-          159
+          188
         </td>
         <td>
-          1982
+          1845
           -
-          1989
+          1870
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          2046
+          -
+          2053
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #F0ADAD">
           AuthenticationServiceVerticle.this.request(routingContext)
@@ -891,12 +870,12 @@
           56
         </td>
         <td>
-          167
+          200
         </td>
         <td>
-          2021
+          2085
           -
-          2498
+          2562
         </td>
         <td>
           Apply
@@ -905,7 +884,7 @@
           scala.Option.flatMap
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+          it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed out.&quot;, username)
@@ -921,12 +900,12 @@
           57
         </td>
         <td>
-          166
+          199
         </td>
         <td>
-          2090
+          2154
           -
-          2498
+          2562
         </td>
         <td>
           Apply
@@ -935,7 +914,7 @@
           scala.Option.map
         </td>
         <td style="background: #F0ADAD">
-          JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+          it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed out.&quot;, username)
@@ -951,33 +930,12 @@
           60
         </td>
         <td>
-          164
+          196
         </td>
         <td>
-          2286
+          2351
           -
-          2286
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          163
-        </td>
-        <td>
-          2287
-          -
-          2497
+          2561
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1002,12 +960,12 @@
           60
         </td>
         <td>
-          165
+          198
         </td>
         <td>
-          2269
+          2333
           -
-          2498
+          2562
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1032,12 +990,33 @@
           60
         </td>
         <td>
-          162
+          195
         </td>
         <td>
-          2324
+          2388
           -
-          2324
+          2388
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          197
+        </td>
+        <td>
+          2350
+          -
+          2350
         </td>
         <td>
           Select
@@ -1053,18 +1032,18 @@
           63
         </td>
         <td>
-          160
+          193
         </td>
         <td>
-          2413
+          2477
           -
-          2435
+          2499
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -1074,18 +1053,18 @@
           64
         </td>
         <td>
-          161
+          194
         </td>
         <td>
-          2463
+          2527
           -
-          2489
+          2553
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -1095,12 +1074,12 @@
           66
         </td>
         <td>
-          169
+          202
         </td>
         <td>
-          2513
+          2577
           -
-          2544
+          2608
         </td>
         <td>
           Apply
@@ -1116,18 +1095,18 @@
           66
         </td>
         <td>
-          168
+          201
         </td>
         <td>
-          2518
+          2582
           -
-          2543
+          2607
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #F0ADAD">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -1137,12 +1116,12 @@
           66
         </td>
         <td>
-          171
+          204
         </td>
         <td>
-          2506
+          2570
           -
-          2506
+          2570
         </td>
         <td>
           Literal
@@ -1158,12 +1137,12 @@
           66
         </td>
         <td>
-          170
+          203
         </td>
         <td>
-          1946
+          2010
           -
-          2544
+          2608
         </td>
         <td>
           Apply
@@ -1172,7 +1151,7 @@
           scala.Option.orElse
         </td>
         <td style="background: #F0ADAD">
-          AuthenticationServiceVerticle.this.RichHttpRequest(AuthenticationServiceVerticle.this.request(routingContext)).getAuthenticationHeader.flatMap[scala.concurrent.Future[Unit]](((authorizationHeader: String) =&gt; it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
+          AuthenticationServiceVerticle.this.RichHttpRequest(AuthenticationServiceVerticle.this.request(routingContext)).getAuthenticationHeader.flatMap[scala.concurrent.Future[Unit]](((authorizationHeader: String) =&gt; it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$5: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$5.signOutFuture(username).onComplete[Unit](((x0$2: scala.util.Try[Unit]) =&gt; x0$2 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} signed out.&quot;, username)
@@ -1188,18 +1167,18 @@
           72
         </td>
         <td>
-          172
+          205
         </td>
         <td>
-          2714
+          2778
           -
-          2721
+          2785
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.request(routingContext)
@@ -1209,33 +1188,12 @@
           73
         </td>
         <td>
-          173
+          214
         </td>
         <td>
-          2810
+          2817
           -
-          2810
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          true
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          181
-        </td>
-        <td>
-          2753
-          -
-          3164
+          3228
         </td>
         <td>
           Apply
@@ -1254,7 +1212,7 @@
         AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} logged in.&quot;, username)
       else
         (): Unit);
-      JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
+      it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
     }
     case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
   }))(AuthenticationServiceVerticle.this.executionContext)
@@ -1262,15 +1220,36 @@
         </td>
       </tr><tr>
         <td>
+          73
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          2874
+          -
+          2874
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          true
+        </td>
+      </tr><tr>
+        <td>
           75
         </td>
         <td>
-          175
+          208
         </td>
         <td>
-          2866
+          2930
           -
-          2866
+          2930
         </td>
         <td>
           Select
@@ -1286,42 +1265,12 @@
           75
         </td>
         <td>
-          180
+          207
         </td>
         <td>
-          2852
+          2939
           -
-          3164
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.onComplete
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.storageFuture.flatMap[Unit](((x$6: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$6.loginFuture(username, password)))(AuthenticationServiceVerticle.this.executionContext).onComplete[Unit](((x0$3: scala.util.Try[Unit]) =&gt; x0$3 match {
-  case (value: Unit)scala.util.Success[Unit](_) =&gt; {
-    (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
-      AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} logged in.&quot;, username)
-    else
-      (): Unit);
-    JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
-  }
-  case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
-}))(AuthenticationServiceVerticle.this.executionContext)
-        </td>
-      </tr><tr>
-        <td>
-          75
-        </td>
-        <td>
-          174
-        </td>
-        <td>
-          2875
-          -
-          2908
+          2972
         </td>
         <td>
           Apply
@@ -1337,12 +1286,42 @@
           75
         </td>
         <td>
-          179
+          213
         </td>
         <td>
-          2910
+          2916
           -
-          2910
+          3228
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.onComplete
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.storageFuture.flatMap[Unit](((x$6: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$6.loginFuture(username, password)))(AuthenticationServiceVerticle.this.executionContext).onComplete[Unit](((x0$3: scala.util.Try[Unit]) =&gt; x0$3 match {
+  case (value: Unit)scala.util.Success[Unit](_) =&gt; {
+    (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
+      AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} logged in.&quot;, username)
+    else
+      (): Unit);
+    it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
+  }
+  case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
+}))(AuthenticationServiceVerticle.this.executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          2974
+          -
+          2974
         </td>
         <td>
           Select
@@ -1358,18 +1337,18 @@
           80
         </td>
         <td>
-          176
+          209
         </td>
         <td>
-          3082
+          3146
           -
-          3101
+          3165
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)
@@ -1379,12 +1358,12 @@
           80
         </td>
         <td>
-          177
+          210
         </td>
         <td>
-          3009
+          3073
           -
-          3102
+          3166
         </td>
         <td>
           Apply
@@ -1393,25 +1372,25 @@
           scala.Option.foreach
         </td>
         <td style="background: #AEF1AE">
-          JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
+          it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
         </td>
       </tr><tr>
         <td>
           81
         </td>
         <td>
-          178
+          211
         </td>
         <td>
-          3130
+          3194
           -
-          3156
+          3220
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -1421,33 +1400,12 @@
           83
         </td>
         <td>
-          182
+          218
         </td>
         <td>
-          3184
+          3236
           -
-          3209
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.sendResponse
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          83
-        </td>
-        <td>
-          185
-        </td>
-        <td>
-          3172
-          -
-          3172
+          3236
         </td>
         <td>
           Literal
@@ -1463,12 +1421,12 @@
           83
         </td>
         <td>
-          184
+          217
         </td>
         <td>
-          2678
+          2742
           -
-          3210
+          3274
         </td>
         <td>
           Apply
@@ -1487,7 +1445,7 @@
         AuthenticationServiceVerticle.this.log.underlying.info(&quot;User {} logged in.&quot;, username)
       else
         (): Unit);
-      JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
+      it.cwmp.services.authentication.utils.JwtUtils.encodeUsernameToken(username).foreach[Unit](((x$7: String) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(x$7))(routingContext)))
     }
     case (exception: Throwable)scala.util.Failure[Unit](_) =&gt; AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
   }))(AuthenticationServiceVerticle.this.executionContext)
@@ -1498,12 +1456,12 @@
           83
         </td>
         <td>
-          183
+          216
         </td>
         <td>
-          3179
+          3243
           -
-          3210
+          3274
         </td>
         <td>
           Apply
@@ -1516,21 +1474,42 @@
         </td>
       </tr><tr>
         <td>
-          89
+          83
         </td>
         <td>
-          186
+          215
         </td>
         <td>
-          3396
+          3248
           -
-          3403
+          3273
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.request
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          219
+        </td>
+        <td>
+          3460
+          -
+          3467
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.request
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.request(routingContext)
@@ -1540,12 +1519,12 @@
           90
         </td>
         <td>
-          194
+          227
         </td>
         <td>
-          3435
+          3499
           -
-          3930
+          3994
         </td>
         <td>
           Apply
@@ -1554,7 +1533,7 @@
           scala.Option.flatMap
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
+          it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;Token validation for {} successful&quot;, username)
@@ -1570,12 +1549,12 @@
           91
         </td>
         <td>
-          193
+          226
         </td>
         <td>
-          3504
+          3568
           -
-          3930
+          3994
         </td>
         <td>
           Apply
@@ -1584,7 +1563,7 @@
           scala.Option.map
         </td>
         <td style="background: #AEF1AE">
-          JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
+          it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;Token validation for {} successful&quot;, username)
@@ -1600,33 +1579,12 @@
           94
         </td>
         <td>
-          191
+          223
         </td>
         <td>
-          3700
+          3765
           -
-          3700
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          190
-        </td>
-        <td>
-          3701
-          -
-          3929
+          3993
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1651,33 +1609,12 @@
           94
         </td>
         <td>
-          189
+          225
         </td>
         <td>
-          3737
+          3747
           -
-          3737
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.vertx.lang.scala.ScalaVerticle.executionContext
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.executionContext
-        </td>
-      </tr><tr>
-        <td>
-          94
-        </td>
-        <td>
-          192
-        </td>
-        <td>
-          3683
-          -
-          3930
+          3994
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1699,21 +1636,63 @@
         </td>
       </tr><tr>
         <td>
+          94
+        </td>
+        <td>
+          222
+        </td>
+        <td>
+          3801
+          -
+          3801
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          224
+        </td>
+        <td>
+          3764
+          -
+          3764
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.vertx.lang.scala.ScalaVerticle.executionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.executionContext
+        </td>
+      </tr><tr>
+        <td>
           97
         </td>
         <td>
-          187
+          220
         </td>
         <td>
-          3841
+          3905
           -
-          3867
+          3931
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK), it.cwmp.utils.Utils.stringToOption(username))(routingContext)
@@ -1723,18 +1702,18 @@
           98
         </td>
         <td>
-          188
+          221
         </td>
         <td>
-          3895
+          3959
           -
-          3921
+          3985
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          it.cwmp.utils.VertxServer.sendResponse
+          it.cwmp.services.VertxServer.sendResponse
         </td>
         <td style="background: #AEF1AE">
           AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
@@ -1744,12 +1723,12 @@
           100
         </td>
         <td>
-          196
+          229
         </td>
         <td>
-          3945
+          4009
           -
-          3976
+          4040
         </td>
         <td>
           Apply
@@ -1765,12 +1744,33 @@
           100
         </td>
         <td>
-          198
+          228
         </td>
         <td>
-          3938
+          4014
           -
-          3938
+          4039
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          it.cwmp.services.VertxServer.sendResponse
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          231
+        </td>
+        <td>
+          4002
+          -
+          4002
         </td>
         <td>
           Literal
@@ -1786,33 +1786,12 @@
           100
         </td>
         <td>
-          195
+          230
         </td>
         <td>
-          3950
+          3424
           -
-          3975
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          it.cwmp.utils.VertxServer.sendResponse
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.sendResponse(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), AuthenticationServiceVerticle.this.sendResponse$default$2)(routingContext)
-        </td>
-      </tr><tr>
-        <td>
-          100
-        </td>
-        <td>
-          197
-        </td>
-        <td>
-          3360
-          -
-          3976
+          4040
         </td>
         <td>
           Apply
@@ -1821,7 +1800,7 @@
           scala.Option.orElse
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationServiceVerticle.this.RichHttpRequest(AuthenticationServiceVerticle.this.request(routingContext)).getAuthenticationHeader.flatMap[scala.concurrent.Future[Unit]](((authorizationHeader: String) =&gt; it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
+          AuthenticationServiceVerticle.this.RichHttpRequest(AuthenticationServiceVerticle.this.request(routingContext)).getAuthenticationHeader.flatMap[scala.concurrent.Future[Unit]](((authorizationHeader: String) =&gt; it.cwmp.utils.HttpUtils.readJwtAuthentication(authorizationHeader).flatMap[scala.concurrent.Future[Unit]](((token: String) =&gt; it.cwmp.services.authentication.utils.JwtUtils.decodeUsernameToken(token).map[scala.concurrent.Future[Unit]](((username: String) =&gt; AuthenticationServiceVerticle.this.storageFuture.map[Unit](((x$9: it.cwmp.services.authentication.AuthenticationDAO) =&gt; x$9.existsFuture(username).onComplete[Unit](((x0$4: scala.util.Try[Unit]) =&gt; x0$4 match {
   case (value: Unit)scala.util.Success[Unit](_) =&gt; {
     (if (AuthenticationServiceVerticle.this.log.underlying.isInfoEnabled())
       AuthenticationServiceVerticle.this.log.underlying.info(&quot;Token validation for {} successful&quot;, username)

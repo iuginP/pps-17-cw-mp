@@ -1,0 +1,266 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/utils/HostAndPortArguments.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.utils
+</span>2 <span style=''>
+</span>3 <span style=''>/**
+</span>4 <span style=''>  * A class to read command line arguments
+</span>5 <span style=''>  *
+</span>6 <span style=''>  * @param args                the arguments to read
+</span>7 <span style=''>  * @param hostPortPairsNumber the number of pairs host port to read
+</span>8 <span style=''>  * @param errorMessage        the errorMessage to show if no enough arguments found
+</span>9 <span style=''>  */
+</span>10 <span style=''>case class HostAndPortArguments(args: Array[String], hostPortPairsNumber: Int, errorMessage: String) {
+</span>11 <span style=''>
+</span>12 <span style=''>  </span><span style='background: #F0ADAD'>require(args.length &gt;= hostPortPairsNumber * 2, errorMessage)</span><span style=''>
+</span>13 <span style=''>
+</span>14 <span style=''>  val pairs: Seq[(String, String)] = </span><span style='background: #F0ADAD'>args.grouped(2).map(pair =&gt; (pair(0), pair(1))).toSeq</span><span style=''>
+</span>15 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          523
+        </td>
+        <td>
+          440
+          -
+          452
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HostAndPortArguments.errorMessage
+        </td>
+        <td style="background: #F0ADAD">
+          HostAndPortArguments.this.errorMessage
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          522
+        </td>
+        <td>
+          400
+          -
+          438
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.&gt;=
+        </td>
+        <td style="background: #F0ADAD">
+          HostAndPortArguments.this.args.length.&gt;=(HostAndPortArguments.this.hostPortPairsNumber.*(2))
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          521
+        </td>
+        <td>
+          415
+          -
+          438
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int.*
+        </td>
+        <td style="background: #F0ADAD">
+          HostAndPortArguments.this.hostPortPairsNumber.*(2)
+        </td>
+      </tr><tr>
+        <td>
+          12
+        </td>
+        <td>
+          524
+        </td>
+        <td>
+          392
+          -
+          453
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.require(HostAndPortArguments.this.args.length.&gt;=(HostAndPortArguments.this.hostPortPairsNumber.*(2)), HostAndPortArguments.this.errorMessage)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          525
+        </td>
+        <td>
+          492
+          -
+          496
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HostAndPortArguments.args
+        </td>
+        <td style="background: #F0ADAD">
+          HostAndPortArguments.this.args
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          528
+        </td>
+        <td>
+          530
+          -
+          537
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          pair.apply(1)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          530
+        </td>
+        <td>
+          492
+          -
+          545
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.toSeq
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.refArrayOps[String](HostAndPortArguments.this.args).grouped(2).map[(String, String)](((pair: Array[String]) =&gt; scala.Tuple2.apply[String, String](pair.apply(0), pair.apply(1)))).toSeq
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          527
+        </td>
+        <td>
+          521
+          -
+          528
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Array.apply
+        </td>
+        <td style="background: #F0ADAD">
+          pair.apply(0)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          526
+        </td>
+        <td>
+          505
+          -
+          506
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          2
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          529
+        </td>
+        <td>
+          520
+          -
+          538
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](pair.apply(0), pair.apply(1))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

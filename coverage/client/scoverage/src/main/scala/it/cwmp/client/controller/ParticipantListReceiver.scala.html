@@ -28,51 +28,52 @@
 </span>4 <span style=''>
 </span>5 <span style=''>import it.cwmp.client.controller.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
 </span>6 <span style=''>import it.cwmp.model.{Address, Participant}
-</span>7 <span style=''>import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
-</span>8 <span style=''>import it.cwmp.services.roomreceiver.ServerParameters._
-</span>9 <span style=''>import it.cwmp.utils.Utils.stringToOption
-</span>10 <span style=''>import it.cwmp.utils.{Logging, Utils, VertxInstance}
-</span>11 <span style=''>
-</span>12 <span style=''>import scala.concurrent.Future
-</span>13 <span style=''>import scala.util.Success
-</span>14 <span style=''>
-</span>15 <span style=''>/**
-</span>16 <span style=''>  * A trait implementing a one time server to receive a participant list to the game room
-</span>17 <span style=''>  */
-</span>18 <span style=''>trait ParticipantListReceiver extends VertxInstance with Logging {
-</span>19 <span style=''>
-</span>20 <span style=''>  private var deploymentID: Option[String] = </span><span style='background: #F0ADAD'>None</span><span style=''>
-</span>21 <span style=''>
-</span>22 <span style=''>  /**
-</span>23 <span style=''>    * Listens for a list of participants
-</span>24 <span style=''>    *
-</span>25 <span style=''>    * @param onListReceived the action to execute on list received
-</span>26 <span style=''>    * @return the Future containing the address on which to contact this listener
-</span>27 <span style=''>    */
-</span>28 <span style=''>  def listenForParticipantListFuture(onListReceived: List[Participant] =&gt; Unit): Future[Address] = {
-</span>29 <span style=''>    val token = </span><span style='background: #F0ADAD'>Utils.randomString(ADDRESS_TOKEN_LENGTH)</span><span style=''>
-</span>30 <span style=''>    val verticle = </span><span style='background: #F0ADAD'>RoomReceiverServiceVerticle(token, participants =&gt; onListReceived(participants))</span><span style=''>
-</span>31 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(verticle)
-</span>32 <span style=''></span><span style='background: #F0ADAD'>      .andThen { case Success(id) =&gt; deploymentID = id }
-</span>33 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; Address(s&quot;http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}&quot;
-</span>34 <span style=''></span><span style='background: #F0ADAD'>        + createParticipantReceiverUrl(token)))</span><span style=''>
-</span>35 <span style=''>  }
-</span>36 <span style=''>
-</span>37 <span style=''>  /**
-</span>38 <span style=''>    * A method that stops the server that would have received participants to entered room
-</span>39 <span style=''>    */
-</span>40 <span style=''>  def stopListeningForParticipants(): Unit = {
-</span>41 <span style=''>    log.info(&quot;Stopping one-time participants receiver server&quot;)
-</span>42 <span style=''>    </span><span style='background: #F0ADAD'>deploymentID.foreach(vertx.undeploy)</span><span style=''>
-</span>43 <span style=''>  }
-</span>44 <span style=''>}
-</span>45 <span style=''>
-</span>46 <span style=''>/**
-</span>47 <span style=''>  * Companion object
-</span>48 <span style=''>  */
-</span>49 <span style=''>object ParticipantListReceiver {
-</span>50 <span style=''>  private val ADDRESS_TOKEN_LENGTH = </span><span style='background: #F0ADAD'>20</span><span style=''>
-</span>51 <span style=''>}
+</span>7 <span style=''>import it.cwmp.services.VertxInstance
+</span>8 <span style=''>import it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle
+</span>9 <span style=''>import it.cwmp.services.roomreceiver.Service._
+</span>10 <span style=''>import it.cwmp.utils.Utils.stringToOption
+</span>11 <span style=''>import it.cwmp.utils.{Logging, Utils}
+</span>12 <span style=''>
+</span>13 <span style=''>import scala.concurrent.Future
+</span>14 <span style=''>import scala.util.Success
+</span>15 <span style=''>
+</span>16 <span style=''>/**
+</span>17 <span style=''>  * A trait implementing a one time server to receive a participant list to the game room
+</span>18 <span style=''>  */
+</span>19 <span style=''>trait ParticipantListReceiver extends VertxInstance with Logging {
+</span>20 <span style=''>
+</span>21 <span style=''>  private var deploymentID: Option[String] = </span><span style='background: #F0ADAD'>None</span><span style=''>
+</span>22 <span style=''>
+</span>23 <span style=''>  /**
+</span>24 <span style=''>    * Listens for a list of participants
+</span>25 <span style=''>    *
+</span>26 <span style=''>    * @param onListReceived the action to execute on list received
+</span>27 <span style=''>    * @return the Future containing the address on which to contact this listener
+</span>28 <span style=''>    */
+</span>29 <span style=''>  def listenForParticipantListFuture(onListReceived: List[Participant] =&gt; Unit): Future[Address] = {
+</span>30 <span style=''>    val token = </span><span style='background: #F0ADAD'>Utils.randomString(ADDRESS_TOKEN_LENGTH)</span><span style=''>
+</span>31 <span style=''>    val verticle = </span><span style='background: #F0ADAD'>RoomReceiverServiceVerticle(token, participants =&gt; onListReceived(participants))</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(verticle)
+</span>33 <span style=''></span><span style='background: #F0ADAD'>      .andThen { case Success(id) =&gt; deploymentID = id }
+</span>34 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; Address(s&quot;http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}&quot;
+</span>35 <span style=''></span><span style='background: #F0ADAD'>        + createParticipantReceiverUrl(token)))</span><span style=''>
+</span>36 <span style=''>  }
+</span>37 <span style=''>
+</span>38 <span style=''>  /**
+</span>39 <span style=''>    * A method that stops the server that would have received participants to entered room
+</span>40 <span style=''>    */
+</span>41 <span style=''>  def stopListeningForParticipants(): Unit = {
+</span>42 <span style=''>    log.info(&quot;Stopping one-time participants receiver server&quot;)
+</span>43 <span style=''>    </span><span style='background: #F0ADAD'>deploymentID.foreach(vertx.undeploy)</span><span style=''>
+</span>44 <span style=''>  }
+</span>45 <span style=''>}
+</span>46 <span style=''>
+</span>47 <span style=''>/**
+</span>48 <span style=''>  * Companion object
+</span>49 <span style=''>  */
+</span>50 <span style=''>object ParticipantListReceiver {
+</span>51 <span style=''>  private val ADDRESS_TOKEN_LENGTH = </span><span style='background: #F0ADAD'>20</span><span style=''>
+</span>52 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -86,15 +87,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          20
+          21
         </td>
         <td>
-          290
+          322
         </td>
         <td>
-          673
+          687
           -
-          677
+          691
         </td>
         <td>
           Select
@@ -107,15 +108,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          292
+          324
         </td>
         <td>
-          1005
+          1019
           -
-          1045
+          1059
         </td>
         <td>
           Apply
@@ -128,15 +129,15 @@
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          291
+          323
         </td>
         <td>
-          1024
+          1038
           -
-          1044
+          1058
         </td>
         <td>
           Select
@@ -149,36 +150,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          31
         </td>
         <td>
-          294
+          325
         </td>
         <td>
-          1065
+          1130
           -
-          1145
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply(token, ((participants: List[it.cwmp.model.Participant]) =&gt; onListReceived.apply(participants)))
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          293
-        </td>
-        <td>
-          1116
-          -
-          1144
+          1158
         </td>
         <td>
           Apply
@@ -191,78 +171,36 @@
         </td>
       </tr><tr>
         <td>
-          32
+          31
         </td>
         <td>
-          295
+          326
         </td>
         <td>
-          1239
+          1079
           -
-          1241
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.utils.Utils.stringToOption
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.utils.Utils.stringToOption(id)
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          298
-        </td>
-        <td>
-          1202
-          -
-          1202
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #F0ADAD">
-          ParticipantListReceiver.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          297
-        </td>
-        <td>
-          1202
-          -
-          1202
+          1159
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ParticipantListReceiver.$anonfun.&lt;init&gt;
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply
         </td>
         <td style="background: #F0ADAD">
-          new $anonfun()
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.apply(token, ((participants: List[it.cwmp.model.Participant]) =&gt; onListReceived.apply(participants)))
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          296
+          328
         </td>
         <td>
-          1224
+          1238
           -
-          1241
+          1255
         </td>
         <td>
           Apply
@@ -278,18 +216,39 @@
           33
         </td>
         <td>
-          307
+          327
         </td>
         <td>
-          1254
+          1253
           -
-          1254
+          1255
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.stringToOption
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.stringToOption(id)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          330
+        </td>
+        <td>
+          1216
+          -
+          1216
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #F0ADAD">
           ParticipantListReceiver.this.vertxExecutionContext
@@ -299,96 +258,33 @@
           33
         </td>
         <td>
-          301
+          329
         </td>
         <td>
-          1336
+          1216
           -
-          1337
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          300
-        </td>
-        <td>
-          1319
-          -
-          1321
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          &quot;:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          303
-        </td>
-        <td>
-          1322
-          -
-          1335
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.port
-        </td>
-        <td style="background: #F0ADAD">
-          verticle.port
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          306
-        </td>
-        <td>
-          1260
-          -
-          1384
+          1216
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.model.Address.apply
+          it.cwmp.client.controller.ParticipantListReceiver.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)))
+          new $anonfun()
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
-          299
+          331
         </td>
         <td>
-          1270
+          1284
           -
-          1278
+          1292
         </td>
         <td>
           Literal
@@ -401,15 +297,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
-          308
+          340
         </td>
         <td>
-          1150
+          1164
           -
-          1385
+          1399
         </td>
         <td>
           ApplyToImplicitArgs
@@ -434,19 +330,19 @@
     }
   };
   new $anonfun()
-}: PartialFunction[scala.util.Try[String],Unit]))(ParticipantListReceiver.this.vertxExecutionContext).map[it.cwmp.model.Address](((x$1: String) =&gt; it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)))))(ParticipantListReceiver.this.vertxExecutionContext)
+}: PartialFunction[scala.util.Try[String],Unit]))(ParticipantListReceiver.this.vertxExecutionContext).map[it.cwmp.model.Address](((x$1: String) =&gt; it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.Service.createParticipantReceiverUrl(token)))))(ParticipantListReceiver.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
-          302
+          334
         </td>
         <td>
-          1279
+          1293
           -
-          1318
+          1332
         </td>
         <td>
           Apply
@@ -462,33 +358,117 @@
           34
         </td>
         <td>
-          304
+          339
         </td>
         <td>
-          1348
+          1268
           -
-          1383
+          1268
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token)
+          ParticipantListReceiver.this.vertxExecutionContext
         </td>
       </tr><tr>
         <td>
           34
         </td>
         <td>
-          305
+          333
         </td>
         <td>
-          1268
+          1350
           -
-          1383
+          1351
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          332
+        </td>
+        <td>
+          1333
+          -
+          1335
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          335
+        </td>
+        <td>
+          1336
+          -
+          1349
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.RoomReceiverServiceVerticle.port
+        </td>
+        <td style="background: #F0ADAD">
+          verticle.port
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          1274
+          -
+          1398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.model.Address.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.model.Address.apply(scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.Service.createParticipantReceiverUrl(token)))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          337
+        </td>
+        <td>
+          1282
+          -
+          1397
         </td>
         <td>
           Apply
@@ -497,19 +477,40 @@
           java.lang.String.+
         </td>
         <td style="background: #F0ADAD">
-          scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.ServerParameters.createParticipantReceiverUrl(token))
+          scala.StringContext.apply(&quot;http://&quot;, &quot;:&quot;, &quot;&quot;).s(java.net.InetAddress.getLocalHost().getHostAddress(), verticle.port).+(it.cwmp.services.roomreceiver.Service.createParticipantReceiverUrl(token))
         </td>
       </tr><tr>
         <td>
-          42
+          35
         </td>
         <td>
-          310
+          336
         </td>
         <td>
-          1609
+          1362
           -
-          1645
+          1397
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.roomreceiver.Service.createParticipantReceiverUrl
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.roomreceiver.Service.createParticipantReceiverUrl(token)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          1623
+          -
+          1659
         </td>
         <td>
           Apply
@@ -524,15 +525,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          43
         </td>
         <td>
-          309
+          341
         </td>
         <td>
-          1630
-          -
           1644
+          -
+          1658
         </td>
         <td>
           Apply
@@ -545,15 +546,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          51
         </td>
         <td>
-          311
+          343
         </td>
         <td>
-          1753
+          1767
           -
-          1755
+          1769
         </td>
         <td>
           Literal

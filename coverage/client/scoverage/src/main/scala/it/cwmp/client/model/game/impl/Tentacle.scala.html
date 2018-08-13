@@ -125,9 +125,20 @@
 </span>101 <span style=''>  /**
 </span>102 <span style=''>    * An ordering for tentacles based on launchInstant
 </span>103 <span style=''>    */
-</span>104 <span style=''>  val orderByLaunchInstant: Ordering[Tentacle] = (x: Tentacle, y: Tentacle) =&gt; </span><span style='background: #AEF1AE'>x.launchInstant.compareTo(y.launchInstant)</span><span style=''>
+</span>104 <span style=''>  val orderByLaunchInstant: Ordering[Tentacle] = (first: Tentacle, second: Tentacle) =&gt; </span><span style='background: #AEF1AE'>first.launchInstant.compareTo(second.launchInstant)</span><span style=''>
 </span>105 <span style=''>
-</span>106 <span style=''>}
+</span>106 <span style=''>  /**
+</span>107 <span style=''>    * An ordering for tentacles based on effective attack duration
+</span>108 <span style=''>    *
+</span>109 <span style=''>    * @param actualInstant the actual instant to calculate attack duration
+</span>110 <span style=''>    */
+</span>111 <span style=''>  def orderByAttackDuration(actualInstant: Instant): Ordering[Tentacle] = (first: Tentacle, second: Tentacle) =&gt; {
+</span>112 <span style=''>    val firstAttackDuration = </span><span style='background: #AEF1AE'>first.hasReachedDestinationFor(actualInstant)</span><span style=''>
+</span>113 <span style=''>    val secondAttackDuration = </span><span style='background: #AEF1AE'>second.hasReachedDestinationFor(actualInstant)</span><span style=''>
+</span>114 <span style=''>    </span><span style='background: #AEF1AE'>firstAttackDuration.compareTo(secondAttackDuration)</span><span style=''>
+</span>115 <span style=''>  }
+</span>116 <span style=''>
+</span>117 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -144,7 +155,7 @@
           22
         </td>
         <td>
-          887
+          828
         </td>
         <td>
           680
@@ -165,7 +176,7 @@
           22
         </td>
         <td>
-          886
+          827
         </td>
         <td>
           701
@@ -186,7 +197,7 @@
           22
         </td>
         <td>
-          885
+          826
         </td>
         <td>
           695
@@ -207,7 +218,7 @@
           23
         </td>
         <td>
-          890
+          831
         </td>
         <td>
           733
@@ -228,7 +239,7 @@
           23
         </td>
         <td>
-          889
+          830
         </td>
         <td>
           752
@@ -249,7 +260,7 @@
           23
         </td>
         <td>
-          888
+          829
         </td>
         <td>
           748
@@ -270,7 +281,28 @@
           24
         </td>
         <td>
-          891
+          833
+        </td>
+        <td>
+          812
+          -
+          845
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Launch instant must be not null&quot;
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          832
         </td>
         <td>
           797
@@ -291,7 +323,7 @@
           24
         </td>
         <td>
-          893
+          834
         </td>
         <td>
           782
@@ -309,31 +341,10 @@
         </td>
       </tr><tr>
         <td>
-          24
-        </td>
-        <td>
-          892
-        </td>
-        <td>
-          812
-          -
-          845
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;Launch instant must be not null&quot;
-        </td>
-      </tr><tr>
-        <td>
           25
         </td>
         <td>
-          896
+          837
         </td>
         <td>
           869
@@ -354,7 +365,7 @@
           25
         </td>
         <td>
-          895
+          836
         </td>
         <td>
           857
@@ -375,7 +386,7 @@
           25
         </td>
         <td>
-          894
+          835
         </td>
         <td>
           865
@@ -396,7 +407,7 @@
           25
         </td>
         <td>
-          897
+          838
         </td>
         <td>
           849
@@ -417,28 +428,7 @@
           39
         </td>
         <td>
-          899
-        </td>
-        <td>
-          1300
-          -
-          1357
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Long./
-        </td>
-        <td style="background: #AEF1AE">
-          elapsedTime.toMillis()./(it.cwmp.client.controller.game.GameConstants.MILLIS_TO_MOVEMENT_CONVERSION_RATE)
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          898
+          839
         </td>
         <td>
           1323
@@ -456,31 +446,31 @@
         </td>
       </tr><tr>
         <td>
-          48
+          39
         </td>
         <td>
-          902
+          840
         </td>
         <td>
-          1572
+          1300
           -
-          1613
+          1357
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.model.game.impl.Cell.distance
+          scala.Long./
         </td>
         <td style="background: #AEF1AE">
-          Cell.distance(TentacleManipulation.this.tentacle.from, TentacleManipulation.this.tentacle.to)
+          elapsedTime.toMillis()./(it.cwmp.client.controller.game.GameConstants.MILLIS_TO_MOVEMENT_CONVERSION_RATE)
         </td>
       </tr><tr>
         <td>
           48
         </td>
         <td>
-          901
+          842
         </td>
         <td>
           1601
@@ -501,7 +491,7 @@
           48
         </td>
         <td>
-          900
+          841
         </td>
         <td>
           1586
@@ -519,10 +509,31 @@
         </td>
       </tr><tr>
         <td>
+          48
+        </td>
+        <td>
+          843
+        </td>
+        <td>
+          1572
+          -
+          1613
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Cell.distance
+        </td>
+        <td style="background: #AEF1AE">
+          Cell.distance(TentacleManipulation.this.tentacle.from, TentacleManipulation.this.tentacle.to)
+        </td>
+      </tr><tr>
+        <td>
           59
         </td>
         <td>
-          903
+          844
         </td>
         <td>
           2108
@@ -543,7 +554,7 @@
           61
         </td>
         <td>
-          905
+          846
         </td>
         <td>
           2240
@@ -564,7 +575,7 @@
           61
         </td>
         <td>
-          904
+          845
         </td>
         <td>
           2257
@@ -585,7 +596,7 @@
           61
         </td>
         <td>
-          906
+          847
         </td>
         <td>
           2219
@@ -606,49 +617,7 @@
           62
         </td>
         <td>
-          908
-        </td>
-        <td>
-          2307
-          -
-          2354
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Long.&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          tentacleShouldHaveLength.&gt;(TentacleManipulation.this.distanceBetweenCells)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          911
-        </td>
-        <td>
-          2382
-          -
-          2406
-        </td>
-        <td>
-          Ident
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.tentacleShouldHaveLength
-        </td>
-        <td style="background: #AEF1AE">
-          tentacleShouldHaveLength
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          907
+          848
         </td>
         <td>
           2334
@@ -669,7 +638,7 @@
           62
         </td>
         <td>
-          910
+          851
         </td>
         <td>
           2356
@@ -690,7 +659,7 @@
           62
         </td>
         <td>
-          909
+          850
         </td>
         <td>
           2356
@@ -708,10 +677,52 @@
         </td>
       </tr><tr>
         <td>
+          62
+        </td>
+        <td>
+          849
+        </td>
+        <td>
+          2307
+          -
+          2354
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Long.&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          tentacleShouldHaveLength.&gt;(TentacleManipulation.this.distanceBetweenCells)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          852
+        </td>
+        <td>
+          2382
+          -
+          2406
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.tentacleShouldHaveLength
+        </td>
+        <td style="background: #AEF1AE">
+          tentacleShouldHaveLength
+        </td>
+      </tr><tr>
+        <td>
           77
         </td>
         <td>
-          912
+          853
         </td>
         <td>
           3120
@@ -732,7 +743,7 @@
           79
         </td>
         <td>
-          913
+          854
         </td>
         <td>
           3153
@@ -753,7 +764,70 @@
           81
         </td>
         <td>
-          926
+          855
+        </td>
+        <td>
+          3251
+          -
+          3264
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.from
+        </td>
+        <td style="background: #AEF1AE">
+          TentacleManipulation.this.tentacle.from
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          857
+        </td>
+        <td>
+          3282
+          -
+          3325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
+        </td>
+        <td style="background: #AEF1AE">
+          TentacleManipulation.this.length(actualInstant, timeToLengthStrategy)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          856
+        </td>
+        <td>
+          3266
+          -
+          3277
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.to
+        </td>
+        <td style="background: #AEF1AE">
+          TentacleManipulation.this.tentacle.to
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          867
         </td>
         <td>
           3327
@@ -780,7 +854,7 @@
           81
         </td>
         <td>
-          917
+          858
         </td>
         <td>
           3237
@@ -798,73 +872,10 @@
         </td>
       </tr><tr>
         <td>
-          81
-        </td>
-        <td>
-          914
-        </td>
-        <td>
-          3251
-          -
-          3264
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.from
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.from
-        </td>
-      </tr><tr>
-        <td>
-          81
-        </td>
-        <td>
-          916
-        </td>
-        <td>
-          3282
-          -
-          3325
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.length
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.length(actualInstant, timeToLengthStrategy)
-        </td>
-      </tr><tr>
-        <td>
-          81
-        </td>
-        <td>
-          915
-        </td>
-        <td>
-          3266
-          -
-          3277
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.to
-        </td>
-        <td style="background: #AEF1AE">
-          TentacleManipulation.this.tentacle.to
-        </td>
-      </tr><tr>
-        <td>
           82
         </td>
         <td>
-          919
+          860
         </td>
         <td>
           3362
@@ -885,7 +896,7 @@
           82
         </td>
         <td>
-          918
+          859
         </td>
         <td>
           3379
@@ -906,7 +917,7 @@
           83
         </td>
         <td>
-          920
+          861
         </td>
         <td>
           3457
@@ -927,7 +938,7 @@
           84
         </td>
         <td>
-          921
+          862
         </td>
         <td>
           3531
@@ -948,7 +959,7 @@
           86
         </td>
         <td>
-          923
+          864
         </td>
         <td>
           3627
@@ -969,7 +980,7 @@
           86
         </td>
         <td>
-          922
+          863
         </td>
         <td>
           3654
@@ -990,7 +1001,7 @@
           87
         </td>
         <td>
-          925
+          866
         </td>
         <td>
           3683
@@ -1011,7 +1022,7 @@
           87
         </td>
         <td>
-          924
+          865
         </td>
         <td>
           3701
@@ -1032,7 +1043,7 @@
           88
         </td>
         <td>
-          928
+          869
         </td>
         <td>
           3752
@@ -1053,7 +1064,7 @@
           88
         </td>
         <td>
-          927
+          868
         </td>
         <td>
           3752
@@ -1074,7 +1085,7 @@
           95
         </td>
         <td>
-          929
+          870
         </td>
         <td>
           4002
@@ -1095,7 +1106,7 @@
           96
         </td>
         <td>
-          930
+          871
         </td>
         <td>
           4075
@@ -1116,7 +1127,7 @@
           97
         </td>
         <td>
-          932
+          873
         </td>
         <td>
           4148
@@ -1137,7 +1148,7 @@
           97
         </td>
         <td>
-          931
+          872
         </td>
         <td>
           4172
@@ -1158,7 +1169,7 @@
           97
         </td>
         <td>
-          934
+          875
         </td>
         <td>
           4140
@@ -1179,7 +1190,7 @@
           97
         </td>
         <td>
-          933
+          874
         </td>
         <td>
           4197
@@ -1200,33 +1211,12 @@
           104
         </td>
         <td>
-          935
+          877
         </td>
         <td>
-          4432
+          4415
           -
-          4447
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Tentacle.launchInstant
-        </td>
-        <td style="background: #AEF1AE">
-          y.launchInstant
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          936
-        </td>
-        <td>
-          4406
-          -
-          4448
+          4466
         </td>
         <td>
           Apply
@@ -1235,7 +1225,175 @@
           java.time.Instant.compareTo
         </td>
         <td style="background: #AEF1AE">
-          x.launchInstant.compareTo(y.launchInstant)
+          first.launchInstant.compareTo(second.launchInstant)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          876
+        </td>
+        <td>
+          4445
+          -
+          4465
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.launchInstant
+        </td>
+        <td style="background: #AEF1AE">
+          second.launchInstant
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          878
+        </td>
+        <td>
+          4774
+          -
+          4779
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
+        </td>
+        <td style="background: #AEF1AE">
+          Tentacle.this.TentacleManipulation(first)
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          880
+        </td>
+        <td>
+          4774
+          -
+          4819
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.hasReachedDestinationFor(x$1, x$2)
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          879
+        </td>
+        <td>
+          4780
+          -
+          4780
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.hasReachedDestinationFor$default$2
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          882
+        </td>
+        <td>
+          4858
+          -
+          4858
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.hasReachedDestinationFor$default$2
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          881
+        </td>
+        <td>
+          4851
+          -
+          4857
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation
+        </td>
+        <td style="background: #AEF1AE">
+          Tentacle.this.TentacleManipulation(second)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          883
+        </td>
+        <td>
+          4851
+          -
+          4897
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Tentacle.TentacleManipulation.hasReachedDestinationFor
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.hasReachedDestinationFor(x$3, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          884
+        </td>
+        <td>
+          4902
+          -
+          4953
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Duration.compareTo
+        </td>
+        <td style="background: #AEF1AE">
+          firstAttackDuration.compareTo(secondAttackDuration)
         </td>
       </tr>
     </table>

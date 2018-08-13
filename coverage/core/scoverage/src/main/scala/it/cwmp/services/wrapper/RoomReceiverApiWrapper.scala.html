@@ -29,55 +29,56 @@
 </span>5 <span style=''>import io.vertx.scala.ext.web.client.WebClientOptions
 </span>6 <span style=''>import it.cwmp.model.Participant
 </span>7 <span style=''>import it.cwmp.model.Participant.Converters._
-</span>8 <span style=''>import it.cwmp.utils.{AdvancedLogging, VertxClient, VertxInstance}
-</span>9 <span style=''>
-</span>10 <span style=''>import scala.concurrent.Future
-</span>11 <span style=''>
-</span>12 <span style=''>/**
-</span>13 <span style=''>  * A trait that describes the communication that the server has to have with clients
-</span>14 <span style=''>  *
-</span>15 <span style=''>  * @author Enrico Siboni
-</span>16 <span style=''>  * @author Eugenio Pierfederici
-</span>17 <span style=''>  */
-</span>18 <span style=''>trait RoomReceiverApiWrapper {
-</span>19 <span style=''>
-</span>20 <span style=''>  /**
-</span>21 <span style=''>    * Sends the participants to the client
-</span>22 <span style=''>    *
-</span>23 <span style=''>    * @param toSend the participants to send
-</span>24 <span style=''>    * @return a Future that completes when the client received the data
-</span>25 <span style=''>    */
-</span>26 <span style=''>  def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit]
-</span>27 <span style=''>
-</span>28 <span style=''>}
-</span>29 <span style=''>
-</span>30 <span style=''>/**
-</span>31 <span style=''>  * Companion object
-</span>32 <span style=''>  */
-</span>33 <span style=''>object RoomReceiverApiWrapper {
-</span>34 <span style=''>
-</span>35 <span style=''>  def apply(): RoomReceiverApiWrapper = </span><span style='background: #F0ADAD'>RoomReceiverApiWrapperDefault()</span><span style=''>
-</span>36 <span style=''>
-</span>37 <span style=''>  /**
-</span>38 <span style=''>    * Default implementation for client communication
-</span>39 <span style=''>    */
-</span>40 <span style=''>  private case class RoomReceiverApiWrapperDefault()
-</span>41 <span style=''>    extends RoomReceiverApiWrapper with VertxInstance with VertxClient with AdvancedLogging {
-</span>42 <span style=''>
-</span>43 <span style=''>    override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
-</span>44 <span style=''>      </span><span style='background: #F0ADAD'>client
-</span>45 <span style=''></span><span style='background: #F0ADAD'>        .requestAbs(HttpMethod.POST, clientAddress)
-</span>46 <span style=''></span><span style='background: #F0ADAD'>        .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
-</span>47 <span style=''></span><span style='background: #F0ADAD'>        .logSuccessInfo(s&quot;Sending participant to $clientAddress succeeded&quot;)
-</span>48 <span style=''></span><span style='background: #F0ADAD'>        .map(_ =&gt; Future.successful(()))</span><span style=''>
-</span>49 <span style=''>
-</span>50 <span style=''>      // TODO should implement a retry strategy?
-</span>51 <span style=''>    }
-</span>52 <span style=''>
-</span>53 <span style=''>    override protected def clientOptions: WebClientOptions = </span><span style='background: #F0ADAD'>WebClientOptions()</span><span style=''>
-</span>54 <span style=''>  }
-</span>55 <span style=''>
-</span>56 <span style=''>}
+</span>8 <span style=''>import it.cwmp.services.{VertxClient, VertxInstance}
+</span>9 <span style=''>import it.cwmp.utils.AdvancedLogging
+</span>10 <span style=''>
+</span>11 <span style=''>import scala.concurrent.Future
+</span>12 <span style=''>
+</span>13 <span style=''>/**
+</span>14 <span style=''>  * A trait that describes the communication that the server has to have with clients
+</span>15 <span style=''>  *
+</span>16 <span style=''>  * @author Enrico Siboni
+</span>17 <span style=''>  * @author Eugenio Pierfederici
+</span>18 <span style=''>  */
+</span>19 <span style=''>trait RoomReceiverApiWrapper {
+</span>20 <span style=''>
+</span>21 <span style=''>  /**
+</span>22 <span style=''>    * Sends the participants to the client
+</span>23 <span style=''>    *
+</span>24 <span style=''>    * @param toSend the participants to send
+</span>25 <span style=''>    * @return a Future that completes when the client received the data
+</span>26 <span style=''>    */
+</span>27 <span style=''>  def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit]
+</span>28 <span style=''>
+</span>29 <span style=''>}
+</span>30 <span style=''>
+</span>31 <span style=''>/**
+</span>32 <span style=''>  * Companion object
+</span>33 <span style=''>  */
+</span>34 <span style=''>object RoomReceiverApiWrapper {
+</span>35 <span style=''>
+</span>36 <span style=''>  def apply(): RoomReceiverApiWrapper = </span><span style='background: #F0ADAD'>RoomReceiverApiWrapperDefault()</span><span style=''>
+</span>37 <span style=''>
+</span>38 <span style=''>  /**
+</span>39 <span style=''>    * Default implementation for client communication
+</span>40 <span style=''>    */
+</span>41 <span style=''>  private case class RoomReceiverApiWrapperDefault()
+</span>42 <span style=''>    extends RoomReceiverApiWrapper with VertxInstance with VertxClient with AdvancedLogging {
+</span>43 <span style=''>
+</span>44 <span style=''>    override def sendParticipants(clientAddress: String, toSend: Seq[Participant]): Future[Unit] = {
+</span>45 <span style=''>      </span><span style='background: #F0ADAD'>client
+</span>46 <span style=''></span><span style='background: #F0ADAD'>        .requestAbs(HttpMethod.POST, clientAddress)
+</span>47 <span style=''></span><span style='background: #F0ADAD'>        .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
+</span>48 <span style=''></span><span style='background: #F0ADAD'>        .logSuccessInfo(s&quot;Sending participant to $clientAddress succeeded&quot;)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>        .map(_ =&gt; Future.successful(()))</span><span style=''>
+</span>50 <span style=''>
+</span>51 <span style=''>      // TODO should implement a retry strategy?
+</span>52 <span style=''>    }
+</span>53 <span style=''>
+</span>54 <span style=''>    override protected def clientOptions: WebClientOptions = </span><span style='background: #F0ADAD'>WebClientOptions()</span><span style=''>
+</span>55 <span style=''>  }
+</span>56 <span style=''>
+</span>57 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -91,15 +92,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          35
+          36
         </td>
         <td>
-          269
+          452
         </td>
         <td>
-          903
+          926
           -
-          934
+          957
         </td>
         <td>
           Apply
@@ -112,15 +113,15 @@
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          270
+          453
         </td>
         <td>
-          1285
+          1308
           -
-          1300
+          1323
         </td>
         <td>
           Literal
@@ -133,15 +134,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          271
+          454
         </td>
         <td>
-          1357
+          1380
           -
-          1372
+          1395
         </td>
         <td>
           Apply
@@ -154,15 +155,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          274
+          457
         </td>
         <td>
-          1341
+          1364
           -
-          1389
+          1412
         </td>
         <td>
           Apply
@@ -175,15 +176,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          273
+          456
         </td>
         <td>
-          1374
+          1397
           -
-          1388
+          1411
         </td>
         <td>
           Apply
@@ -196,15 +197,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          272
+          455
         </td>
         <td>
-          1380
+          1403
           -
-          1388
+          1411
         </td>
         <td>
           Select
@@ -217,15 +218,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          275
+          458
         </td>
         <td>
-          1258
+          1281
           -
-          1390
+          1413
         </td>
         <td>
           Apply
@@ -238,36 +239,36 @@
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          277
+          460
         </td>
         <td>
-          1414
+          1437
           -
-          1414
+          1437
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #F0ADAD">
           RoomReceiverApiWrapperDefault.this.vertxExecutionContext
         </td>
       </tr><tr>
         <td>
-          47
+          48
         </td>
         <td>
-          276
+          459
         </td>
         <td>
-          1415
+          1438
           -
-          1465
+          1488
         </td>
         <td>
           Apply
@@ -280,36 +281,36 @@
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          280
+          463
         </td>
         <td>
-          1479
+          1502
           -
-          1479
+          1502
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #F0ADAD">
           RoomReceiverApiWrapperDefault.this.vertxExecutionContext
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          279
+          462
         </td>
         <td>
-          1502
+          1525
           -
-          1502
+          1525
         </td>
         <td>
           Literal
@@ -322,15 +323,36 @@
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          281
+          461
         </td>
         <td>
-          1258
+          1508
           -
-          1507
+          1529
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.successful
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.successful[Unit](())
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          464
+        </td>
+        <td>
+          1281
+          -
+          1530
         </td>
         <td>
           ApplyToImplicitArgs
@@ -346,36 +368,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          54
         </td>
         <td>
-          278
+          465
         </td>
         <td>
-          1485
+          1649
           -
-          1506
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.concurrent.Future.successful
-        </td>
-        <td style="background: #F0ADAD">
-          scala.concurrent.Future.successful[Unit](())
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          282
-        </td>
-        <td>
-          1626
-          -
-          1644
+          1667
         </td>
         <td>
           Apply

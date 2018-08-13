@@ -1,0 +1,1330 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/game/distributed/impl/MergingStateCellWorld.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game.distributed.impl
+</span>2 <span style=''>
+</span>3 <span style=''>import java.time.Instant
+</span>4 <span style=''>
+</span>5 <span style=''>import akka.actor.Actor.Receive
+</span>6 <span style=''>import akka.actor.ActorRef
+</span>7 <span style=''>import akka.cluster.Cluster
+</span>8 <span style=''>import akka.cluster.ddata.Replicator.Update
+</span>9 <span style=''>import akka.cluster.ddata._
+</span>10 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState
+</span>11 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
+</span>12 <span style=''>import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld._
+</span>13 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
+</span>14 <span style=''>import it.cwmp.utils.Utils
+</span>15 <span style=''>
+</span>16 <span style=''>import scala.language.implicitConversions
+</span>17 <span style=''>
+</span>18 <span style=''>/**
+</span>19 <span style=''>  * Distributed representation of CellWorld where modifications made concurrently are merged
+</span>20 <span style=''>  *
+</span>21 <span style=''>  * @param onWorldUpdate   the strategy to adopt on world changes
+</span>22 <span style=''>  * @param replicatorActor the actor that will distribute the data
+</span>23 <span style=''>  * @param cluster         the cluster where this distributed data are exchanged
+</span>24 <span style=''>  * @author Enrico Siboni
+</span>25 <span style=''>  */
+</span>26 <span style=''>case class MergingStateCellWorld(onWorldUpdate: CellWorld =&gt; Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
+</span>27 <span style=''>  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
+</span>28 <span style=''>
+</span>29 <span style=''>  override type ReplicatedDataType = ORMultiMap[String, ReplicatedData]
+</span>30 <span style=''>
+</span>31 <span style=''>  override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] = </span><span style='background: #F0ADAD'>ORMultiMapKey(DISTRIBUTED_KEY_NAME)</span><span style=''>
+</span>32 <span style=''>
+</span>33 <span style=''>  override protected def activeBehaviour: Receive = {
+</span>34 <span style=''>    case UpdateState(state: CellWorld) =&gt;
+</span>35 <span style=''>      log.debug(&quot;Updating distributed state&quot;)
+</span>36 <span style=''>      </span><span style='background: #F0ADAD'>updateDistributedStateTo(state)</span><span style=''>
+</span>37 <span style=''>  }
+</span>38 <span style=''>
+</span>39 <span style=''>  override protected def updateDistributedStateTo(state: CellWorld): Unit =
+</span>40 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor !
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      Update(distributedKey,
+</span>42 <span style=''></span><span style='background: #F0ADAD'>        ORMultiMap.emptyWithValueDeltas[String, ReplicatedData],
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        consistencyPolicy
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      )(distributedModify(_, state))</span><span style=''>
+</span>45 <span style=''>
+</span>46 <span style=''>  override protected def distributedModify(oldDistributedState: ORMultiMap[String, ReplicatedData],
+</span>47 <span style=''>                                           newState: CellWorld): ORMultiMap[String, ReplicatedData] = {
+</span>48 <span style=''>
+</span>49 <span style=''>    val distributedInstant = </span><span style='background: #F0ADAD'>LWWRegister[Instant](newState.instant)</span><span style=''>
+</span>50 <span style=''>    val distributedCharacters = </span><span style='background: #F0ADAD'>newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)</span><span style=''>
+</span>51 <span style=''>    val distributedAttacks = </span><span style='background: #F0ADAD'>newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)</span><span style=''>
+</span>52 <span style=''>
+</span>53 <span style=''>    </span><span style='background: #F0ADAD'>oldDistributedState.entries
+</span>54 <span style=''></span><span style='background: #F0ADAD'>      .foldLeft(oldDistributedState)(_ - _._1) // removes all bindings
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
+</span>56 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
+</span>57 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)</span><span style=''>
+</span>58 <span style=''>  }
+</span>59 <span style=''>
+</span>60 <span style=''>  override protected def parseFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
+</span>61 <span style=''>    val instantOption = </span><span style='background: #F0ADAD'>distributedData.get(INSTANT_DISTRIBUTED_KEY)</span><span style=''>
+</span>62 <span style=''>    val charactersOption = </span><span style='background: #F0ADAD'>distributedData.get(CELLS_DISTRIBUTED_KEY)</span><span style=''>
+</span>63 <span style=''>    val attacksOption = </span><span style='background: #F0ADAD'>distributedData.get(TENTACLE_DISTRIBUTED_KEY)</span><span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>    (instantOption, charactersOption, attacksOption) match {
+</span>66 <span style=''>      case (Some(replicatedInstant), Some(replicatedCharacters), Some(replicatedAttacks))
+</span>67 <span style=''>        if </span><span style='background: #F0ADAD'>replicatedInstant.nonEmpty &amp;&amp; replicatedCharacters.nonEmpty &amp;&amp; replicatedAttacks.nonEmpty</span><span style=''> =&gt;
+</span>68 <span style=''>
+</span>69 <span style=''>        val distributedInstant = </span><span style='background: #F0ADAD'>replicatedInstant.head.asInstanceOf[LWWRegister[Instant]]</span><span style=''>
+</span>70 <span style=''>        val distributedCharacters = </span><span style='background: #F0ADAD'>replicatedCharacters.head.asInstanceOf[ORSet[Cell]]</span><span style=''>
+</span>71 <span style=''>        val distributedAttacks = </span><span style='background: #F0ADAD'>replicatedAttacks.head.asInstanceOf[ORSet[Tentacle]]</span><span style=''>
+</span>72 <span style=''>
+</span>73 <span style=''>        </span><span style='background: #F0ADAD'>CellWorld(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)</span><span style=''>
+</span>74 <span style=''>
+</span>75 <span style=''>      case cause@_ =&gt;
+</span>76 <span style=''>        val errorMessage = </span><span style='background: #F0ADAD'>s&quot;Cannot convert from distributed data: $cause&quot;</span><span style=''>
+</span>77 <span style=''>        log.error(errorMessage)
+</span>78 <span style=''>        </span><span style='background: #F0ADAD'>throw Utils.parseException(&quot;Converting from DistributedData to CellWorld&quot;, errorMessage)</span><span style=''>
+</span>79 <span style=''>    }
+</span>80 <span style=''>  }
+</span>81 <span style=''>}
+</span>82 <span style=''>
+</span>83 <span style=''>/**
+</span>84 <span style=''>  * Companion object
+</span>85 <span style=''>  */
+</span>86 <span style=''>object MergingStateCellWorld {
+</span>87 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
+</span>88 <span style=''>
+</span>89 <span style=''>  private val INSTANT_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;instantKey&quot;</span><span style=''>
+</span>90 <span style=''>  private val CELLS_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;cellsKey&quot;</span><span style=''>
+</span>91 <span style=''>  private val TENTACLE_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;tentaclesKey&quot;</span><span style=''>
+</span>92 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          687
+        </td>
+        <td>
+          1273
+          -
+          1308
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMapKey.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.ORMultiMapKey.apply[String, akka.cluster.ddata.ReplicatedData](it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.DISTRIBUTED_KEY_NAME)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          686
+        </td>
+        <td>
+          1287
+          -
+          1307
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.DISTRIBUTED_KEY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.DISTRIBUTED_KEY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          689
+        </td>
+        <td>
+          1362
+          -
+          1362
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          1458
+          -
+          1489
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.updateDistributedStateTo
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.updateDistributedStateTo(state)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          690
+        </td>
+        <td>
+          1575
+          -
+          1590
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          698
+        </td>
+        <td>
+          1575
+          -
+          1749
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(MergingStateCellWorld.this.replicatorActor).!(akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData]](MergingStateCellWorld.this.distributedKey, akka.cluster.ddata.ORMultiMap.emptyWithValueDeltas[String, akka.cluster.ddata.ReplicatedData], MergingStateCellWorld.this.consistencyPolicy, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData]) =&gt; MergingStateCellWorld.this.distributedModify(x$1, state))))(MergingStateCellWorld.this.replicatorActor)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          1591
+          -
+          1591
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          691
+        </td>
+        <td>
+          1606
+          -
+          1620
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          694
+        </td>
+        <td>
+          1599
+          -
+          1599
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Update.apply$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing]
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          1630
+          -
+          1685
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.emptyWithValueDeltas
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.ORMultiMap.emptyWithValueDeltas[String, akka.cluster.ddata.ReplicatedData]
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          1695
+          -
+          1712
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.consistencyPolicy
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.consistencyPolicy
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          1599
+          -
+          1749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Update.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Update.apply[akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData]](MergingStateCellWorld.this.distributedKey, akka.cluster.ddata.ORMultiMap.emptyWithValueDeltas[String, akka.cluster.ddata.ReplicatedData], MergingStateCellWorld.this.consistencyPolicy, akka.cluster.ddata.Replicator.Update.apply$default$4[Nothing])(((x$1: akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData]) =&gt; MergingStateCellWorld.this.distributedModify(x$1, state)))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          695
+        </td>
+        <td>
+          1721
+          -
+          1748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.distributedModify
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.distributedModify(x$1, state)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          2006
+          -
+          2022
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          newState.instant
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          702
+        </td>
+        <td>
+          1985
+          -
+          2023
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.LWWRegister.apply[java.time.Instant](x$8)(x$9, x$10)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          701
+        </td>
+        <td>
+          2005
+          -
+          2005
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.apply$default$3
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.LWWRegister.apply$default$3[java.time.Instant](x$8)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          700
+        </td>
+        <td>
+          2005
+          -
+          2005
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          705
+        </td>
+        <td>
+          2104
+          -
+          2109
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.ORSet.+
+        </td>
+        <td style="background: #F0ADAD">
+          x$2.+(x$3)(MergingStateCellWorld.this.cluster)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          704
+        </td>
+        <td>
+          2106
+          -
+          2106
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          2056
+          -
+          2110
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.foldLeft
+        </td>
+        <td style="background: #F0ADAD">
+          newState.characters.foldLeft[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Cell]](akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Cell])(((x$2: akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Cell], x$3: it.cwmp.client.model.game.impl.Cell) =&gt; x$2.+(x$3)(MergingStateCellWorld.this.cluster)))
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          703
+        </td>
+        <td>
+          2085
+          -
+          2102
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.cluster.ddata.ORSet.empty
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Cell]
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          708
+        </td>
+        <td>
+          2191
+          -
+          2191
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          710
+        </td>
+        <td>
+          2140
+          -
+          2195
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.foldLeft
+        </td>
+        <td style="background: #F0ADAD">
+          newState.attacks.foldLeft[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle]](akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Tentacle])(((x$4: akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle], x$5: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$4.+(x$5)(MergingStateCellWorld.this.cluster)))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          2166
+          -
+          2187
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.cluster.ddata.ORSet.empty
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Tentacle]
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          709
+        </td>
+        <td>
+          2189
+          -
+          2194
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.ORSet.+
+        </td>
+        <td style="background: #F0ADAD">
+          x$4.+(x$5)(MergingStateCellWorld.this.cluster)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          711
+        </td>
+        <td>
+          2270
+          -
+          2274
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          x$7._1
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          713
+        </td>
+        <td>
+          2266
+          -
+          2274
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.-
+        </td>
+        <td style="background: #F0ADAD">
+          x$6.-(x$7._1)(MergingStateCellWorld.this.cluster)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          712
+        </td>
+        <td>
+          2268
+          -
+          2268
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          714
+        </td>
+        <td>
+          2318
+          -
+          2341
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          715
+        </td>
+        <td>
+          2317
+          -
+          2317
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          717
+        </td>
+        <td>
+          2380
+          -
+          2380
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          716
+        </td>
+        <td>
+          2381
+          -
+          2402
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          720
+        </td>
+        <td>
+          2201
+          -
+          2490
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.addBinding
+        </td>
+        <td style="background: #F0ADAD">
+          oldDistributedState.entries.foldLeft[akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData]](oldDistributedState)(((x$6: akka.cluster.ddata.ORMultiMap[String,akka.cluster.ddata.ReplicatedData], x$7: (String, Set[akka.cluster.ddata.ReplicatedData])) =&gt; x$6.-(x$7._1)(MergingStateCellWorld.this.cluster))).addBinding(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY, distributedInstant)(MergingStateCellWorld.this.cluster).addBinding(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY, distributedCharacters)(MergingStateCellWorld.this.cluster).addBinding(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY, distributedAttacks)(MergingStateCellWorld.this.cluster)
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          719
+        </td>
+        <td>
+          2444
+          -
+          2444
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.cluster
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.cluster
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          718
+        </td>
+        <td>
+          2445
+          -
+          2469
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          722
+        </td>
+        <td>
+          2634
+          -
+          2678
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.get
+        </td>
+        <td style="background: #F0ADAD">
+          distributedData.get(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          721
+        </td>
+        <td>
+          2654
+          -
+          2677
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.INSTANT_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          723
+        </td>
+        <td>
+          2726
+          -
+          2747
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          724
+        </td>
+        <td>
+          2706
+          -
+          2748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.get
+        </td>
+        <td style="background: #F0ADAD">
+          distributedData.get(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.CELLS_DISTRIBUTED_KEY)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          726
+        </td>
+        <td>
+          2773
+          -
+          2818
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.ORMultiMap.get
+        </td>
+        <td style="background: #F0ADAD">
+          distributedData.get(it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          725
+        </td>
+        <td>
+          2793
+          -
+          2817
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.TENTACLE_DISTRIBUTED_KEY
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          729
+        </td>
+        <td>
+          2982
+          -
+          3071
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedInstant.nonEmpty.&amp;&amp;(replicatedCharacters.nonEmpty).&amp;&amp;(replicatedAttacks.nonEmpty)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          728
+        </td>
+        <td>
+          3045
+          -
+          3071
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedAttacks.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          727
+        </td>
+        <td>
+          3012
+          -
+          3041
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.TraversableOnce.nonEmpty
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedCharacters.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          730
+        </td>
+        <td>
+          3109
+          -
+          3166
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedInstant.head.asInstanceOf[akka.cluster.ddata.LWWRegister[java.time.Instant]]
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          731
+        </td>
+        <td>
+          3203
+          -
+          3254
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedCharacters.head.asInstanceOf[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Cell]]
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          732
+        </td>
+        <td>
+          3288
+          -
+          3340
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Any.asInstanceOf
+        </td>
+        <td style="background: #F0ADAD">
+          replicatedAttacks.head.asInstanceOf[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle]]
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          735
+        </td>
+        <td>
+          3424
+          -
+          3457
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.SetLike.toSeq
+        </td>
+        <td style="background: #F0ADAD">
+          distributedAttacks.elements.toSeq
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          734
+        </td>
+        <td>
+          3386
+          -
+          3422
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.SetLike.toSeq
+        </td>
+        <td style="background: #F0ADAD">
+          distributedCharacters.elements.toSeq
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          733
+        </td>
+        <td>
+          3360
+          -
+          3384
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.cluster.ddata.LWWRegister.value
+        </td>
+        <td style="background: #F0ADAD">
+          distributedInstant.value
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          736
+        </td>
+        <td>
+          3350
+          -
+          3458
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.CellWorld.apply(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          737
+        </td>
+        <td>
+          3509
+          -
+          3556
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;Cannot convert from distributed data: &quot;, &quot;&quot;).s(cause)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          738
+        </td>
+        <td>
+          3597
+          -
+          3685
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          throw it.cwmp.utils.Utils.parseException(&quot;Converting from DistributedData to CellWorld&quot;, errorMessage)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          739
+        </td>
+        <td>
+          3797
+          -
+          3813
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;distributedKey&quot;
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          740
+        </td>
+        <td>
+          3855
+          -
+          3867
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;instantKey&quot;
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          741
+        </td>
+        <td>
+          3906
+          -
+          3916
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;cellsKey&quot;
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          742
+        </td>
+        <td>
+          3958
+          -
+          3972
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;tentaclesKey&quot;
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

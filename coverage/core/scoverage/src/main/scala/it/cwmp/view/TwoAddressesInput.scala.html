@@ -1,0 +1,1004 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/view/TwoAddressesInput.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.view
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.view.AbstractAddressInput.{ADDRESS_LABEL, defaultPort, localIP}
+</span>4 <span style=''>import javafx.scene.control.{Label, TextField}
+</span>5 <span style=''>import javafx.scene.layout.GridPane
+</span>6 <span style=''>
+</span>7 <span style=''>/**
+</span>8 <span style=''>  * A class to request user to insert two addresses
+</span>9 <span style=''>  *
+</span>10 <span style=''>  * @param viewTitle     the view title
+</span>11 <span style=''>  * @param message       the message to show the user
+</span>12 <span style=''>  * @param onResultReady the action on result ready
+</span>13 <span style=''>  */
+</span>14 <span style=''>case class TwoAddressesInput(viewTitle: String, message: String, onResultReady: (((String, String), (String, String))) =&gt; Unit)
+</span>15 <span style=''>                            (firstDefaultIP: String = localIP, firstDefaultPort: String = defaultPort,
+</span>16 <span style=''>                             secondDefaultIP: String = localIP, secondDefaultPort: String = defaultPort)
+</span>17 <span style=''>  extends AbstractAddressInput[((String, String), (String, String))](viewTitle, message, onResultReady)(firstDefaultIP, firstDefaultPort) {
+</span>18 <span style=''>
+</span>19 <span style=''>  private var secondIpAddressValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>20 <span style=''>  private var secondPortValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>  protected var secondAddressIpField: TextField = _
+</span>23 <span style=''>  protected var secondAddressPortField: TextField = _
+</span>24 <span style=''>
+</span>25 <span style=''>  override protected def wholeInputValid: Boolean = </span><span style='background: #F0ADAD'>super.wholeInputValid &amp;&amp; secondPortValid &amp;&amp; secondIpAddressValid</span><span style=''>
+</span>26 <span style=''>
+</span>27 <span style=''>  override protected def bodyGridFill(gridPane: GridPane): Unit = {
+</span>28 <span style=''>    </span><span style='background: #F0ADAD'>super.bodyGridFill(gridPane)</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>    val secondIpAndPortFields = </span><span style='background: #F0ADAD'>createIpAndPortFields()</span><span style=''>
+</span>31 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField = secondIpAndPortFields._1</span><span style=''>
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField = secondIpAndPortFields._2</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>    // attach listeners for changes that update button state
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>36 <span style=''></span><span style='background: #F0ADAD'>      this.secondIpAddressValid = ipAddressValid(newValue)
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>38 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>39 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>40 <span style=''></span><span style='background: #F0ADAD'>      this.secondPortValid = portValid(newValue)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>42 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>43 <span style=''>
+</span>44 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.setText(secondDefaultIP)</span><span style=''>
+</span>45 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.setText(secondDefaultPort)</span><span style=''>
+</span>46 <span style=''>
+</span>47 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(new Label(ADDRESS_LABEL), 0, 1)</span><span style=''>
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressIpField, 1, 1)</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressPortField, 2, 1)</span><span style=''>
+</span>50 <span style=''>  }
+</span>51 <span style=''>
+</span>52 <span style=''>  override protected def getResult: ((String, String), (String, String)) =
+</span>53 <span style=''>    </span><span style='background: #F0ADAD'>((addressIpField.getText, addressPortField.getText), (secondAddressIpField.getText, secondAddressPortField.getText))</span><span style=''>
+</span>54 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          667
+        </td>
+        <td>
+          910
+          -
+          914
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          668
+        </td>
+        <td>
+          947
+          -
+          951
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          true
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          669
+        </td>
+        <td>
+          1137
+          -
+          1152
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondPortValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondPortValid
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          671
+        </td>
+        <td>
+          1112
+          -
+          1176
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.&amp;&amp;
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.super.wholeInputValid.&amp;&amp;(TwoAddressesInput.this.secondPortValid).&amp;&amp;(TwoAddressesInput.this.secondIpAddressValid)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          670
+        </td>
+        <td>
+          1156
+          -
+          1176
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondIpAddressValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondIpAddressValid
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          672
+        </td>
+        <td>
+          1250
+          -
+          1278
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.bodyGridFill
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.super.bodyGridFill(gridPane)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          673
+        </td>
+        <td>
+          1312
+          -
+          1335
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.createIpAndPortFields
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.createIpAndPortFields()
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          675
+        </td>
+        <td>
+          1340
+          -
+          1387
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondAddressIpField_=
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField_=(secondIpAndPortFields._1)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          674
+        </td>
+        <td>
+          1363
+          -
+          1387
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          secondIpAndPortFields._1
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          677
+        </td>
+        <td>
+          1392
+          -
+          1441
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondAddressPortField_=
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressPortField_=(secondIpAndPortFields._2)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          676
+        </td>
+        <td>
+          1417
+          -
+          1441
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          secondIpAndPortFields._2
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          681
+        </td>
+        <td>
+          1508
+          -
+          1667
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.beans.value.ObservableValue.addListener
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField.textProperty().addListener(((x$1: javafx.beans.value.ObservableValue[_ &lt;: String], x$2: String, newValue: String) =&gt; {
+  this.secondIpAddressValid_=(TwoAddressesInput.this.ipAddressValid(newValue));
+  TwoAddressesInput.this.updateButtonState()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          678
+        </td>
+        <td>
+          1610
+          -
+          1634
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ipAddressValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.ipAddressValid(newValue)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          679
+        </td>
+        <td>
+          1582
+          -
+          1634
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondIpAddressValid_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.secondIpAddressValid_=(TwoAddressesInput.this.ipAddressValid(newValue))
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          680
+        </td>
+        <td>
+          1641
+          -
+          1660
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.updateButtonState
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.updateButtonState()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          685
+        </td>
+        <td>
+          1672
+          -
+          1823
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.beans.value.ObservableValue.addListener
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressPortField.textProperty().addListener(((x$3: javafx.beans.value.ObservableValue[_ &lt;: String], x$4: String, newValue: String) =&gt; {
+  this.secondPortValid_=(TwoAddressesInput.this.portValid(newValue));
+  TwoAddressesInput.this.updateButtonState()
+}))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          683
+        </td>
+        <td>
+          1748
+          -
+          1790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondPortValid_=
+        </td>
+        <td style="background: #F0ADAD">
+          this.secondPortValid_=(TwoAddressesInput.this.portValid(newValue))
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          682
+        </td>
+        <td>
+          1771
+          -
+          1790
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.portValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.portValid(newValue)
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          684
+        </td>
+        <td>
+          1797
+          -
+          1816
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.updateButtonState
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.updateButtonState()
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          687
+        </td>
+        <td>
+          1829
+          -
+          1874
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField.setText(TwoAddressesInput.this.secondDefaultIP)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          686
+        </td>
+        <td>
+          1858
+          -
+          1873
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondDefaultIP
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondDefaultIP
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          689
+        </td>
+        <td>
+          1879
+          -
+          1928
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressPortField.setText(TwoAddressesInput.this.secondDefaultPort)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          1910
+          -
+          1927
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondDefaultPort
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondDefaultPort
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          690
+        </td>
+        <td>
+          1957
+          -
+          1970
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          1976
+          -
+          1977
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          1973
+          -
+          1974
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          691
+        </td>
+        <td>
+          1947
+          -
+          1971
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.Label.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.scene.control.Label(it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          694
+        </td>
+        <td>
+          1934
+          -
+          1978
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(new javafx.scene.control.Label(it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL), 0, 1)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          2018
+          -
+          2019
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          695
+        </td>
+        <td>
+          1996
+          -
+          2016
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondAddressIpField
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          698
+        </td>
+        <td>
+          1983
+          -
+          2023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(TwoAddressesInput.this.secondAddressIpField, 1, 1)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          2021
+          -
+          2022
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          2041
+          -
+          2063
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondAddressPortField
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressPortField
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          702
+        </td>
+        <td>
+          2028
+          -
+          2070
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.GridPane.add
+        </td>
+        <td style="background: #F0ADAD">
+          gridPane.add(TwoAddressesInput.this.secondAddressPortField, 2, 1)
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          701
+        </td>
+        <td>
+          2068
+          -
+          2069
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          49
+        </td>
+        <td>
+          700
+        </td>
+        <td>
+          2065
+          -
+          2066
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          2
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          705
+        </td>
+        <td>
+          2156
+          -
+          2206
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](TwoAddressesInput.this.addressIpField.getText(), TwoAddressesInput.this.addressPortField.getText())
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          708
+        </td>
+        <td>
+          2208
+          -
+          2270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](TwoAddressesInput.this.secondAddressIpField.getText(), TwoAddressesInput.this.secondAddressPortField.getText())
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          704
+        </td>
+        <td>
+          2181
+          -
+          2205
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.addressPortField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          2239
+          -
+          2269
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressPortField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          2209
+          -
+          2237
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          709
+        </td>
+        <td>
+          2155
+          -
+          2271
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[(String, String), (String, String)](scala.Tuple2.apply[String, String](TwoAddressesInput.this.addressIpField.getText(), TwoAddressesInput.this.addressPortField.getText()), scala.Tuple2.apply[String, String](TwoAddressesInput.this.secondAddressIpField.getText(), TwoAddressesInput.this.secondAddressPortField.getText()))
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          703
+        </td>
+        <td>
+          2157
+          -
+          2179
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.addressIpField.getText()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

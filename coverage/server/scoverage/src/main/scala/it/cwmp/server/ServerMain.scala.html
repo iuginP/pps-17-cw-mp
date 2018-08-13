@@ -1,0 +1,748 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/server/ServerMain.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.server
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.services.authentication.AuthenticationServiceVerticle
+</span>4 <span style=''>import it.cwmp.services.discovery.DiscoveryServiceVerticle
+</span>5 <span style=''>import it.cwmp.services.rooms.RoomsServiceVerticle
+</span>6 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomReceiverApiWrapper, RoomsApiWrapper}
+</span>7 <span style=''>import it.cwmp.services.{VertxInstance, authentication, rooms}
+</span>8 <span style=''>import it.cwmp.utils.Logging
+</span>9 <span style=''>
+</span>10 <span style=''>import scala.util.{Failure, Success}
+</span>11 <span style=''>
+</span>12 <span style=''>/**
+</span>13 <span style=''>  * Handle class to start all server parts
+</span>14 <span style=''>  */
+</span>15 <span style=''>object ServerMain extends App with VertxInstance with Logging {
+</span>16 <span style=''>
+</span>17 <span style=''>  log.info(&quot;Deploying DiscoveryService... &quot;)
+</span>18 <span style=''>  val discoveryApiWrapper: DiscoveryApiWrapper = </span><span style='background: #F0ADAD'>DiscoveryApiWrapper()</span><span style=''>
+</span>19 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(DiscoveryServiceVerticle())
+</span>20 <span style=''></span><span style='background: #F0ADAD'>    .andThen {
+</span>21 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt; log.info(&quot;DiscoveryService up and running!&quot;)
+</span>22 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying DiscoveryService&quot;, ex)
+</span>23 <span style=''></span><span style='background: #F0ADAD'>    }
+</span>24 <span style=''></span><span style='background: #F0ADAD'>    .map(_ =&gt; {
+</span>25 <span style=''></span><span style='background: #F0ADAD'>      log.info(&quot;Deploying AuthenticationService... &quot;)
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      vertx.deployVerticleFuture(AuthenticationServiceVerticle())
+</span>27 <span style=''></span><span style='background: #F0ADAD'>    })
+</span>28 <span style=''></span><span style='background: #F0ADAD'>    .andThen {
+</span>29 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt;
+</span>30 <span style=''></span><span style='background: #F0ADAD'>        log.info(&quot;AuthenticationService up and running!&quot;)
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        discoveryApiWrapper.publish(
+</span>32 <span style=''></span><span style='background: #F0ADAD'>          authentication.Service.DISCOVERY_NAME,
+</span>33 <span style=''></span><span style='background: #F0ADAD'>          AuthenticationApiWrapper.DEFAULT_HOST,
+</span>34 <span style=''></span><span style='background: #F0ADAD'>          authentication.Service.DEFAULT_PORT.toInt)
+</span>35 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying AuthenticationService&quot;, ex)
+</span>36 <span style=''></span><span style='background: #F0ADAD'>    }
+</span>37 <span style=''></span><span style='background: #F0ADAD'>    .map(_ =&gt; {
+</span>38 <span style=''></span><span style='background: #F0ADAD'>      log.info(&quot;Deploying RoomsService... &quot;)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      vertx.deployVerticleFuture(RoomsServiceVerticle(AuthenticationApiWrapper(), RoomReceiverApiWrapper()))
+</span>40 <span style=''></span><span style='background: #F0ADAD'>    })
+</span>41 <span style=''></span><span style='background: #F0ADAD'>    .andThen {
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt;
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        log.info(&quot;RoomsService up and running!&quot;)
+</span>44 <span style=''></span><span style='background: #F0ADAD'>        discoveryApiWrapper.publish(
+</span>45 <span style=''></span><span style='background: #F0ADAD'>          rooms.Service.DISCOVERY_NAME,
+</span>46 <span style=''></span><span style='background: #F0ADAD'>          RoomsApiWrapper.DEFAULT_HOST,
+</span>47 <span style=''></span><span style='background: #F0ADAD'>          rooms.Service.DEFAULT_PORT.toInt)
+</span>48 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying RoomsService&quot;, ex)
+</span>49 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>50 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          666
+          -
+          687
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          717
+          -
+          717
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply$default$1
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          717
+          -
+          743
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply(it.cwmp.services.discovery.DiscoveryServiceVerticle.apply$default$1)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          758
+          -
+          758
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          758
+          -
+          758
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.server.ServerMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          919
+          -
+          919
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          987
+          -
+          1046
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.Vertx.deployVerticleFuture
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertx.deployVerticleFuture(it.cwmp.services.authentication.AuthenticationServiceVerticle.apply(it.cwmp.services.authentication.AuthenticationServiceVerticle.apply$default$1))
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          1014
+          -
+          1045
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply(it.cwmp.services.authentication.AuthenticationServiceVerticle.apply$default$1)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          1014
+          -
+          1014
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply$default$1
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          1067
+          -
+          1067
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.server.ServerMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          15
+        </td>
+        <td>
+          1067
+          -
+          1067
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          1160
+          -
+          1339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.publish
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.discoveryApiWrapper.publish(it.cwmp.services.authentication.Service.DISCOVERY_NAME, it.cwmp.services.wrapper.AuthenticationApiWrapper.DEFAULT_HOST, it.cwmp.services.authentication.Service.DEFAULT_PORT.toInt)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          1199
+          -
+          1236
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.Service.DISCOVERY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.authentication.Service.DISCOVERY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          1248
+          -
+          1285
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.DEFAULT_HOST
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.DEFAULT_HOST
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          1297
+          -
+          1338
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.authentication.Service.DEFAULT_PORT.toInt
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          20
+        </td>
+        <td>
+          1434
+          -
+          1434
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          17
+        </td>
+        <td>
+          1569
+          -
+          1593
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          16
+        </td>
+        <td>
+          1541
+          -
+          1567
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply()
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          19
+        </td>
+        <td>
+          1493
+          -
+          1595
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.core.Vertx.deployVerticleFuture
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertx.deployVerticleFuture(it.cwmp.services.rooms.RoomsServiceVerticle.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(), it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply()))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          18
+        </td>
+        <td>
+          1520
+          -
+          1594
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.rooms.RoomsServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.rooms.RoomsServiceVerticle.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(), it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply())
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          26
+        </td>
+        <td>
+          1616
+          -
+          1616
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1616
+          -
+          1616
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.server.ServerMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          27
+        </td>
+        <td>
+          690
+          -
+          1929
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.vertx.deployVerticleFuture(it.cwmp.services.discovery.DiscoveryServiceVerticle.apply(it.cwmp.services.discovery.DiscoveryServiceVerticle.apply$default$1)).andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[String], B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; (if (ServerMain.this.log.underlying.isInfoEnabled())
+        ServerMain.this.log.underlying.info(&quot;DiscoveryService up and running!&quot;)
+      else
+        (): Unit)
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; (if (ServerMain.this.log.underlying.isInfoEnabled())
+        ServerMain.this.log.underlying.info(&quot;Error deploying DiscoveryService&quot;, ex)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: scala.util.Try[String]): Boolean = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; true
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[String],Unit]))(ServerMain.this.vertxExecutionContext).map[scala.concurrent.Future[String]](((x$1: String) =&gt; {
+  (if (ServerMain.this.log.underlying.isInfoEnabled())
+    ServerMain.this.log.underlying.info(&quot;Deploying AuthenticationService... &quot;)
+  else
+    (): Unit);
+  ServerMain.this.vertx.deployVerticleFuture(it.cwmp.services.authentication.AuthenticationServiceVerticle.apply(it.cwmp.services.authentication.AuthenticationServiceVerticle.apply$default$1))
+}))(ServerMain.this.vertxExecutionContext).andThen[Any](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[scala.concurrent.Future[String]],Any] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[scala.concurrent.Future[String]] =&gt; Any&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[scala.concurrent.Future[String]], B1 &gt;: Any](x2: A1, default: A1 =&gt; B1): B1 = ((x2.asInstanceOf[scala.util.Try[scala.concurrent.Future[String]]]: scala.util.Try[scala.concurrent.Future[String]]): scala.util.Try[scala.concurrent.Future[String]] @unchecked) match {
+      case (value: scala.concurrent.Future[String])scala.util.Success[scala.concurrent.Future[String]](_) =&gt; {
+        (if (ServerMain.this.log.underlying.isInfoEnabled())
+          ServerMain.this.log.underlying.info(&quot;AuthenticationService up and running!&quot;)
+        else
+          (): Unit);
+        ServerMain.this.discoveryApiWrapper.publish(it.cwmp.services.authentication.Service.DISCOVERY_NAME, it.cwmp.services.wrapper.AuthenticationApiWrapper.DEFAULT_HOST, it.cwmp.services.authentication.Service.DEFAULT_PORT.toInt)
+      }
+      case (exception: Throwable)scala.util.Failure[scala.concurrent.Future[String]]((ex @ _)) =&gt; (if (ServerMain.this.log.underlying.isInfoEnabled())
+        ServerMain.this.log.underlying.info(&quot;Error deploying AuthenticationService&quot;, ex)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x2)
+    };
+    final def isDefinedAt(x2: scala.util.Try[scala.concurrent.Future[String]]): Boolean = ((x2.asInstanceOf[scala.util.Try[scala.concurrent.Future[String]]]: scala.util.Try[scala.concurrent.Future[String]]): scala.util.Try[scala.concurrent.Future[String]] @unchecked) match {
+      case (value: scala.concurrent.Future[String])scala.util.Success[scala.concurrent.Future[String]](_) =&gt; true
+      case (exception: Throwable)scala.util.Failure[scala.concurrent.Future[String]]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[scala.concurrent.Future[String]],Any]))(ServerMain.this.vertxExecutionContext).map[scala.concurrent.Future[String]](((x$2: scala.concurrent.Future[String]) =&gt; {
+  (if (ServerMain.this.log.underlying.isInfoEnabled())
+    ServerMain.this.log.underlying.info(&quot;Deploying RoomsService... &quot;)
+  else
+    (): Unit);
+  ServerMain.this.vertx.deployVerticleFuture(it.cwmp.services.rooms.RoomsServiceVerticle.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(), it.cwmp.services.wrapper.RoomReceiverApiWrapper.apply()))
+}))(ServerMain.this.vertxExecutionContext).andThen[Any](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[scala.concurrent.Future[String]],Any] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[scala.concurrent.Future[String]] =&gt; Any&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[scala.concurrent.Future[String]], B1 &gt;: Any](x3: A1, default: A1 =&gt; B1): B1 = ((x3.asInstanceOf[scala.util.Try[scala.concurrent.Future[String]]]: scala.util.Try[scala.concurrent.Future[String]]): scala.util.Try[scala.concurrent.Future[String]] @unchecked) match {
+      case (value: scala.concurrent.Future[String])scala.util.Success[scala.concurrent.Future[String]](_) =&gt; {
+        (if (ServerMain.this.log.underlying.isInfoEnabled())
+          ServerMain.this.log.underlying.info(&quot;RoomsService up and running!&quot;)
+        else
+          (): Unit);
+        ServerMain.this.discoveryApiWrapper.publish(it.cwmp.services.rooms.Service.DISCOVERY_NAME, it.cwmp.services.wrapper.RoomsApiWrapper.DEFAULT_HOST, it.cwmp.services.rooms.Service.DEFAULT_PORT.toInt)
+      }
+      case (exception: Throwable)scala.util.Failure[scala.concurrent.Future[String]]((ex @ _)) =&gt; (if (ServerMain.this.log.underlying.isInfoEnabled())
+        ServerMain.this.log.underlying.info(&quot;Error deploying RoomsService&quot;, ex)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x3)
+    };
+    final def isDefinedAt(x3: scala.util.Try[scala.concurrent.Future[String]]): Boolean = ((x3.asInstanceOf[scala.util.Try[scala.concurrent.Future[String]]]: scala.util.Try[scala.concurrent.Future[String]]): scala.util.Try[scala.concurrent.Future[String]] @unchecked) match {
+      case (value: scala.concurrent.Future[String])scala.util.Success[scala.concurrent.Future[String]](_) =&gt; true
+      case (exception: Throwable)scala.util.Failure[scala.concurrent.Future[String]]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[scala.concurrent.Future[String]],Any]))(ServerMain.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1700
+          -
+          1852
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.publish
+        </td>
+        <td style="background: #F0ADAD">
+          ServerMain.this.discoveryApiWrapper.publish(it.cwmp.services.rooms.Service.DISCOVERY_NAME, it.cwmp.services.wrapper.RoomsApiWrapper.DEFAULT_HOST, it.cwmp.services.rooms.Service.DEFAULT_PORT.toInt)
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1739
+          -
+          1767
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.DISCOVERY_NAME
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.rooms.Service.DISCOVERY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          22
+        </td>
+        <td>
+          1779
+          -
+          1807
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.wrapper.RoomsApiWrapper.DEFAULT_HOST
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.RoomsApiWrapper.DEFAULT_HOST
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1819
+          -
+          1851
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.rooms.Service.DEFAULT_PORT.toInt
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

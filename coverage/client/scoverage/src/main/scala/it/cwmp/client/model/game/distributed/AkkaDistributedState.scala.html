@@ -1,0 +1,609 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/client/model/game/distributed/AkkaDistributedState.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game.distributed
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.Actor.Receive
+</span>4 <span style=''>import akka.actor.ActorRef
+</span>5 <span style=''>import akka.cluster.ddata.Replicator.{Changed, Subscribe, Unsubscribe, WriteMajority}
+</span>6 <span style=''>import akka.cluster.ddata.{Key, ReplicatedData, Replicator}
+</span>7 <span style=''>import it.cwmp.utils.Logging
+</span>8 <span style=''>
+</span>9 <span style=''>import scala.concurrent.duration._
+</span>10 <span style=''>
+</span>11 <span style=''>/**
+</span>12 <span style=''>  * A base class to represent a distributed state in Akka
+</span>13 <span style=''>  *
+</span>14 <span style=''>  * @param replicatorActor the actor that will distribute the data
+</span>15 <span style=''>  * @author Eugenio Pierfederici
+</span>16 <span style=''>  * @author contributor Enrico Siboni
+</span>17 <span style=''>  */
+</span>18 <span style=''>abstract class AkkaDistributedState[State](onDistributedStateUpdate: State =&gt; Unit)
+</span>19 <span style=''>                                          (implicit replicatorActor: ActorRef)
+</span>20 <span style=''>  extends DistributedState[State, ActorRef] with Logging {
+</span>21 <span style=''>
+</span>22 <span style=''>  /**
+</span>23 <span style=''>    * The type of replicated data for this distributed state
+</span>24 <span style=''>    */
+</span>25 <span style=''>  type ReplicatedDataType &lt;: ReplicatedData
+</span>26 <span style=''>
+</span>27 <span style=''>  override def initialize(initialState: State): Unit = </span><span style='background: #F0ADAD'>updateDistributedStateTo(initialState)</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  override def subscribe(subscriber: ActorRef): Unit =
+</span>30 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Subscribe(distributedKey, subscriber)</span><span style=''>
+</span>31 <span style=''>
+</span>32 <span style=''>  override def unsubscribe(subscriber: ActorRef): Unit =
+</span>33 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor ! Unsubscribe(distributedKey, subscriber)</span><span style=''>
+</span>34 <span style=''>
+</span>35 <span style=''>  /**
+</span>36 <span style=''>    * This behaviour provides an easy way to make the interested actor,
+</span>37 <span style=''>    * able to receive updates and make changes in this distributed state
+</span>38 <span style=''>    */
+</span>39 <span style=''>  def distributedStateBehaviour: Receive = </span><span style='background: #F0ADAD'>passiveBehaviour orElse activeBehaviour</span><span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>  /**
+</span>42 <span style=''>    * @return the consistency policy to adopt when writing updates in distributed state
+</span>43 <span style=''>    */
+</span>44 <span style=''>  protected def consistencyPolicy: Replicator.WriteConsistency = </span><span style='background: #F0ADAD'>WriteMajority(1.seconds)</span><span style=''>
+</span>45 <span style=''>
+</span>46 <span style=''>  /**
+</span>47 <span style=''>    * @return the behaviour enabling to listen for modification in the distributed state
+</span>48 <span style=''>    */
+</span>49 <span style=''>  protected def passiveBehaviour: Receive = {
+</span>50 <span style=''>    val changedDistributedKey = </span><span style='background: #F0ADAD'>distributedKey</span><span style=''>;
+</span>51 <span style=''>    {
+</span>52 <span style=''>      // Called when notified of the distributed data change
+</span>53 <span style=''>      case msg@Changed(`changedDistributedKey`) =&gt;
+</span>54 <span style=''>        log.debug(&quot;Being notified that distributed state has changed&quot;)
+</span>55 <span style=''>        </span><span style='background: #F0ADAD'>onDistributedStateUpdate(msg.get[ReplicatedDataType](changedDistributedKey))</span><span style=''>
+</span>56 <span style=''>    }
+</span>57 <span style=''>  }
+</span>58 <span style=''>
+</span>59 <span style=''>  /**
+</span>60 <span style=''>    * @return the behaviour enabling to modify distributed state
+</span>61 <span style=''>    */
+</span>62 <span style=''>  protected def activeBehaviour: Receive
+</span>63 <span style=''>
+</span>64 <span style=''>  /**
+</span>65 <span style=''>    * @return the key to access distributed state
+</span>66 <span style=''>    */
+</span>67 <span style=''>  protected def distributedKey: Key[ReplicatedDataType]
+</span>68 <span style=''>
+</span>69 <span style=''>  /**
+</span>70 <span style=''>    * Updates the distributed state with provided new state
+</span>71 <span style=''>    *
+</span>72 <span style=''>    * @param state the new state to be published
+</span>73 <span style=''>    */
+</span>74 <span style=''>  protected def updateDistributedStateTo(state: State)
+</span>75 <span style=''>
+</span>76 <span style=''>  /**
+</span>77 <span style=''>    * A function to modify distributed state to the new one
+</span>78 <span style=''>    *
+</span>79 <span style=''>    * @param oldDistributedState the old distributed state to modify
+</span>80 <span style=''>    * @param newState            the new state to inject
+</span>81 <span style=''>    * @return the new distributed state
+</span>82 <span style=''>    */
+</span>83 <span style=''>  protected def distributedModify(oldDistributedState: ReplicatedDataType, newState: State): ReplicatedDataType
+</span>84 <span style=''>
+</span>85 <span style=''>  /**
+</span>86 <span style=''>    * Implicit conversion from distributed state to application State
+</span>87 <span style=''>    *
+</span>88 <span style=''>    * @param distributedData the distributed data to convert
+</span>89 <span style=''>    * @return the application version of state
+</span>90 <span style=''>    */
+</span>91 <span style=''>  protected implicit def parseFromDistributed(distributedData: ReplicatedDataType): State
+</span>92 <span style=''>}
+</span>93 <span style=''>
+</span>94 <span style=''>/**
+</span>95 <span style=''>  * Companion object, with actor messages
+</span>96 <span style=''>  */
+</span>97 <span style=''>object AkkaDistributedState {
+</span>98 <span style=''>
+</span>99 <span style=''>  /**
+</span>100 <span style=''>    * The message to send to update distributed state
+</span>101 <span style=''>    *
+</span>102 <span style=''>    * @param state the new state
+</span>103 <span style=''>    */
+</span>104 <span style=''>  case class UpdateState[T](state: T)
+</span>105 <span style=''>
+</span>106 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          924
+          -
+          962
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.updateDistributedStateTo
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.updateDistributedStateTo(initialState)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          1023
+          -
+          1038
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          1039
+          -
+          1039
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          1041
+          -
+          1078
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Subscribe.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Subscribe.apply[AkkaDistributedState.this.ReplicatedDataType](AkkaDistributedState.this.distributedKey, subscriber)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          1051
+          -
+          1065
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          1023
+          -
+          1078
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(AkkaDistributedState.this.replicatorActor).!(akka.cluster.ddata.Replicator.Subscribe.apply[AkkaDistributedState.this.ReplicatedDataType](AkkaDistributedState.this.distributedKey, subscriber))(AkkaDistributedState.this.replicatorActor)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          1141
+          -
+          1198
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(AkkaDistributedState.this.replicatorActor).!(akka.cluster.ddata.Replicator.Unsubscribe.apply[AkkaDistributedState.this.ReplicatedDataType](AkkaDistributedState.this.distributedKey, subscriber))(AkkaDistributedState.this.replicatorActor)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          1171
+          -
+          1185
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          1141
+          -
+          1156
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          1157
+          -
+          1157
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          1159
+          -
+          1198
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Unsubscribe.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.Unsubscribe.apply[AkkaDistributedState.this.ReplicatedDataType](AkkaDistributedState.this.distributedKey, subscriber)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          656
+        </td>
+        <td>
+          1401
+          -
+          1440
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.PartialFunction.orElse
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.passiveBehaviour.orElse[Any, Unit](AkkaDistributedState.this.activeBehaviour)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          655
+        </td>
+        <td>
+          1425
+          -
+          1440
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.activeBehaviour
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.activeBehaviour
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          1608
+          -
+          1632
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.WriteMajority.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.WriteMajority.apply(scala.concurrent.duration.`package`.DurationInt(1).seconds, akka.cluster.ddata.Replicator.WriteMajority.apply$default$2)
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          1622
+          -
+          1623
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          1608
+          -
+          1608
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          akka.cluster.ddata.Replicator.WriteMajority.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          1622
+          -
+          1631
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.concurrent.duration.DurationConversions.seconds
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.duration.`package`.DurationInt(1).seconds
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          661
+        </td>
+        <td>
+          1814
+          -
+          1828
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          665
+        </td>
+        <td>
+          1834
+          -
+          1834
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          663
+        </td>
+        <td>
+          2052
+          -
+          2102
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.AkkaDistributedState.parseFromDistributed
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.parseFromDistributed(msg.get[AkkaDistributedState.this.ReplicatedDataType](changedDistributedKey))
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          662
+        </td>
+        <td>
+          2052
+          -
+          2102
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.cluster.ddata.Replicator.Changed.get
+        </td>
+        <td style="background: #F0ADAD">
+          msg.get[AkkaDistributedState.this.ReplicatedDataType](changedDistributedKey)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          664
+        </td>
+        <td>
+          2027
+          -
+          2103
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AkkaDistributedState.this.onDistributedStateUpdate.apply(AkkaDistributedState.this.parseFromDistributed(msg.get[AkkaDistributedState.this.ReplicatedDataType](changedDistributedKey)))
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

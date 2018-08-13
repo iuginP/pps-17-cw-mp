@@ -28,9 +28,9 @@
 </span>4 <span style=''>import io.vertx.scala.ext.web.client.WebClientOptions
 </span>5 <span style=''>import it.cwmp.exceptions.HTTPException
 </span>6 <span style=''>import it.cwmp.model.User
-</span>7 <span style=''>import it.cwmp.services.authentication.ServerParameters._
-</span>8 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
-</span>9 <span style=''>import it.cwmp.utils.{Validation, VertxClient, VertxInstance}
+</span>7 <span style=''>import it.cwmp.services.authentication.Service._
+</span>8 <span style=''>import it.cwmp.services.{Validation, VertxClient, VertxInstance}
+</span>9 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
 </span>10 <span style=''>
 </span>11 <span style=''>import scala.concurrent.Future
 </span>12 <span style=''>
@@ -111,12 +111,12 @@
           29
         </td>
         <td>
-          237
+          385
         </td>
         <td>
-          812
+          806
           -
-          823
+          817
         </td>
         <td>
           Literal
@@ -132,12 +132,54 @@
           32
         </td>
         <td>
-          238
+          388
         </td>
         <td>
-          896
+          865
           -
-          908
+          917
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapper.apply(AuthenticationApiWrapper.this.DEFAULT_HOST, it.cwmp.services.authentication.Service.DEFAULT_PORT)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          904
+          -
+          916
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.Service.DEFAULT_PORT
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.services.authentication.Service.DEFAULT_PORT
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          890
+          -
+          902
         </td>
         <td>
           Select
@@ -150,78 +192,15 @@
         </td>
       </tr><tr>
         <td>
-          32
-        </td>
-        <td>
-          240
-        </td>
-        <td>
-          871
-          -
-          923
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationApiWrapper.apply(AuthenticationApiWrapper.this.DEFAULT_HOST, it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT)
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          239
-        </td>
-        <td>
-          910
-          -
-          922
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
-        </td>
-      </tr><tr>
-        <td>
           35
         </td>
         <td>
-          241
+          390
         </td>
         <td>
-          1014
+          977
           -
-          1026
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          242
-        </td>
-        <td>
-          983
-          -
-          1027
+          1021
         </td>
         <td>
           Apply
@@ -230,19 +209,40 @@
           it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
         </td>
         <td style="background: #F0ADAD">
-          AuthenticationApiWrapper.apply(host, it.cwmp.services.authentication.ServerParameters.DEFAULT_PORT)
+          AuthenticationApiWrapper.apply(host, it.cwmp.services.authentication.Service.DEFAULT_PORT)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          1008
+          -
+          1020
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.authentication.Service.DEFAULT_PORT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.authentication.Service.DEFAULT_PORT
         </td>
       </tr><tr>
         <td>
           38
         </td>
         <td>
-          244
+          392
         </td>
         <td>
-          1098
+          1092
           -
-          1206
+          1200
         </td>
         <td>
           Apply
@@ -258,12 +258,12 @@
           40
         </td>
         <td>
-          243
+          391
         </td>
         <td>
-          1131
+          1125
           -
-          1205
+          1199
         </td>
         <td>
           Apply
@@ -279,12 +279,12 @@
           51
         </td>
         <td>
-          245
+          393
         </td>
         <td>
-          1533
+          1527
           -
-          1626
+          1620
         </td>
         <td>
           Apply
@@ -293,19 +293,40 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.post(it.cwmp.services.authentication.ServerParameters.API_SIGN_UP)).addAuthentication(username, password).sendFuture()
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.post(it.cwmp.services.authentication.Service.API_SIGN_UP)).addAuthentication(username, password).sendFuture()
         </td>
       </tr><tr>
         <td>
           52
         </td>
         <td>
-          247
+          394
         </td>
         <td>
-          1649
+          1643
           -
-          1656
+          1650
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.CREATED
+        </td>
+        <td style="background: #AEF1AE">
+          io.netty.handler.codec.http.HttpResponseStatus.CREATED
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          395
+        </td>
+        <td>
+          1643
+          -
+          1650
         </td>
         <td>
           ApplyImplicitView
@@ -318,63 +339,21 @@
         </td>
       </tr><tr>
         <td>
-          52
+          53
         </td>
         <td>
-          246
+          397
         </td>
         <td>
-          1649
+          1664
           -
-          1656
+          1664
         </td>
         <td>
           Select
         </td>
         <td>
-          io.netty.handler.codec.http.HttpResponseStatus.CREATED
-        </td>
-        <td style="background: #AEF1AE">
-          io.netty.handler.codec.http.HttpResponseStatus.CREATED
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          250
-        </td>
-        <td>
-          1533
-          -
-          1702
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.map
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.post(it.cwmp.services.authentication.ServerParameters.API_SIGN_UP)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED)).map[String](((x$1: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$1.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          249
-        </td>
-        <td>
-          1670
-          -
-          1670
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
+          it.cwmp.services.VertxInstance.vertxExecutionContext
         </td>
         <td style="background: #AEF1AE">
           AuthenticationApiWrapperImpl.this.vertxExecutionContext
@@ -384,12 +363,12 @@
           53
         </td>
         <td>
-          248
+          396
         </td>
         <td>
-          1671
+          1665
           -
-          1701
+          1695
         </td>
         <td>
           Apply
@@ -402,15 +381,36 @@
         </td>
       </tr><tr>
         <td>
+          53
+        </td>
+        <td>
+          398
+        </td>
+        <td>
+          1527
+          -
+          1696
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.post(it.cwmp.services.authentication.Service.API_SIGN_UP)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED)).map[String](((x$1: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$1.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
           58
         </td>
         <td>
-          251
+          399
         </td>
         <td>
-          1787
+          1781
           -
-          1877
+          1871
         </td>
         <td>
           Apply
@@ -419,40 +419,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.ServerParameters.API_LOGIN)).addAuthentication(username, password).sendFuture()
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()
         </td>
       </tr><tr>
         <td>
           59
         </td>
         <td>
-          253
+          400
         </td>
         <td>
-          1900
+          1894
           -
-          1902
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.utils.Utils.httpStatusNameToCode
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          252
-        </td>
-        <td>
-          1900
-          -
-          1902
+          1896
         </td>
         <td>
           Select
@@ -465,15 +444,57 @@
         </td>
       </tr><tr>
         <td>
+          59
+        </td>
+        <td>
+          401
+        </td>
+        <td>
+          1894
+          -
+          1896
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
+        </td>
+      </tr><tr>
+        <td>
           60
         </td>
         <td>
-          254
+          403
         </td>
         <td>
-          1917
+          1910
           -
-          1947
+          1910
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          402
+        </td>
+        <td>
+          1911
+          -
+          1941
         </td>
         <td>
           Apply
@@ -489,12 +510,12 @@
           60
         </td>
         <td>
-          256
+          404
         </td>
         <td>
-          1787
+          1781
           -
-          1948
+          1942
         </td>
         <td>
           ApplyToImplicitArgs
@@ -503,40 +524,19 @@
           scala.concurrent.Future.map
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.ServerParameters.API_LOGIN)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[String](((x$2: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$2.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
-        </td>
-      </tr><tr>
-        <td>
-          60
-        </td>
-        <td>
-          255
-        </td>
-        <td>
-          1916
-          -
-          1916
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.vertxExecutionContext
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[String](((x$2: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$2.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
           65
         </td>
         <td>
-          257
+          405
         </td>
         <td>
-          2028
+          2022
           -
-          2129
+          2123
         </td>
         <td>
           Apply
@@ -545,19 +545,61 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.ServerParameters.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()
         </td>
       </tr><tr>
         <td>
           66
         </td>
         <td>
-          259
+          406
         </td>
         <td>
-          2152
+          2146
           -
-          2154
+          2148
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+        <td style="background: #AEF1AE">
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          2022
+          -
+          2149
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.VertxClient.RichHttpResponse.expectStatus
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          407
+        </td>
+        <td>
+          2146
+          -
+          2148
         </td>
         <td>
           ApplyImplicitView
@@ -570,66 +612,24 @@
         </td>
       </tr><tr>
         <td>
-          66
-        </td>
-        <td>
-          258
-        </td>
-        <td>
-          2152
-          -
-          2154
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          io.netty.handler.codec.http.HttpResponseStatus.OK
-        </td>
-        <td style="background: #AEF1AE">
-          io.netty.handler.codec.http.HttpResponseStatus.OK
-        </td>
-      </tr><tr>
-        <td>
-          66
-        </td>
-        <td>
-          260
-        </td>
-        <td>
-          2028
-          -
-          2155
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.utils.VertxClient.RichHttpResponse.expectStatus
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.ServerParameters.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))
-        </td>
-      </tr><tr>
-        <td>
           67
         </td>
         <td>
-          268
+          416
         </td>
         <td>
-          2028
+          2022
           -
-          2319
+          2313
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.utils.VertxClient.RichHttpResponse.mapBody
+          it.cwmp.services.VertxClient.RichHttpResponse.mapBody
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.ServerParameters.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))).mapBody[it.cwmp.model.User](((x0$1: Option[String]) =&gt; x0$1 match {
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))).mapBody[it.cwmp.model.User](((x0$1: Option[String]) =&gt; x0$1 match {
   case (value: String)Some[String]((body @ _)) =&gt; scala.concurrent.Future.successful[it.cwmp.model.User](it.cwmp.model.User.apply(body))
   case _ =&gt; scala.concurrent.Future.failed[Nothing](it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), &quot;Empty body&quot;))
 }))
@@ -639,33 +639,12 @@
           68
         </td>
         <td>
-          262
+          409
         </td>
         <td>
-          2204
+          2216
           -
-          2233
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.concurrent.Future.successful
-        </td>
-        <td style="background: #AEF1AE">
-          scala.concurrent.Future.successful[it.cwmp.model.User](it.cwmp.model.User.apply(body))
-        </td>
-      </tr><tr>
-        <td>
-          68
-        </td>
-        <td>
-          261
-        </td>
-        <td>
-          2222
-          -
-          2232
+          2226
         </td>
         <td>
           Apply
@@ -678,36 +657,36 @@
         </td>
       </tr><tr>
         <td>
-          69
+          68
         </td>
         <td>
-          265
+          410
         </td>
         <td>
-          2295
+          2198
           -
-          2307
+          2227
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          scala.concurrent.Future.successful
         </td>
-        <td style="background: #F0ADAD">
-          &quot;Empty body&quot;
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.successful[it.cwmp.model.User](it.cwmp.model.User.apply(body))
         </td>
       </tr><tr>
         <td>
           69
         </td>
         <td>
-          267
+          415
         </td>
         <td>
-          2254
+          2248
           -
-          2309
+          2303
         </td>
         <td>
           Apply
@@ -723,12 +702,12 @@
           69
         </td>
         <td>
-          264
+          412
         </td>
         <td>
-          2282
+          2276
           -
-          2293
+          2287
         </td>
         <td>
           ApplyImplicitView
@@ -744,12 +723,33 @@
           69
         </td>
         <td>
-          263
+          414
         </td>
         <td>
-          2282
+          2262
           -
-          2293
+          2302
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.exceptions.HTTPException.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), &quot;Empty body&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          411
+        </td>
+        <td>
+          2276
+          -
+          2287
         </td>
         <td>
           Select
@@ -765,21 +765,21 @@
           69
         </td>
         <td>
-          266
+          413
         </td>
         <td>
-          2268
+          2289
           -
-          2308
+          2301
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          it.cwmp.exceptions.HTTPException.apply
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), &quot;Empty body&quot;)
+          &quot;Empty body&quot;
         </td>
       </tr>
     </table>

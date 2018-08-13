@@ -25,23 +25,26 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view
 </span>2 <span style=''>
 </span>3 <span style=''>import javafx.application.Platform
-</span>4 <span style=''>
-</span>5 <span style=''>/**
-</span>6 <span style=''>  * A trait that gives a way to run tasks on JavaFX Application Thread without overhead
-</span>7 <span style=''>  *
-</span>8 <span style=''>  * @author Enrico Siboni
-</span>9 <span style=''>  */
-</span>10 <span style=''>trait FXRunOnUIThread {
-</span>11 <span style=''>
-</span>12 <span style=''>  /**
-</span>13 <span style=''>    * A method to run a task on UI thread without overheads
-</span>14 <span style=''>    *
-</span>15 <span style=''>    * @param task the task to run on GUI thread
-</span>16 <span style=''>    */
-</span>17 <span style=''>  def runOnUIThread(task: Runnable): Unit =
-</span>18 <span style=''>    if (</span><span style='background: #F0ADAD'>Platform.isFxApplicationThread</span><span style=''>) </span><span style='background: #F0ADAD'>task.run()</span><span style=''> else </span><span style='background: #F0ADAD'>Platform.runLater(task)</span><span style=''>
-</span>19 <span style=''>
-</span>20 <span style=''>}
+</span>4 <span style=''>import javafx.embed.swing.JFXPanel
+</span>5 <span style=''>
+</span>6 <span style=''>/**
+</span>7 <span style=''>  * A trait that gives a way to run tasks on JavaFX Application Thread without overhead
+</span>8 <span style=''>  *
+</span>9 <span style=''>  * @author Enrico Siboni
+</span>10 <span style=''>  */
+</span>11 <span style=''>trait FXRunOnUIThread {
+</span>12 <span style=''>
+</span>13 <span style=''>  /**
+</span>14 <span style=''>    * A method to run a task on UI thread without overheads
+</span>15 <span style=''>    *
+</span>16 <span style=''>    * @param task the task to run on GUI thread
+</span>17 <span style=''>    */
+</span>18 <span style=''>  def runOnUIThread(task: Runnable): Unit = {
+</span>19 <span style=''>    </span><span style='background: #F0ADAD'>new JFXPanel</span><span style=''> // initializes JavaFX
+</span>20 <span style=''>    if (</span><span style='background: #F0ADAD'>Platform.isFxApplicationThread</span><span style=''>) </span><span style='background: #F0ADAD'>task.run()</span><span style=''> else </span><span style='background: #F0ADAD'>Platform.runLater(task)</span><span style=''>
+</span>21 <span style=''>  }
+</span>22 <span style=''>
+</span>23 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -55,15 +58,36 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          18
+          19
         </td>
         <td>
-          1031
+          1073
         </td>
         <td>
-          428
+          429
           -
-          438
+          441
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.embed.swing.JFXPanel.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new javafx.embed.swing.JFXPanel()
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1076
+        </td>
+        <td>
+          504
+          -
+          514
         </td>
         <td>
           Block
@@ -76,15 +100,36 @@
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          1033
+          1075
         </td>
         <td>
-          444
+          504
           -
-          467
+          514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Runnable.run
+        </td>
+        <td style="background: #F0ADAD">
+          task.run()
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          1078
+        </td>
+        <td>
+          520
+          -
+          543
         </td>
         <td>
           Block
@@ -97,36 +142,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          1030
+          1074
         </td>
         <td>
-          428
+          472
           -
-          438
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Runnable.run
-        </td>
-        <td style="background: #F0ADAD">
-          task.run()
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          1029
-        </td>
-        <td>
-          396
-          -
-          426
+          502
         </td>
         <td>
           Apply
@@ -139,15 +163,15 @@
         </td>
       </tr><tr>
         <td>
-          18
+          20
         </td>
         <td>
-          1032
+          1077
         </td>
         <td>
-          444
+          520
           -
-          467
+          543
         </td>
         <td>
           Apply

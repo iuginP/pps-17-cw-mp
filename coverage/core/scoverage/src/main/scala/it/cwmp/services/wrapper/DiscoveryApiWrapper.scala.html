@@ -1,0 +1,890 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/wrapper/DiscoveryApiWrapper.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.wrapper
+</span>2 <span style=''>
+</span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus.{CREATED, OK}
+</span>4 <span style=''>import io.vertx.scala.ext.web.client.WebClientOptions
+</span>5 <span style=''>import it.cwmp.services.{VertxClient, VertxInstance}
+</span>6 <span style=''>import it.cwmp.services.discovery.Service._
+</span>7 <span style=''>import it.cwmp.utils.Utils.httpStatusNameToCode
+</span>8 <span style=''>
+</span>9 <span style=''>import scala.concurrent.Future
+</span>10 <span style=''>import scala.util.{Failure, Success}
+</span>11 <span style=''>
+</span>12 <span style=''>/**
+</span>13 <span style=''>  * A trait describing the API wrapper for authentication service
+</span>14 <span style=''>  */
+</span>15 <span style=''>trait DiscoveryApiWrapper {
+</span>16 <span style=''>
+</span>17 <span style=''>  /**
+</span>18 <span style=''>    * Publish the service in the remote discovery service.
+</span>19 <span style=''>    *
+</span>20 <span style=''>    * @param name the name of the service
+</span>21 <span style=''>    * @param host the host on which the service can be reached
+</span>22 <span style=''>    * @param port the port to use
+</span>23 <span style=''>    * @return a successful Future if the service has been published, a failed Future otherwise.
+</span>24 <span style=''>    */
+</span>25 <span style=''>  def publish(name: String, host: String, port: Int): Future[Unit]
+</span>26 <span style=''>
+</span>27 <span style=''>  /**
+</span>28 <span style=''>    * Un-publish the service from the remote discovery service.
+</span>29 <span style=''>    *
+</span>30 <span style=''>    * @param name the name of the service
+</span>31 <span style=''>    * @param host the host on which the service can be reached
+</span>32 <span style=''>    * @param port the port to use
+</span>33 <span style=''>    * @return a successful Future if the service has been successfully un-published, a failed Future otherwise.
+</span>34 <span style=''>    */
+</span>35 <span style=''>  def unPublish(name: String, host: String, port: Int): Future[Unit]
+</span>36 <span style=''>
+</span>37 <span style=''>  /**
+</span>38 <span style=''>    * This method is useful to search for the presence of a service
+</span>39 <span style=''>    * of the specified type in the remote discovery service.
+</span>40 <span style=''>    *
+</span>41 <span style=''>    * @param name the name of the service to search
+</span>42 <span style=''>    * @return a successful Future containing the couple (host, port) if a service is published, a failure otherwise.
+</span>43 <span style=''>    */
+</span>44 <span style=''>  def discover(name: String): Future[(String, Int)]
+</span>45 <span style=''>}
+</span>46 <span style=''>
+</span>47 <span style=''>/**
+</span>48 <span style=''>  * Companion object
+</span>49 <span style=''>  */
+</span>50 <span style=''>object DiscoveryApiWrapper {
+</span>51 <span style=''>
+</span>52 <span style=''>  val DEFAULT_HOST = </span><span style='background: #F0ADAD'>&quot;localhost&quot;</span><span style=''>
+</span>53 <span style=''>
+</span>54 <span style=''>  def apply(): DiscoveryApiWrapper =
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>DiscoveryApiWrapper(DEFAULT_HOST, DEFAULT_PORT)</span><span style=''>
+</span>56 <span style=''>
+</span>57 <span style=''>  def apply(host: String): DiscoveryApiWrapper =
+</span>58 <span style=''>    </span><span style='background: #F0ADAD'>DiscoveryApiWrapper(host, DEFAULT_PORT)</span><span style=''>
+</span>59 <span style=''>
+</span>60 <span style=''>  def apply(host: String, port: Int): DiscoveryApiWrapper =
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>new DiscoveryApiWrapperImpl(WebClientOptions()
+</span>62 <span style=''></span><span style='background: #F0ADAD'>      .setDefaultHost(host)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      .setDefaultPort(port))</span><span style=''>
+</span>64 <span style=''>
+</span>65 <span style=''>  /**
+</span>66 <span style=''>    * A default implementation class for Authentication API Wrapper
+</span>67 <span style=''>    */
+</span>68 <span style=''>  class DiscoveryApiWrapperImpl(override protected val clientOptions: WebClientOptions)
+</span>69 <span style=''>    extends DiscoveryApiWrapper with VertxInstance with VertxClient {
+</span>70 <span style=''>
+</span>71 <span style=''>    override def publish(name: String, host: String, port: Int): Future[Unit] = {
+</span>72 <span style=''>      </span><span style='background: #F0ADAD'>client.post(API_PUBLISH_SERVICE)
+</span>73 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_NAME, name)
+</span>74 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_HOST, host)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_PORT, port.toString)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>        .sendFuture()
+</span>77 <span style=''></span><span style='background: #F0ADAD'>        .expectStatus(CREATED)
+</span>78 <span style=''></span><span style='background: #F0ADAD'>        .map(_ =&gt; ())</span><span style=''>
+</span>79 <span style=''>    }
+</span>80 <span style=''>
+</span>81 <span style=''>    override def unPublish(name: String, host: String, port: Int): Future[Unit] = {
+</span>82 <span style=''>      </span><span style='background: #F0ADAD'>client.delete(API_UN_PUBLISH_SERVICE)
+</span>83 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_NAME, name)
+</span>84 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_HOST, host)
+</span>85 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_PORT, port.toString)
+</span>86 <span style=''></span><span style='background: #F0ADAD'>        .sendFuture()
+</span>87 <span style=''></span><span style='background: #F0ADAD'>        .expectStatus(OK)
+</span>88 <span style=''></span><span style='background: #F0ADAD'>        .map(_ =&gt; ())</span><span style=''>
+</span>89 <span style=''>    }
+</span>90 <span style=''>
+</span>91 <span style=''>    override def discover(name: String): Future[(String, Int)] = {
+</span>92 <span style=''>      </span><span style='background: #F0ADAD'>client.get(API_DISCOVER_SERVICE)
+</span>93 <span style=''></span><span style='background: #F0ADAD'>        .addQueryParam(PARAMETER_NAME, name)
+</span>94 <span style=''></span><span style='background: #F0ADAD'>        .sendFuture()
+</span>95 <span style=''></span><span style='background: #F0ADAD'>        .expectStatus(OK)
+</span>96 <span style=''></span><span style='background: #F0ADAD'>        .map(response =&gt; response
+</span>97 <span style=''></span><span style='background: #F0ADAD'>          .bodyAsJsonObject()
+</span>98 <span style=''></span><span style='background: #F0ADAD'>          .map(body =&gt; (body.getString(&quot;host&quot;), body.getInteger(&quot;port&quot;).toInt))
+</span>99 <span style=''></span><span style='background: #F0ADAD'>        )
+</span>100 <span style=''></span><span style='background: #F0ADAD'>        // Filtering only the actual optional mapping the empty one into failures
+</span>101 <span style=''></span><span style='background: #F0ADAD'>        .transform {
+</span>102 <span style=''></span><span style='background: #F0ADAD'>          case s@Success(Some(_)) =&gt; s
+</span>103 <span style=''></span><span style='background: #F0ADAD'>          case Success(None) =&gt; Failure(new Exception())
+</span>104 <span style=''></span><span style='background: #F0ADAD'>          case f@Failure(_) =&gt; f
+</span>105 <span style=''></span><span style='background: #F0ADAD'>        }
+</span>106 <span style=''></span><span style='background: #F0ADAD'>        .map(_.get)</span><span style=''>
+</span>107 <span style=''>    }
+</span>108 <span style=''>  }
+</span>109 <span style=''>
+</span>110 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          417
+        </td>
+        <td>
+          1713
+          -
+          1724
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;localhost&quot;
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          418
+        </td>
+        <td>
+          1787
+          -
+          1799
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.DEFAULT_HOST
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapper.this.DEFAULT_HOST
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          420
+        </td>
+        <td>
+          1767
+          -
+          1814
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapper.apply(DiscoveryApiWrapper.this.DEFAULT_HOST, it.cwmp.services.discovery.Service.DEFAULT_PORT)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          419
+        </td>
+        <td>
+          1801
+          -
+          1813
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.DEFAULT_PORT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.discovery.Service.DEFAULT_PORT
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          421
+        </td>
+        <td>
+          1895
+          -
+          1907
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.DEFAULT_PORT
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.discovery.Service.DEFAULT_PORT
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          1869
+          -
+          1908
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapper.apply(host, it.cwmp.services.discovery.Service.DEFAULT_PORT)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          424
+        </td>
+        <td>
+          1974
+          -
+          2077
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.DiscoveryApiWrapperImpl.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new DiscoveryApiWrapper.this.DiscoveryApiWrapperImpl(io.vertx.scala.ext.web.client.WebClientOptions.apply().setDefaultHost(host).setDefaultPort(port))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          423
+        </td>
+        <td>
+          2002
+          -
+          2076
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.WebClientOptions.setDefaultPort
+        </td>
+        <td style="background: #F0ADAD">
+          io.vertx.scala.ext.web.client.WebClientOptions.apply().setDefaultHost(host).setDefaultPort(port)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          425
+        </td>
+        <td>
+          2407
+          -
+          2605
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.sendFuture
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.client.post(it.cwmp.services.discovery.Service.API_PUBLISH_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_HOST, host).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_PORT, port.toString()).sendFuture()
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          427
+        </td>
+        <td>
+          2628
+          -
+          2635
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          426
+        </td>
+        <td>
+          2628
+          -
+          2635
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.CREATED
+        </td>
+        <td style="background: #F0ADAD">
+          io.netty.handler.codec.http.HttpResponseStatus.CREATED
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          430
+        </td>
+        <td>
+          2407
+          -
+          2658
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](DiscoveryApiWrapperImpl.this.client.post(it.cwmp.services.discovery.Service.API_PUBLISH_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_HOST, host).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_PORT, port.toString()).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.CREATED)).map[Unit](((x$1: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; ()))(DiscoveryApiWrapperImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          429
+        </td>
+        <td>
+          2649
+          -
+          2649
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          428
+        </td>
+        <td>
+          2655
+          -
+          2657
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          431
+        </td>
+        <td>
+          2756
+          -
+          2959
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.sendFuture
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.client.delete(it.cwmp.services.discovery.Service.API_UN_PUBLISH_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_HOST, host).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_PORT, port.toString()).sendFuture()
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          433
+        </td>
+        <td>
+          2982
+          -
+          2984
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          432
+        </td>
+        <td>
+          2982
+          -
+          2984
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+        <td style="background: #F0ADAD">
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          436
+        </td>
+        <td>
+          2756
+          -
+          3007
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](DiscoveryApiWrapperImpl.this.client.delete(it.cwmp.services.discovery.Service.API_UN_PUBLISH_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_HOST, host).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_PORT, port.toString()).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[Unit](((x$2: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; ()))(DiscoveryApiWrapperImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          435
+        </td>
+        <td>
+          2998
+          -
+          2998
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          434
+        </td>
+        <td>
+          3004
+          -
+          3006
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          437
+        </td>
+        <td>
+          3088
+          -
+          3187
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.sendFuture
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.client.get(it.cwmp.services.discovery.Service.API_DISCOVER_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).sendFuture()
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          439
+        </td>
+        <td>
+          3210
+          -
+          3212
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          438
+        </td>
+        <td>
+          3210
+          -
+          3212
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+        <td style="background: #F0ADAD">
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          445
+        </td>
+        <td>
+          3226
+          -
+          3226
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          442
+        </td>
+        <td>
+          3326
+          -
+          3355
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Int.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.Integer2int(body.getInteger(&quot;port&quot;)).toInt
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          441
+        </td>
+        <td>
+          3326
+          -
+          3349
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getInteger
+        </td>
+        <td style="background: #F0ADAD">
+          body.getInteger(&quot;port&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          444
+        </td>
+        <td>
+          3239
+          -
+          3357
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.map
+        </td>
+        <td style="background: #F0ADAD">
+          response.bodyAsJsonObject().map[(String, Int)](((body: io.vertx.core.json.JsonObject) =&gt; scala.Tuple2.apply[String, Int](body.getString(&quot;host&quot;), scala.Predef.Integer2int(body.getInteger(&quot;port&quot;)).toInt)))
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          443
+        </td>
+        <td>
+          3301
+          -
+          3356
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, Int](body.getString(&quot;host&quot;), scala.Predef.Integer2int(body.getInteger(&quot;port&quot;)).toInt)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          440
+        </td>
+        <td>
+          3302
+          -
+          3324
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.core.json.JsonObject.getString
+        </td>
+        <td style="background: #F0ADAD">
+          body.getString(&quot;host&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          448
+        </td>
+        <td>
+          3469
+          -
+          3469
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          447
+        </td>
+        <td>
+          3542
+          -
+          3566
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Failure.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Failure.apply[Nothing](new scala.`package`.Exception())
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          446
+        </td>
+        <td>
+          3550
+          -
+          3565
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Exception.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new scala.`package`.Exception()
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          451
+        </td>
+        <td>
+          3088
+          -
+          3629
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](DiscoveryApiWrapperImpl.this.client.get(it.cwmp.services.discovery.Service.API_DISCOVER_SERVICE).addQueryParam(it.cwmp.services.discovery.Service.PARAMETER_NAME, name).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[Option[(String, Int)]](((response: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; response.bodyAsJsonObject().map[(String, Int)](((body: io.vertx.core.json.JsonObject) =&gt; scala.Tuple2.apply[String, Int](body.getString(&quot;host&quot;), scala.Predef.Integer2int(body.getInteger(&quot;port&quot;)).toInt)))))(DiscoveryApiWrapperImpl.this.vertxExecutionContext).transform[Option[(String, Int)]](((x0$1: scala.util.Try[Option[(String, Int)]]) =&gt; x0$1 match {
+  case (s @ (value: Option[(String, Int)])scala.util.Success[Option[(String, Int)]]((value: (String, Int))Some[(String, Int)](_))) =&gt; s
+  case (value: Option[(String, Int)])scala.util.Success[Option[(String, Int)]](scala.None) =&gt; scala.util.Failure.apply[Nothing](new scala.`package`.Exception())
+  case (f @ (exception: Throwable)scala.util.Failure[Option[(String, Int)]](_)) =&gt; f
+}))(DiscoveryApiWrapperImpl.this.vertxExecutionContext).map[(String, Int)](((x$3: Option[(String, Int)]) =&gt; x$3.get))(DiscoveryApiWrapperImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          450
+        </td>
+        <td>
+          3622
+          -
+          3622
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          449
+        </td>
+        <td>
+          3623
+          -
+          3628
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Option.get
+        </td>
+        <td style="background: #F0ADAD">
+          x$3.get
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

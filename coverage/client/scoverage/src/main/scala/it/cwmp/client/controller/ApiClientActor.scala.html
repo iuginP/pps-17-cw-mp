@@ -29,7 +29,7 @@
 </span>5 <span style=''>import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 </span>6 <span style=''>import it.cwmp.client.controller.messages.RoomsRequests._
 </span>7 <span style=''>import it.cwmp.client.controller.messages.RoomsResponses._
-</span>8 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
+</span>8 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
 </span>9 <span style=''>import it.cwmp.utils.Utils.stringToOption
 </span>10 <span style=''>
 </span>11 <span style=''>import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,90 +39,78 @@
 </span>15 <span style=''>/**
 </span>16 <span style=''>  * A class that implements the actor that will manage communications with services APIs
 </span>17 <span style=''>  */
-</span>18 <span style=''>case class ApiClientActor() extends Actor {
+</span>18 <span style=''>case class ApiClientActor(private val authenticationApiWrapper: AuthenticationApiWrapper, private val roomApiWrapper: RoomsApiWrapper) extends Actor {
 </span>19 <span style=''>
-</span>20 <span style=''>  override def receive: Receive = </span><span style='background: #F0ADAD'>authenticationBehaviour orElse roomsBehaviour</span><span style=''>
+</span>20 <span style=''>  override def receive: Receive = </span><span style='background: #AEF1AE'>authenticationBehaviour orElse roomsBehaviour</span><span style=''>
 </span>21 <span style=''>
 </span>22 <span style=''>  /**
 </span>23 <span style=''>    * @return the behaviour of authenticating user online
 </span>24 <span style=''>    */
 </span>25 <span style=''>  private def authenticationBehaviour: Receive = {
-</span>26 <span style=''>    val authenticationApiWrapper = </span><span style='background: #F0ADAD'>AuthenticationApiWrapper()</span><span style=''>
-</span>27 <span style=''>    // scalastyle:off import.grouping
-</span>28 <span style=''>    import authenticationApiWrapper._
-</span>29 <span style=''>    // scalastyle:on import.grouping
-</span>30 <span style=''>    {
-</span>31 <span style=''>      case LogIn(username, password) =&gt;
-</span>32 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>33 <span style=''>        </span><span style='background: #F0ADAD'>login(username, password).onComplete(replyWith(
-</span>34 <span style=''></span><span style='background: #F0ADAD'>          token =&gt; senderTmp ! LogInSuccess(token),
-</span>35 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! LogInFailure(exception.getMessage)
-</span>36 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>37 <span style=''>      case SignUp(username, password) =&gt;
-</span>38 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>39 <span style=''>        </span><span style='background: #F0ADAD'>signUp(username, password).onComplete(replyWith(
-</span>40 <span style=''></span><span style='background: #F0ADAD'>          token =&gt; senderTmp ! SignUpSuccess(token),
-</span>41 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! SignUpFailure(exception.getMessage)
-</span>42 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>43 <span style=''>    }
-</span>44 <span style=''>  }
-</span>45 <span style=''>
-</span>46 <span style=''>  /**
-</span>47 <span style=''>    * @return the behaviour of managing the rooms online
-</span>48 <span style=''>    */
-</span>49 <span style=''>  private def roomsBehaviour: Receive = {
-</span>50 <span style=''>    val roomApiWrapper = </span><span style='background: #F0ADAD'>RoomsApiWrapper()</span><span style=''>
-</span>51 <span style=''>    // scalastyle:off import.grouping
-</span>52 <span style=''>    import roomApiWrapper._
-</span>53 <span style=''>    // scalastyle:on import.grouping
-</span>54 <span style=''>    {
-</span>55 <span style=''>      case ServiceCreate(roomName, playersNumber, token) =&gt;
-</span>56 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>57 <span style=''>        </span><span style='background: #F0ADAD'>createRoom(roomName, playersNumber)(token).onComplete(replyWith(
-</span>58 <span style=''></span><span style='background: #F0ADAD'>          token =&gt; senderTmp ! CreateSuccess(token),
-</span>59 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! CreateFailure(exception.getMessage)
-</span>60 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>61 <span style=''>      case ServiceEnterPrivate(idRoom, address, webAddress, token) =&gt;
-</span>62 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>63 <span style=''>        </span><span style='background: #F0ADAD'>enterRoom(idRoom, address, webAddress)(token).onComplete(replyWith(
-</span>64 <span style=''></span><span style='background: #F0ADAD'>          _ =&gt; senderTmp ! EnterPrivateSuccess,
-</span>65 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! EnterPrivateFailure(exception.getMessage)
-</span>66 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>67 <span style=''>      case ServiceEnterPublic(nPlayer, address, webAddress, token) =&gt;
-</span>68 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>69 <span style=''>        </span><span style='background: #F0ADAD'>enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
-</span>70 <span style=''></span><span style='background: #F0ADAD'>          _ =&gt; senderTmp ! EnterPublicSuccess,
-</span>71 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! EnterPublicFailure(exception.getMessage)
-</span>72 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>73 <span style=''>      case ServiceExitPrivate(roomID, jwtToken) =&gt;
-</span>74 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>75 <span style=''>        </span><span style='background: #F0ADAD'>exitRoom(roomID)(jwtToken).onComplete(replyWith(
-</span>76 <span style=''></span><span style='background: #F0ADAD'>          _ =&gt; senderTmp ! ExitPrivateSuccess,
-</span>77 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! ExitPrivateFailure(exception.getMessage)
-</span>78 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>79 <span style=''>      case ServiceExitPublic(playersNumber, jwtToken) =&gt;
-</span>80 <span style=''>        val senderTmp = </span><span style='background: #F0ADAD'>sender</span><span style=''>
-</span>81 <span style=''>        </span><span style='background: #F0ADAD'>exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
-</span>82 <span style=''></span><span style='background: #F0ADAD'>          _ =&gt; senderTmp ! ExitPublicSuccess,
-</span>83 <span style=''></span><span style='background: #F0ADAD'>          exception =&gt; senderTmp ! ExitPublicFailure(exception.getMessage)
-</span>84 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
-</span>85 <span style=''>    }
-</span>86 <span style=''>  }
-</span>87 <span style=''>
-</span>88 <span style=''>  /**
-</span>89 <span style=''>    * A utility method to match Success or failure of a try and do something with results
-</span>90 <span style=''>    *
-</span>91 <span style=''>    * @param onSuccess the action to do on success
-</span>92 <span style=''>    * @param onFailure the action to do on failure
-</span>93 <span style=''>    * @param toCheck   the try to check
-</span>94 <span style=''>    * @tparam T the type of the result if present
-</span>95 <span style=''>    */
-</span>96 <span style=''>  private def replyWith[T](onSuccess: =&gt; T =&gt; Unit, onFailure: =&gt; Throwable =&gt; Unit)
-</span>97 <span style=''>                          (toCheck: Try[T]): Unit = toCheck match {
-</span>98 <span style=''>    case Success(value) =&gt; </span><span style='background: #F0ADAD'>onSuccess(value)</span><span style=''>
-</span>99 <span style=''>    case Failure(ex) =&gt; </span><span style='background: #F0ADAD'>onFailure(ex)</span><span style=''>
-</span>100 <span style=''>  }
-</span>101 <span style=''>}
+</span>26 <span style=''>    case LogIn(username, password) =&gt;
+</span>27 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>28 <span style=''>      </span><span style='background: #AEF1AE'>authenticationApiWrapper.login(username, password).onComplete(replyWith(
+</span>29 <span style=''></span><span style='background: #AEF1AE'>        token =&gt; senderTmp ! LogInSuccess(token),
+</span>30 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! LogInFailure(exception.getMessage)
+</span>31 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>32 <span style=''>    case SignUp(username, password) =&gt;
+</span>33 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>34 <span style=''>      </span><span style='background: #AEF1AE'>authenticationApiWrapper.signUp(username, password).onComplete(replyWith(
+</span>35 <span style=''></span><span style='background: #AEF1AE'>        token =&gt; senderTmp ! SignUpSuccess(token),
+</span>36 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! SignUpFailure(exception.getMessage)
+</span>37 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  /**
+</span>41 <span style=''>    * @return the behaviour of managing the rooms online
+</span>42 <span style=''>    */
+</span>43 <span style=''>  private def roomsBehaviour: Receive = {
+</span>44 <span style=''>    case ServiceCreate(roomName, playersNumber, token) =&gt;
+</span>45 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>46 <span style=''>      </span><span style='background: #AEF1AE'>roomApiWrapper.createRoom(roomName, playersNumber)(token).onComplete(replyWith(
+</span>47 <span style=''></span><span style='background: #AEF1AE'>        token =&gt; senderTmp ! CreateSuccess(token),
+</span>48 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! CreateFailure(exception.getMessage)
+</span>49 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>50 <span style=''>    case ServiceEnterPrivate(idRoom, address, webAddress, token) =&gt;
+</span>51 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>52 <span style=''>      </span><span style='background: #AEF1AE'>roomApiWrapper.enterRoom(idRoom, address, webAddress)(token).onComplete(replyWith(
+</span>53 <span style=''></span><span style='background: #AEF1AE'>        _ =&gt; senderTmp ! EnterPrivateSuccess,
+</span>54 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! EnterPrivateFailure(exception.getMessage)
+</span>55 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>56 <span style=''>    case ServiceEnterPublic(nPlayer, address, webAddress, token) =&gt;
+</span>57 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>58 <span style=''>      </span><span style='background: #AEF1AE'>roomApiWrapper.enterPublicRoom(nPlayer, address, webAddress)(token).onComplete(replyWith(
+</span>59 <span style=''></span><span style='background: #AEF1AE'>        _ =&gt; senderTmp ! EnterPublicSuccess,
+</span>60 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! EnterPublicFailure(exception.getMessage)
+</span>61 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>62 <span style=''>    case ServiceExitPrivate(roomID, jwtToken) =&gt;
+</span>63 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>64 <span style=''>      </span><span style='background: #AEF1AE'>roomApiWrapper.exitRoom(roomID)(jwtToken).onComplete(replyWith(
+</span>65 <span style=''></span><span style='background: #AEF1AE'>        _ =&gt; senderTmp ! ExitPrivateSuccess,
+</span>66 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! ExitPrivateFailure(exception.getMessage)
+</span>67 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>68 <span style=''>    case ServiceExitPublic(playersNumber, jwtToken) =&gt;
+</span>69 <span style=''>      val senderTmp = </span><span style='background: #AEF1AE'>sender</span><span style=''>
+</span>70 <span style=''>      </span><span style='background: #AEF1AE'>roomApiWrapper.exitPublicRoom(playersNumber)(jwtToken).onComplete(replyWith(
+</span>71 <span style=''></span><span style='background: #AEF1AE'>        _ =&gt; senderTmp ! ExitPublicSuccess,
+</span>72 <span style=''></span><span style='background: #AEF1AE'>        exception =&gt; senderTmp ! ExitPublicFailure(exception.getMessage)
+</span>73 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>74 <span style=''>  }
+</span>75 <span style=''>
+</span>76 <span style=''>  /**
+</span>77 <span style=''>    * A utility method to match Success or failure of a try and do something with results
+</span>78 <span style=''>    *
+</span>79 <span style=''>    * @param onSuccess the action to do on success
+</span>80 <span style=''>    * @param onFailure the action to do on failure
+</span>81 <span style=''>    * @param toCheck   the try to check
+</span>82 <span style=''>    * @tparam T the type of the result if present
+</span>83 <span style=''>    */
+</span>84 <span style=''>  private def replyWith[T](onSuccess: =&gt; T =&gt; Unit, onFailure: =&gt; Throwable =&gt; Unit)
+</span>85 <span style=''>                          (toCheck: Try[T]): Unit = toCheck match {
+</span>86 <span style=''>    case Success(value) =&gt; </span><span style='background: #AEF1AE'>onSuccess(value)</span><span style=''>
+</span>87 <span style=''>    case Failure(ex) =&gt; </span><span style='background: #AEF1AE'>onFailure(ex)</span><span style=''>
+</span>88 <span style=''>  }
+</span>89 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -139,12 +127,12 @@
           20
         </td>
         <td>
-          59
+          97
         </td>
         <td>
-          821
+          949
           -
-          866
+          994
         </td>
         <td>
           Apply
@@ -152,7 +140,7 @@
         <td>
           scala.PartialFunction.orElse
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.authenticationBehaviour.orElse[Any, Unit](ApiClientActor.this.roomsBehaviour)
         </td>
       </tr><tr>
@@ -160,12 +148,12 @@
           20
         </td>
         <td>
-          58
+          96
         </td>
         <td>
-          852
+          980
           -
-          866
+          994
         </td>
         <td>
           Select
@@ -173,41 +161,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.roomsBehaviour
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.roomsBehaviour
         </td>
       </tr><tr>
         <td>
-          26
+          25
         </td>
         <td>
-          60
+          104
         </td>
         <td>
-          1025
+          1116
           -
-          1051
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.wrapper.AuthenticationApiWrapper.apply()
-        </td>
-      </tr><tr>
-        <td>
-          30
-        </td>
-        <td>
-          67
-        </td>
-        <td>
-          1169
-          -
-          1169
+          1116
         </td>
         <td>
           Apply
@@ -215,20 +182,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.$anonfun.&lt;init&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           new $anonfun()
         </td>
       </tr><tr>
         <td>
-          32
+          27
         </td>
         <td>
-          61
+          98
         </td>
         <td>
-          1235
+          1178
           -
-          1241
+          1184
         </td>
         <td>
           Apply
@@ -236,41 +203,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          33
+          28
         </td>
         <td>
-          62
+          100
         </td>
         <td>
-          1287
+          1191
           -
-          1429
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.ApiClientActor.replyWith
-        </td>
-        <td style="background: #F0ADAD">
-          ApiClientActor.this.replyWith[String](eta$0$1.apply(), eta$1$1.apply())(toCheck)
-        </td>
-      </tr><tr>
-        <td>
-          33
-        </td>
-        <td>
-          63
-        </td>
-        <td>
-          1250
-          -
-          1430
+          1390
         </td>
         <td>
           ApplyToImplicitArgs
@@ -278,8 +224,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          authenticationApiWrapper.login(username, password).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.authenticationApiWrapper.login(username, password).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$1: () =&gt; String =&gt; Unit = (() =&gt; ((token: String) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.AuthenticationResponses.LogInSuccess.apply(token))(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$1: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.AuthenticationResponses.LogInFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[String]) =&gt; ApiClientActor.this.replyWith[String](eta$0$1.apply(), eta$1$1.apply())(toCheck))
@@ -287,36 +233,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          28
         </td>
         <td>
-          64
+          99
         </td>
         <td>
-          1496
+          1253
           -
-          1502
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          akka.actor.Actor.sender
-        </td>
-        <td style="background: #F0ADAD">
-          ApiClientActor.this.sender()
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          65
-        </td>
-        <td>
-          1549
-          -
-          1693
+          1389
         </td>
         <td>
           Apply
@@ -324,20 +249,41 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
-          ApiClientActor.this.replyWith[String](eta$0$2.apply(), eta$1$2.apply())(toCheck)
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.replyWith[String](eta$0$1.apply(), eta$1$1.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          39
+          33
         </td>
         <td>
-          66
+          101
         </td>
         <td>
-          1511
+          1452
           -
-          1694
+          1458
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.actor.Actor.sender
+        </td>
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.sender()
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          1465
+          -
+          1667
         </td>
         <td>
           ApplyToImplicitArgs
@@ -345,8 +291,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          authenticationApiWrapper.signUp(username, password).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.authenticationApiWrapper.signUp(username, password).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$2: () =&gt; String =&gt; Unit = (() =&gt; ((token: String) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.AuthenticationResponses.SignUpSuccess.apply(token))(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$2: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.AuthenticationResponses.SignUpFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[String]) =&gt; ApiClientActor.this.replyWith[String](eta$0$2.apply(), eta$1$2.apply())(toCheck))
@@ -354,36 +300,36 @@
         </td>
       </tr><tr>
         <td>
-          50
+          34
         </td>
         <td>
-          68
+          102
         </td>
         <td>
-          1843
+          1528
           -
-          1860
+          1666
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.services.wrapper.RoomsApiWrapper.apply
+          it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.wrapper.RoomsApiWrapper.apply()
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.replyWith[String](eta$0$2.apply(), eta$1$2.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          54
+          43
         </td>
         <td>
-          84
+          120
         </td>
         <td>
-          1968
+          1783
           -
-          1968
+          1783
         </td>
         <td>
           Apply
@@ -391,20 +337,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.$anonfun.&lt;init&gt;
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           new $anonfun()
         </td>
       </tr><tr>
         <td>
-          56
+          45
         </td>
         <td>
-          69
+          105
         </td>
         <td>
-          2054
+          1865
           -
-          2060
+          1871
         </td>
         <td>
           Apply
@@ -412,20 +358,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          57
+          46
         </td>
         <td>
-          71
+          107
         </td>
         <td>
-          2069
+          1878
           -
-          2268
+          2086
         </td>
         <td>
           ApplyToImplicitArgs
@@ -433,8 +379,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          roomApiWrapper.createRoom(roomName, playersNumber)(token).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.roomApiWrapper.createRoom(roomName, playersNumber)(token).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$3: () =&gt; String =&gt; Unit = (() =&gt; ((token: String) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.CreateSuccess.apply(token))(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$3: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.CreateFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[String]) =&gt; ApiClientActor.this.replyWith[String](eta$0$3.apply(), eta$1$3.apply())(toCheck))
@@ -442,15 +388,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          46
         </td>
         <td>
-          70
+          106
         </td>
         <td>
-          2123
+          1947
           -
-          2267
+          2085
         </td>
         <td>
           Apply
@@ -458,20 +404,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.replyWith[String](eta$0$3.apply(), eta$1$3.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          62
+          51
         </td>
         <td>
-          72
+          108
         </td>
         <td>
-          2363
+          2177
           -
-          2369
+          2183
         </td>
         <td>
           Apply
@@ -479,20 +425,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          63
+          52
         </td>
         <td>
-          74
+          110
         </td>
         <td>
-          2378
+          2190
           -
-          2581
+          2402
         </td>
         <td>
           ApplyToImplicitArgs
@@ -500,8 +446,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          roomApiWrapper.enterRoom(idRoom, address, webAddress)(token).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.roomApiWrapper.enterRoom(idRoom, address, webAddress)(token).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$4: () =&gt; Unit =&gt; Unit = (() =&gt; ((x$1: Unit) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.EnterPrivateSuccess)(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$4: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.EnterPrivateFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[Unit]) =&gt; ApiClientActor.this.replyWith[Unit](eta$0$4.apply(), eta$1$4.apply())(toCheck))
@@ -509,15 +455,15 @@
         </td>
       </tr><tr>
         <td>
-          63
+          52
         </td>
         <td>
-          73
+          109
         </td>
         <td>
-          2435
+          2262
           -
-          2580
+          2401
         </td>
         <td>
           Apply
@@ -525,20 +471,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.replyWith[Unit](eta$0$4.apply(), eta$1$4.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          68
+          57
         </td>
         <td>
-          75
+          111
         </td>
         <td>
-          2676
+          2493
           -
-          2682
+          2499
         </td>
         <td>
           Apply
@@ -546,20 +492,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          69
+          58
         </td>
         <td>
-          77
+          113
         </td>
         <td>
-          2691
+          2506
           -
-          2899
+          2723
         </td>
         <td>
           ApplyToImplicitArgs
@@ -567,8 +513,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          roomApiWrapper.enterPublicRoom(nPlayer, address, webAddress)(token).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.roomApiWrapper.enterPublicRoom(nPlayer, address, webAddress)(token).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$5: () =&gt; Unit =&gt; Unit = (() =&gt; ((x$2: Unit) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.EnterPublicSuccess)(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$5: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.EnterPublicFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[Unit]) =&gt; ApiClientActor.this.replyWith[Unit](eta$0$5.apply(), eta$1$5.apply())(toCheck))
@@ -576,15 +522,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          58
         </td>
         <td>
-          76
+          112
         </td>
         <td>
-          2755
+          2585
           -
-          2898
+          2722
         </td>
         <td>
           Apply
@@ -592,20 +538,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.replyWith[Unit](eta$0$5.apply(), eta$1$5.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          74
+          63
         </td>
         <td>
-          78
+          114
         </td>
         <td>
-          2975
+          2795
           -
-          2981
+          2801
         </td>
         <td>
           Apply
@@ -613,20 +559,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          75
+          64
         </td>
         <td>
-          80
+          116
         </td>
         <td>
-          2990
+          2808
           -
-          3172
+          2999
         </td>
         <td>
           ApplyToImplicitArgs
@@ -634,8 +580,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          roomApiWrapper.exitRoom(roomID)(jwtToken).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.roomApiWrapper.exitRoom(roomID)(jwtToken).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$6: () =&gt; Unit =&gt; Unit = (() =&gt; ((x$3: Unit) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.ExitPrivateSuccess)(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$6: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.ExitPrivateFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[Unit]) =&gt; ApiClientActor.this.replyWith[Unit](eta$0$6.apply(), eta$1$6.apply())(toCheck))
@@ -643,15 +589,15 @@
         </td>
       </tr><tr>
         <td>
-          75
+          64
         </td>
         <td>
-          79
+          115
         </td>
         <td>
-          3028
+          2861
           -
-          3171
+          2998
         </td>
         <td>
           Apply
@@ -659,20 +605,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.replyWith[Unit](eta$0$6.apply(), eta$1$6.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          80
+          69
         </td>
         <td>
-          81
+          117
         </td>
         <td>
-          3254
+          3077
           -
-          3260
+          3083
         </td>
         <td>
           Apply
@@ -680,20 +626,20 @@
         <td>
           akka.actor.Actor.sender
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.sender()
         </td>
       </tr><tr>
         <td>
-          81
+          70
         </td>
         <td>
-          83
+          119
         </td>
         <td>
-          3269
+          3090
           -
-          3462
+          3292
         </td>
         <td>
           ApplyToImplicitArgs
@@ -701,8 +647,8 @@
         <td>
           scala.concurrent.Future.onComplete
         </td>
-        <td style="background: #F0ADAD">
-          roomApiWrapper.exitPublicRoom(playersNumber)(jwtToken).onComplete[Unit]({
+        <td style="background: #AEF1AE">
+          ApiClientActor.this.roomApiWrapper.exitPublicRoom(playersNumber)(jwtToken).onComplete[Unit]({
   &lt;synthetic&gt; val eta$0$7: () =&gt; Unit =&gt; Unit = (() =&gt; ((x$4: Unit) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.ExitPublicSuccess)(ApiClientActor.this.self)));
   &lt;synthetic&gt; val eta$1$7: () =&gt; Throwable =&gt; Unit = (() =&gt; ((exception: Throwable) =&gt; actor.this.`package`.actorRef2Scala(senderTmp).!(it.cwmp.client.controller.messages.RoomsResponses.ExitPublicFailure.apply(it.cwmp.utils.Utils.stringToOption(exception.getMessage())))(ApiClientActor.this.self)));
   ((toCheck: scala.util.Try[Unit]) =&gt; ApiClientActor.this.replyWith[Unit](eta$0$7.apply(), eta$1$7.apply())(toCheck))
@@ -710,15 +656,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          70
         </td>
         <td>
-          82
+          118
         </td>
         <td>
-          3320
+          3156
           -
-          3461
+          3291
         </td>
         <td>
           Apply
@@ -726,20 +672,20 @@
         <td>
           it.cwmp.client.controller.ApiClientActor.replyWith
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           ApiClientActor.this.replyWith[Unit](eta$0$7.apply(), eta$1$7.apply())(toCheck)
         </td>
       </tr><tr>
         <td>
-          98
+          86
         </td>
         <td>
-          85
+          121
         </td>
         <td>
-          3955
+          3779
           -
-          3971
+          3795
         </td>
         <td>
           Apply
@@ -747,20 +693,20 @@
         <td>
           scala.Function1.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           onSuccess.apply(value)
         </td>
       </tr><tr>
         <td>
-          99
+          87
         </td>
         <td>
-          86
+          122
         </td>
         <td>
-          3996
+          3820
           -
-          4009
+          3833
         </td>
         <td>
           Apply
@@ -768,7 +714,7 @@
         <td>
           scala.Function1.apply
         </td>
-        <td style="background: #F0ADAD">
+        <td style="background: #AEF1AE">
           onFailure.apply(ex)
         </td>
       </tr>

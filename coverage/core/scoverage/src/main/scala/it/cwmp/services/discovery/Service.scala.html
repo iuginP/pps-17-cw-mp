@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/services/authentication/ServerParameters.scala.html
+          src/main/scala/it/cwmp/services/discovery/Service.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,21 +22,28 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.authentication
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.discovery
 </span>2 <span style=''>
 </span>3 <span style=''>/**
-</span>4 <span style=''>  * An object containing Authentication Service info
+</span>4 <span style=''>  * An object containing Discovery Service info
 </span>5 <span style=''>  */
-</span>6 <span style=''>object ServerParameters {
+</span>6 <span style=''>object Service {
 </span>7 <span style=''>
-</span>8 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8666</span><span style=''>
-</span>9 <span style=''>
-</span>10 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/authentication&quot;</span><span style=''>
-</span>11 <span style=''>  val API_SIGN_UP = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signUp&quot;</span><span style=''>
-</span>12 <span style=''>  val API_SIGN_OUT = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/signOut&quot;</span><span style=''>
-</span>13 <span style=''>  val API_LOGIN = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/login&quot;</span><span style=''>
-</span>14 <span style=''>  val API_VALIDATE = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/validate&quot;</span><span style=''>
-</span>15 <span style=''>}
+</span>8 <span style=''>  /**
+</span>9 <span style=''>    * Discovery Service default port
+</span>10 <span style=''>    */
+</span>11 <span style=''>  val DEFAULT_PORT = </span><span style='background: #F0ADAD'>7777</span><span style=''>
+</span>12 <span style=''>
+</span>13 <span style=''>  private val API_BASE_PATH = </span><span style='background: #F0ADAD'>&quot;/api/discovery&quot;</span><span style=''>
+</span>14 <span style=''>  val API_PUBLISH_SERVICE = </span><span style='background: #F0ADAD'>s&quot;$API_BASE_PATH/publish&quot;</span><span style=''>
+</span>15 <span style=''>  val API_UN_PUBLISH_SERVICE = </span><span style='background: #F0ADAD'>s&quot;$API_BASE_PATH/unPublish&quot;</span><span style=''>
+</span>16 <span style=''>  val API_DISCOVER_SERVICE = </span><span style='background: #F0ADAD'>s&quot;$API_BASE_PATH/discover&quot;</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>  val PARAMETER_REGISTRATION = </span><span style='background: #F0ADAD'>&quot;service_registration&quot;</span><span style=''>
+</span>19 <span style=''>  val PARAMETER_NAME = </span><span style='background: #F0ADAD'>&quot;service_name&quot;</span><span style=''>
+</span>20 <span style=''>  val PARAMETER_HOST = </span><span style='background: #F0ADAD'>&quot;service_host&quot;</span><span style=''>
+</span>21 <span style=''>  val PARAMETER_PORT = </span><span style='background: #F0ADAD'>&quot;service_port&quot;</span><span style=''>
+</span>22 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -50,57 +57,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          8
-        </td>
-        <td>
-          144
-        </td>
-        <td>
-          151
-          -
-          155
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          8666
-        </td>
-      </tr><tr>
-        <td>
-          10
-        </td>
-        <td>
-          145
-        </td>
-        <td>
-          187
-          -
-          208
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/api/authentication&quot;
-        </td>
-      </tr><tr>
-        <td>
           11
         </td>
         <td>
-          146
+          290
         </td>
         <td>
-          231
+          182
           -
-          232
+          186
         </td>
         <td>
           Literal
@@ -108,20 +73,41 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
+        <td style="background: #F0ADAD">
+          7777
         </td>
       </tr><tr>
         <td>
-          11
+          13
         </td>
         <td>
-          149
+          291
         </td>
         <td>
-          229
+          218
           -
-          253
+          234
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;/api/discovery&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          295
+        </td>
+        <td>
+          263
+          -
+          288
         </td>
         <td>
           Apply
@@ -129,41 +115,62 @@
         <td>
           scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/signUp&quot;).s(ServerParameters.this.API_BASE_PATH)
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;/publish&quot;).s(Service.this.API_BASE_PATH)
         </td>
       </tr><tr>
         <td>
-          11
+          14
         </td>
         <td>
-          148
+          292
         </td>
         <td>
-          232
+          265
           -
-          245
+          266
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          294
+        </td>
+        <td>
+          266
+          -
+          279
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+          it.cwmp.services.discovery.Service.API_BASE_PATH
         </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
+        <td style="background: #F0ADAD">
+          Service.this.API_BASE_PATH
         </td>
       </tr><tr>
         <td>
-          11
+          14
         </td>
         <td>
-          147
+          293
         </td>
         <td>
-          245
+          279
           -
-          253
+          288
         </td>
         <td>
           Literal
@@ -171,104 +178,41 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot;/signUp&quot;
+        <td style="background: #F0ADAD">
+          &quot;/publish&quot;
         </td>
       </tr><tr>
         <td>
-          12
+          15
         </td>
         <td>
-          151
+          298
         </td>
         <td>
-          291
+          323
           -
-          300
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/signOut&quot;
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          150
-        </td>
-        <td>
-          277
-          -
-          278
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          153
-        </td>
-        <td>
-          275
-          -
-          300
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/signOut&quot;).s(ServerParameters.this.API_BASE_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          12
-        </td>
-        <td>
-          152
-        </td>
-        <td>
-          278
-          -
-          291
+          336
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
+          it.cwmp.services.discovery.Service.API_BASE_PATH
         </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
+        <td style="background: #F0ADAD">
+          Service.this.API_BASE_PATH
         </td>
       </tr><tr>
         <td>
-          13
+          15
         </td>
         <td>
-          155
+          297
         </td>
         <td>
-          335
+          336
           -
-          342
+          347
         </td>
         <td>
           Literal
@@ -276,41 +220,20 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot;/login&quot;
+        <td style="background: #F0ADAD">
+          &quot;/unPublish&quot;
         </td>
       </tr><tr>
         <td>
-          13
+          15
         </td>
         <td>
-          154
+          299
         </td>
         <td>
-          321
+          320
           -
-          322
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          157
-        </td>
-        <td>
-          319
-          -
-          342
+          347
         </td>
         <td>
           Apply
@@ -318,41 +241,20 @@
         <td>
           scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/login&quot;).s(ServerParameters.this.API_BASE_PATH)
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;/unPublish&quot;).s(Service.this.API_BASE_PATH)
         </td>
       </tr><tr>
         <td>
-          13
+          15
         </td>
         <td>
-          156
+          296
         </td>
         <td>
           322
           -
-          335
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          158
-        </td>
-        <td>
-          366
-          -
-          367
+          323
         </td>
         <td>
           Literal
@@ -360,41 +262,20 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
+        <td style="background: #F0ADAD">
           &quot;&quot;
         </td>
       </tr><tr>
         <td>
-          14
+          16
         </td>
         <td>
-          160
+          301
         </td>
         <td>
-          367
+          393
           -
-          380
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.authentication.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          159
-        </td>
-        <td>
-          380
-          -
-          390
+          403
         </td>
         <td>
           Literal
@@ -402,20 +283,41 @@
         <td>
           &lt;nosymbol&gt;
         </td>
-        <td style="background: #AEF1AE">
-          &quot;/validate&quot;
+        <td style="background: #F0ADAD">
+          &quot;/discover&quot;
         </td>
       </tr><tr>
         <td>
-          14
+          16
         </td>
         <td>
-          161
+          300
         </td>
         <td>
-          364
+          379
           -
-          390
+          380
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          303
+        </td>
+        <td>
+          377
+          -
+          403
         </td>
         <td>
           Apply
@@ -423,8 +325,113 @@
         <td>
           scala.StringContext.s
         </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/validate&quot;).s(ServerParameters.this.API_BASE_PATH)
+        <td style="background: #F0ADAD">
+          scala.StringContext.apply(&quot;&quot;, &quot;/discover&quot;).s(Service.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          302
+        </td>
+        <td>
+          380
+          -
+          393
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.Service.API_BASE_PATH
+        </td>
+        <td style="background: #F0ADAD">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          304
+        </td>
+        <td>
+          436
+          -
+          458
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;service_registration&quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          305
+        </td>
+        <td>
+          482
+          -
+          496
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;service_name&quot;
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          306
+        </td>
+        <td>
+          520
+          -
+          534
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;service_host&quot;
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          307
+        </td>
+        <td>
+          558
+          -
+          572
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;service_port&quot;
         </td>
       </tr>
     </table>

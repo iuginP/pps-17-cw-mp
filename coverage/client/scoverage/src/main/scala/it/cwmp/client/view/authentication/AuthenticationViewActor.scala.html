@@ -83,7 +83,7 @@
           18
         </td>
         <td>
-          1126
+          1172
         </td>
         <td>
           644
@@ -94,7 +94,7 @@
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXServiceViewActor.preStart
+          akka.actor.Actor.preStart
         </td>
         <td style="background: #F0ADAD">
           AuthenticationViewActor.super.preStart()
@@ -104,7 +104,7 @@
           19
         </td>
         <td>
-          1149
+          1195
         </td>
         <td>
           665
@@ -154,57 +154,7 @@
           20
         </td>
         <td>
-          1147
-        </td>
-        <td>
-          706
-          -
-          1398
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationFXController.apply
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationFXController.apply({
-  final class $anon extends AnyRef with it.cwmp.client.view.authentication.AuthenticationStrategy {
-    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.authentication.AuthenticationStrategy&gt; = {
-      $anon.super.&lt;init&gt;();
-      ()
-    };
-    override def performLogIn(username: String, password: String): Unit = {
-      AuthenticationViewActor.this.fxController.disableViewComponents();
-      {
-        &lt;artifact&gt; val qual$1: it.cwmp.client.view.authentication.AuthenticationFXController = AuthenticationViewActor.this.fxController;
-        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE;
-        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
-        qual$1.showLoading(x$1, x$2)
-      };
-      actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password))(AuthenticationViewActor.this.self)
-    };
-    override def performPasswordCheck(password: String, confirmPassword: String): Boolean = password.==(confirmPassword);
-    override def performSignUp(username: String, password: String): Unit = {
-      AuthenticationViewActor.this.fxController.disableViewComponents();
-      {
-        &lt;artifact&gt; val qual$2: it.cwmp.client.view.authentication.AuthenticationFXController = AuthenticationViewActor.this.fxController;
-        &lt;artifact&gt; val x$3: String = it.cwmp.client.view.authentication.AuthenticationViewActor.SIGNING_UP_MESSAGE;
-        &lt;artifact&gt; val x$4: String = qual$2.showLoading$default$2;
-        qual$2.showLoading(x$3, x$4)
-      };
-      actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply(username, password))(AuthenticationViewActor.this.self)
-    }
-  };
-  new $anon()
-})
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          1146
+          1192
         </td>
         <td>
           733
@@ -225,7 +175,7 @@
           20
         </td>
         <td>
-          1148
+          1194
         </td>
         <td>
           691
@@ -272,10 +222,60 @@
         </td>
       </tr><tr>
         <td>
+          20
+        </td>
+        <td>
+          1193
+        </td>
+        <td>
+          706
+          -
+          1398
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationFXController.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationFXController.apply({
+  final class $anon extends AnyRef with it.cwmp.client.view.authentication.AuthenticationStrategy {
+    def &lt;init&gt;(): &lt;$anon: it.cwmp.client.view.authentication.AuthenticationStrategy&gt; = {
+      $anon.super.&lt;init&gt;();
+      ()
+    };
+    override def performLogIn(username: String, password: String): Unit = {
+      AuthenticationViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$1: it.cwmp.client.view.authentication.AuthenticationFXController = AuthenticationViewActor.this.fxController;
+        &lt;artifact&gt; val x$1: String = it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE;
+        &lt;artifact&gt; val x$2: String = qual$1.showLoading$default$2;
+        qual$1.showLoading(x$1, x$2)
+      };
+      actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password))(AuthenticationViewActor.this.self)
+    };
+    override def performPasswordCheck(password: String, confirmPassword: String): Boolean = password.==(confirmPassword);
+    override def performSignUp(username: String, password: String): Unit = {
+      AuthenticationViewActor.this.fxController.disableViewComponents();
+      {
+        &lt;artifact&gt; val qual$2: it.cwmp.client.view.authentication.AuthenticationFXController = AuthenticationViewActor.this.fxController;
+        &lt;artifact&gt; val x$3: String = it.cwmp.client.view.authentication.AuthenticationViewActor.SIGNING_UP_MESSAGE;
+        &lt;artifact&gt; val x$4: String = qual$2.showLoading$default$2;
+        qual$2.showLoading(x$3, x$4)
+      };
+      actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply(username, password))(AuthenticationViewActor.this.self)
+    }
+  };
+  new $anon()
+})
+        </td>
+      </tr><tr>
+        <td>
           22
         </td>
         <td>
-          1127
+          1173
         </td>
         <td>
           852
@@ -296,49 +296,7 @@
           23
         </td>
         <td>
-          1129
-        </td>
-        <td>
-          924
-          -
-          942
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1128
-        </td>
-        <td>
-          899
-          -
-          911
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationViewActor.fxController
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationViewActor.this.fxController
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          1131
+          1177
         </td>
         <td>
           899
@@ -359,7 +317,28 @@
           23
         </td>
         <td>
-          1130
+          1174
+        </td>
+        <td>
+          899
+          -
+          911
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewActor.fxController
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationViewActor.this.fxController
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          1176
         </td>
         <td>
           912
@@ -377,52 +356,31 @@
         </td>
       </tr><tr>
         <td>
-          24
+          23
         </td>
         <td>
-          1133
+          1175
         </td>
         <td>
-          971
+          924
           -
-          996
+          942
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply
+          it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password)
+          it.cwmp.client.view.authentication.AuthenticationViewActor.LOGGING_IN_MESSAGE
         </td>
       </tr><tr>
         <td>
           24
         </td>
         <td>
-          1135
-        </td>
-        <td>
-          953
-          -
-          996
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          akka.actor.ScalaActorRef.!
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password))(AuthenticationViewActor.this.self)
-        </td>
-      </tr><tr>
-        <td>
-          24
-        </td>
-        <td>
-          1132
+          1178
         </td>
         <td>
           953
@@ -443,7 +401,7 @@
           24
         </td>
         <td>
-          1134
+          1180
         </td>
         <td>
           969
@@ -461,10 +419,52 @@
         </td>
       </tr><tr>
         <td>
+          24
+        </td>
+        <td>
+          1179
+        </td>
+        <td>
+          971
+          -
+          996
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          1181
+        </td>
+        <td>
+          953
+          -
+          996
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(AuthenticationViewActor.this.controllerActor).!(it.cwmp.client.controller.messages.AuthenticationRequests.LogIn.apply(username, password))(AuthenticationViewActor.this.self)
+        </td>
+      </tr><tr>
+        <td>
           28
         </td>
         <td>
-          1136
+          1182
         </td>
         <td>
           1114
@@ -485,7 +485,7 @@
           31
         </td>
         <td>
-          1137
+          1183
         </td>
         <td>
           1234
@@ -506,28 +506,7 @@
           32
         </td>
         <td>
-          1138
-        </td>
-        <td>
-          1281
-          -
-          1293
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.authentication.AuthenticationViewActor.fxController
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationViewActor.this.fxController
-        </td>
-      </tr><tr>
-        <td>
-          32
-        </td>
-        <td>
-          1141
+          1187
         </td>
         <td>
           1281
@@ -548,7 +527,7 @@
           32
         </td>
         <td>
-          1140
+          1186
         </td>
         <td>
           1294
@@ -569,7 +548,7 @@
           32
         </td>
         <td>
-          1139
+          1185
         </td>
         <td>
           1306
@@ -587,10 +566,52 @@
         </td>
       </tr><tr>
         <td>
+          32
+        </td>
+        <td>
+          1184
+        </td>
+        <td>
+          1281
+          -
+          1293
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.authentication.AuthenticationViewActor.fxController
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationViewActor.this.fxController
+        </td>
+      </tr><tr>
+        <td>
           33
         </td>
         <td>
-          1142
+          1189
+        </td>
+        <td>
+          1353
+          -
+          1379
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply(username, password)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          1188
         </td>
         <td>
           1335
@@ -611,7 +632,7 @@
           33
         </td>
         <td>
-          1145
+          1191
         </td>
         <td>
           1335
@@ -632,7 +653,7 @@
           33
         </td>
         <td>
-          1144
+          1190
         </td>
         <td>
           1351
@@ -650,31 +671,10 @@
         </td>
       </tr><tr>
         <td>
-          33
-        </td>
-        <td>
-          1143
-        </td>
-        <td>
-          1353
-          -
-          1379
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.messages.AuthenticationRequests.SignUp.apply(username, password)
-        </td>
-      </tr><tr>
-        <td>
           43
         </td>
         <td>
-          1150
+          1196
         </td>
         <td>
           1505
@@ -695,7 +695,7 @@
           44
         </td>
         <td>
-          1151
+          1197
         </td>
         <td>
           1561

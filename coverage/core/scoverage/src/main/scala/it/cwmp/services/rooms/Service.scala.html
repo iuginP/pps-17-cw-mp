@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/services/rooms/ServerParameters.scala.html
+          src/main/scala/it/cwmp/services/rooms/Service.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -27,23 +27,37 @@
 </span>3 <span style=''>import it.cwmp.model.Room
 </span>4 <span style=''>
 </span>5 <span style=''>/**
-</span>6 <span style=''>  * An object containing Rooms Service info
-</span>7 <span style=''>  */
-</span>8 <span style=''>object ServerParameters {
-</span>9 <span style=''>
-</span>10 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8667</span><span style=''>
-</span>11 <span style=''>
-</span>12 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/rooms&quot;</span><span style=''>
-</span>13 <span style=''>  val API_CREATE_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
-</span>14 <span style=''>  val API_ENTER_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
-</span>15 <span style=''>  val API_PRIVATE_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
-</span>16 <span style=''>  val API_EXIT_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}/self&quot;</span><span style=''>
-</span>17 <span style=''>
-</span>18 <span style=''>  val API_LIST_PUBLIC_ROOMS_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
-</span>19 <span style=''>  val API_ENTER_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
-</span>20 <span style=''>  val API_PUBLIC_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
-</span>21 <span style=''>  val API_EXIT_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}/self&quot;</span><span style=''>
-</span>22 <span style=''>}
+</span>6 <span style=''>  * This object contains every parameter and configuration
+</span>7 <span style=''>  * needed in order to execute the rooms service.
+</span>8 <span style=''>  */
+</span>9 <span style=''>object Service {
+</span>10 <span style=''>
+</span>11 <span style=''>  /**
+</span>12 <span style=''>    * The canonical name for room service
+</span>13 <span style=''>    */
+</span>14 <span style=''>  val COMMON_NAME = </span><span style='background: #AEF1AE'>&quot;Rooms Service&quot;</span><span style=''>
+</span>15 <span style=''>
+</span>16 <span style=''>  /**
+</span>17 <span style=''>    * The service identifier in the discovery service.
+</span>18 <span style=''>    */
+</span>19 <span style=''>  val DISCOVERY_NAME = </span><span style='background: #AEF1AE'>&quot;rooms_service&quot;</span><span style=''>
+</span>20 <span style=''>
+</span>21 <span style=''>  /**
+</span>22 <span style=''>    * Rooms service default port
+</span>23 <span style=''>    */
+</span>24 <span style=''>  val DEFAULT_PORT = </span><span style='background: #AEF1AE'>8667</span><span style=''>
+</span>25 <span style=''>
+</span>26 <span style=''>  private val API_BASE_PATH = </span><span style='background: #AEF1AE'>&quot;/api/rooms&quot;</span><span style=''>
+</span>27 <span style=''>  val API_CREATE_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
+</span>28 <span style=''>  val API_ENTER_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
+</span>29 <span style=''>  val API_PRIVATE_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}&quot;</span><span style=''>
+</span>30 <span style=''>  val API_EXIT_PRIVATE_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/:${Room.FIELD_IDENTIFIER}/self&quot;</span><span style=''>
+</span>31 <span style=''>
+</span>32 <span style=''>  val API_LIST_PUBLIC_ROOMS_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH&quot;</span><span style=''>
+</span>33 <span style=''>  val API_ENTER_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
+</span>34 <span style=''>  val API_PUBLIC_ROOM_INFO_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}&quot;</span><span style=''>
+</span>35 <span style=''>  val API_EXIT_PUBLIC_ROOM_URL = </span><span style='background: #AEF1AE'>s&quot;$API_BASE_PATH/public/:${Room.FIELD_NEEDED_PLAYERS}/self&quot;</span><span style=''>
+</span>36 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -57,15 +71,57 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          10
+          14
         </td>
         <td>
-          191
+          337
         </td>
         <td>
-          160
+          270
           -
-          164
+          285
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Rooms Service&quot;
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          378
+          -
+          393
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;rooms_service&quot;
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          339
+        </td>
+        <td>
+          462
+          -
+          466
         </td>
         <td>
           Literal
@@ -78,15 +134,15 @@
         </td>
       </tr><tr>
         <td>
-          12
+          26
         </td>
         <td>
-          192
+          340
         </td>
         <td>
-          196
+          498
           -
-          208
+          510
         </td>
         <td>
           Literal
@@ -99,15 +155,36 @@
         </td>
       </tr><tr>
         <td>
-          13
+          27
         </td>
         <td>
-          194
+          343
         </td>
         <td>
-          261
+          550
           -
-          262
+          563
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          563
+          -
+          564
         </td>
         <td>
           Literal
@@ -120,120 +197,15 @@
         </td>
       </tr><tr>
         <td>
-          13
+          27
         </td>
         <td>
-          193
-        </td>
-        <td>
-          247
-          -
-          248
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          196
-        </td>
-        <td>
-          245
-          -
-          262
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          13
-        </td>
-        <td>
-          195
-        </td>
-        <td>
-          248
-          -
-          261
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          200
-        </td>
-        <td>
-          301
-          -
-          314
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          202
-        </td>
-        <td>
-          298
-          -
           341
         </td>
         <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          14
-        </td>
-        <td>
-          199
-        </td>
-        <td>
-          340
+          549
           -
-          341
+          550
         </td>
         <td>
           Literal
@@ -246,15 +218,36 @@
         </td>
       </tr><tr>
         <td>
-          14
+          27
         </td>
         <td>
-          198
+          344
         </td>
         <td>
-          314
+          547
           -
-          317
+          564
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          616
+          -
+          619
         </td>
         <td>
           Literal
@@ -267,15 +260,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          28
         </td>
         <td>
-          201
+          349
         </td>
         <td>
-          318
+          620
           -
-          339
+          641
         </td>
         <td>
           Select
@@ -288,15 +281,15 @@
         </td>
       </tr><tr>
         <td>
-          14
+          28
         </td>
         <td>
-          197
+          345
         </td>
         <td>
-          300
+          602
           -
-          301
+          603
         </td>
         <td>
           Literal
@@ -309,456 +302,36 @@
         </td>
       </tr><tr>
         <td>
-          15
+          28
         </td>
         <td>
-          205
+          348
         </td>
         <td>
-          418
-          -
-          419
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          208
-        </td>
-        <td>
-          376
-          -
-          419
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          207
-        </td>
-        <td>
-          396
-          -
-          417
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          204
-        </td>
-        <td>
-          392
-          -
-          395
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          203
-        </td>
-        <td>
-          378
-          -
-          379
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          15
-        </td>
-        <td>
-          206
-        </td>
-        <td>
-          379
-          -
-          392
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          209
-        </td>
-        <td>
-          456
-          -
-          457
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          211
-        </td>
-        <td>
-          496
-          -
-          502
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/self&quot;
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          214
-        </td>
-        <td>
-          454
-          -
-          502
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;/self&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          210
-        </td>
-        <td>
-          470
-          -
-          473
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          213
-        </td>
-        <td>
-          474
-          -
-          495
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_IDENTIFIER
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          212
-        </td>
-        <td>
-          457
-          -
-          470
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          218
-        </td>
-        <td>
-          538
-          -
-          555
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH)
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          217
-        </td>
-        <td>
-          541
-          -
-          554
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          216
-        </td>
-        <td>
-          554
-          -
-          555
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          18
-        </td>
-        <td>
-          215
-        </td>
-        <td>
-          540
-          -
-          541
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          220
-        </td>
-        <td>
-          606
+          603
           -
           616
         </td>
         <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/public/:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          223
-        </td>
-        <td>
-          617
-          -
-          642
-        </td>
-        <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          it.cwmp.services.rooms.Service.API_BASE_PATH
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          Service.this.API_BASE_PATH
         </td>
       </tr><tr>
         <td>
-          19
+          28
         </td>
         <td>
-          219
+          350
         </td>
         <td>
-          592
+          600
           -
-          593
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          222
-        </td>
-        <td>
-          593
-          -
-          606
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          221
-        </td>
-        <td>
           643
-          -
-          644
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;&quot;
-        </td>
-      </tr><tr>
-        <td>
-          19
-        </td>
-        <td>
-          224
-        </td>
-        <td>
-          590
-          -
-          644
         </td>
         <td>
           Apply
@@ -767,19 +340,19 @@
           scala.StringContext.s
         </td>
         <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
+          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
         </td>
       </tr><tr>
         <td>
-          20
+          28
         </td>
         <td>
-          227
+          347
         </td>
         <td>
-          731
+          642
           -
-          732
+          643
         </td>
         <td>
           Literal
@@ -792,15 +365,36 @@
         </td>
       </tr><tr>
         <td>
-          20
+          29
         </td>
         <td>
-          226
+          355
+        </td>
+        <td>
+          698
+          -
+          719
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          352
         </td>
         <td>
           694
           -
-          704
+          697
         </td>
         <td>
           Literal
@@ -809,35 +403,35 @@
           &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          &quot;/public/:&quot;
+          &quot;/:&quot;
         </td>
       </tr><tr>
         <td>
-          20
+          29
         </td>
         <td>
-          229
+          354
         </td>
         <td>
-          705
+          681
           -
-          730
+          694
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          it.cwmp.services.rooms.Service.API_BASE_PATH
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+          Service.this.API_BASE_PATH
         </td>
       </tr><tr>
         <td>
-          20
+          29
         </td>
         <td>
-          225
+          351
         </td>
         <td>
           680
@@ -855,141 +449,15 @@
         </td>
       </tr><tr>
         <td>
-          20
+          29
         </td>
         <td>
-          228
+          353
         </td>
         <td>
-          681
+          720
           -
-          694
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          20
-        </td>
-        <td>
-          230
-        </td>
-        <td>
-          678
-          -
-          732
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          236
-        </td>
-        <td>
-          766
-          -
-          825
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;/self&quot;).s(ServerParameters.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          235
-        </td>
-        <td>
-          793
-          -
-          818
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-        <td style="background: #AEF1AE">
-          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          232
-        </td>
-        <td>
-          782
-          -
-          792
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          &quot;/public/:&quot;
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          234
-        </td>
-        <td>
-          769
-          -
-          782
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.rooms.ServerParameters.API_BASE_PATH
-        </td>
-        <td style="background: #AEF1AE">
-          ServerParameters.this.API_BASE_PATH
-        </td>
-      </tr><tr>
-        <td>
-          21
-        </td>
-        <td>
-          231
-        </td>
-        <td>
-          768
-          -
-          769
+          721
         </td>
         <td>
           Literal
@@ -1002,15 +470,120 @@
         </td>
       </tr><tr>
         <td>
-          21
+          29
         </td>
         <td>
-          233
+          356
         </td>
         <td>
-          819
+          678
           -
-          825
+          721
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          358
+        </td>
+        <td>
+          772
+          -
+          775
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          361
+        </td>
+        <td>
+          776
+          -
+          797
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_IDENTIFIER
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          759
+          -
+          772
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          758
+          -
+          759
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          798
+          -
+          804
         </td>
         <td>
           Literal
@@ -1020,6 +593,489 @@
         </td>
         <td style="background: #AEF1AE">
           &quot;/self&quot;
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          756
+          -
+          804
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/:&quot;, &quot;/self&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_IDENTIFIER)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          856
+          -
+          857
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          842
+          -
+          843
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          840
+          -
+          857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH)
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          843
+          -
+          856
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          894
+          -
+          895
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          895
+          -
+          908
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          945
+          -
+          946
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          892
+          -
+          946
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          908
+          -
+          918
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/public/:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          919
+          -
+          944
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          982
+          -
+          983
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          983
+          -
+          996
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          980
+          -
+          1034
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          375
+        </td>
+        <td>
+          1033
+          -
+          1034
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          377
+        </td>
+        <td>
+          1007
+          -
+          1032
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          996
+          -
+          1006
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/public/:&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          1071
+          -
+          1084
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.rooms.Service.API_BASE_PATH
+        </td>
+        <td style="background: #AEF1AE">
+          Service.this.API_BASE_PATH
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          1070
+          -
+          1071
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          1121
+          -
+          1127
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/self&quot;
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          1068
+          -
+          1127
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;/public/:&quot;, &quot;/self&quot;).s(Service.this.API_BASE_PATH, it.cwmp.model.Room.FIELD_NEEDED_PLAYERS)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          1095
+          -
+          1120
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.model.Room.FIELD_NEEDED_PLAYERS
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          1084
+          -
+          1094
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;/public/:&quot;
         </td>
       </tr>
     </table>

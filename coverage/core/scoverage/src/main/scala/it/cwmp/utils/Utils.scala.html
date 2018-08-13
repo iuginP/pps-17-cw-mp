@@ -36,7 +36,7 @@
 </span>12 <span style=''>object Utils {
 </span>13 <span style=''>
 </span>14 <span style=''>  /**
-</span>15 <span style=''>    * Generates a random string of specified length
+</span>15 <span style=''>    * Generates a random string of the specified length
 </span>16 <span style=''>    *
 </span>17 <span style=''>    * @param length the length of the random String
 </span>18 <span style=''>    * @return the random string
@@ -44,35 +44,43 @@
 </span>20 <span style=''>  def randomString(length: Int): String = </span><span style='background: #AEF1AE'>scala.util.Random.alphanumeric.take(length).mkString</span><span style=''>
 </span>21 <span style=''>
 </span>22 <span style=''>  /**
-</span>23 <span style=''>    * Utility method to test if a string is empty
+</span>23 <span style=''>    * Generates a random integer at most great as max
 </span>24 <span style=''>    *
-</span>25 <span style=''>    * @param string the string to test
-</span>26 <span style=''>    * @return true if string is empty, false otherwise
+</span>25 <span style=''>    * @param max the maximum value the random value can assume
+</span>26 <span style=''>    * @return the random integer
 </span>27 <span style=''>    */
-</span>28 <span style=''>  def emptyString(string: String): Boolean = </span><span style='background: #AEF1AE'>string == null || string.trim.isEmpty</span><span style=''>
+</span>28 <span style=''>  def randomInt(max: Int): Int = </span><span style='background: #F0ADAD'>scala.util.Random.nextInt(max)</span><span style=''>
 </span>29 <span style=''>
 </span>30 <span style=''>  /**
-</span>31 <span style=''>    * @return the ParseException filled with error string
-</span>32 <span style=''>    */
-</span>33 <span style=''>  def parseException(context: String, errorMessage: String): ParseException =
-</span>34 <span style=''>    </span><span style='background: #AEF1AE'>new ParseException(s&quot;$context: $errorMessage&quot;, 0)</span><span style=''>
-</span>35 <span style=''>
-</span>36 <span style=''>  /**
-</span>37 <span style=''>    * Implicit conversion of strings to String options
-</span>38 <span style=''>    *
-</span>39 <span style=''>    * @param string the string to convert
-</span>40 <span style=''>    * @return the option of that string
-</span>41 <span style=''>    */
-</span>42 <span style=''>  implicit def stringToOption(string: String): Option[String] = </span><span style='background: #AEF1AE'>Option(string)</span><span style=''>
+</span>31 <span style=''>    * Utility method to test if a string is empty
+</span>32 <span style=''>    *
+</span>33 <span style=''>    * @param string the string to test
+</span>34 <span style=''>    * @return true if string is empty, false otherwise
+</span>35 <span style=''>    */
+</span>36 <span style=''>  def emptyString(string: String): Boolean = </span><span style='background: #AEF1AE'>string == null || string.trim.isEmpty</span><span style=''>
+</span>37 <span style=''>
+</span>38 <span style=''>  /**
+</span>39 <span style=''>    * @return the ParseException filled with error string
+</span>40 <span style=''>    */
+</span>41 <span style=''>  def parseException(context: String, errorMessage: String): ParseException =
+</span>42 <span style=''>    </span><span style='background: #AEF1AE'>new ParseException(s&quot;$context: $errorMessage&quot;, 0)</span><span style=''>
 </span>43 <span style=''>
 </span>44 <span style=''>  /**
-</span>45 <span style=''>    * Implicit conversion of HttpStatus response names to relative codes
+</span>45 <span style=''>    * Implicit conversion of strings to String options
 </span>46 <span style=''>    *
-</span>47 <span style=''>    * @param httpResponseStatus the httpResponseStatus name to convert
-</span>48 <span style=''>    * @return the integer representing the httpStatus
+</span>47 <span style=''>    * @param string the string to convert
+</span>48 <span style=''>    * @return the option of that string
 </span>49 <span style=''>    */
-</span>50 <span style=''>  implicit def httpStatusNameToCode(httpResponseStatus: HttpResponseStatus): Int = </span><span style='background: #AEF1AE'>httpResponseStatus.code()</span><span style=''>
-</span>51 <span style=''>}
+</span>50 <span style=''>  implicit def stringToOption(string: String): Option[String] = </span><span style='background: #AEF1AE'>Option(string)</span><span style=''>
+</span>51 <span style=''>
+</span>52 <span style=''>  /**
+</span>53 <span style=''>    * Implicit conversion of HttpStatus response names to relative codes
+</span>54 <span style=''>    *
+</span>55 <span style=''>    * @param httpResponseStatus the httpResponseStatus name to convert
+</span>56 <span style=''>    * @return the integer representing the httpStatus
+</span>57 <span style=''>    */
+</span>58 <span style=''>  implicit def httpStatusNameToCode(httpResponseStatus: HttpResponseStatus): Int = </span><span style='background: #AEF1AE'>httpResponseStatus.code()</span><span style=''>
+</span>59 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -89,12 +97,12 @@
           20
         </td>
         <td>
-          378
+          571
         </td>
         <td>
-          424
+          428
           -
-          476
+          480
         </td>
         <td>
           Select
@@ -110,12 +118,33 @@
           28
         </td>
         <td>
-          379
+          572
         </td>
         <td>
-          696
+          684
           -
-          700
+          714
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.util.Random.nextInt
+        </td>
+        <td style="background: #F0ADAD">
+          scala.util.Random.nextInt(max)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          573
+        </td>
+        <td>
+          934
+          -
+          938
         </td>
         <td>
           Literal
@@ -128,15 +157,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          36
         </td>
         <td>
-          381
+          575
         </td>
         <td>
-          686
+          924
           -
-          723
+          961
         </td>
         <td>
           Apply
@@ -149,15 +178,15 @@
         </td>
       </tr><tr>
         <td>
-          28
+          36
         </td>
         <td>
-          380
+          574
         </td>
         <td>
-          704
+          942
           -
-          723
+          961
         </td>
         <td>
           Apply
@@ -170,57 +199,15 @@
         </td>
       </tr><tr>
         <td>
-          34
+          42
         </td>
         <td>
-          382
+          577
         </td>
         <td>
-          897
+          1163
           -
-          923
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.StringContext.s
-        </td>
-        <td style="background: #AEF1AE">
-          scala.StringContext.apply(&quot;&quot;, &quot;: &quot;, &quot;&quot;).s(context, errorMessage)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          384
-        </td>
-        <td>
-          878
-          -
-          927
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.text.ParseException.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new java.text.ParseException(scala.StringContext.apply(&quot;&quot;, &quot;: &quot;, &quot;&quot;).s(context, errorMessage), 0)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          383
-        </td>
-        <td>
-          925
-          -
-          926
+          1164
         </td>
         <td>
           Literal
@@ -236,12 +223,54 @@
           42
         </td>
         <td>
-          385
+          576
         </td>
         <td>
-          1149
+          1135
           -
-          1163
+          1161
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.StringContext.s
+        </td>
+        <td style="background: #AEF1AE">
+          scala.StringContext.apply(&quot;&quot;, &quot;: &quot;, &quot;&quot;).s(context, errorMessage)
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          578
+        </td>
+        <td>
+          1116
+          -
+          1165
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.text.ParseException.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new java.text.ParseException(scala.StringContext.apply(&quot;&quot;, &quot;: &quot;, &quot;&quot;).s(context, errorMessage), 0)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          579
+        </td>
+        <td>
+          1387
+          -
+          1401
         </td>
         <td>
           Apply
@@ -254,15 +283,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          58
         </td>
         <td>
-          386
+          580
         </td>
         <td>
-          1465
+          1703
           -
-          1490
+          1728
         </td>
         <td>
           Apply

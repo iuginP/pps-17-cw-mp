@@ -1,0 +1,189 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          src/main/scala/it/cwmp/services/discovery/DiscoveryServiceMain.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.discovery
+</span>2 <span style=''>
+</span>3 <span style=''>import it.cwmp.services.VertxInstance
+</span>4 <span style=''>import it.cwmp.utils.Logging
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.util.{Failure, Success}
+</span>7 <span style=''>
+</span>8 <span style=''>/**
+</span>9 <span style=''>  * DiscoveryService entry-point
+</span>10 <span style=''>  */
+</span>11 <span style=''>object DiscoveryServiceMain extends App with VertxInstance with Logging {
+</span>12 <span style=''>
+</span>13 <span style=''>  log.info(&quot;Deploying DiscoveryService... &quot;)
+</span>14 <span style=''>  </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(DiscoveryServiceVerticle())
+</span>15 <span style=''></span><span style='background: #F0ADAD'>    .andThen {
+</span>16 <span style=''></span><span style='background: #F0ADAD'>      case Success(_) =&gt; log.info(&quot;DiscoveryService up and running!&quot;)
+</span>17 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error deploying DiscoveryService&quot;, ex)
+</span>18 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>19 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          333
+          -
+          359
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceVerticle.apply(DiscoveryServiceVerticle.apply$default$1)
+        </td>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          1
+        </td>
+        <td>
+          333
+          -
+          333
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceVerticle.apply$default$1
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceVerticle.apply$default$1
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          306
+          -
+          526
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.andThen
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceMain.this.vertx.deployVerticleFuture(DiscoveryServiceVerticle.apply(DiscoveryServiceVerticle.apply$default$1)).andThen[Unit](({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[scala.util.Try[String],Unit] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: scala.util.Try[String] =&gt; Unit&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: scala.util.Try[String], B1 &gt;: Unit](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; (if (DiscoveryServiceMain.this.log.underlying.isInfoEnabled())
+        DiscoveryServiceMain.this.log.underlying.info(&quot;DiscoveryService up and running!&quot;)
+      else
+        (): Unit)
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; (if (DiscoveryServiceMain.this.log.underlying.isInfoEnabled())
+        DiscoveryServiceMain.this.log.underlying.info(&quot;Error deploying DiscoveryService&quot;, ex)
+      else
+        (): Unit)
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: scala.util.Try[String]): Boolean = ((x1.asInstanceOf[scala.util.Try[String]]: scala.util.Try[String]): scala.util.Try[String] @unchecked) match {
+      case (value: String)scala.util.Success[String](_) =&gt; true
+      case (exception: Throwable)scala.util.Failure[String]((ex @ _)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[scala.util.Try[String],Unit]))(DiscoveryServiceMain.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          374
+          -
+          374
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          DiscoveryServiceMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          374
+          -
+          374
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.discovery.DiscoveryServiceMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

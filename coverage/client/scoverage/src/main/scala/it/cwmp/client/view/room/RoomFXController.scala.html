@@ -55,117 +55,122 @@
 </span>31 <span style=''>  @FXML private var btnPrivateEnter: Button = _
 </span>32 <span style=''>  @FXML private var btnPublicEnter: Button = _
 </span>33 <span style=''>
-</span>34 <span style=''>  override def showGUI(): Unit = {
-</span>35 <span style=''>    </span><span style='background: #F0ADAD'>super.showGUI()</span><span style=''>
+</span>34 <span style=''>  override def initGUI(): Unit = {
+</span>35 <span style=''>    </span><span style='background: #F0ADAD'>super.initGUI()</span><span style=''>
 </span>36 <span style=''>    // adds a listener to reset fields on tab change
 </span>37 <span style=''>    </span><span style='background: #F0ADAD'>tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) =&gt; resetFields())</span><span style=''>
 </span>38 <span style=''>  }
 </span>39 <span style=''>
-</span>40 <span style=''>  override def resetFields(): Unit = {
-</span>41 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateCreateRoomName setText &quot;&quot;</span><span style=''>
-</span>42 <span style=''>    </span><span style='background: #F0ADAD'>spPrivateCreateNumPlayer getValueFactory() setValue 2</span><span style=''>
-</span>43 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateEnterRoomID setText &quot;&quot;</span><span style=''>
-</span>44 <span style=''>    </span><span style='background: #F0ADAD'>spPublicEnterNumPlayer getValueFactory() setValue 2</span><span style=''>
-</span>45 <span style=''>  }
-</span>46 <span style=''>
-</span>47 <span style=''>  override def disableViewComponents(): Unit = {
-</span>48 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(true)</span><span style=''>
-</span>49 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(true)</span><span style=''>
-</span>50 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(true)</span><span style=''>
-</span>51 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(true)</span><span style=''>
-</span>52 <span style=''>  }
-</span>53 <span style=''>
-</span>54 <span style=''>  override def enableViewComponents(): Unit = {
-</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(false)</span><span style=''>
-</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(false)</span><span style=''>
-</span>57 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(false)</span><span style=''>
-</span>58 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(false)</span><span style=''>
-</span>59 <span style=''>  }
-</span>60 <span style=''>
-</span>61 <span style=''>  @FXML private def onClickCreatePrivate(): Unit =
-</span>62 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
-</span>63 <span style=''></span><span style='background: #F0ADAD'>      for (
-</span>64 <span style=''></span><span style='background: #F0ADAD'>        roomName &lt;- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
-</span>65 <span style=''></span><span style='background: #F0ADAD'>        playersNumber &lt;- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
-</span>66 <span style=''></span><span style='background: #F0ADAD'>      ) yield
-</span>67 <span style=''></span><span style='background: #F0ADAD'>        strategy.onCreate(roomName, playersNumber)
-</span>68 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>69 <span style=''>
-</span>70 <span style=''>  @FXML private def onClickResetPrivate(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
-</span>71 <span style=''>
-</span>72 <span style=''>  @FXML private def onClickEnterPrivate(): Unit =
-</span>73 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
-</span>74 <span style=''></span><span style='background: #F0ADAD'>      for (roomID &lt;- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR))
-</span>75 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPrivate(roomID)
-</span>76 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>77 <span style=''>
-</span>78 <span style=''>
-</span>79 <span style=''>  @FXML private def onClickEnterPublic(): Unit =
-</span>80 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
-</span>81 <span style=''></span><span style='background: #F0ADAD'>      for (playersNumber &lt;- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER))
-</span>82 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPublic(playersNumber)
-</span>83 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>84 <span style=''>
-</span>85 <span style=''>
-</span>86 <span style=''>  /**
-</span>87 <span style=''>    * A method to show the token dialog to user
-</span>88 <span style=''>    *
-</span>89 <span style=''>    * @param roomToken the token that user should be able to copy
-</span>90 <span style=''>    */
-</span>91 <span style=''>  def showTokenDialog(roomToken: String): Unit =
-</span>92 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
-</span>93 <span style=''></span><span style='background: #F0ADAD'>      showInfoWithContent(PRIVATE_ROOM_TOKEN_TITLE, PRIVATE_ROOM_TOKEN_MESSAGE,
-</span>94 <span style=''></span><span style='background: #F0ADAD'>        createRoomTokenDialogContent(roomToken)))</span><span style=''>
-</span>95 <span style=''>
-</span>96 <span style=''>  /**
-</span>97 <span style=''>    * Creates the dialog content whit selectable token
-</span>98 <span style=''>    *
-</span>99 <span style=''>    * @param roomToken the token to show
-</span>100 <span style=''>    * @return the content of the dialog to show
-</span>101 <span style=''>    */
-</span>102 <span style=''>  private def createRoomTokenDialogContent(roomToken: String): Node = {
-</span>103 <span style=''>    val gridPane = </span><span style='background: #F0ADAD'>new GridPane()</span><span style=''>
-</span>104 <span style=''>
-</span>105 <span style=''>    val tokenTextField = </span><span style='background: #F0ADAD'>new TextField(roomToken)</span><span style=''>
-</span>106 <span style=''>    </span><span style='background: #F0ADAD'>tokenTextField.setEditable(false)</span><span style=''>
-</span>107 <span style=''>
-</span>108 <span style=''>    val copyButton = </span><span style='background: #F0ADAD'>new Button(COPY_BUTTON_TEXT)</span><span style=''>
-</span>109 <span style=''>    </span><span style='background: #F0ADAD'>copyButton.setOnAction(_ =&gt; {
-</span>110 <span style=''></span><span style='background: #F0ADAD'>      val content = new ClipboardContent
-</span>111 <span style=''></span><span style='background: #F0ADAD'>      content.putString(roomToken)
-</span>112 <span style=''></span><span style='background: #F0ADAD'>      Clipboard.getSystemClipboard.setContent(content)
-</span>113 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>114 <span style=''>
-</span>115 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(tokenTextField, 0, 1)</span><span style=''>
-</span>116 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(copyButton, 1, 1)</span><span style=''>
-</span>117 <span style=''>    gridPane
-</span>118 <span style=''>  }
+</span>40 <span style=''>  override def showGUI(): Unit = {
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>super.showGUI()</span><span style=''>
+</span>42 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateCreateRoomName.requestFocus()</span><span style=''>
+</span>43 <span style=''>  }
+</span>44 <span style=''>
+</span>45 <span style=''>  override def resetFields(): Unit = {
+</span>46 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateCreateRoomName setText &quot;&quot;</span><span style=''>
+</span>47 <span style=''>    </span><span style='background: #F0ADAD'>spPrivateCreateNumPlayer getValueFactory() setValue 2</span><span style=''>
+</span>48 <span style=''>    </span><span style='background: #F0ADAD'>tfPrivateEnterRoomID setText &quot;&quot;</span><span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>spPublicEnterNumPlayer getValueFactory() setValue 2</span><span style=''>
+</span>50 <span style=''>  }
+</span>51 <span style=''>
+</span>52 <span style=''>  override def disableViewComponents(): Unit = {
+</span>53 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(true)</span><span style=''>
+</span>54 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(true)</span><span style=''>
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(true)</span><span style=''>
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(true)</span><span style=''>
+</span>57 <span style=''>  }
+</span>58 <span style=''>
+</span>59 <span style=''>  override def enableViewComponents(): Unit = {
+</span>60 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateCreate.setDisable(false)</span><span style=''>
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateReset.setDisable(false)</span><span style=''>
+</span>62 <span style=''>    </span><span style='background: #F0ADAD'>btnPrivateEnter.setDisable(false)</span><span style=''>
+</span>63 <span style=''>    </span><span style='background: #F0ADAD'>btnPublicEnter.setDisable(false)</span><span style=''>
+</span>64 <span style=''>  }
+</span>65 <span style=''>
+</span>66 <span style=''>  @FXML private def onClickCreatePrivate(): Unit =
+</span>67 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>68 <span style=''></span><span style='background: #F0ADAD'>      for (
+</span>69 <span style=''></span><span style='background: #F0ADAD'>        roomName &lt;- getTextFieldValue(tfPrivateCreateRoomName, ROOM_NAME_EMPTY_ERROR);
+</span>70 <span style=''></span><span style='background: #F0ADAD'>        playersNumber &lt;- getSpinnerFieldValue(spPrivateCreateNumPlayer, ROOM_PLAYERS_NUMBER_ERROR)
+</span>71 <span style=''></span><span style='background: #F0ADAD'>      ) yield
+</span>72 <span style=''></span><span style='background: #F0ADAD'>        strategy.onCreate(roomName, playersNumber)
+</span>73 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>74 <span style=''>
+</span>75 <span style=''>  @FXML private def onClickResetPrivate(): Unit = </span><span style='background: #F0ADAD'>runOnUIThread { () =&gt; resetFields() }</span><span style=''>
+</span>76 <span style=''>
+</span>77 <span style=''>  @FXML private def onClickEnterPrivate(): Unit =
+</span>78 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>79 <span style=''></span><span style='background: #F0ADAD'>      for (roomID &lt;- getTextFieldValue(tfPrivateEnterRoomID, EMPTY_ROOM_ID_ERROR))
+</span>80 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPrivate(roomID)
+</span>81 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>82 <span style=''>
+</span>83 <span style=''>
+</span>84 <span style=''>  @FXML private def onClickEnterPublic(): Unit =
+</span>85 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt; {
+</span>86 <span style=''></span><span style='background: #F0ADAD'>      for (playersNumber &lt;- getSpinnerFieldValue(spPublicEnterNumPlayer, NOT_SELECTED_PLAYERS_NUMBER))
+</span>87 <span style=''></span><span style='background: #F0ADAD'>        yield strategy.onEnterPublic(playersNumber)
+</span>88 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>89 <span style=''>
+</span>90 <span style=''>
+</span>91 <span style=''>  /**
+</span>92 <span style=''>    * A method to show the token dialog to user
+</span>93 <span style=''>    *
+</span>94 <span style=''>    * @param roomToken the token that user should be able to copy
+</span>95 <span style=''>    */
+</span>96 <span style=''>  def showTokenDialog(roomToken: String): Unit =
+</span>97 <span style=''>    </span><span style='background: #F0ADAD'>runOnUIThread(() =&gt;
+</span>98 <span style=''></span><span style='background: #F0ADAD'>      showInfoWithContent(PRIVATE_ROOM_TOKEN_TITLE, PRIVATE_ROOM_TOKEN_MESSAGE,
+</span>99 <span style=''></span><span style='background: #F0ADAD'>        createRoomTokenDialogContent(roomToken)))</span><span style=''>
+</span>100 <span style=''>
+</span>101 <span style=''>  /**
+</span>102 <span style=''>    * Creates the dialog content whit selectable token
+</span>103 <span style=''>    *
+</span>104 <span style=''>    * @param roomToken the token to show
+</span>105 <span style=''>    * @return the content of the dialog to show
+</span>106 <span style=''>    */
+</span>107 <span style=''>  private def createRoomTokenDialogContent(roomToken: String): Node = {
+</span>108 <span style=''>    val gridPane = </span><span style='background: #F0ADAD'>new GridPane()</span><span style=''>
+</span>109 <span style=''>
+</span>110 <span style=''>    val tokenTextField = </span><span style='background: #F0ADAD'>new TextField(roomToken)</span><span style=''>
+</span>111 <span style=''>    </span><span style='background: #F0ADAD'>tokenTextField.setEditable(false)</span><span style=''>
+</span>112 <span style=''>
+</span>113 <span style=''>    val copyButton = </span><span style='background: #F0ADAD'>new Button(COPY_BUTTON_TEXT)</span><span style=''>
+</span>114 <span style=''>    </span><span style='background: #F0ADAD'>copyButton.setOnAction(_ =&gt; {
+</span>115 <span style=''></span><span style='background: #F0ADAD'>      val content = new ClipboardContent
+</span>116 <span style=''></span><span style='background: #F0ADAD'>      content.putString(roomToken)
+</span>117 <span style=''></span><span style='background: #F0ADAD'>      Clipboard.getSystemClipboard.setContent(content)
+</span>118 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
 </span>119 <span style=''>
-</span>120 <span style=''>  override protected def onCloseAction(): Unit = {
-</span>121 <span style=''>    </span><span style='background: #F0ADAD'>strategy.onClosingRoomView()</span><span style=''>
-</span>122 <span style=''>  }
-</span>123 <span style=''>}
+</span>120 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(tokenTextField, 0, 1)</span><span style=''>
+</span>121 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(copyButton, 1, 1)</span><span style=''>
+</span>122 <span style=''>    gridPane
+</span>123 <span style=''>  }
 </span>124 <span style=''>
-</span>125 <span style=''>/**
-</span>126 <span style=''>  * Companion object
-</span>127 <span style=''>  */
-</span>128 <span style=''>object RoomFXController {
-</span>129 <span style=''>  def apply(strategy: RoomStrategy): RoomFXController = {
-</span>130 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The room strategy cannot be null&quot;)</span><span style=''>
-</span>131 <span style=''>    </span><span style='background: #F0ADAD'>new RoomFXController(strategy)</span><span style=''>
-</span>132 <span style=''>  }
-</span>133 <span style=''>
-</span>134 <span style=''>  private val ROOM_NAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;Il nome della stanza non può essere vuoto&quot;</span><span style=''>
-</span>135 <span style=''>  private val ROOM_PLAYERS_NUMBER_ERROR = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
-</span>136 <span style=''>  private val EMPTY_ROOM_ID_ERROR = </span><span style='background: #F0ADAD'>&quot;L'ID della stanza non può essere vuoto&quot;</span><span style=''>
-</span>137 <span style=''>  private val NOT_SELECTED_PLAYERS_NUMBER = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
+</span>125 <span style=''>  override protected def onCloseAction(): Unit = {
+</span>126 <span style=''>    </span><span style='background: #F0ADAD'>strategy.onClosingRoomView()</span><span style=''>
+</span>127 <span style=''>  }
+</span>128 <span style=''>}
+</span>129 <span style=''>
+</span>130 <span style=''>/**
+</span>131 <span style=''>  * Companion object
+</span>132 <span style=''>  */
+</span>133 <span style=''>object RoomFXController {
+</span>134 <span style=''>  def apply(strategy: RoomStrategy): RoomFXController = {
+</span>135 <span style=''>    </span><span style='background: #F0ADAD'>require(strategy != null, &quot;The room strategy cannot be null&quot;)</span><span style=''>
+</span>136 <span style=''>    </span><span style='background: #F0ADAD'>new RoomFXController(strategy)</span><span style=''>
+</span>137 <span style=''>  }
 </span>138 <span style=''>
-</span>139 <span style=''>  private val PRIVATE_ROOM_TOKEN_TITLE = </span><span style='background: #F0ADAD'>&quot;Token per la stanza privata&quot;</span><span style=''>
-</span>140 <span style=''>
-</span>141 <span style=''>  private val PRIVATE_ROOM_TOKEN_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Questo è il token da usare per entrare nella stanza che hai creato&quot;</span><span style=''>
-</span>142 <span style=''>
-</span>143 <span style=''>  private val COPY_BUTTON_TEXT = </span><span style='background: #F0ADAD'>&quot;Copy to clipboard&quot;</span><span style=''>
-</span>144 <span style=''>}
+</span>139 <span style=''>  private val ROOM_NAME_EMPTY_ERROR = </span><span style='background: #F0ADAD'>&quot;Il nome della stanza non può essere vuoto&quot;</span><span style=''>
+</span>140 <span style=''>  private val ROOM_PLAYERS_NUMBER_ERROR = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
+</span>141 <span style=''>  private val EMPTY_ROOM_ID_ERROR = </span><span style='background: #F0ADAD'>&quot;L'ID della stanza non può essere vuoto&quot;</span><span style=''>
+</span>142 <span style=''>  private val NOT_SELECTED_PLAYERS_NUMBER = </span><span style='background: #F0ADAD'>&quot;Deve essere selezionato il numero di giocatori&quot;</span><span style=''>
+</span>143 <span style=''>
+</span>144 <span style=''>  private val PRIVATE_ROOM_TOKEN_TITLE = </span><span style='background: #F0ADAD'>&quot;Token per la stanza privata&quot;</span><span style=''>
+</span>145 <span style=''>
+</span>146 <span style=''>  private val PRIVATE_ROOM_TOKEN_MESSAGE = </span><span style='background: #F0ADAD'>&quot;Questo è il token da usare per entrare nella stanza che hai creato&quot;</span><span style=''>
+</span>147 <span style=''>
+</span>148 <span style=''>  private val COPY_BUTTON_TEXT = </span><span style='background: #F0ADAD'>&quot;Copy to clipboard&quot;</span><span style=''>
+</span>149 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -182,7 +187,7 @@
           20
         </td>
         <td>
-          1528
+          1642
         </td>
         <td>
           636
@@ -203,7 +208,7 @@
           21
         </td>
         <td>
-          1529
+          1643
         </td>
         <td>
           696
@@ -224,7 +229,7 @@
           35
         </td>
         <td>
-          1530
+          1644
         </td>
         <td>
           1288
@@ -235,17 +240,17 @@
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXViewController.showGUI
+          it.cwmp.client.view.FXViewController.initGUI
         </td>
         <td style="background: #F0ADAD">
-          RoomFXController.super.showGUI()
+          RoomFXController.super.initGUI()
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          1532
+          1646
         </td>
         <td>
           1361
@@ -266,7 +271,7 @@
           37
         </td>
         <td>
-          1531
+          1645
         </td>
         <td>
           1433
@@ -287,12 +292,54 @@
           41
         </td>
         <td>
-          1533
+          1647
         </td>
         <td>
-          1496
+          1492
           -
-          1530
+          1507
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXViewController.showGUI
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.super.showGUI()
+        </td>
+      </tr><tr>
+        <td>
+          42
+        </td>
+        <td>
+          1648
+        </td>
+        <td>
+          1512
+          -
+          1550
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.Node.requestFocus
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.tfPrivateCreateRoomName.requestFocus()
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          1649
+        </td>
+        <td>
+          1599
+          -
+          1633
         </td>
         <td>
           Apply
@@ -305,15 +352,15 @@
         </td>
       </tr><tr>
         <td>
-          42
+          47
         </td>
         <td>
-          1534
+          1650
         </td>
         <td>
-          1535
+          1638
           -
-          1588
+          1691
         </td>
         <td>
           Apply
@@ -326,15 +373,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          48
         </td>
         <td>
-          1535
+          1651
         </td>
         <td>
-          1593
+          1696
           -
-          1624
+          1727
         </td>
         <td>
           Apply
@@ -347,15 +394,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          49
         </td>
         <td>
-          1536
+          1652
         </td>
         <td>
-          1629
+          1732
           -
-          1680
+          1783
         </td>
         <td>
           Apply
@@ -368,15 +415,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          53
         </td>
         <td>
-          1537
+          1653
         </td>
         <td>
-          1739
+          1842
           -
-          1772
+          1875
         </td>
         <td>
           Apply
@@ -389,15 +436,15 @@
         </td>
       </tr><tr>
         <td>
-          49
+          54
         </td>
         <td>
-          1538
+          1654
         </td>
         <td>
-          1777
+          1880
           -
-          1809
+          1912
         </td>
         <td>
           Apply
@@ -410,15 +457,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          55
         </td>
         <td>
-          1539
+          1655
         </td>
         <td>
-          1814
+          1917
           -
-          1846
+          1949
         </td>
         <td>
           Apply
@@ -431,15 +478,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          56
         </td>
         <td>
-          1540
+          1656
         </td>
         <td>
-          1851
+          1954
           -
-          1882
+          1985
         </td>
         <td>
           Apply
@@ -452,15 +499,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          60
         </td>
         <td>
-          1541
+          1657
         </td>
         <td>
-          1940
+          2043
           -
-          1974
+          2077
         </td>
         <td>
           Apply
@@ -473,15 +520,15 @@
         </td>
       </tr><tr>
         <td>
-          56
+          61
         </td>
         <td>
-          1542
+          1658
         </td>
         <td>
-          1979
+          2082
           -
-          2012
+          2115
         </td>
         <td>
           Apply
@@ -494,15 +541,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          62
         </td>
         <td>
-          1543
+          1659
         </td>
         <td>
-          2017
+          2120
           -
-          2050
+          2153
         </td>
         <td>
           Apply
@@ -515,15 +562,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          63
         </td>
         <td>
-          1544
+          1660
         </td>
         <td>
-          2055
+          2158
           -
-          2087
+          2190
         </td>
         <td>
           Apply
@@ -536,15 +583,15 @@
         </td>
       </tr><tr>
         <td>
-          62
+          67
         </td>
         <td>
-          1553
+          1669
         </td>
         <td>
-          2148
+          2251
           -
-          2439
+          2542
         </td>
         <td>
           Apply
@@ -560,78 +607,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          69
         </td>
         <td>
-          1545
+          1668
         </td>
         <td>
-          2220
+          2302
           -
-          2243
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.tfPrivateCreateRoomName
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.tfPrivateCreateRoomName
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1551
-        </td>
-        <td>
-          2176
-          -
-          2432
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Option.flatMap
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateCreateRoomName, it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR).flatMap[Unit](((roomName: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPrivateCreateNumPlayer, it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onCreate(roomName, playersNumber)))))
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1546
-        </td>
-        <td>
-          2245
-          -
-          2266
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
-        </td>
-      </tr><tr>
-        <td>
-          64
-        </td>
-        <td>
-          1552
-        </td>
-        <td>
-          2199
-          -
-          2199
+          2302
         </td>
         <td>
           Literal
@@ -644,15 +628,78 @@
         </td>
       </tr><tr>
         <td>
-          65
+          69
         </td>
         <td>
-          1548
+          1662
         </td>
         <td>
-          2341
+          2348
           -
-          2366
+          2369
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1661
+        </td>
+        <td>
+          2323
+          -
+          2346
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.tfPrivateCreateRoomName
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.tfPrivateCreateRoomName
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          1667
+        </td>
+        <td>
+          2279
+          -
+          2535
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.flatMap
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.getTextFieldValue(RoomFXController.this.tfPrivateCreateRoomName, it.cwmp.client.view.room.RoomFXController.ROOM_NAME_EMPTY_ERROR).flatMap[Unit](((roomName: String) =&gt; RoomFXController.this.getSpinnerFieldValue[Int](RoomFXController.this.spPrivateCreateNumPlayer, it.cwmp.client.view.room.RoomFXController.ROOM_PLAYERS_NUMBER_ERROR).map[Unit](((playersNumber: Int) =&gt; RoomFXController.this.strategy.onCreate(roomName, playersNumber)))))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          1664
+        </td>
+        <td>
+          2444
+          -
+          2469
         </td>
         <td>
           Select
@@ -665,15 +712,15 @@
         </td>
       </tr><tr>
         <td>
-          65
+          70
         </td>
         <td>
-          1550
+          1666
         </td>
         <td>
-          2277
+          2380
           -
-          2432
+          2535
         </td>
         <td>
           Apply
@@ -686,15 +733,15 @@
         </td>
       </tr><tr>
         <td>
-          65
+          70
         </td>
         <td>
-          1547
+          1663
         </td>
         <td>
-          2315
+          2418
           -
-          2339
+          2442
         </td>
         <td>
           Select
@@ -707,15 +754,15 @@
         </td>
       </tr><tr>
         <td>
-          67
+          72
         </td>
         <td>
-          1549
+          1665
         </td>
         <td>
-          2390
+          2493
           -
-          2432
+          2535
         </td>
         <td>
           Apply
@@ -728,36 +775,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          75
         </td>
         <td>
-          1554
+          1671
         </td>
         <td>
-          2513
+          2594
           -
-          2526
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.resetFields
-        </td>
-        <td style="background: #F0ADAD">
-          RoomFXController.this.resetFields()
-        </td>
-      </tr><tr>
-        <td>
-          70
-        </td>
-        <td>
-          1555
-        </td>
-        <td>
-          2491
-          -
-          2528
+          2631
         </td>
         <td>
           Apply
@@ -770,15 +796,36 @@
         </td>
       </tr><tr>
         <td>
-          73
+          75
         </td>
         <td>
-          1561
+          1670
         </td>
         <td>
-          2584
+          2616
           -
-          2741
+          2629
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.resetFields
+        </td>
+        <td style="background: #F0ADAD">
+          RoomFXController.this.resetFields()
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          1677
+        </td>
+        <td>
+          2687
+          -
+          2844
         </td>
         <td>
           Apply
@@ -794,15 +841,36 @@
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          1560
+          1673
         </td>
         <td>
-          2624
+          2770
           -
-          2624
+          2789
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          1676
+        </td>
+        <td>
+          2727
+          -
+          2727
         </td>
         <td>
           Literal
@@ -815,36 +883,15 @@
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          1557
+          1675
         </td>
         <td>
-          2667
+          2715
           -
-          2686
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.room.RoomFXController.EMPTY_ROOM_ID_ERROR
-        </td>
-      </tr><tr>
-        <td>
-          74
-        </td>
-        <td>
-          1559
-        </td>
-        <td>
-          2612
-          -
-          2734
+          2837
         </td>
         <td>
           Apply
@@ -857,15 +904,15 @@
         </td>
       </tr><tr>
         <td>
-          74
+          79
         </td>
         <td>
-          1556
+          1672
         </td>
         <td>
-          2645
+          2748
           -
-          2665
+          2768
         </td>
         <td>
           Select
@@ -878,15 +925,15 @@
         </td>
       </tr><tr>
         <td>
-          75
+          80
         </td>
         <td>
-          1558
+          1674
         </td>
         <td>
-          2703
+          2806
           -
-          2734
+          2837
         </td>
         <td>
           Apply
@@ -899,15 +946,15 @@
         </td>
       </tr><tr>
         <td>
-          80
+          85
         </td>
         <td>
-          1567
+          1683
         </td>
         <td>
-          2797
+          2900
           -
-          2980
+          3083
         </td>
         <td>
           Apply
@@ -923,15 +970,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          86
         </td>
         <td>
-          1563
+          1679
         </td>
         <td>
-          2892
+          2995
           -
-          2919
+          3022
         </td>
         <td>
           Select
@@ -944,15 +991,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          86
         </td>
         <td>
-          1566
+          1682
         </td>
         <td>
-          2844
+          2947
           -
-          2844
+          2947
         </td>
         <td>
           Literal
@@ -965,15 +1012,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          86
         </td>
         <td>
-          1562
+          1678
         </td>
         <td>
-          2868
+          2971
           -
-          2890
+          2993
         </td>
         <td>
           Select
@@ -986,15 +1033,15 @@
         </td>
       </tr><tr>
         <td>
-          81
+          86
         </td>
         <td>
-          1565
+          1681
         </td>
         <td>
-          2825
+          2928
           -
-          2973
+          3076
         </td>
         <td>
           Apply
@@ -1007,15 +1054,15 @@
         </td>
       </tr><tr>
         <td>
-          82
+          87
         </td>
         <td>
-          1564
+          1680
         </td>
         <td>
-          2936
+          3039
           -
-          2973
+          3076
         </td>
         <td>
           Apply
@@ -1028,15 +1075,15 @@
         </td>
       </tr><tr>
         <td>
-          92
+          97
         </td>
         <td>
-          1573
+          1689
         </td>
         <td>
-          3169
+          3272
           -
-          3318
+          3421
         </td>
         <td>
           Apply
@@ -1049,36 +1096,15 @@
         </td>
       </tr><tr>
         <td>
-          93
+          98
         </td>
         <td>
-          1569
+          1688
         </td>
         <td>
-          3241
+          3298
           -
-          3267
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          1572
-        </td>
-        <td>
-          3195
-          -
-          3317
+          3420
         </td>
         <td>
           Apply
@@ -1091,15 +1117,36 @@
         </td>
       </tr><tr>
         <td>
-          93
+          98
         </td>
         <td>
-          1568
+          1685
         </td>
         <td>
-          3215
+          3344
           -
-          3239
+          3370
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.room.RoomFXController.PRIVATE_ROOM_TOKEN_MESSAGE
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          1684
+        </td>
+        <td>
+          3318
+          -
+          3342
         </td>
         <td>
           Select
@@ -1112,15 +1159,15 @@
         </td>
       </tr><tr>
         <td>
-          93
+          98
         </td>
         <td>
-          1571
+          1687
         </td>
         <td>
-          3195
+          3298
           -
-          3195
+          3298
         </td>
         <td>
           Select
@@ -1133,15 +1180,15 @@
         </td>
       </tr><tr>
         <td>
-          94
+          99
         </td>
         <td>
-          1570
+          1686
         </td>
         <td>
-          3277
+          3380
           -
-          3316
+          3419
         </td>
         <td>
           Apply
@@ -1154,15 +1201,15 @@
         </td>
       </tr><tr>
         <td>
-          103
+          108
         </td>
         <td>
-          1574
+          1690
         </td>
         <td>
-          3574
+          3677
           -
-          3588
+          3691
         </td>
         <td>
           Apply
@@ -1175,15 +1222,15 @@
         </td>
       </tr><tr>
         <td>
-          105
+          110
         </td>
         <td>
-          1575
+          1691
         </td>
         <td>
-          3615
+          3718
           -
-          3639
+          3742
         </td>
         <td>
           Apply
@@ -1196,15 +1243,15 @@
         </td>
       </tr><tr>
         <td>
-          106
+          111
         </td>
         <td>
-          1576
+          1692
         </td>
         <td>
-          3644
+          3747
           -
-          3677
+          3780
         </td>
         <td>
           Apply
@@ -1217,15 +1264,15 @@
         </td>
       </tr><tr>
         <td>
-          108
+          113
         </td>
         <td>
-          1578
+          1694
         </td>
         <td>
-          3700
+          3803
           -
-          3728
+          3831
         </td>
         <td>
           Apply
@@ -1238,15 +1285,15 @@
         </td>
       </tr><tr>
         <td>
-          108
+          113
         </td>
         <td>
-          1577
+          1693
         </td>
         <td>
-          3711
+          3814
           -
-          3727
+          3830
         </td>
         <td>
           Select
@@ -1259,15 +1306,15 @@
         </td>
       </tr><tr>
         <td>
-          109
+          114
         </td>
         <td>
-          1583
+          1699
         </td>
         <td>
-          3733
+          3836
           -
-          3900
+          4003
         </td>
         <td>
           Apply
@@ -1287,15 +1334,15 @@
         </td>
       </tr><tr>
         <td>
-          110
+          115
         </td>
         <td>
-          1579
+          1695
         </td>
         <td>
-          3783
+          3886
           -
-          3803
+          3906
         </td>
         <td>
           Apply
@@ -1308,15 +1355,15 @@
         </td>
       </tr><tr>
         <td>
-          111
+          116
         </td>
         <td>
-          1580
+          1696
         </td>
         <td>
-          3810
+          3913
           -
-          3838
+          3941
         </td>
         <td>
           Apply
@@ -1329,36 +1376,15 @@
         </td>
       </tr><tr>
         <td>
-          112
+          117
         </td>
         <td>
-          1581
+          1698
         </td>
         <td>
-          3845
+          3987
           -
-          3893
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.input.Clipboard.setContent
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.scene.input.Clipboard.getSystemClipboard().setContent(content)
-        </td>
-      </tr><tr>
-        <td>
-          112
-        </td>
-        <td>
-          1582
-        </td>
-        <td>
-          3884
-          -
-          3884
+          3987
         </td>
         <td>
           Literal
@@ -1371,15 +1397,36 @@
         </td>
       </tr><tr>
         <td>
-          115
+          117
         </td>
         <td>
-          1584
+          1697
         </td>
         <td>
-          3906
+          3948
           -
-          3940
+          3996
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.input.Clipboard.setContent
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.input.Clipboard.getSystemClipboard().setContent(content)
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          1700
+        </td>
+        <td>
+          4009
+          -
+          4043
         </td>
         <td>
           Apply
@@ -1392,15 +1439,15 @@
         </td>
       </tr><tr>
         <td>
-          116
+          121
         </td>
         <td>
-          1585
+          1701
         </td>
         <td>
-          3945
+          4048
           -
-          3975
+          4078
         </td>
         <td>
           Apply
@@ -1413,15 +1460,15 @@
         </td>
       </tr><tr>
         <td>
-          121
+          126
         </td>
         <td>
-          1586
+          1702
         </td>
         <td>
-          4049
+          4152
           -
-          4077
+          4180
         </td>
         <td>
           Apply
@@ -1434,57 +1481,15 @@
         </td>
       </tr><tr>
         <td>
-          130
+          135
         </td>
         <td>
-          1587
+          1704
         </td>
         <td>
-          4211
+          4332
           -
-          4227
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.lang.Object.!=
-        </td>
-        <td style="background: #F0ADAD">
-          strategy.!=(null)
-        </td>
-      </tr><tr>
-        <td>
-          130
-        </td>
-        <td>
-          1589
-        </td>
-        <td>
-          4203
-          -
-          4264
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Predef.require
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Predef.require(strategy.!=(null), &quot;The room strategy cannot be null&quot;)
-        </td>
-      </tr><tr>
-        <td>
-          130
-        </td>
-        <td>
-          1588
-        </td>
-        <td>
-          4229
-          -
-          4263
+          4366
         </td>
         <td>
           Literal
@@ -1497,15 +1502,57 @@
         </td>
       </tr><tr>
         <td>
-          131
+          135
         </td>
         <td>
-          1590
+          1703
         </td>
         <td>
-          4269
+          4314
           -
-          4299
+          4330
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.!=
+        </td>
+        <td style="background: #F0ADAD">
+          strategy.!=(null)
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          1705
+        </td>
+        <td>
+          4306
+          -
+          4367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.require
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.require(strategy.!=(null), &quot;The room strategy cannot be null&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          1706
+        </td>
+        <td>
+          4372
+          -
+          4402
         </td>
         <td>
           Apply
@@ -1518,15 +1565,15 @@
         </td>
       </tr><tr>
         <td>
-          134
+          139
         </td>
         <td>
-          1591
+          1707
         </td>
         <td>
-          4343
+          4446
           -
-          4386
+          4489
         </td>
         <td>
           Literal
@@ -1539,15 +1586,15 @@
         </td>
       </tr><tr>
         <td>
-          135
+          140
         </td>
         <td>
-          1592
+          1708
         </td>
         <td>
-          4429
+          4532
           -
-          4477
+          4580
         </td>
         <td>
           Literal
@@ -1560,15 +1607,15 @@
         </td>
       </tr><tr>
         <td>
-          136
+          141
         </td>
         <td>
-          1593
+          1709
         </td>
         <td>
-          4514
+          4617
           -
-          4554
+          4657
         </td>
         <td>
           Literal
@@ -1581,15 +1628,15 @@
         </td>
       </tr><tr>
         <td>
-          137
+          142
         </td>
         <td>
-          1594
+          1710
         </td>
         <td>
-          4599
+          4702
           -
-          4647
+          4750
         </td>
         <td>
           Literal
@@ -1602,15 +1649,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          144
         </td>
         <td>
-          1595
+          1711
         </td>
         <td>
-          4690
+          4793
           -
-          4719
+          4822
         </td>
         <td>
           Literal
@@ -1623,15 +1670,15 @@
         </td>
       </tr><tr>
         <td>
-          141
+          146
         </td>
         <td>
-          1596
+          1712
         </td>
         <td>
-          4764
+          4867
           -
-          4832
+          4935
         </td>
         <td>
           Literal
@@ -1644,15 +1691,15 @@
         </td>
       </tr><tr>
         <td>
-          143
+          148
         </td>
         <td>
-          1597
+          1713
         </td>
         <td>
-          4867
+          4970
           -
-          4886
+          4989
         </td>
         <td>
           Literal
