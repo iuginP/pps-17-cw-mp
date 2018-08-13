@@ -2,29 +2,27 @@
 
 ## Documentazione
  * Core
-    - [Scala](/pps-17-cw-mp/scala/:core/)
-    - [Java](/pps-17-cw-mp/java/:core/)
+    - [Scala](/pps-17-cw-mp/scala/core/)
  * Core-testing
-    - [Scala](/pps-17-cw-mp/scala/:core-testing/)
-    - [Java](/pps-17-cw-mp/java/:core-testing/)
+    - [Scala](/pps-17-cw-mp/scala/core-testing/)
+ * Service discovery
+    - [Scala](/pps-17-cw-mp/scala/discovery/)
  * Service authentication
-    - [Scala](/pps-17-cw-mp/scala/:services:authentication/)
-    - [Java](/pps-17-cw-mp/java/:services:authentication/)
+    - [Scala](/pps-17-cw-mp/scala/authentication/)
  * Service rooms
-    - [Scala](/pps-17-cw-mp/scala/:services:rooms/)
-    - [Java](/pps-17-cw-mp/java/:services:rooms/)
+    - [Scala](/pps-17-cw-mp/scala/rooms/)
  * Service room-receiver
-    - [Scala](/pps-17-cw-mp/scala/:services:room-receiver/)
-    - [Java](/pps-17-cw-mp/java/:services:room-receiver/)
+    - [Scala](/pps-17-cw-mp/scala/room-receiver/)
  * Client
-    - [Scala](/pps-17-cw-mp/scala/:client/)
-    - [Java](/pps-17-cw-mp/java/:client/)
+    - [Scala](/pps-17-cw-mp/scala/client/)
 
 ## Reports
  * Core
     - [Scoverage](/pps-17-cw-mp/coverage/core/scoverage/)
  * Core-testing
     - [Scoverage](/pps-17-cw-mp/coverage/core-testing/scoverage/)
+ * Service discovery
+    - [Scoverage](/pps-17-cw-mp/coverage/discovery/scoverage/)
  * Service authentication
     - [Scoverage](/pps-17-cw-mp/coverage/authentication/scoverage/)
  * Service rooms
