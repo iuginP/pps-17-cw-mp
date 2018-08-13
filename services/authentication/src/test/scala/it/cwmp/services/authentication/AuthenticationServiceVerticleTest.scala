@@ -2,11 +2,11 @@ package it.cwmp.services.authentication
 
 import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK, UNAUTHORIZED}
 import io.vertx.scala.ext.web.client.WebClientOptions
-import it.cwmp.services.authentication.ServerParameters._
+import it.cwmp.services.VertxClient
+import it.cwmp.services.authentication.Service._
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
 import it.cwmp.testing.{FutureMatchers, HttpMatchers}
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.VertxClient
 
 /**
   * A test class for Authentication service

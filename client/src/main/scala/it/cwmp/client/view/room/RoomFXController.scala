@@ -31,10 +31,15 @@ class RoomFXController(strategy: RoomStrategy) extends FXViewController with FXI
   @FXML private var btnPrivateEnter: Button = _
   @FXML private var btnPublicEnter: Button = _
 
-  override def showGUI(): Unit = {
-    super.showGUI()
+  override def initGUI(): Unit = {
+    super.initGUI()
     // adds a listener to reset fields on tab change
     tabPane.getSelectionModel.selectedItemProperty.addListener((_, _, _) => resetFields())
+  }
+
+  override def showGUI(): Unit = {
+    super.showGUI()
+    tfPrivateCreateRoomName.requestFocus()
   }
 
   override def resetFields(): Unit = {

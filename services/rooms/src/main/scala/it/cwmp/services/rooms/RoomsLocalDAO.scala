@@ -2,10 +2,11 @@ package it.cwmp.services.rooms
 
 import io.vertx.scala.ext.sql.{ResultSet, SQLConnection}
 import it.cwmp.model.{Address, Participant, Room, User}
+import it.cwmp.services.VertxJDBC.stringsToJsonArray
 import it.cwmp.services.rooms.RoomsLocalDAO._
+import it.cwmp.services.{VertxInstance, VertxJDBC}
 import it.cwmp.utils.Utils.emptyString
-import it.cwmp.utils.VertxJDBC.stringsToJsonArray
-import it.cwmp.utils.{Logging, Utils, VertxInstance, VertxJDBC}
+import it.cwmp.utils.{Logging, Utils}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}

@@ -5,7 +5,8 @@ import io.vertx.lang.scala.json.Json
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.model.Participant
 import it.cwmp.model.Participant.Converters._
-import it.cwmp.utils.{AdvancedLogging, VertxClient, VertxInstance}
+import it.cwmp.services.{VertxClient, VertxInstance}
+import it.cwmp.utils.AdvancedLogging
 
 import scala.concurrent.Future
 

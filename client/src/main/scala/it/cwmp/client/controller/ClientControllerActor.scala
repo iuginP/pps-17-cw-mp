@@ -24,11 +24,12 @@ import scala.util.{Failure, Success}
 /**
   * This class is client controller actor, that will manage interactions between client parts
   *
+  * @param apiClientActor the actor to use to contact the remote services
   * @author Davide Borficchia
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class ClientControllerActor() extends Actor with ParticipantListReceiver with Logging {
+case class ClientControllerActor(private val apiClientActor: ActorRef) extends Actor with ParticipantListReceiver with Logging {
 
   private val UNKNOWN_ERROR = "Unknown Error"
 
@@ -38,11 +39,6 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     */
   private var playerActor: ActorRef = _
   private var playerAddress: String = _
-
-  /**
-    * This actor manages all requests to web services
-    */
-  private var apiClientActor: ActorRef = _
 
   /**
     * Actor for the management of authentication processes to which the relative messages will be sent.
@@ -62,9 +58,6 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     log.info(s"Initializing the player actor...")
     playerActor = context.system.actorOf(Props[PlayerActor], PlayerActor.getClass.getName)
     playerActor ! RetrieveAddress
-
-    log.info(s"Initializing the API client actor...")
-    apiClientActor = context.system.actorOf(Props[ApiClientActor], ApiClientActor.getClass.getName)
 
     log.info(s"Initializing the authentication view actor...")
     authenticationViewActor = context.system.actorOf(Props[AuthenticationViewActor], AuthenticationViewActor.getClass.getName)
@@ -182,6 +175,7 @@ case class ClientControllerActor() extends Actor with ParticipantListReceiver wi
     case ExitPrivateFailure(errorMessage) => onRoomExitingFailure(errorMessage)
     case ExitPublicFailure(errorMessage) => onRoomExitingFailure(errorMessage)
   }
+
   // scalastyle:on cyclomatic.complexity
 
   /**

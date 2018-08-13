@@ -9,10 +9,11 @@ import it.cwmp.model.Address.Converters._
 import it.cwmp.model.Room.Converters._
 import it.cwmp.model.{Address, Participant, Room, User}
 import it.cwmp.services.rooms.RoomsServiceVerticle.{INVALID_PARAMETER_ERROR, _}
-import it.cwmp.services.rooms.ServerParameters._
+import it.cwmp.services.rooms.Service._
 import it.cwmp.services.wrapper.RoomReceiverApiWrapper
+import it.cwmp.services.{Validation, VertxServer}
+import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.{httpStatusNameToCode, stringToOption}
-import it.cwmp.utils.{Logging, Validation, VertxServer}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -22,13 +23,11 @@ import scala.util.{Failure, Success, Try}
   *
   * @author Enrico Siboni
   */
-class RoomsServiceVerticle(implicit val validationStrategy: Validation[String, User],
+class RoomsServiceVerticle(override protected val serverPort: Int = DEFAULT_PORT)(implicit val validationStrategy: Validation[String, User],
                            implicit val clientCommunicationStrategy: RoomReceiverApiWrapper)
   extends VertxServer with Logging {
 
   private var daoFuture: Future[RoomDAO] = _
-
-  override protected val serverPort: Int = DEFAULT_PORT
 
   override protected def initRouter(router: Router): Unit = {
     router post API_CREATE_PRIVATE_ROOM_URL handler createPrivateRoomHandler
@@ -301,7 +300,11 @@ object RoomsServiceVerticle {
 
   def apply(implicit validationStrategy: Validation[String, User],
             clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
-    new RoomsServiceVerticle()(validationStrategy, clientCommunicationStrategy)
+    new RoomsServiceVerticle(DEFAULT_PORT)(validationStrategy, clientCommunicationStrategy)
+
+  def apply(implicit port: Int = DEFAULT_PORT, validationStrategy: Validation[String, User],
+            clientCommunicationStrategy: RoomReceiverApiWrapper): RoomsServiceVerticle =
+    new RoomsServiceVerticle(port)(validationStrategy, clientCommunicationStrategy)
 
   private val INVALID_PARAMETER_ERROR: String = "Invalid parameters: "
 

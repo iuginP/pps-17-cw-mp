@@ -1,6 +1,6 @@
 package it.cwmp.testing
 
-import it.cwmp.utils.VertxInstance
+import it.cwmp.services.VertxInstance
 import org.scalatest.AsyncFunSpec
 
 /**

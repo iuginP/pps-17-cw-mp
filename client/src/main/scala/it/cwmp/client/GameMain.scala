@@ -10,6 +10,9 @@ import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.User
 
+/**
+  * An object to start a fake game world to test gameView
+  */
 object GameMain extends App {
   val APP_NAME = "ClientApp"
 

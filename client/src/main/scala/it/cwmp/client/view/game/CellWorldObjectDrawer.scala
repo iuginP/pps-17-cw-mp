@@ -3,7 +3,6 @@ package it.cwmp.client.view.game
 import java.time.{Duration, Instant}
 
 import it.cwmp.client.view.game.model._
-import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
@@ -34,7 +33,7 @@ trait CellWorldObjectDrawer {
     svgShape.setShape(svg)
     svgShape.setBorder(cell.border)
     svgShape.setPrefSize(cell.radius * 2, cell.radius * 2)
-    svgShape.setStyle("-fx-background-color: #" + getHexDecimalColor(cell.color))
+    svgShape.setStyle(getCellViewBackgroundStyle(cell.color))
     svgShape.setLayoutX(cell.center.x - cell.radius)
     svgShape.setLayoutY(cell.center.y - cell.radius)
     svgShape
@@ -79,11 +78,10 @@ trait CellWorldObjectDrawer {
     * A method to draw elapsed time on GUI
     *
     * @param actualWorldInstant the actual World Instant
-    * @param graphicsContext    the graphic context on which to draw
+    * @param viewWidth          the view Width
     * @return the text to draw
     */
-  def drawInstant(actualWorldInstant: Instant)
-                 (implicit graphicsContext: GraphicsContext): Text = {
+  def drawInstant(actualWorldInstant: Instant, viewWidth: Double): Text = {
     val elapsedTimeFromBeginning: Duration = firstWorldInstantOption match {
       case Some(firstWorldInstant) => Duration.between(firstWorldInstant, actualWorldInstant)
       case None =>
@@ -95,7 +93,7 @@ trait CellWorldObjectDrawer {
     val instantText = new Text(GameViewConstants.GAME_TIME_TEXT_FORMAT.format(minutes, seconds))
     instantText.setFont(GameViewConstants.GAME_TIME_TEXT_FONT)
     instantText.setFill(GameViewConstants.GAME_TIME_TEXT_COLOR)
-    instantText.setX((graphicsContext.getCanvas.getWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
+    instantText.setX((viewWidth / 2) - (instantText.getLayoutBounds.getWidth / 2))
     instantText.setY(instantText.getLayoutBounds.getHeight)
     instantText
   }
@@ -109,6 +107,14 @@ trait CellWorldObjectDrawer {
   private implicit def fxColorToAwtColor(fxColor: javafx.scene.paint.Color): java.awt.Color = {
     new java.awt.Color(fxColor.getRed.toFloat, fxColor.getGreen.toFloat, fxColor.getBlue.toFloat, fxColor.getOpacity.toFloat)
   }
+
+  /**
+    * Returns the style for the svg shape of CellView
+    *
+    * @param color the color to set as background
+    * @return the string representing the CellView background
+    */
+  private def getCellViewBackgroundStyle(color: Color): String = "-fx-background-color: #" + getHexDecimalColor(color)
 
   /**
     * Returns the Hex string representation of the color

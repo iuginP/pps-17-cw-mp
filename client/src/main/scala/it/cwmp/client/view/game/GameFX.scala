@@ -1,18 +1,18 @@
 package it.cwmp.client.view.game
 
 import akka.actor.ActorRef
-import it.cwmp.client.model.game.impl.{CellWorld, Point}
-import it.cwmp.client.view.FXRunOnUIThread
-import it.cwmp.client.view.game.model.CellView._
-import it.cwmp.client.view.game.model.TentacleView
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
-import javafx.scene.canvas.{Canvas, GraphicsContext}
+import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
+import it.cwmp.client.utils.LayoutRes
+import it.cwmp.client.view.game.model.{CellView, TentacleView}
+import it.cwmp.client.view.{FXAlertsController, FXViewController}
+import javafx.fxml.FXML
+import javafx.scene.canvas.Canvas
 import javafx.scene.input.MouseEvent
-import javafx.scene.{Group, Node, Scene}
-import javafx.stage.Stage
+import javafx.scene.{Group, Node}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.implicitConversions
 
 /**
@@ -22,59 +22,33 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with FXRunOnUIThread {
+case class GameFX(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
+  extends CellWorldObjectDrawer with FXViewController with FXAlertsController {
 
-  private var stage: Stage = _
-  private var root: Group = _
-  private var canvas: Canvas = _
+  @FXML private var root: Group = _
 
-  /**
-    * Initializes the GUI
-    *
-    * @param title the GUI title
-    * @param size  the Window size
-    */
-  def start(title: String, size: Int): Unit = {
-    new JFXPanel() // initializes JavaFX
-    runOnUIThread(() => {
-      stage = new Stage
-      root = new Group
-      canvas = new Canvas(size, size)
+  override protected val layout: String = LayoutRes.gameLayout
+  override protected val controller: FXViewController = this
 
-      UserEventHandler.initializeEventHandlers(root, viewManagerActor)
+  override protected def initGUI(): Unit = {
+    super.initGUI()
+    root.getChildren.add(new Canvas(viewSize, viewSize))
 
-      stage.setTitle(title)
-      stage.setResizable(false)
-      root.getChildren.add(canvas)
-      stage.setScene(new Scene(root))
-
-      // what to do on window closed
-      stage.setOnCloseRequest(_ => {
-        Platform.exit()
-        System.exit(0)
-      })
-      stage.show()
-    })
+    UserEventHandler.initializeEventHandlers(root, viewManagerActor)
   }
-
-  /**
-    * Closes the GUI
-    */
-  def close(): Unit = runOnUIThread { () => stage.close() } // TODO: useless, the gui will be closed by user X press
 
   /**
     * Updates the GUI with the newly provided world
     *
     * @param world the new world to draw
     */
-  def updateWorld(world: CellWorld): Unit = {
-    implicit val graphicsContext: GraphicsContext = canvas.getGraphicsContext2D
+  def updateWorld(world: CellWorld): Unit = Future {
     val graphicElementsToDraw: Seq[Node] =
       Seq(
         world.attacks.map(tentacle => drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))),
         world.characters.map(cell => drawCell(cell)),
         world.characters.map(cell => drawCellEnergy(cell)),
-        Seq(drawInstant(world.instant))
+        Seq(drawInstant(world.instant, viewSize))
       ).flatten
 
     runOnUIThread(() => {
@@ -82,6 +56,14 @@ case class GameFX(viewManagerActor: ActorRef) extends CellWorldObjectDrawer with
       root.getChildren.addAll(graphicElementsToDraw.asJava)
     })
   }
+
+  /**
+    * Implicit method to convert a cell to corresponding View
+    *
+    * @param cell the cell to draw
+    * @return the CellView for the cell
+    */
+  implicit def cellToView(cell: Cell): CellView = CellView.cellToView(cell, playerName)
 
   /**
     * An object that wraps logic behind user events un GUI

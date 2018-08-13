@@ -6,11 +6,11 @@ import io.vertx.core.http.HttpMethod._
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClientOptions}
 import it.cwmp.model.Room
 import it.cwmp.model.Room.Converters._
-import it.cwmp.services.rooms.ServerParameters._
+import it.cwmp.services.VertxClient
+import it.cwmp.services.rooms.Service._
 import it.cwmp.testing.HttpMatchers
 import it.cwmp.testing.rooms.RoomsWebServiceTesting
 import it.cwmp.utils.Utils.httpStatusNameToCode
-import it.cwmp.utils.VertxClient
 
 import scala.concurrent.Future
 

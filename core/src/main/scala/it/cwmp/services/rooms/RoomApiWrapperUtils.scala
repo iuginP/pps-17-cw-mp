@@ -5,8 +5,8 @@ import io.vertx.lang.scala.json.{Json, JsonArray, JsonObject}
 import io.vertx.scala.ext.web.client.{HttpResponse, WebClient}
 import it.cwmp.model.Address.Converters._
 import it.cwmp.model.{Address, Room}
-import it.cwmp.services.rooms.ServerParameters._
-import it.cwmp.utils.VertxClient
+import it.cwmp.services.VertxClient
+import it.cwmp.services.rooms.Service._
 
 import scala.concurrent.Future
 
