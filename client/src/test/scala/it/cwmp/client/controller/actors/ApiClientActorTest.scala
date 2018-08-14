@@ -1,8 +1,7 @@
-package it.cwmp.client.controller
+package it.cwmp.client.controller.actors
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import it.cwmp.client.controller.actors.ApiClientActor
 import it.cwmp.client.controller.messages.{AuthenticationRequests, AuthenticationResponses, RoomsRequests, RoomsResponses}
 import it.cwmp.model.Address
 import it.cwmp.services.wrapper.{FakeAuthenticationApiWrapper, FakeRoomsApiWrapper}

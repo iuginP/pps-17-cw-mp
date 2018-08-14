@@ -1,6 +1,5 @@
-package it.cwmp.client.controller.game
+package it.cwmp.client.controller.game.generation
 
-import it.cwmp.client.controller.game.generation.CellWorldGenerationStrategy
 import it.cwmp.client.model.game.impl.Cell
 import it.cwmp.model.User
 import org.scalatest.FunSpec
