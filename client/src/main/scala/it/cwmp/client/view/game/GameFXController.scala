@@ -22,7 +22,7 @@ import scala.language.implicitConversions
   * @author Davide Borficchia
   * @author contributor Enrico Siboni
   */
-case class GameFX(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
+case class GameFXController(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
   extends CellWorldObjectDrawer with FXViewController with FXAlertsController {
 
   @FXML private var root: Group = _

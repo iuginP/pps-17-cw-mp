@@ -11,7 +11,7 @@ import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
-import it.cwmp.client.view.game.{CellView, GameFX, TentacleView}
+import it.cwmp.client.view.game.{CellView, GameFXController, TentacleView}
 import it.cwmp.client.view.{FXAlertsController, FXRunOnUIThread}
 import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.stringToOption
@@ -32,7 +32,7 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertMan
   private val WAIT_TIME_BEFORE_AUTOMATIC_SYNCHRONIZATION = ThreadLocalRandom.current()
     .nextInt(MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION).millis
 
-  private var gameFX: GameFX = _
+  private var gameFX: GameFXController = _
   private var parentActor: ActorRef = _
   private var updatingSchedule: Cancellable = _
   private var synchronizationSchedule: Cancellable = _
@@ -58,7 +58,7 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertMan
       playerName = name
 
       runOnUIThread(() => {
-        gameFX = GameFX(self, VIEW_TITLE_PREFIX + name, VIEW_SIZE, name)
+        gameFX = GameFXController(self, VIEW_TITLE_PREFIX + name, VIEW_SIZE, name)
         gameFX.showGUI()
       })
 
