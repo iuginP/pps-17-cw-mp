@@ -1,4 +1,4 @@
-package it.cwmp.client.utils
+package it.cwmp.client.view
 
 /**
   * Utility class that keeps together all the strings that compose the interface.
