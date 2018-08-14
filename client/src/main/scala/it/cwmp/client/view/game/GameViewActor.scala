@@ -3,7 +3,6 @@ package it.cwmp.client.view.game
 import java.util.concurrent.ThreadLocalRandom
 
 import akka.actor.{Actor, ActorRef, Cancellable}
-import it.cwmp.client.controller.ViewVisibilityMessages.Hide
 import it.cwmp.client.controller.game.GameConstants.{MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION}
 import it.cwmp.client.controller.game.GameEngine
 import it.cwmp.client.controller.messages.Initialize
@@ -13,7 +12,6 @@ import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.client.view.game.drawing.GameFX
-import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.client.view.{FXAlertsController, FXRunOnUIThread}
 import it.cwmp.utils.Logging
 import it.cwmp.utils.Utils.stringToOption

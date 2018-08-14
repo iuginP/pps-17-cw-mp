@@ -1,4 +1,4 @@
-package it.cwmp.client.view.game.model
+package it.cwmp.client.view.game
 
 import java.time.{Duration, Instant}
 

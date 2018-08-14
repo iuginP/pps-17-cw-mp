@@ -2,8 +2,7 @@ package it.cwmp.client.view.game.drawing
 
 import java.time.{Duration, Instant}
 
-import it.cwmp.client.view.game.GameViewConstants
-import it.cwmp.client.view.game.model._
+import it.cwmp.client.view.game.{CellView, GameViewConstants, TentacleView}
 import javafx.scene.layout._
 import javafx.scene.paint.Color
 import javafx.scene.shape.{Line, SVGPath}
