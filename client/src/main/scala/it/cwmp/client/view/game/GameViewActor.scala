@@ -12,6 +12,7 @@ import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
 import it.cwmp.client.view.game.GameViewActor._
+import it.cwmp.client.view.game.drawing.GameFX
 import it.cwmp.client.view.game.model.{CellView, TentacleView}
 import it.cwmp.client.view.{FXAlertsController, FXRunOnUIThread}
 import it.cwmp.utils.Logging

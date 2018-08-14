@@ -5,7 +5,7 @@ import java.time.{Duration, Instant}
 import it.cwmp.client.model.game.SizingStrategy
 import it.cwmp.client.model.game.impl.{Point, Tentacle}
 import it.cwmp.client.utils.GeometricUtils
-import it.cwmp.client.view.game.ColoringStrategy
+import it.cwmp.client.view.game.drawing.ColoringStrategy
 import javafx.scene.paint.Color
 
 import scala.language.implicitConversions

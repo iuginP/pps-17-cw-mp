@@ -1,7 +1,8 @@
-package it.cwmp.client.view.game
+package it.cwmp.client.view.game.drawing
 
 import java.time.{Duration, Instant}
 
+import it.cwmp.client.view.game.GameViewConstants
 import it.cwmp.client.view.game.model._
 import javafx.scene.layout._
 import javafx.scene.paint.Color
