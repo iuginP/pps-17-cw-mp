@@ -5,10 +5,10 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.controller.actors.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.actors.messages.{Initialize, Request, Response}
 import it.cwmp.client.controller.actors.view.GameViewActor
 import it.cwmp.client.controller.actors.view.GameViewActor.{NewWorld, ShowGUIWithName}
 import it.cwmp.client.controller.game.generation.GenerationStrategy
-import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld
 import it.cwmp.client.model.game.impl.CellWorld

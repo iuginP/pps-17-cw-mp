@@ -1,7 +1,7 @@
 package it.cwmp.client.controller.actors.view
 
+import it.cwmp.client.controller.actors.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.actors.view.AuthenticationViewActor._
-import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.view.authentication.{AuthenticationFXController, AuthenticationStrategy}
 
 /**

@@ -1,4 +1,4 @@
-package it.cwmp.client.controller.messages
+package it.cwmp.client.controller.actors.messages
 
 import it.cwmp.model.Address
 

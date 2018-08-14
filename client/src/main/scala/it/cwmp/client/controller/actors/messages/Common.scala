@@ -1,4 +1,4 @@
-package it.cwmp.client.controller.messages
+package it.cwmp.client.controller.actors.messages
 
 /**
   * Identifies a request message

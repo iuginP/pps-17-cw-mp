@@ -6,15 +6,15 @@ import it.cwmp.client.controller.actors.ClientControllerActor._
 import it.cwmp.client.controller.actors.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.actors.common.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.actors.common.ViewVisibilityMessages.{Hide, Show}
+import it.cwmp.client.controller.actors.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
+import it.cwmp.client.controller.actors.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
+import it.cwmp.client.controller.actors.messages.Initialize
+import it.cwmp.client.controller.actors.messages.RoomsRequests._
+import it.cwmp.client.controller.actors.messages.RoomsResponses._
 import it.cwmp.client.controller.actors.view.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.client.controller.actors.view.{AuthenticationViewActor, GameViewActor, RoomViewActor}
 import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.controller.game.generation.CellWorldGenerationStrategy
-import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
-import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
-import it.cwmp.client.controller.messages.Initialize
-import it.cwmp.client.controller.messages.RoomsRequests._
-import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.utils.Logging
 

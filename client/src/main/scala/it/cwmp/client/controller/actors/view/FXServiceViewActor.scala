@@ -2,7 +2,7 @@ package it.cwmp.client.controller.actors.view
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.actors.common.{ActorAlertManagement, ActorViewVisibilityManagement}
-import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.controller.actors.messages.Initialize
 import it.cwmp.client.view.{FXAlertsController, FXInputViewController, FXViewController}
 
 /**

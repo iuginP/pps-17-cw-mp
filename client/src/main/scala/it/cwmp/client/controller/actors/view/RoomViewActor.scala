@@ -1,9 +1,9 @@
 package it.cwmp.client.controller.actors.view
 
+import it.cwmp.client.controller.actors.messages.AuthenticationRequests.GUILogOut
+import it.cwmp.client.controller.actors.messages.GUIRequest
+import it.cwmp.client.controller.actors.messages.RoomsRequests._
 import it.cwmp.client.controller.actors.view.RoomViewActor._
-import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
-import it.cwmp.client.controller.messages.GUIRequest
-import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.view.room.{RoomFXController, RoomStrategy}
 
 /**

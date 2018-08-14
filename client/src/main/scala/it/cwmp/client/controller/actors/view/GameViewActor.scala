@@ -4,10 +4,10 @@ import java.util.concurrent.ThreadLocalRandom
 
 import akka.actor.{Actor, ActorRef, Cancellable}
 import it.cwmp.client.controller.actors.common.{ActorAlertManagement, AlertMessages}
+import it.cwmp.client.controller.actors.messages.Initialize
 import it.cwmp.client.controller.actors.view.GameViewActor._
 import it.cwmp.client.controller.game.GameConstants.{MAX_TIME_BETWEEN_CLIENT_SYNCHRONIZATION, MIN_TIME_BETWEEN_CLIENT_SYNCHRONIZATION}
 import it.cwmp.client.controller.game.GameEngine
-import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
 import it.cwmp.client.model.game.impl._
 import it.cwmp.client.utils.GeometricUtils
