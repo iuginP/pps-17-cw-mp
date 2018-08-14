@@ -5,7 +5,8 @@ import it.cwmp.client.controller.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.ClientControllerActor._
 import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
-import it.cwmp.client.controller.game.{CellWorldGenerationStrategy, GameConstants}
+import it.cwmp.client.controller.game.GameConstants
+import it.cwmp.client.controller.game.generation.CellWorldGenerationStrategy
 import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.Initialize

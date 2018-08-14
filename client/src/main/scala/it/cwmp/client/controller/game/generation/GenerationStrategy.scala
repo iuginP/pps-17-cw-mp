@@ -1,4 +1,4 @@
-package it.cwmp.client.controller.game
+package it.cwmp.client.controller.game.generation
 
 /**
   * A trait that models a generation strategy that given an input returns a randomly generated output

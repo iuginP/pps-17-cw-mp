@@ -6,7 +6,7 @@ import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
 import it.cwmp.client.controller.GameViewActor.{NewWorld, ShowGUIWithName}
 import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
-import it.cwmp.client.controller.game.GenerationStrategy
+import it.cwmp.client.controller.game.generation.GenerationStrategy
 import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld
