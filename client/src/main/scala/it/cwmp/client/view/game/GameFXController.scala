@@ -1,7 +1,7 @@
 package it.cwmp.client.view.game
 
 import akka.actor.ActorRef
-import it.cwmp.client.controller.actors.GameViewActor
+import it.cwmp.client.controller.actors.view.GameViewActor
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
 import it.cwmp.client.view.game.drawing.CellWorldObjectDrawer
 import it.cwmp.client.view.{FXAlertsController, FXViewController, LayoutRes}

@@ -1,6 +1,6 @@
-package it.cwmp.client.controller.actors
+package it.cwmp.client.controller.actors.view
 
-import it.cwmp.client.controller.actors.RoomViewActor._
+import it.cwmp.client.controller.actors.view.RoomViewActor._
 import it.cwmp.client.controller.messages.AuthenticationRequests.GUILogOut
 import it.cwmp.client.controller.messages.GUIRequest
 import it.cwmp.client.controller.messages.RoomsRequests._

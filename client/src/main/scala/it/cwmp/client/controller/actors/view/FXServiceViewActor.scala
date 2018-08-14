@@ -1,4 +1,4 @@
-package it.cwmp.client.controller.actors
+package it.cwmp.client.controller.actors.view
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.actors.common.{ActorAlertManagement, ActorViewVisibilityManagement}
