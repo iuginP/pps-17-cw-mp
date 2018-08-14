@@ -1,11 +1,11 @@
-package it.cwmp.client.controller
+package it.cwmp.client.controller.actors
 
 import akka.actor.Actor
 import it.cwmp.client.controller.messages.AuthenticationRequests.{LogIn, SignUp}
 import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure, LogInSuccess, SignUpFailure, SignUpSuccess}
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
-import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
+import it.cwmp.services.wrapper.{AuthenticationApiWrapper, RoomsApiWrapper}
 import it.cwmp.utils.Utils.stringToOption
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -1,7 +1,7 @@
-package it.cwmp.client.controller
+package it.cwmp.client.controller.actors.common
 
 import akka.actor.Actor.Receive
-import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
+import it.cwmp.client.controller.actors.common.ViewVisibilityMessages.{Hide, Show}
 import it.cwmp.client.view.{FXRunOnUIThread, FXViewController}
 
 /**

@@ -1,10 +1,11 @@
-package it.cwmp.client.controller
+package it.cwmp.client.controller.actors
 
 import akka.actor.{Actor, ActorRef, Props}
-import it.cwmp.client.controller.AlertMessages.{Error, Info}
-import it.cwmp.client.controller.ClientControllerActor._
-import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
-import it.cwmp.client.controller.ViewVisibilityMessages.{Hide, Show}
+import it.cwmp.client.controller.ParticipantListReceiver
+import it.cwmp.client.controller.actors.ClientControllerActor._
+import it.cwmp.client.controller.actors.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.actors.common.AlertMessages.{Error, Info}
+import it.cwmp.client.controller.actors.common.ViewVisibilityMessages.{Hide, Show}
 import it.cwmp.client.controller.game.GameConstants
 import it.cwmp.client.controller.game.generation.CellWorldGenerationStrategy
 import it.cwmp.client.controller.messages.AuthenticationRequests.{GUILogOut, LogIn, SignUp}
