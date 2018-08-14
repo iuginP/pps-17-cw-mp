@@ -12,7 +12,6 @@ import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
 import it.cwmp.client.view.authentication.AuthenticationViewActor
-import it.cwmp.client.view.game.GameViewActor
 import it.cwmp.client.view.room.RoomViewActor
 import it.cwmp.client.view.room.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.model.{Address, Participant}

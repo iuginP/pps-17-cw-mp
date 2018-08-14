@@ -4,14 +4,13 @@ import akka.actor.{Actor, ActorRef, AddressFromURIString, Props, Stash}
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.ddata.DistributedData
-import it.cwmp.client.controller.PlayerActor.{GameEnded, PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.GameViewActor.{NewWorld, ShowGUIWithName}
+import it.cwmp.client.controller.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
 import it.cwmp.client.controller.game.GenerationStrategy
 import it.cwmp.client.controller.messages.{Initialize, Request, Response}
 import it.cwmp.client.model.game.distributed.AkkaDistributedState
 import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld
 import it.cwmp.client.model.game.impl.CellWorld
-import it.cwmp.client.view.game.GameViewActor
-import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.Participant
 import it.cwmp.utils.Logging
 

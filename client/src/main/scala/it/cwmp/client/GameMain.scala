@@ -4,10 +4,10 @@ import java.time.{Duration, Instant}
 
 import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
+import it.cwmp.client.controller.GameViewActor
+import it.cwmp.client.controller.GameViewActor.{NewWorld, ShowGUIWithName}
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point, Tentacle}
-import it.cwmp.client.view.game.GameViewActor
-import it.cwmp.client.view.game.GameViewActor._
 import it.cwmp.model.User
 
 /**

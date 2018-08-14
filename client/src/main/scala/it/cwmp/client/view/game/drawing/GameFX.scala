@@ -1,8 +1,9 @@
 package it.cwmp.client.view.game.drawing
 
 import akka.actor.ActorRef
+import it.cwmp.client.controller.GameViewActor
 import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
-import it.cwmp.client.view.game.{CellView, GameViewActor, TentacleView}
+import it.cwmp.client.view.game.{CellView, TentacleView}
 import it.cwmp.client.view.{FXAlertsController, FXViewController, LayoutRes}
 import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas
