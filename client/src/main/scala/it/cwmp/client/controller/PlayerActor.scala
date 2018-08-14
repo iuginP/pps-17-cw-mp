@@ -95,19 +95,10 @@ case class PlayerActor() extends Actor with Stash with Logging {
     * Starts the game
     */
   private def startGame(): Unit = {
-    context.become(inGameBehaviour)
+    context.become(Actor.emptyBehavior)
     gameViewActor ! ShowGUIWithName(playerName)
     unstashAll() // un-stash distributed change messages
   }
-
-  /**
-    * @return the behaviour of the actor when it's in game
-    */
-  private def inGameBehaviour: Receive =
-    distributedState.distributedStateBehaviour orElse {
-      // TODO: remove this part of receive because we cannot come back to rooms view without stopping acotrSystem
-      case GameEnded => backToLobbyAction()
-    }
 
   /**
     * The action to do when the game is ended

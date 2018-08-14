@@ -232,11 +232,6 @@ case class ClientControllerActor(private val apiClientActor: ActorRef) extends A
   }
 
   /**
-    * @return the behaviour to enable when user is playing
-    */
-  private def inGameBehaviour: Receive = Actor.emptyBehavior // TODO: we can remove thi behaviour, after starting the game there's nothing more to do
-
-  /**
     * @return the Future containing the address of one-time server that will receive the participants
     */
   private def openOneTimeServerAndGetAddress(): Future[Address] = {
@@ -264,7 +259,7 @@ case class ClientControllerActor(private val apiClientActor: ActorRef) extends A
   private def onSuccessFindingOpponents(participants: List[Participant]): Unit = {
     roomViewActor ! FoundOpponents
     log.info(s"Setting the behaviour 'in-game'")
-    context.become(inGameBehaviour)
+    context.become(Actor.emptyBehavior)
     roomViewActor ! Hide
     playerActor ! PrepareForGame(participants,
       CellWorldGenerationStrategy(GameViewActor.VIEW_SIZE, GameViewActor.VIEW_SIZE, GameConstants.PASSIVE_CELLS_NUMBER))

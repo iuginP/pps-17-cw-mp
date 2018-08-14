@@ -48,7 +48,7 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertMan
 
   override protected def onInfoAlertReceived(title: String, message: String): Unit = {
     super.onInfoAlertReceived(title, message)
-    context.become(hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
+    context.become(newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
@@ -63,17 +63,7 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertMan
         gameFX.showGUI()
       })
 
-      context.become(alertBehaviour orElse hideGUIBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
-  }
-
-  /**
-    * The behaviour of closing the view
-    */
-  private def hideGUIBehaviour: Receive = { // TODO: remove, no-one ever sends this message here
-    case Hide =>
-      if (updatingSchedule != null) updatingSchedule.cancel()
-      runOnUIThread { () => gameFX.hideGUI() }
-      context.become(showGUIBehaviour)
+      context.become(alertBehaviour orElse newWorldBehaviour orElse guiWorldModificationsBehaviour)
   }
 
   /**
