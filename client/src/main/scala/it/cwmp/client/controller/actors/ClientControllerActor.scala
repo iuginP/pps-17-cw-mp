@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import it.cwmp.client.controller.ParticipantListReceiver
 import it.cwmp.client.controller.actors.ClientControllerActor._
 import it.cwmp.client.controller.actors.PlayerActor.{PrepareForGame, RetrieveAddress, RetrieveAddressResponse}
+import it.cwmp.client.controller.actors.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.client.controller.actors.common.AlertMessages.{Error, Info}
 import it.cwmp.client.controller.actors.common.ViewVisibilityMessages.{Hide, Show}
 import it.cwmp.client.controller.game.GameConstants
@@ -13,9 +14,6 @@ import it.cwmp.client.controller.messages.AuthenticationResponses.{LogInFailure,
 import it.cwmp.client.controller.messages.Initialize
 import it.cwmp.client.controller.messages.RoomsRequests._
 import it.cwmp.client.controller.messages.RoomsResponses._
-import it.cwmp.client.view.authentication.AuthenticationViewActor
-import it.cwmp.client.view.room.RoomViewActor
-import it.cwmp.client.view.room.RoomViewActor.{FoundOpponents, ShowToken, WaitingForOthers}
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.utils.Logging
 
