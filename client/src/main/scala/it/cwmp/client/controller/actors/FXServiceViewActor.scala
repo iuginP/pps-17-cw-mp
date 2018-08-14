@@ -1,8 +1,9 @@
-package it.cwmp.client.view
+package it.cwmp.client.controller.actors
 
 import akka.actor.{Actor, ActorRef}
 import it.cwmp.client.controller.actors.common.{ActorAlertManagement, ActorViewVisibilityManagement}
 import it.cwmp.client.controller.messages.Initialize
+import it.cwmp.client.view.{FXAlertsController, FXInputViewController, FXViewController}
 
 /**
   * A base class representing a Service View actor with JavaFX underlying
