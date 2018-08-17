@@ -42,7 +42,7 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting with 
       val password = nextPassword
 
       auth.signUp(username, password)
-        .flatMap(token => auth.signOut(HttpUtils.buildJwtAuthentication(token).get))
+        .flatMap(token => auth.signOut(token))
         .shouldSucceed
     }
 
