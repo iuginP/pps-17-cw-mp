@@ -15,9 +15,22 @@ import scala.concurrent.Future
   */
 trait AuthenticationApiWrapper extends Validation[String, User] {
 
-  // TODO: doc
+  /**
+    * It tries to execute a sign up on the system. The implementation specifies how the operation should be executed.
+    *
+    * @param username the username to register
+    * @param password the password for that user
+    * @return a future that may be satisfied when the operation completes successfully, otherwise it fails.
+    */
   def signUp(username: String, password: String): Future[String]
 
+  /**
+    * It tries to execute a login on the system. The implementation specifies how the operation should be executed.
+    *
+    * @param username the username of the user that is trying to authenticate itself
+    * @param password the password for that user
+    * @return a future that may be satisfied when the operation completes successfully, otherwise it fails.
+    */
   def login(username: String, password: String): Future[String]
 }
 
