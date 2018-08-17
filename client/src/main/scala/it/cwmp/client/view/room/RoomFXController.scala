@@ -1,6 +1,5 @@
 package it.cwmp.client.view.room
 
-import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
 import it.cwmp.client.view.room.RoomFXController._
 import javafx.fxml.FXML

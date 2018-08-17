@@ -2,9 +2,9 @@ package it.cwmp.client
 
 import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
-import it.cwmp.client.controller.{ApiClientActor, ClientControllerActor}
-import it.cwmp.services.{VertxInstance, discovery}
+import it.cwmp.client.controller.actors.{ApiClientActor, ClientControllerActor}
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
+import it.cwmp.services.{VertxInstance, discovery}
 import it.cwmp.utils.{HostAndPortArguments, Logging}
 import it.cwmp.view.OneAddressInput
 

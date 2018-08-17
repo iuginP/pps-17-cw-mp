@@ -8,7 +8,7 @@ import javafx.scene.control.{CheckBox, Spinner, TextField}
   */
 trait FXInputChecks extends FXAlertsController {
 
-  private val WRONG_INPUT_ERROR = "Wrong input!" // TODO parametrize
+  private val WRONG_INPUT_ERROR = "Wrong input!"
 
   /**
     * Gets a text field value
