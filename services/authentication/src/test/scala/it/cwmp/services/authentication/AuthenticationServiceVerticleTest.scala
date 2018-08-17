@@ -51,7 +51,7 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
   }
 
   override protected def signOutTests(): Unit = {
-    it("when username and password right should succeed") {
+    it("when user exists, should succeed") {
       val username = nextUsername
       val password = nextPassword
 

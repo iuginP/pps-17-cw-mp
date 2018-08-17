@@ -1,6 +1,6 @@
 package it.cwmp.services.wrapper
 
-import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK}
+import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK, ACCEPTED}
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.model.User
@@ -23,6 +23,14 @@ trait AuthenticationApiWrapper extends Validation[String, User] {
     * @return a future that may be satisfied when the operation completes successfully, otherwise it fails.
     */
   def signUp(username: String, password: String): Future[String]
+
+  /**
+    * Allow a user to delete his account and sign out from the system.
+    *
+    * @param token the authentication token
+    * @return a future that succeed only if the user has been successfully deleted.
+    */
+  def signOut(token: String): Future[Unit]
 
   /**
     * It tries to execute a login on the system. The implementation specifies how the operation should be executed.
@@ -58,12 +66,19 @@ object AuthenticationApiWrapper {
   class AuthenticationApiWrapperImpl(override protected val clientOptions: WebClientOptions)
     extends AuthenticationApiWrapper with VertxInstance with VertxClient {
 
-    def signUp(username: String, password: String): Future[String] =
+    override def signUp(username: String, password: String): Future[String] =
       client.post(API_SIGN_UP)
         .addAuthentication(username, password)
         .sendFuture()
         .expectStatus(CREATED)
         .map(_.bodyAsString().getOrElse(""))
+
+    override def signOut(token: String): Future[Unit] =
+      client.delete(API_SIGN_OUT)
+        .addAuthentication(token)
+        .sendFuture()
+        .expectStatus(ACCEPTED)
+        .map(_ => ())
 
     override def login(username: String, password: String): Future[String] =
       client.get(API_LOGIN)
