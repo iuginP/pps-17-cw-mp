@@ -48,9 +48,21 @@ trait FutureMatchers {
       * @tparam A the type of failure that should be obtained
       * @return the future containing the result of the verification
       */
-    def shouldFailWith[A <: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = future
+    def shouldFailWith[A <: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] =
+      shouldFailWith[A]((_: A) => true)
+
+
+    /**
+      * Asserts that the future has the failure requested
+      *
+      * @param condition        the condition to satisfy when failing
+      * @param executionContext the implicit execution context
+      * @tparam A the type of failure that should be obtained
+      * @return the future containing the result of the verification
+      */
+    def shouldFailWith[A <: Exception : ClassTag](condition: A => Boolean)(implicit executionContext: ExecutionContext): Future[Assertion] = future
       .transform {
-        case Failure(e) if classTag[A].runtimeClass.isInstance(e) => Success(succeed)
+        case Failure(e) if classTag[A].runtimeClass.isInstance(e) && condition(e.asInstanceOf[A]) => Success(succeed)
         case _ => Failure(FutureTestingException)
       }
 

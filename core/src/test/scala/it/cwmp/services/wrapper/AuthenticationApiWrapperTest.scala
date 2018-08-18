@@ -3,15 +3,13 @@ package it.cwmp.services.wrapper
 import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, UNAUTHORIZED}
 import it.cwmp.exceptions.HTTPException
 import it.cwmp.services.testing.authentication.AuthenticationWebServiceTesting
+import it.cwmp.testing.FutureMatchers
 import it.cwmp.utils.HttpUtils
-
-import scala.concurrent.Promise
-import scala.util.Failure
 
 /**
   * A test class for AuthenticationApiWrapper
   */
-class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
+class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting with FutureMatchers {
 
   private val auth = AuthenticationApiWrapper()
 
@@ -32,19 +30,35 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
       val username = nextUsername
       val password = nextPassword
 
-      val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
         .flatMap(_ => auth.signUp(username, password))
-        .onComplete({
-          case Failure(HTTPException(statusCode, _)) if statusCode == BAD_REQUEST.code() => promiseResult.success(())
-          case _ => promiseResult.failure(new Exception)
-        })
-      promiseResult.future.map(_ => succeed)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == BAD_REQUEST.code())
     }
   }
 
   override protected def signOutTests(): Unit = {
-    // TODO implementation
+    it("when user exists, should succeed") {
+      val username = nextUsername
+      val password = nextPassword
+
+      auth.signUp(username, password)
+        .flatMap(token => auth.signOut(token))
+        .shouldSucceed
+    }
+
+    it("when invalid token should fail") {
+      val myToken = invalidToken
+
+      auth.signOut(myToken)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == BAD_REQUEST.code())
+    }
+
+    it("when unauthorized header should fail") {
+      val myAuthToken = nextToken
+
+      auth.signOut(myAuthToken)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == UNAUTHORIZED.code())
+    }
   }
 
   override protected def loginTests(): Unit = {
@@ -61,13 +75,8 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
       val username = nextUsername
       val password = nextPassword
 
-      val promiseResult: Promise[Unit] = Promise()
       auth.login(username, password)
-        .onComplete({
-          case Failure(HTTPException(statusCode, _)) if statusCode == UNAUTHORIZED.code() => promiseResult.success(())
-          case _ => promiseResult.failure(new Exception)
-        })
-      promiseResult.future.map(_ => succeed)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == UNAUTHORIZED.code())
     }
 
     it("when password is wrong should fail") {
@@ -75,14 +84,9 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
       val password = nextPassword
       val passwordWrong = nextPassword
 
-      val promiseResult: Promise[Unit] = Promise()
       auth.signUp(username, password)
         .flatMap(_ => auth.login(username, passwordWrong))
-        .onComplete({
-          case Failure(HTTPException(statusCode, _)) if statusCode == UNAUTHORIZED.code() => promiseResult.success(())
-          case _ => promiseResult.failure(new Exception)
-        })
-      promiseResult.future.map(_ => succeed)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == UNAUTHORIZED.code())
     }
   }
 
@@ -99,25 +103,15 @@ class AuthenticationApiWrapperTest extends AuthenticationWebServiceTesting {
     it("when invalid token should fail") {
       val myToken = invalidToken
 
-      val promiseResult: Promise[Unit] = Promise()
       auth.validate(myToken)
-        .onComplete({
-          case Failure(HTTPException(statusCode, _)) if statusCode == BAD_REQUEST.code() => promiseResult.success(())
-          case _ => promiseResult.failure(new Exception)
-        })
-      promiseResult.future.map(_ => succeed)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == BAD_REQUEST.code())
     }
 
     it("when unauthorized header should fail") {
       val myAuthHeader = nextHeader
 
-      val promiseResult: Promise[Unit] = Promise()
       auth.validate(myAuthHeader)
-        .onComplete({
-          case Failure(HTTPException(statusCode, _)) if statusCode == UNAUTHORIZED.code() => promiseResult.success(())
-          case _ => promiseResult.failure(new Exception)
-        })
-      promiseResult.future.map(_ => succeed)
+        .shouldFailWith[HTTPException]((e: HTTPException) => e.statusCode == UNAUTHORIZED.code())
     }
   }
 }
