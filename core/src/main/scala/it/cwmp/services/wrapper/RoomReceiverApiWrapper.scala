@@ -47,8 +47,6 @@ object RoomReceiverApiWrapper {
         .sendJsonFuture(toSend.foldLeft(Json emptyArr())(_ add _.toJson))
         .logSuccessInfo(s"Sending participant to $clientAddress succeeded")
         .map(_ => Future.successful(()))
-
-      // TODO should implement a retry strategy?
     }
 
     override protected def clientOptions: WebClientOptions = WebClientOptions()
