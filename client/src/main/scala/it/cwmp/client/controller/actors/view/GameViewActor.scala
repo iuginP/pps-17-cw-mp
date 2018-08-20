@@ -77,8 +77,8 @@ case class GameViewActor() extends Actor with FXRunOnUIThread with ActorAlertMan
           .schedule(TIME_BETWEEN_FRAMES, TIME_BETWEEN_FRAMES, self, UpdateGUI)(context.dispatcher)
       }
       gameEnded(world) match {
-        case Some(winnerName) if winnerName == playerName => self ! AlertMessages.Info(playerName + YOU_WON_TITLE, YOU_WON)
-        case Some(_) => self ! AlertMessages.Info(playerName + YOU_LOST_TITLE, YOU_LOST)
+        case Some(winnerName) if winnerName == playerName => self ! AlertMessages.Info(s"$playerName $YOU_WON_TITLE", YOU_WON)
+        case Some(_) => self ! AlertMessages.Info(s"$playerName $YOU_LOST_TITLE", YOU_LOST)
         case None =>
       }
 
