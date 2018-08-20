@@ -20,12 +20,14 @@ object AuthenticationServiceMain extends App with VertxInstance with Logging wit
     launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
   } catch {
     case _: IllegalArgumentException =>
-      TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs => {
+      TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE)(discoveryAndMyHostPortPairs => {
         val discoveryService = discoveryAndMyHostPortPairs._1
         val myService = discoveryAndMyHostPortPairs._2
 
         launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
-      })(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+      },
+        _ => System.exit(0)
+      )(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
         secondDefaultPort = Service.DEFAULT_PORT.toString)
   }
 

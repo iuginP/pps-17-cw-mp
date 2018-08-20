@@ -31,9 +31,11 @@ object ClientMain extends App with VertxInstance with Logging {
     launch(discoveryService._1, discoveryService._2)
   } catch {
     case _: IllegalArgumentException =>
-      OneAddressInput(APP_NAME, "You should insert DiscoveryService host-port", discoveryServiceHostPortPair => {
+      OneAddressInput(APP_NAME, "You should insert DiscoveryService host-port")(discoveryServiceHostPortPair => {
         launch(discoveryServiceHostPortPair._1, discoveryServiceHostPortPair._2)
-      })(defaultPort = discovery.Service.DEFAULT_PORT.toString)
+      },
+        _ => System.exit(0)
+      )(defaultPort = discovery.Service.DEFAULT_PORT.toString)
   }
 
   /**
