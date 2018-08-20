@@ -6,7 +6,7 @@ import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import scala.util.{Failure, Success}
 
 /**
-  * Questa classe serve per effettuare le funzioni basi con i JWT tokens
+  * This class is used to perform the basic functions with the JWT tokens
   * @author Davide Borficchia
   */
 object JwtUtils {
@@ -17,18 +17,18 @@ object JwtUtils {
   private val algorithm = JwtAlgorithm.HS256
 
   /**
-    * Crea un token a partire da un claim
-    * @param claim è il testo che verrà inserito dentro il token
-    * @return il token da utilizzare nelle richieste
+    * Buid a token from a claim
+    * @param claim is the text that will use to build the token
+    * @return the token to use in the request
     */
   def encodeToken(claim: JwtClaim): Option[String] =
     if (claim != null) Some(Jwt.encode(claim, secretKey, algorithm))
     else None
 
   /**
-    * Dato un token lo decodifica
-    * @param token il token da decodificare
-    * @return il contenuto in chiaro del token
+    * Decode a token
+    * @param token the token to decode
+    * @return the content of token decoded
     */
   def decodeToken(token: String): Option[JwtClaim] = {
     Jwt.decodeRawAll(token, secretKey, Seq(algorithm)) match {
@@ -39,18 +39,18 @@ object JwtUtils {
   }
 
   /**
-    * Controlla la validità di un token
-    * @param token token da validare
-    * @return true se il token è valido, false in caso contrario
+    * Validate a token
+    * @param token token to validate
+    * @return true if token is valid, false in opposite case
     */
   def validateToken(token: String): Boolean = {
     Jwt.isValid(token, secretKey, Seq(algorithm))
   }
 
   /**
-    * Crea il token contenente l'username
-    * @param username username da inserire nel token
-    * @return il token da utilizzare nelle richieste
+    * Build the token from the username
+    * @param username username to encode
+    * @return the token to use in the request
     */
   def encodeUsernameToken(username: String): Option[String] = {
     if (username == null) None
@@ -58,9 +58,9 @@ object JwtUtils {
   }
 
   /**
-    * Dato un token lo decodifica e risale all'username
-    * @param token token da decodificare
-    * @return username dell'utente
+    * Get the username from the token
+    * @param token token to decode
+    * @return user's username
     */
   def decodeUsernameToken(token: String): Option[String] = {
     decodeToken(token).map(decoded => new JsonObject(decoded.content).getString(USERNAME_FIELD_NAME))
