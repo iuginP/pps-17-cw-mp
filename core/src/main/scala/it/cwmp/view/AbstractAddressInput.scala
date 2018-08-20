@@ -137,7 +137,7 @@ abstract class AbstractAddressInput[Result](viewTitle: String, message: String,
 
     dialog.setOnCloseRequest(_ => {
       if (wholeInputValid && (mouseOverOkButton || enterKeyPressed)) onResultReady(getResult)
-      else onDialogCanceled()
+      else onDialogCanceled(())
     })
 
     dialog.show()
