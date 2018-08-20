@@ -7,14 +7,16 @@ import javafx.scene.layout.GridPane
 /**
   * A class to request user to insert two addresses
   *
-  * @param viewTitle     the view title
-  * @param message       the message to show the user
-  * @param onResultReady the action on result ready
+  * @param viewTitle        the view title
+  * @param message          the message to show the user
+  * @param onResultReady    the action on result ready
+  * @param onDialogCanceled the action to do on dialog canceled
   */
-case class TwoAddressesInput(viewTitle: String, message: String, onResultReady: (((String, String), (String, String))) => Unit)
+case class TwoAddressesInput(viewTitle: String, message: String)
+                            (onResultReady: (((String, String), (String, String))) => Unit, onDialogCanceled: Unit => Unit)
                             (firstDefaultIP: String = localIP, firstDefaultPort: String = defaultPort,
                              secondDefaultIP: String = localIP, secondDefaultPort: String = defaultPort)
-  extends AbstractAddressInput[((String, String), (String, String))](viewTitle, message, onResultReady)(firstDefaultIP, firstDefaultPort) {
+  extends AbstractAddressInput[((String, String), (String, String))](viewTitle, message, onResultReady, onDialogCanceled)(firstDefaultIP, firstDefaultPort) {
 
   private var secondIpAddressValid = true
   private var secondPortValid = true
