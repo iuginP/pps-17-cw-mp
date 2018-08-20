@@ -13,6 +13,6 @@ import io.vertx.scala.core.Vertx
 trait VertxInstance {
   private val vertxContext = Vertx.currentContext().getOrElse(Vertx.vertx.getOrCreateContext())
 
-  val vertx: Vertx = vertxContext.owner()
-  implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertxContext)
+  protected val vertx: Vertx = vertxContext.owner()
+  protected implicit val vertxExecutionContext: VertxExecutionContext = VertxExecutionContext(vertxContext)
 }
