@@ -1,5 +1,6 @@
 package it.cwmp.client.model.game.distributed.impl
 
+import java.text.ParseException
 import java.time.Instant
 
 import akka.actor.Actor.Receive
@@ -45,8 +46,14 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
 
   override protected def distributedModify(oldDistributedState: ORMultiMap[String, ReplicatedData],
                                            newState: CellWorld): ORMultiMap[String, ReplicatedData] = {
-
-    val distributedInstant = LWWRegister[Instant](newState.instant)
+    val distributedInstant = LWWRegister[Instant](
+      try {
+        val oldInstant = parseFromDistributed(oldDistributedState).instant
+        if (oldInstant.isBefore(newState.instant)) newState.instant else oldInstant
+      } catch {
+        case _: ParseException => newState.instant
+      }
+    )
     val distributedCharacters = newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)
     val distributedAttacks = newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)
 
