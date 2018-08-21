@@ -24,7 +24,11 @@ abstract class AuthenticationTesting extends VertxTest with Matchers {
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRpemlvIn0.f6eS98GeBmPau4O58NwQa_XRu3Opv6qWxYISWU78F68"
   )).flatten
 
-  // TODO: add doc
+  /**
+    * Returns the next valid token. It iterates over a list of token using Round Robin algorithm.
+    *
+    * @return a new valid token
+    */
   protected def nextToken: String = tokens.next()
 
   protected val invalidToken: String = "INVALID"

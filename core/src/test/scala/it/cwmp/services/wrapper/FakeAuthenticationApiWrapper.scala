@@ -34,6 +34,14 @@ case class FakeAuthenticationApiWrapper() extends AuthenticationApiWrapper {
       }
     }).getOrElse(Future.failed(HTTPException(BAD_REQUEST)))
 
+  override def signOut(token: String): Future[Unit] =
+    participants.get(token) match {
+      case Some(_) =>
+        participants = participants - token
+        Future.successful(())
+      case _ => Future.failed(HTTPException(UNAUTHORIZED))
+    }
+
   override def login(usernameCheck: String, passwordCheck: String): Future[String] = (for (
     username <- Option(usernameCheck);
     password <- Option(passwordCheck)

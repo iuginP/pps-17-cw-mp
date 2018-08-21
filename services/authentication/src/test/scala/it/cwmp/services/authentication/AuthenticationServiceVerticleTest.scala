@@ -1,6 +1,6 @@
 package it.cwmp.services.authentication
 
-import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK, UNAUTHORIZED}
+import io.netty.handler.codec.http.HttpResponseStatus._
 import io.vertx.scala.ext.web.client.WebClientOptions
 import it.cwmp.services.VertxClient
 import it.cwmp.services.authentication.Service._
@@ -51,7 +51,42 @@ class AuthenticationServiceVerticleTest extends AuthenticationWebServiceTesting
   }
 
   override protected def signOutTests(): Unit = {
-    // TODO implement
+    it("when user exists, should succeed") {
+      val username = nextUsername
+      val password = nextPassword
+
+      for (
+        response <- client.post(API_SIGN_UP) addAuthentication(username, password) sendFuture();
+        token = response.bodyAsString().get;
+        apiRequest = client.delete(API_SIGN_OUT) addAuthentication token sendFuture();
+        assertion <- apiRequest shouldAnswerWith ACCEPTED
+      ) yield assertion
+    }
+
+    it("when succeeded, should have deleted the user") {
+      val username = nextUsername
+      val password = nextPassword
+
+      for (
+        response <- client.post(API_SIGN_UP) addAuthentication(username, password) sendFuture();
+        token = response.bodyAsString().get;
+        _ <- client.delete(API_SIGN_OUT) addAuthentication token sendFuture();
+        apiRequest = client.get(API_VALIDATE) addAuthentication token sendFuture();
+        assertion <- apiRequest shouldAnswerWith UNAUTHORIZED
+      ) yield assertion
+    }
+
+    it("when empty header should fail") {
+      client.delete(API_SIGN_OUT) sendFuture() shouldAnswerWith BAD_REQUEST
+    }
+
+    it("when invalid header should fail") {
+      client.delete(API_SIGN_OUT) addAuthentication invalidToken sendFuture() shouldAnswerWith BAD_REQUEST
+    }
+
+    it("when user does not exists should fail") {
+      client.delete(API_SIGN_OUT) addAuthentication nextToken sendFuture() shouldAnswerWith UNAUTHORIZED
+    }
   }
 
   override protected def loginTests(): Unit = {

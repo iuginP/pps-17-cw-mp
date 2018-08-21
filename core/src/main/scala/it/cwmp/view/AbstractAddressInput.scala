@@ -6,20 +6,23 @@ import it.cwmp.view.AbstractAddressInput._
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.control._
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.GridPane
 
 /**
   * A view to select an IP address and port
   *
-  * @param viewTitle     the view title
-  * @param message       the message to show the user
-  * @param onResultReady the action on result ready
-  * @param defaultIP     the default IP for IP field
-  * @param defaultPort   default port for Port field
+  * @param viewTitle        the view title
+  * @param message          the message to show the user
+  * @param onResultReady    the action on result ready
+  * @param onDialogCanceled the action to do on dialog canceled
+  * @param defaultIP        the default IP for IP field
+  * @param defaultPort      default port for Port field
   * @tparam Result the type of result
   * @author Enrico Siboni
   */
-abstract class AbstractAddressInput[Result](viewTitle: String, message: String, onResultReady: Result => Unit)
+abstract class AbstractAddressInput[Result](viewTitle: String, message: String,
+                                            onResultReady: Result => Unit, onDialogCanceled: Unit => Unit)
                                            (defaultIP: String = localIP, defaultPort: String = defaultPort) {
   new JFXPanel // initializes JavaFX
 
@@ -27,6 +30,8 @@ abstract class AbstractAddressInput[Result](viewTitle: String, message: String, 
   private val dialogButtonType: ButtonType = ButtonType.FINISH
   private var bodyGrid: GridPane = _
 
+  private var mouseOverOkButton = false
+  private var enterKeyPressed = false
   private var ipAddressValid = true
   private var portValid = true
 
@@ -119,14 +124,20 @@ abstract class AbstractAddressInput[Result](viewTitle: String, message: String, 
     dialog.setHeaderText(message)
     dialog.getDialogPane.getButtonTypes.add(dialogButtonType)
 
+    val buttonOk = dialog.getDialogPane.lookupButton(dialogButtonType)
+    buttonOk.setOnMouseEntered(_ => mouseOverOkButton = true)
+    buttonOk.setOnMouseExited(_ => mouseOverOkButton = false)
+
+    dialog.getDialogPane.setOnKeyPressed(event => if (event.getCode == KeyCode.ENTER) enterKeyPressed = true)
+
     bodyGrid = new GridPane
     bodyGridFill(bodyGrid)
 
     dialog.getDialogPane.setContent(bodyGrid)
 
-    dialog.setOnCloseRequest((event) => {
-      if (wholeInputValid) onResultReady(getResult)
-      else event.consume()
+    dialog.setOnCloseRequest(_ => {
+      if (wholeInputValid && (mouseOverOkButton || enterKeyPressed)) onResultReady(getResult)
+      else onDialogCanceled(())
     })
 
     dialog.show()

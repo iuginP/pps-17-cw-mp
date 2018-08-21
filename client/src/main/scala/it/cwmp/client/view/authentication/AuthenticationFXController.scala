@@ -1,6 +1,5 @@
 package it.cwmp.client.view.authentication
 
-import it.cwmp.client.utils.{LayoutRes, StringRes}
 import it.cwmp.client.view._
 import it.cwmp.client.view.authentication.AuthenticationFXController._
 import javafx.fxml.FXML

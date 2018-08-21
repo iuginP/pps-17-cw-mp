@@ -21,7 +21,7 @@ case class AuthenticationServiceVerticle(override protected val serverPort: Int 
 
   override protected def initRouter(router: Router): Unit = {
     router post API_SIGN_UP handler handlerSignUp
-    router post API_SIGN_OUT handler handlerSignOut
+    router delete API_SIGN_OUT handler handlerSignOut
     router get API_LOGIN handler handlerLogin
     router get API_VALIDATE handler handlerValidation
   }
