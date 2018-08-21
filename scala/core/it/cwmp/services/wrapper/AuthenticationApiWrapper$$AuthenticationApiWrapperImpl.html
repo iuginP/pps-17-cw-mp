@@ -561,7 +561,8 @@ The client is cached, so it will be instantiated only the first time it is calle
         <span class="name">login</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="AuthenticationApiWrapper.html" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper">AuthenticationApiWrapper</a></dd></dl></div>
+      <p class="shortcomment cmt">It tries to execute a login on the system.</p><div class="fullcomment"><div class="comment cmt"><p>It tries to execute a login on the system. The implementation specifies how the operation should be executed.
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username of the user that is trying to authenticate itself</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password for that user</p></dd><dt>returns</dt><dd class="cmt"><p>a future that may be satisfied when the operation completes successfully, otherwise it fails.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="AuthenticationApiWrapper.html" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper">AuthenticationApiWrapper</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -616,6 +617,23 @@ The client is cached, so it will be instantiated only the first time it is calle
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl#signOut" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="signOut(token:String):scala.concurrent.Future[Unit]"></a><a id="signOut(String):Future[Unit]"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper$$AuthenticationApiWrapperImpl.html#signOut(token:String):scala.concurrent.Future[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">signOut</span><span class="params">(<span name="token">token: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Allow a user to delete his account and sign out from the system.</p><div class="fullcomment"><div class="comment cmt"><p>Allow a user to delete his account and sign out from the system.
+</p></div><dl class="paramcmts block"><dt class="param">token</dt><dd class="cmt"><p>the authentication token</p></dd><dt>returns</dt><dd class="cmt"><p>a future that succeed only if the user has been successfully deleted.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="AuthenticationApiWrapper.html" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper">AuthenticationApiWrapper</a></dd></dl></div>
     </li><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl#signUp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="signUp(username:String,password:String):scala.concurrent.Future[String]"></a><a id="signUp(String,String):Future[String]"></a>
       <span class="permalink">
@@ -631,7 +649,8 @@ The client is cached, so it will be instantiated only the first time it is calle
         <span class="name">signUp</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="AuthenticationApiWrapper.html" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper">AuthenticationApiWrapper</a></dd></dl></div>
+      <p class="shortcomment cmt">It tries to execute a sign up on the system.</p><div class="fullcomment"><div class="comment cmt"><p>It tries to execute a sign up on the system. The implementation specifies how the operation should be executed.
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username to register</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password for that user</p></dd><dt>returns</dt><dd class="cmt"><p>a future that may be satisfied when the operation completes successfully, otherwise it fails.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="AuthenticationApiWrapper.html" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper">AuthenticationApiWrapper</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -682,7 +701,7 @@ The client is cached, so it will be instantiated only the first time it is calle
       <p class="shortcomment cmt">Validates the input and returns the future containing the output
 </p><div class="fullcomment"><div class="comment cmt"><p>Validates the input and returns the future containing the output
 </p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the future that will contain the future output</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="it.cwmp.services.wrapper.AuthenticationApiWrapper.AuthenticationApiWrapperImpl">AuthenticationApiWrapperImpl</a> → <a href="../Validation.html" class="extype" name="it.cwmp.services.Validation">Validation</a></dd></dl></div>
-    </li><li name="it.cwmp.services.VertxInstance#vertx" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="it.cwmp.services.VertxInstance#vertx" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="vertx:io.vertx.scala.core.Vertx"></a><a id="vertx:Vertx"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper$$AuthenticationApiWrapperImpl.html#vertx:io.vertx.scala.core.Vertx" title="Permalink">
@@ -697,8 +716,8 @@ The client is cached, so it will be instantiated only the first time it is calle
         <span class="name">vertx</span><span class="result">: <span class="extype" name="io.vertx.scala.core.Vertx">Vertx</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../VertxInstance.html" class="extype" name="it.cwmp.services.VertxInstance">VertxInstance</a></dd></dl></div>
-    </li><li name="it.cwmp.services.VertxInstance#vertxExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../VertxInstance.html" class="extype" name="it.cwmp.services.VertxInstance">VertxInstance</a></dd></dl></div>
+    </li><li name="it.cwmp.services.VertxInstance#vertxExecutionContext" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext"></a><a id="vertxExecutionContext:VertxExecutionContext"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper$$AuthenticationApiWrapperImpl.html#vertxExecutionContext:io.vertx.lang.scala.VertxExecutionContext" title="Permalink">
@@ -713,7 +732,7 @@ The client is cached, so it will be instantiated only the first time it is calle
         <span class="name">vertxExecutionContext</span><span class="result">: <span class="extype" name="io.vertx.lang.scala.VertxExecutionContext">VertxExecutionContext</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../VertxInstance.html" class="extype" name="it.cwmp.services.VertxInstance">VertxInstance</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../VertxInstance.html" class="extype" name="it.cwmp.services.VertxInstance">VertxInstance</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">

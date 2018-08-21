@@ -239,7 +239,7 @@
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper#login" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper#login" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="login(username:String,password:String):scala.concurrent.Future[String]"></a><a id="login(String,String):Future[String]"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper.html#login(username:String,password:String):scala.concurrent.Future[String]" title="Permalink">
@@ -254,8 +254,26 @@
         <span class="name">login</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
+      <p class="shortcomment cmt">It tries to execute a login on the system.</p><div class="fullcomment"><div class="comment cmt"><p>It tries to execute a login on the system. The implementation specifies how the operation should be executed.
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username of the user that is trying to authenticate itself</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password for that user</p></dd><dt>returns</dt><dd class="cmt"><p>a future that may be satisfied when the operation completes successfully, otherwise it fails.</p></dd></dl></div>
+    </li><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper#signOut" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="signOut(token:String):scala.concurrent.Future[Unit]"></a><a id="signOut(String):Future[Unit]"></a>
+      <span class="permalink">
+      <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper.html#signOut(token:String):scala.concurrent.Future[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">signOut</span><span class="params">(<span name="token">token: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
       
-    </li><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper#signUp" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Allow a user to delete his account and sign out from the system.</p><div class="fullcomment"><div class="comment cmt"><p>Allow a user to delete his account and sign out from the system.
+</p></div><dl class="paramcmts block"><dt class="param">token</dt><dd class="cmt"><p>the authentication token</p></dd><dt>returns</dt><dd class="cmt"><p>a future that succeed only if the user has been successfully deleted.</p></dd></dl></div>
+    </li><li name="it.cwmp.services.wrapper.AuthenticationApiWrapper#signUp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="signUp(username:String,password:String):scala.concurrent.Future[String]"></a><a id="signUp(String,String):Future[String]"></a>
       <span class="permalink">
       <a href="../../../../it/cwmp/services/wrapper/AuthenticationApiWrapper.html#signUp(username:String,password:String):scala.concurrent.Future[String]" title="Permalink">
@@ -270,7 +288,8 @@
         <span class="name">signUp</span><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">It tries to execute a sign up on the system.</p><div class="fullcomment"><div class="comment cmt"><p>It tries to execute a sign up on the system. The implementation specifies how the operation should be executed.
+</p></div><dl class="paramcmts block"><dt class="param">username</dt><dd class="cmt"><p>the username to register</p></dd><dt class="param">password</dt><dd class="cmt"><p>the password for that user</p></dd><dt>returns</dt><dd class="cmt"><p>a future that may be satisfied when the operation completes successfully, otherwise it fails.</p></dd></dl></div>
     </li><li name="it.cwmp.services.Validation#validate" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="validate(input:Input):scala.concurrent.Future[Output]"></a><a id="validate(String):Future[User]"></a>
       <span class="permalink">
