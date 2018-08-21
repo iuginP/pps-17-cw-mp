@@ -69,13 +69,10 @@ trait VertxServer extends ScalaVerticle {
                              message: Option[String] = None)
                             (implicit routingContext: RoutingContext): Unit = {
     response.setStatusCode(httpCode)
+    log.info(s"Sending $httpCode response to client")
     message match {
-      case Some(messageString) =>
-        log.info(s"Sending $httpCode response to client with message: $messageString")
-        response.end(messageString)
-      case None =>
-        log.info(s"Sending $httpCode response to client")
-        response.end()
+      case Some(messageString) => response.end(messageString)
+      case None => response.end()
     }
   }
 

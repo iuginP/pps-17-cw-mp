@@ -29,7 +29,7 @@ import scala.util.{Failure, Success}
   * @author Eugenio Pierfederici
   * @author contributor Enrico Siboni
   */
-case class ClientControllerActor(private val apiClientActor: ActorRef) extends Actor with ParticipantListReceiver with Logging {
+case class ClientControllerActor(private val apiClientActor: ActorRef, protected val hostname: String) extends Actor with ParticipantListReceiver with Logging {
 
   private val UNKNOWN_ERROR = "Unknown Error"
 
