@@ -6,7 +6,7 @@ import it.cwmp.client.controller.actors.{ApiClientActor, ClientControllerActor}
 import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
 import it.cwmp.services.{VertxInstance, discovery}
 import it.cwmp.utils.{HostAndPortArguments, Logging}
-import it.cwmp.view.OneAddressInput
+import it.cwmp.view.TwoAddressesInput
 
 import scala.util.Failure
 
@@ -16,6 +16,10 @@ import scala.util.Failure
 object ClientMain extends App with VertxInstance with Logging {
 
   val APP_NAME = "CellWarsClient"
+  val INITIAL_GUI_INSERTION_MESSAGE =
+    """First pair -> DiscoveryService host-port
+      |Second pair -> Your host IP, port will be ignored
+    """.stripMargin
 
   private val COMMAND_LINE_ARGUMENTS_ERROR =
     """
@@ -31,11 +35,15 @@ object ClientMain extends App with VertxInstance with Logging {
     launch(discoveryService._1, discoveryService._2)
   } catch {
     case _: IllegalArgumentException =>
-      OneAddressInput(APP_NAME, "You should insert DiscoveryService host-port")(discoveryServiceHostPortPair => {
-        launch(discoveryServiceHostPortPair._1, discoveryServiceHostPortPair._2)
+      TwoAddressesInput(APP_NAME, INITIAL_GUI_INSERTION_MESSAGE)(discoveryAndMyHostPortPairs => {
+        val discoveryService = discoveryAndMyHostPortPairs._1
+        val myHostIP = discoveryAndMyHostPortPairs._2._1
+
+        launch(discoveryService._1, discoveryService._2)
       },
         _ => System.exit(0)
-      )(defaultPort = discovery.Service.DEFAULT_PORT.toString)
+      )(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+        secondDefaultPort = 0.toString)
   }
 
   /**
