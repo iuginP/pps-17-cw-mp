@@ -69,6 +69,7 @@ case class PlayerActor() extends Actor with Stash with Logging {
       roomSize = participants.size
       cluster.join(AddressFromURIString(participants.head.address)) // all join first player cluster
       if (getAddress == participants.head.address) { // first player injects start world
+        log.debug("First World injection by : " + getAddress)
         distributedState.initialize(worldGenerationStrategy(participants))
       }
       playerName = participants.find(participant => participant.address == getAddress).get.username
@@ -95,15 +96,10 @@ case class PlayerActor() extends Actor with Stash with Logging {
     * Starts the game
     */
   private def startGame(): Unit = {
-    context.become(Actor.emptyBehavior)
+    context.become(distributedState.distributedStateBehaviour)
     gameViewActor ! ShowGUIWithName(playerName)
     unstashAll() // un-stash distributed change messages
   }
-
-  /**
-    * The action to do when the game is ended
-    */
-  private def backToLobbyAction(): Unit = context.become(beforeInGameBehaviour orElse clusterBehaviour)
 
   /**
     * Action that will be executed every time the world will be updated
