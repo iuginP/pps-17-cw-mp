@@ -6,7 +6,7 @@ Per eseguire il progetto è sufficiente avviare i servizi ed i client:
 * Discovery service: `./gradlew :services:discovery:run --args '7777'`
 * Authentication service: `./gradlew :services:authentication:run --args 'localhost 7777 localhost 7788'`
 * Rooms service: `./gradlew :services:rooms:run --args 'localhost 7777 localhost 7799'`
-* Client: `./gradlew :client:run --args 'localhost 7777'`
+* Client: `./gradlew :client:run --args 'localhost 7777 localhost'`
 
 ## Downloads e rilasci
 È possibile scaricare i sorgenti e gli eseguibili di ogni rilascio alla pagina: https://github.com/iuginP/pps-17-cw-mp/releases
