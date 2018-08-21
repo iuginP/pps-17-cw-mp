@@ -31,15 +31,16 @@ object ClientMain extends App with VertxInstance with Logging {
   try {
     val hostPortPairs = HostAndPortArguments(args, 1, COMMAND_LINE_ARGUMENTS_ERROR).pairs
     val discoveryService = hostPortPairs.head
+    val myHostIP = hostPortPairs(1)._1
 
-    launch(discoveryService._1, discoveryService._2)
+    launch(discoveryService._1, discoveryService._2, myHostIP)
   } catch {
     case _: IllegalArgumentException =>
       TwoAddressesInput(APP_NAME, INITIAL_GUI_INSERTION_MESSAGE)(discoveryAndMyHostPortPairs => {
         val discoveryService = discoveryAndMyHostPortPairs._1
         val myHostIP = discoveryAndMyHostPortPairs._2._1
 
-        launch(discoveryService._1, discoveryService._2)
+        launch(discoveryService._1, discoveryService._2, myHostIP)
       },
         _ => System.exit(0)
       )(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
@@ -51,8 +52,9 @@ object ClientMain extends App with VertxInstance with Logging {
     *
     * @param discoveryHost the discovery to contact for services
     * @param discoveryPort the discovery port on which it listens
+    * @param myHost        the host on which the client is executed
     */
-  private def launch(discoveryHost: String, discoveryPort: String): Unit = {
+  private def launch(discoveryHost: String, discoveryPort: String, myHost: String): Unit = {
     val config = ConfigFactory.parseString("akka.remote.netty.tcp.port=0").withFallback(ConfigFactory.load())
     val system = ActorSystem(APP_NAME, config)
     val discoveryApiWrapper: DiscoveryApiWrapper = DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
@@ -69,7 +71,7 @@ object ClientMain extends App with VertxInstance with Logging {
         AuthenticationApiWrapper(authenticationHost, authenticationPort),
         RoomsApiWrapper(roomsHost, roomsPort))), ApiClientActor.getClass.getName)
       log.info(s"Initializing the client controller actor...")
-      system.actorOf(Props(ClientControllerActor(apiClientActor)), ClientControllerActor.getClass.getName)
+      system.actorOf(Props(ClientControllerActor(apiClientActor, myHost)), ClientControllerActor.getClass.getName)
       log.info("Client up and running!")
     }) andThen {
       case Failure(ex) => log.info("Error discovering services", ex)

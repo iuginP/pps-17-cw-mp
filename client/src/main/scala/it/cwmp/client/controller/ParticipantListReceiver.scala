@@ -1,7 +1,5 @@
 package it.cwmp.client.controller
 
-import java.net.InetAddress
-
 import it.cwmp.client.controller.ParticipantListReceiver.ADDRESS_TOKEN_LENGTH
 import it.cwmp.model.{Address, Participant}
 import it.cwmp.services.VertxInstance
@@ -20,6 +18,8 @@ trait ParticipantListReceiver extends VertxInstance with Logging {
 
   private var deploymentID: Option[String] = None
 
+  protected def hostname: String
+
   /**
     * Listens for a list of participants
     *
@@ -31,7 +31,7 @@ trait ParticipantListReceiver extends VertxInstance with Logging {
     val verticle = RoomReceiverServiceVerticle(token, participants => onListReceived(participants))
     vertx.deployVerticleFuture(verticle)
       .andThen { case Success(id) => deploymentID = id }
-      .map(_ => Address(s"http://${InetAddress.getLocalHost.getHostAddress}:${verticle.port}"
+      .map(_ => Address(s"http://$hostname:${verticle.port}"
         + createParticipantReceiverUrl(token)))
   }
 
