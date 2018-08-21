@@ -1,5 +1,8 @@
 # pps-17-cw-mp website
 
+* [Trello board](https://trello.com/b/HcZoJYk9)
+* [Backlog](https://docs.google.com/spreadsheets/d/1BZq8C_KOD2s70WfPlIxcu4YpYhR34pV1UGq6LDCycMo/edit?usp=sharing)
+
 ## Documentazione
  * Core
     - [Scala](/pps-17-cw-mp/scala/core/)
