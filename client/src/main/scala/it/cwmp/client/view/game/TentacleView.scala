@@ -30,7 +30,7 @@ object TentacleView {
   /**
     * Provides default value for tentacle thickness
     */
-  val TENTACLE_DEFAULT_THICKNESS = 3d
+  val TENTACLE_DEFAULT_THICKNESS = 6d
 
   /**
     * Provides tentacle default color opacity
