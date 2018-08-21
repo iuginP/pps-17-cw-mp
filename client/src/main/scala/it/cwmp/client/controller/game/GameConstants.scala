@@ -38,14 +38,14 @@ object GameConstants {
     *
     * Amount of time expressed in milliseconds that will be converted to a movement step of the tentacle
     */
-  val MILLIS_TO_MOVEMENT_CONVERSION_RATE = 100
+  val MILLIS_TO_MOVEMENT_CONVERSION_RATE = 50
 
   /**
     * ==CellWorld==
     *
     * Amount of length that will be converted in one energy reduction in attacker cell
     */
-  val LENGTH_TO_ENERGY_REDUCTION_RATE = 2d
+  val LENGTH_TO_ENERGY_REDUCTION_RATE = 4d
 
   /**
     * ==CellWorld==
