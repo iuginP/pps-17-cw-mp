@@ -72,23 +72,35 @@
 </span>48 <span style=''>      * @tparam A the type of failure that should be obtained
 </span>49 <span style=''>      * @return the future containing the result of the verification
 </span>50 <span style=''>      */
-</span>51 <span style=''>    def shouldFailWith[A &lt;: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
-</span>52 <span style=''></span><span style='background: #F0ADAD'>      .transform {
-</span>53 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) =&gt; Success(succeed)
-</span>54 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
-</span>55 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>56 <span style=''>
-</span>57 <span style=''>    /**
-</span>58 <span style=''>      * Asserts that the future succeed.
-</span>59 <span style=''>      *
-</span>60 <span style=''>      * @param executionContext the implicit execution context
+</span>51 <span style=''>    def shouldFailWith[A &lt;: Exception : ClassTag](implicit executionContext: ExecutionContext): Future[Assertion] =
+</span>52 <span style=''>      </span><span style='background: #F0ADAD'>shouldFailWith[A]((_: A) =&gt; true)</span><span style=''>
+</span>53 <span style=''>
+</span>54 <span style=''>
+</span>55 <span style=''>    /**
+</span>56 <span style=''>      * Asserts that the future has the failure requested
+</span>57 <span style=''>      *
+</span>58 <span style=''>      * @param condition        the condition to satisfy when failing
+</span>59 <span style=''>      * @param executionContext the implicit execution context
+</span>60 <span style=''>      * @tparam A the type of failure that should be obtained
 </span>61 <span style=''>      * @return the future containing the result of the verification
 </span>62 <span style=''>      */
-</span>63 <span style=''>    def shouldSucceed(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
-</span>64 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; succeed)</span><span style=''>
-</span>65 <span style=''>  }
-</span>66 <span style=''>
-</span>67 <span style=''>}
+</span>63 <span style=''>    def shouldFailWith[A &lt;: Exception : ClassTag](condition: A =&gt; Boolean)(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      .transform {
+</span>65 <span style=''></span><span style='background: #F0ADAD'>        case Failure(e) if classTag[A].runtimeClass.isInstance(e) &amp;&amp; condition(e.asInstanceOf[A]) =&gt; Success(succeed)
+</span>66 <span style=''></span><span style='background: #F0ADAD'>        case _ =&gt; Failure(FutureTestingException)
+</span>67 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>68 <span style=''>
+</span>69 <span style=''>    /**
+</span>70 <span style=''>      * Asserts that the future succeed.
+</span>71 <span style=''>      *
+</span>72 <span style=''>      * @param executionContext the implicit execution context
+</span>73 <span style=''>      * @return the future containing the result of the verification
+</span>74 <span style=''>      */
+</span>75 <span style=''>    def shouldSucceed(implicit executionContext: ExecutionContext): Future[Assertion] = </span><span style='background: #F0ADAD'>future
+</span>76 <span style=''></span><span style='background: #F0ADAD'>      .map(_ =&gt; succeed)</span><span style=''>
+</span>77 <span style=''>  }
+</span>78 <span style=''>
+</span>79 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -132,21 +144,18 @@
           2
         </td>
         <td>
-          1663
+          1669
           -
-          1832
+          1702
         </td>
         <td>
           ApplyToImplicitArgs
         </td>
         <td>
-          scala.concurrent.Future.transform
+          it.cwmp.testing.FutureMatchers.RichFutureTesting.shouldFailWith
         </td>
         <td style="background: #F0ADAD">
-          RichFutureTesting.this.future.transform[org.scalatest.Assertion](((x0$2: scala.util.Try[T]) =&gt; x0$2 match {
-  case (exception: Throwable)scala.util.Failure[T]((e @ _)) if scala.reflect.`package`.classTag[A](evidence$1).runtimeClass.isInstance(e) =&gt; scala.util.Success.apply[org.scalatest.Assertion](RichFutureTesting.this.succeed)
-  case _ =&gt; scala.util.Failure.apply[Nothing](FutureMatchers.this.FutureTestingException)
-}))(executionContext)
+          RichFutureTesting.this.shouldFailWith[A](((x$1: A) =&gt; true))(evidence$1, executionContext)
         </td>
       </tr><tr>
         <td>
@@ -156,9 +165,33 @@
           3
         </td>
         <td>
-          2120
+          2193
           -
-          2151
+          2394
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.transform
+        </td>
+        <td style="background: #F0ADAD">
+          RichFutureTesting.this.future.transform[org.scalatest.Assertion](((x0$2: scala.util.Try[T]) =&gt; x0$2 match {
+  case (exception: Throwable)scala.util.Failure[T]((e @ _)) if scala.reflect.`package`.classTag[A](evidence$2).runtimeClass.isInstance(e).&amp;&amp;(condition.apply(e.asInstanceOf[A])) =&gt; scala.util.Success.apply[org.scalatest.Assertion](RichFutureTesting.this.succeed)
+  case _ =&gt; scala.util.Failure.apply[Nothing](FutureMatchers.this.FutureTestingException)
+}))(executionContext)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          2682
+          -
+          2713
         </td>
         <td>
           ApplyToImplicitArgs
@@ -167,7 +200,7 @@
           scala.concurrent.Future.map
         </td>
         <td style="background: #F0ADAD">
-          RichFutureTesting.this.future.map[org.scalatest.Assertion](((x$1: T) =&gt; RichFutureTesting.this.succeed))(executionContext)
+          RichFutureTesting.this.future.map[org.scalatest.Assertion](((x$2: T) =&gt; RichFutureTesting.this.succeed))(executionContext)
         </td>
       </tr>
     </table>

@@ -24,7 +24,7 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.services.wrapper
 </span>2 <span style=''>
-</span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK}
+</span>3 <span style=''>import io.netty.handler.codec.http.HttpResponseStatus.{BAD_REQUEST, CREATED, OK, ACCEPTED}
 </span>4 <span style=''>import io.vertx.scala.ext.web.client.WebClientOptions
 </span>5 <span style=''>import it.cwmp.exceptions.HTTPException
 </span>6 <span style=''>import it.cwmp.model.User
@@ -39,62 +39,90 @@
 </span>15 <span style=''>  */
 </span>16 <span style=''>trait AuthenticationApiWrapper extends Validation[String, User] {
 </span>17 <span style=''>
-</span>18 <span style=''>  // TODO: doc
-</span>19 <span style=''>  def signUp(username: String, password: String): Future[String]
-</span>20 <span style=''>
-</span>21 <span style=''>  def login(username: String, password: String): Future[String]
-</span>22 <span style=''>}
-</span>23 <span style=''>
-</span>24 <span style=''>/**
-</span>25 <span style=''>  * Companion object
-</span>26 <span style=''>  */
-</span>27 <span style=''>object AuthenticationApiWrapper {
-</span>28 <span style=''>
-</span>29 <span style=''>  val DEFAULT_HOST = </span><span style='background: #AEF1AE'>&quot;localhost&quot;</span><span style=''>
-</span>30 <span style=''>
-</span>31 <span style=''>  def apply(): AuthenticationApiWrapper =
-</span>32 <span style=''>    </span><span style='background: #AEF1AE'>AuthenticationApiWrapper(DEFAULT_HOST, DEFAULT_PORT)</span><span style=''>
-</span>33 <span style=''>
-</span>34 <span style=''>  def apply(host: String): AuthenticationApiWrapper =
-</span>35 <span style=''>    </span><span style='background: #F0ADAD'>AuthenticationApiWrapper(host, DEFAULT_PORT)</span><span style=''>
-</span>36 <span style=''>
-</span>37 <span style=''>  def apply(host: String, port: Int): AuthenticationApiWrapper =
-</span>38 <span style=''>    </span><span style='background: #AEF1AE'>new AuthenticationApiWrapperImpl(WebClientOptions()
-</span>39 <span style=''></span><span style='background: #AEF1AE'>      .setDefaultHost(host)
-</span>40 <span style=''></span><span style='background: #AEF1AE'>      .setDefaultPort(port))</span><span style=''>
-</span>41 <span style=''>
-</span>42 <span style=''>  /**
-</span>43 <span style=''>    * A default implementation class for Authentication API Wrapper
-</span>44 <span style=''>    */
-</span>45 <span style=''>  class AuthenticationApiWrapperImpl(override protected val clientOptions: WebClientOptions)
-</span>46 <span style=''>    extends AuthenticationApiWrapper with VertxInstance with VertxClient {
-</span>47 <span style=''>
-</span>48 <span style=''>    def signUp(username: String, password: String): Future[String] =
-</span>49 <span style=''>      </span><span style='background: #AEF1AE'>client.post(API_SIGN_UP)
-</span>50 <span style=''></span><span style='background: #AEF1AE'>        .addAuthentication(username, password)
-</span>51 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
-</span>52 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(CREATED)
-</span>53 <span style=''></span><span style='background: #AEF1AE'>        .map(_.bodyAsString().getOrElse(&quot;&quot;))</span><span style=''>
+</span>18 <span style=''>  /**
+</span>19 <span style=''>    * It tries to execute a sign up on the system. The implementation specifies how the operation should be executed.
+</span>20 <span style=''>    *
+</span>21 <span style=''>    * @param username the username to register
+</span>22 <span style=''>    * @param password the password for that user
+</span>23 <span style=''>    * @return a future that may be satisfied when the operation completes successfully, otherwise it fails.
+</span>24 <span style=''>    */
+</span>25 <span style=''>  def signUp(username: String, password: String): Future[String]
+</span>26 <span style=''>
+</span>27 <span style=''>  /**
+</span>28 <span style=''>    * Allow a user to delete his account and sign out from the system.
+</span>29 <span style=''>    *
+</span>30 <span style=''>    * @param token the authentication token
+</span>31 <span style=''>    * @return a future that succeed only if the user has been successfully deleted.
+</span>32 <span style=''>    */
+</span>33 <span style=''>  def signOut(token: String): Future[Unit]
+</span>34 <span style=''>
+</span>35 <span style=''>  /**
+</span>36 <span style=''>    * It tries to execute a login on the system. The implementation specifies how the operation should be executed.
+</span>37 <span style=''>    *
+</span>38 <span style=''>    * @param username the username of the user that is trying to authenticate itself
+</span>39 <span style=''>    * @param password the password for that user
+</span>40 <span style=''>    * @return a future that may be satisfied when the operation completes successfully, otherwise it fails.
+</span>41 <span style=''>    */
+</span>42 <span style=''>  def login(username: String, password: String): Future[String]
+</span>43 <span style=''>}
+</span>44 <span style=''>
+</span>45 <span style=''>/**
+</span>46 <span style=''>  * Companion object
+</span>47 <span style=''>  */
+</span>48 <span style=''>object AuthenticationApiWrapper {
+</span>49 <span style=''>
+</span>50 <span style=''>  val DEFAULT_HOST = </span><span style='background: #AEF1AE'>&quot;localhost&quot;</span><span style=''>
+</span>51 <span style=''>
+</span>52 <span style=''>  def apply(): AuthenticationApiWrapper =
+</span>53 <span style=''>    </span><span style='background: #AEF1AE'>AuthenticationApiWrapper(DEFAULT_HOST, DEFAULT_PORT)</span><span style=''>
 </span>54 <span style=''>
-</span>55 <span style=''>    override def login(username: String, password: String): Future[String] =
-</span>56 <span style=''>      </span><span style='background: #AEF1AE'>client.get(API_LOGIN)
-</span>57 <span style=''></span><span style='background: #AEF1AE'>        .addAuthentication(username, password)
-</span>58 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
-</span>59 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(OK)
-</span>60 <span style=''></span><span style='background: #AEF1AE'>        .map(_.bodyAsString().getOrElse(&quot;&quot;))</span><span style=''>
-</span>61 <span style=''>
-</span>62 <span style=''>    override def validate(authenticationHeader: String): Future[User] =
-</span>63 <span style=''>      </span><span style='background: #AEF1AE'>client.get(API_VALIDATE)
-</span>64 <span style=''></span><span style='background: #AEF1AE'>        .addAuthenticationHeader(authenticationHeader)
-</span>65 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
-</span>66 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(OK)
-</span>67 <span style=''></span><span style='background: #AEF1AE'>        .mapBody {
-</span>68 <span style=''></span><span style='background: #AEF1AE'>          case Some(body) =&gt; Future.successful(User(body))
-</span>69 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt; </span><span style='background: #F0ADAD'>Future.failed(HTTPException(BAD_REQUEST, &quot;Empty body&quot;))</span><span style='background: #AEF1AE'>
-</span>70 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
-</span>71 <span style=''>  }
-</span>72 <span style=''>
-</span>73 <span style=''>}
+</span>55 <span style=''>  def apply(host: String): AuthenticationApiWrapper =
+</span>56 <span style=''>    </span><span style='background: #F0ADAD'>AuthenticationApiWrapper(host, DEFAULT_PORT)</span><span style=''>
+</span>57 <span style=''>
+</span>58 <span style=''>  def apply(host: String, port: Int): AuthenticationApiWrapper =
+</span>59 <span style=''>    </span><span style='background: #AEF1AE'>new AuthenticationApiWrapperImpl(WebClientOptions()
+</span>60 <span style=''></span><span style='background: #AEF1AE'>      .setDefaultHost(host)
+</span>61 <span style=''></span><span style='background: #AEF1AE'>      .setDefaultPort(port))</span><span style=''>
+</span>62 <span style=''>
+</span>63 <span style=''>  /**
+</span>64 <span style=''>    * A default implementation class for Authentication API Wrapper
+</span>65 <span style=''>    */
+</span>66 <span style=''>  class AuthenticationApiWrapperImpl(override protected val clientOptions: WebClientOptions)
+</span>67 <span style=''>    extends AuthenticationApiWrapper with VertxInstance with VertxClient {
+</span>68 <span style=''>
+</span>69 <span style=''>    override def signUp(username: String, password: String): Future[String] =
+</span>70 <span style=''>      </span><span style='background: #AEF1AE'>client.post(API_SIGN_UP)
+</span>71 <span style=''></span><span style='background: #AEF1AE'>        .addAuthentication(username, password)
+</span>72 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
+</span>73 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(CREATED)
+</span>74 <span style=''></span><span style='background: #AEF1AE'>        .map(_.bodyAsString().getOrElse(&quot;&quot;))</span><span style=''>
+</span>75 <span style=''>
+</span>76 <span style=''>    override def signOut(token: String): Future[Unit] =
+</span>77 <span style=''>      </span><span style='background: #AEF1AE'>client.delete(API_SIGN_OUT)
+</span>78 <span style=''></span><span style='background: #AEF1AE'>        .addAuthentication(token)
+</span>79 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
+</span>80 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(ACCEPTED)
+</span>81 <span style=''></span><span style='background: #AEF1AE'>        .map(_ =&gt; ())</span><span style=''>
+</span>82 <span style=''>
+</span>83 <span style=''>    override def login(username: String, password: String): Future[String] =
+</span>84 <span style=''>      </span><span style='background: #AEF1AE'>client.get(API_LOGIN)
+</span>85 <span style=''></span><span style='background: #AEF1AE'>        .addAuthentication(username, password)
+</span>86 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
+</span>87 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(OK)
+</span>88 <span style=''></span><span style='background: #AEF1AE'>        .map(_.bodyAsString().getOrElse(&quot;&quot;))</span><span style=''>
+</span>89 <span style=''>
+</span>90 <span style=''>    override def validate(authenticationHeader: String): Future[User] =
+</span>91 <span style=''>      </span><span style='background: #AEF1AE'>client.get(API_VALIDATE)
+</span>92 <span style=''></span><span style='background: #AEF1AE'>        .addAuthenticationHeader(authenticationHeader)
+</span>93 <span style=''></span><span style='background: #AEF1AE'>        .sendFuture()
+</span>94 <span style=''></span><span style='background: #AEF1AE'>        .expectStatus(OK)
+</span>95 <span style=''></span><span style='background: #AEF1AE'>        .mapBody {
+</span>96 <span style=''></span><span style='background: #AEF1AE'>          case Some(body) =&gt; Future.successful(User(body))
+</span>97 <span style=''></span><span style='background: #AEF1AE'>          case _ =&gt; </span><span style='background: #F0ADAD'>Future.failed(HTTPException(BAD_REQUEST, &quot;Empty body&quot;))</span><span style='background: #AEF1AE'>
+</span>98 <span style=''></span><span style='background: #AEF1AE'>        }</span><span style=''>
+</span>99 <span style=''>  }
+</span>100 <span style=''>
+</span>101 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -108,15 +136,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          29
+          50
         </td>
         <td>
           385
         </td>
         <td>
-          806
+          1781
           -
-          817
+          1792
         </td>
         <td>
           Literal
@@ -129,15 +157,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          53
         </td>
         <td>
           388
         </td>
         <td>
-          865
+          1840
           -
-          917
+          1892
         </td>
         <td>
           Apply
@@ -150,15 +178,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          53
         </td>
         <td>
           387
         </td>
         <td>
-          904
+          1879
           -
-          916
+          1891
         </td>
         <td>
           Select
@@ -171,15 +199,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          53
         </td>
         <td>
           386
         </td>
         <td>
-          890
+          1865
           -
-          902
+          1877
         </td>
         <td>
           Select
@@ -192,15 +220,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          56
         </td>
         <td>
           390
         </td>
         <td>
-          977
+          1952
           -
-          1021
+          1996
         </td>
         <td>
           Apply
@@ -213,15 +241,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          56
         </td>
         <td>
           389
         </td>
         <td>
-          1008
+          1983
           -
-          1020
+          1995
         </td>
         <td>
           Select
@@ -234,15 +262,15 @@
         </td>
       </tr><tr>
         <td>
-          38
+          59
         </td>
         <td>
           392
         </td>
         <td>
-          1092
+          2067
           -
-          1200
+          2175
         </td>
         <td>
           Apply
@@ -255,15 +283,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          61
         </td>
         <td>
           391
         </td>
         <td>
-          1125
+          2100
           -
-          1199
+          2174
         </td>
         <td>
           Apply
@@ -276,15 +304,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          72
         </td>
         <td>
           393
         </td>
         <td>
-          1527
+          2511
           -
-          1620
+          2604
         </td>
         <td>
           Apply
@@ -297,15 +325,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          73
         </td>
         <td>
           394
         </td>
         <td>
-          1643
+          2627
           -
-          1650
+          2634
         </td>
         <td>
           Select
@@ -318,15 +346,15 @@
         </td>
       </tr><tr>
         <td>
-          52
+          73
         </td>
         <td>
           395
         </td>
         <td>
-          1643
+          2627
           -
-          1650
+          2634
         </td>
         <td>
           ApplyImplicitView
@@ -339,15 +367,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          74
         </td>
         <td>
           397
         </td>
         <td>
-          1664
+          2648
           -
-          1664
+          2648
         </td>
         <td>
           Select
@@ -360,15 +388,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          74
         </td>
         <td>
           396
         </td>
         <td>
-          1665
+          2649
           -
-          1695
+          2679
         </td>
         <td>
           Apply
@@ -381,15 +409,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          74
         </td>
         <td>
           398
         </td>
         <td>
-          1527
+          2511
           -
-          1696
+          2680
         </td>
         <td>
           ApplyToImplicitArgs
@@ -402,15 +430,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          79
         </td>
         <td>
           399
         </td>
         <td>
-          1781
+          2744
           -
-          1871
+          2827
         </td>
         <td>
           Apply
@@ -419,40 +447,40 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.delete(it.cwmp.services.authentication.Service.API_SIGN_OUT)).addAuthentication(token).sendFuture()
         </td>
       </tr><tr>
         <td>
-          59
+          80
         </td>
         <td>
           400
         </td>
         <td>
-          1894
+          2850
           -
-          1896
+          2858
         </td>
         <td>
           Select
         </td>
         <td>
-          io.netty.handler.codec.http.HttpResponseStatus.OK
+          io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
         </td>
         <td style="background: #AEF1AE">
-          io.netty.handler.codec.http.HttpResponseStatus.OK
+          io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
         </td>
       </tr><tr>
         <td>
-          59
+          80
         </td>
         <td>
           401
         </td>
         <td>
-          1894
+          2850
           -
-          1896
+          2858
         </td>
         <td>
           ApplyImplicitView
@@ -461,19 +489,19 @@
           it.cwmp.utils.Utils.httpStatusNameToCode
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED)
         </td>
       </tr><tr>
         <td>
-          60
+          81
         </td>
         <td>
           403
         </td>
         <td>
-          1910
+          2872
           -
-          1910
+          2872
         </td>
         <td>
           Select
@@ -486,36 +514,36 @@
         </td>
       </tr><tr>
         <td>
-          60
+          81
         </td>
         <td>
           402
         </td>
         <td>
-          1911
+          2878
           -
-          1941
+          2880
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          scala.Option.getOrElse
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #AEF1AE">
-          x$2.bodyAsString().getOrElse[String](&quot;&quot;)
+          ()
         </td>
       </tr><tr>
         <td>
-          60
+          81
         </td>
         <td>
           404
         </td>
         <td>
-          1781
+          2744
           -
-          1942
+          2881
         </td>
         <td>
           ApplyToImplicitArgs
@@ -524,19 +552,19 @@
           scala.concurrent.Future.map
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[String](((x$2: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$2.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.delete(it.cwmp.services.authentication.Service.API_SIGN_OUT)).addAuthentication(token).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED)).map[Unit](((x$2: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; ()))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
         </td>
       </tr><tr>
         <td>
-          65
+          86
         </td>
         <td>
           405
         </td>
         <td>
-          2022
+          2966
           -
-          2123
+          3056
         </td>
         <td>
           Apply
@@ -545,19 +573,19 @@
           io.vertx.scala.ext.web.client.HttpRequest.sendFuture
         </td>
         <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()
         </td>
       </tr><tr>
         <td>
-          66
+          87
         </td>
         <td>
           406
         </td>
         <td>
-          2146
+          3079
           -
-          2148
+          3081
         </td>
         <td>
           Select
@@ -570,36 +598,15 @@
         </td>
       </tr><tr>
         <td>
-          66
-        </td>
-        <td>
-          408
-        </td>
-        <td>
-          2022
-          -
-          2149
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.VertxClient.RichHttpResponse.expectStatus
-        </td>
-        <td style="background: #AEF1AE">
-          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))
-        </td>
-      </tr><tr>
-        <td>
-          66
+          87
         </td>
         <td>
           407
         </td>
         <td>
-          2146
+          3079
           -
-          2148
+          3081
         </td>
         <td>
           ApplyImplicitView
@@ -612,15 +619,162 @@
         </td>
       </tr><tr>
         <td>
-          67
+          88
         </td>
         <td>
-          416
+          409
         </td>
         <td>
-          2022
+          3095
           -
-          2313
+          3095
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          408
+        </td>
+        <td>
+          3096
+          -
+          3126
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Option.getOrElse
+        </td>
+        <td style="background: #AEF1AE">
+          x$3.bodyAsString().getOrElse[String](&quot;&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          410
+        </td>
+        <td>
+          2966
+          -
+          3127
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.map
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_LOGIN)).addAuthentication(username, password).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)).map[String](((x$3: io.vertx.scala.ext.web.client.HttpResponse[io.vertx.core.buffer.Buffer]) =&gt; x$3.bodyAsString().getOrElse[String](&quot;&quot;)))(AuthenticationApiWrapperImpl.this.vertxExecutionContext)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          411
+        </td>
+        <td>
+          3207
+          -
+          3308
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          io.vertx.scala.ext.web.client.HttpRequest.sendFuture
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          412
+        </td>
+        <td>
+          3331
+          -
+          3333
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+        <td style="background: #AEF1AE">
+          io.netty.handler.codec.http.HttpResponseStatus.OK
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          414
+        </td>
+        <td>
+          3207
+          -
+          3334
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.VertxClient.RichHttpResponse.expectStatus
+        </td>
+        <td style="background: #AEF1AE">
+          AuthenticationApiWrapperImpl.this.RichHttpResponse[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.RichHttpRequest[io.vertx.core.buffer.Buffer](AuthenticationApiWrapperImpl.this.client.get(it.cwmp.services.authentication.Service.API_VALIDATE)).addAuthenticationHeader(authenticationHeader).sendFuture()).expectStatus(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          413
+        </td>
+        <td>
+          3331
+          -
+          3333
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.utils.Utils.httpStatusNameToCode
+        </td>
+        <td style="background: #AEF1AE">
+          it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.OK)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          422
+        </td>
+        <td>
+          3207
+          -
+          3498
         </td>
         <td>
           Apply
@@ -636,15 +790,15 @@
         </td>
       </tr><tr>
         <td>
-          68
+          96
         </td>
         <td>
-          409
+          415
         </td>
         <td>
-          2216
+          3401
           -
-          2226
+          3411
         </td>
         <td>
           Apply
@@ -657,15 +811,15 @@
         </td>
       </tr><tr>
         <td>
-          68
+          96
         </td>
         <td>
-          410
+          416
         </td>
         <td>
-          2198
+          3383
           -
-          2227
+          3412
         </td>
         <td>
           Apply
@@ -678,36 +832,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          97
         </td>
         <td>
-          415
+          418
         </td>
         <td>
-          2248
+          3461
           -
-          2303
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.concurrent.Future.failed
-        </td>
-        <td style="background: #F0ADAD">
-          scala.concurrent.Future.failed[Nothing](it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), &quot;Empty body&quot;))
-        </td>
-      </tr><tr>
-        <td>
-          69
-        </td>
-        <td>
-          412
-        </td>
-        <td>
-          2276
-          -
-          2287
+          3472
         </td>
         <td>
           ApplyImplicitView
@@ -720,15 +853,36 @@
         </td>
       </tr><tr>
         <td>
-          69
+          97
         </td>
         <td>
-          414
+          421
         </td>
         <td>
-          2262
+          3433
           -
-          2302
+          3488
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.concurrent.Future.failed
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.failed[Nothing](it.cwmp.exceptions.HTTPException.apply(it.cwmp.utils.Utils.httpStatusNameToCode(io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST), &quot;Empty body&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          420
+        </td>
+        <td>
+          3447
+          -
+          3487
         </td>
         <td>
           Apply
@@ -741,15 +895,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          97
         </td>
         <td>
-          411
+          417
         </td>
         <td>
-          2276
+          3461
           -
-          2287
+          3472
         </td>
         <td>
           Select
@@ -762,15 +916,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          97
         </td>
         <td>
-          413
+          419
         </td>
         <td>
-          2289
+          3474
           -
-          2301
+          3486
         </td>
         <td>
           Literal

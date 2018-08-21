@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/client/view/game/model/CellView.scala.html
+          src/main/scala/it/cwmp/client/view/game/CellView.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,7 +22,7 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game.model
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game
 </span>2 <span style=''>
 </span>3 <span style=''>import com.github.tkqubo.colorHash.{ColorHash, Rgb}
 </span>4 <span style=''>import it.cwmp.client.controller.game.GameConstants
@@ -30,7 +30,7 @@
 </span>6 <span style=''>import it.cwmp.client.model.game.impl.{Cell, Point}
 </span>7 <span style=''>import it.cwmp.client.utils.GeometricUtils
 </span>8 <span style=''>import it.cwmp.client.view.game.GameViewConstants.{GAME_DEFAULT_FONT_COLOR, GAME_TIME_TEXT_COLOR, RGB_RANGE}
-</span>9 <span style=''>import it.cwmp.client.view.game.{ColoringStrategy, GameViewConstants}
+</span>9 <span style=''>import it.cwmp.client.view.game.drawing.ColoringStrategy
 </span>10 <span style=''>import javafx.scene.layout._
 </span>11 <span style=''>import javafx.scene.paint.Color
 </span>12 <span style=''>import javafx.scene.text.Font
@@ -220,33 +220,12 @@
           41
         </td>
         <td>
-          1524
+          1393
         </td>
         <td>
-          1375
+          1377
           -
-          1437
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.text.Font.font
-        </td>
-        <td style="background: #AEF1AE">
-          javafx.scene.text.Font.font(&quot;Verdana&quot;, it.cwmp.client.view.game.GameViewConstants.GAME_DEFAULT_FONT_SIZE.toDouble)
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          1523
-        </td>
-        <td>
-          1396
-          -
-          1436
+          1417
         </td>
         <td>
           Select
@@ -255,19 +234,19 @@
           scala.Int.toDouble
         </td>
         <td style="background: #AEF1AE">
-          it.cwmp.client.view.game.GameViewConstants.GAME_DEFAULT_FONT_SIZE.toDouble
+          GameViewConstants.GAME_DEFAULT_FONT_SIZE.toDouble
         </td>
       </tr><tr>
         <td>
           41
         </td>
         <td>
-          1522
+          1392
         </td>
         <td>
-          1385
+          1366
           -
-          1394
+          1375
         </td>
         <td>
           Literal
@@ -280,15 +259,36 @@
         </td>
       </tr><tr>
         <td>
+          41
+        </td>
+        <td>
+          1394
+        </td>
+        <td>
+          1356
+          -
+          1418
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.text.Font.font
+        </td>
+        <td style="background: #AEF1AE">
+          javafx.scene.text.Font.font(&quot;Verdana&quot;, GameViewConstants.GAME_DEFAULT_FONT_SIZE.toDouble)
+        </td>
+      </tr><tr>
+        <td>
           46
         </td>
         <td>
-          1525
+          1395
         </td>
         <td>
-          1570
+          1551
           -
-          1580
+          1561
         </td>
         <td>
           Apply
@@ -304,12 +304,12 @@
           51
         </td>
         <td>
-          1526
+          1396
         </td>
         <td>
-          1709
+          1690
           -
-          1720
+          1701
         </td>
         <td>
           Apply
@@ -325,12 +325,12 @@
           53
         </td>
         <td>
-          1527
+          1397
         </td>
         <td>
-          1762
+          1743
           -
-          1763
+          1744
         </td>
         <td>
           Literal
@@ -346,12 +346,12 @@
           54
         </td>
         <td>
-          1528
+          1398
         </td>
         <td>
-          1802
+          1783
           -
-          1815
+          1796
         </td>
         <td>
           Select
@@ -367,12 +367,12 @@
           56
         </td>
         <td>
-          1529
+          1399
         </td>
         <td>
-          1851
+          1832
           -
-          1862
+          1843
         </td>
         <td>
           Select
@@ -388,54 +388,12 @@
           59
         </td>
         <td>
-          1530
+          1402
         </td>
         <td>
-          1932
+          1957
           -
-          1949
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.CELL_BORDER_COLOR
-        </td>
-        <td style="background: #AEF1AE">
-          CellView.this.CELL_BORDER_COLOR
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          1533
-        </td>
-        <td>
-          1995
-          -
-          2016
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.layout.BorderWidths.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new javafx.scene.layout.BorderWidths(0.5)
-        </td>
-      </tr><tr>
-        <td>
-          59
-        </td>
-        <td>
-          1532
-        </td>
-        <td>
-          1976
-          -
-          1993
+          1974
         </td>
         <td>
           Select
@@ -451,12 +409,12 @@
           59
         </td>
         <td>
-          1535
+          1405
         </td>
         <td>
-          1904
+          1885
           -
-          2018
+          1999
         </td>
         <td>
           Apply
@@ -472,12 +430,12 @@
           59
         </td>
         <td>
-          1531
+          1401
         </td>
         <td>
-          1951
+          1932
           -
-          1974
+          1955
         </td>
         <td>
           Select
@@ -493,12 +451,12 @@
           59
         </td>
         <td>
-          1534
+          1404
         </td>
         <td>
-          1915
+          1896
           -
-          2017
+          1998
         </td>
         <td>
           Apply
@@ -511,21 +469,42 @@
         </td>
       </tr><tr>
         <td>
-          62
+          59
         </td>
         <td>
-          1536
+          1403
         </td>
         <td>
-          2086
+          1976
           -
-          2103
+          1997
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.BorderWidths.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new javafx.scene.layout.BorderWidths(0.5)
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          1400
+        </td>
+        <td>
+          1913
+          -
+          1930
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.CELL_BORDER_COLOR
+          it.cwmp.client.view.game.CellView.CELL_BORDER_COLOR
         </td>
         <td style="background: #AEF1AE">
           CellView.this.CELL_BORDER_COLOR
@@ -535,33 +514,12 @@
           62
         </td>
         <td>
-          1539
+          1411
         </td>
         <td>
-          2149
+          2039
           -
-          2170
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.layout.BorderWidths.&lt;init&gt;
-        </td>
-        <td style="background: #AEF1AE">
-          new javafx.scene.layout.BorderWidths(1.5)
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          1541
-        </td>
-        <td>
-          2058
-          -
-          2172
+          2153
         </td>
         <td>
           Apply
@@ -577,31 +535,10 @@
           62
         </td>
         <td>
-          1538
+          1408
         </td>
         <td>
-          2130
-          -
-          2147
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          javafx.scene.layout.CornerRadii.EMPTY
-        </td>
-        <td style="background: #AEF1AE">
-          javafx.scene.layout.CornerRadii.EMPTY
-        </td>
-      </tr><tr>
-        <td>
-          62
-        </td>
-        <td>
-          1537
-        </td>
-        <td>
-          2105
+          2111
           -
           2128
         </td>
@@ -609,6 +546,27 @@
           Select
         </td>
         <td>
+          javafx.scene.layout.CornerRadii.EMPTY
+        </td>
+        <td style="background: #AEF1AE">
+          javafx.scene.layout.CornerRadii.EMPTY
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          1407
+        </td>
+        <td>
+          2086
+          -
+          2109
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
           javafx.scene.layout.BorderStrokeStyle.SOLID
         </td>
         <td style="background: #AEF1AE">
@@ -619,12 +577,12 @@
           62
         </td>
         <td>
-          1540
+          1410
         </td>
         <td>
-          2069
+          2050
           -
-          2171
+          2152
         </td>
         <td>
           Apply
@@ -637,15 +595,57 @@
         </td>
       </tr><tr>
         <td>
+          62
+        </td>
+        <td>
+          1406
+        </td>
+        <td>
+          2067
+          -
+          2084
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.CELL_BORDER_COLOR
+        </td>
+        <td style="background: #AEF1AE">
+          CellView.this.CELL_BORDER_COLOR
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          1409
+        </td>
+        <td>
+          2130
+          -
+          2151
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.layout.BorderWidths.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new javafx.scene.layout.BorderWidths(1.5)
+        </td>
+      </tr><tr>
+        <td>
           64
         </td>
         <td>
-          1542
+          1412
         </td>
         <td>
-          2209
+          2190
           -
-          2224
+          2205
         </td>
         <td>
           Select
@@ -661,39 +661,18 @@
           72
         </td>
         <td>
-          1545
+          1420
         </td>
         <td>
-          2461
+          2396
           -
-          2483
+          2564
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Function1.apply
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.this.coloringStrategy.apply(cell)
-        </td>
-      </tr><tr>
-        <td>
-          72
-        </td>
-        <td>
-          1550
-        </td>
-        <td>
-          2415
-          -
-          2583
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.apply
+          it.cwmp.client.view.game.CellView.apply
         </td>
         <td style="background: #F0ADAD">
           CellView.apply(cell.position, CellView.this.sizingStrategy.apply(cell), CellView.this.coloringStrategy.apply(cell), cell.energy, CellView.this.energyTextColoringStrategy.apply(cell), CellView.this.borderingStrategy.apply(scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, String](cell, currentPlayerName)))
@@ -703,12 +682,12 @@
           72
         </td>
         <td>
-          1544
+          1414
         </td>
         <td>
-          2439
+          2420
           -
-          2459
+          2440
         </td>
         <td>
           Apply
@@ -724,12 +703,12 @@
           72
         </td>
         <td>
-          1543
+          1413
         </td>
         <td>
-          2424
+          2405
           -
-          2437
+          2418
         </td>
         <td>
           Select
@@ -742,36 +721,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          72
         </td>
         <td>
-          1548
+          1415
         </td>
         <td>
-          2556
+          2442
           -
-          2581
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple2.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, String](cell, currentPlayerName)
-        </td>
-      </tr><tr>
-        <td>
-          73
-        </td>
-        <td>
-          1547
-        </td>
-        <td>
-          2504
-          -
-          2536
+          2464
         </td>
         <td>
           Apply
@@ -780,19 +738,19 @@
           scala.Function1.apply
         </td>
         <td style="background: #F0ADAD">
-          CellView.this.energyTextColoringStrategy.apply(cell)
+          CellView.this.coloringStrategy.apply(cell)
         </td>
       </tr><tr>
         <td>
           73
         </td>
         <td>
-          1546
+          1416
         </td>
         <td>
-          2491
+          2472
           -
-          2502
+          2483
         </td>
         <td>
           Select
@@ -808,12 +766,12 @@
           73
         </td>
         <td>
-          1549
+          1419
         </td>
         <td>
-          2538
+          2519
           -
-          2582
+          2563
         </td>
         <td>
           Apply
@@ -826,15 +784,57 @@
         </td>
       </tr><tr>
         <td>
+          73
+        </td>
+        <td>
+          1418
+        </td>
+        <td>
+          2537
+          -
+          2562
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[it.cwmp.client.model.game.impl.Cell, String](cell, currentPlayerName)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          1417
+        </td>
+        <td>
+          2485
+          -
+          2517
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.this.energyTextColoringStrategy.apply(cell)
+        </td>
+      </tr><tr>
+        <td>
           81
         </td>
         <td>
-          1551
+          1421
         </td>
         <td>
-          2768
+          2749
           -
-          2792
+          2773
         </td>
         <td>
           Apply
@@ -850,18 +850,18 @@
           82
         </td>
         <td>
-          1553
+          1423
         </td>
         <td>
-          2802
+          2783
           -
-          2820
+          2801
         </td>
         <td>
           Block
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.PASSIVE_CELL_COLOR
+          it.cwmp.client.view.game.CellView.PASSIVE_CELL_COLOR
         </td>
         <td style="background: #F0ADAD">
           CellView.this.PASSIVE_CELL_COLOR
@@ -871,18 +871,18 @@
           82
         </td>
         <td>
-          1552
+          1422
         </td>
         <td>
-          2802
+          2783
           -
-          2820
+          2801
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.PASSIVE_CELL_COLOR
+          it.cwmp.client.view.game.CellView.PASSIVE_CELL_COLOR
         </td>
         <td style="background: #F0ADAD">
           CellView.this.PASSIVE_CELL_COLOR
@@ -892,12 +892,12 @@
           83
         </td>
         <td>
-          1576
+          1446
         </td>
         <td>
-          2832
+          2813
           -
-          3458
+          3439
         </td>
         <td>
           Block
@@ -922,75 +922,12 @@
           85
         </td>
         <td>
-          1560
+          1429
         </td>
         <td>
-          2993
+          2946
           -
-          3016
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Int.toDouble
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.this.CELL_VIEW_COLOR_OPACITY.toDouble
-        </td>
-      </tr><tr>
-        <td>
-          85
-        </td>
-        <td>
-          1554
-        </td>
-        <td>
-          2925
-          -
-          2934
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
-        </td>
-      </tr><tr>
-        <td>
-          85
-        </td>
-        <td>
-          1557
-        </td>
-        <td>
-          2936
-          -
-          2963
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Int./
-        </td>
-        <td style="background: #F0ADAD">
-          userColor.green./(it.cwmp.client.view.game.GameViewConstants.RGB_RANGE)
-        </td>
-      </tr><tr>
-        <td>
-          85
-        </td>
-        <td>
-          1559
-        </td>
-        <td>
-          2965
-          -
-          2991
+          2972
         </td>
         <td>
           Apply
@@ -1006,33 +943,12 @@
           85
         </td>
         <td>
-          1556
+          1425
         </td>
         <td>
-          2954
+          2890
           -
-          2963
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
-        </td>
-      </tr><tr>
-        <td>
-          85
-        </td>
-        <td>
-          1555
-        </td>
-        <td>
-          2909
-          -
-          2934
+          2915
         </td>
         <td>
           Apply
@@ -1048,12 +964,12 @@
           85
         </td>
         <td>
-          1558
+          1428
         </td>
         <td>
-          2982
+          2963
           -
-          2991
+          2972
         </td>
         <td>
           Select
@@ -1069,12 +985,12 @@
           85
         </td>
         <td>
-          1561
+          1431
         </td>
         <td>
-          2899
+          2880
           -
-          3017
+          2998
         </td>
         <td>
           Apply
@@ -1087,36 +1003,99 @@
         </td>
       </tr><tr>
         <td>
-          87
+          85
         </td>
         <td>
-          1563
+          1430
         </td>
         <td>
-          3041
+          2974
           -
-          3041
+          2997
         </td>
         <td>
           Select
         </td>
         <td>
-          com.github.tkqubo.colorHash.ColorHash.&lt;init&gt;$default$2
+          scala.Int.toDouble
         </td>
         <td style="background: #F0ADAD">
-          colorHash.this.ColorHash.&lt;init&gt;$default$2
+          CellView.this.CELL_VIEW_COLOR_OPACITY.toDouble
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1424
+        </td>
+        <td>
+          2906
+          -
+          2915
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1427
+        </td>
+        <td>
+          2917
+          -
+          2944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Int./
+        </td>
+        <td style="background: #F0ADAD">
+          userColor.green./(it.cwmp.client.view.game.GameViewConstants.RGB_RANGE)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          1426
+        </td>
+        <td>
+          2935
+          -
+          2944
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.view.game.GameViewConstants.RGB_RANGE
         </td>
       </tr><tr>
         <td>
           87
         </td>
         <td>
-          1562
+          1432
         </td>
         <td>
-          3041
+          3022
           -
-          3041
+          3022
         </td>
         <td>
           Select
@@ -1132,33 +1111,12 @@
           87
         </td>
         <td>
-          1565
+          1434
         </td>
         <td>
-          3041
+          3022
           -
-          3056
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.github.tkqubo.colorHash.ColorHash.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new com.github.tkqubo.colorHash.ColorHash(colorHash.this.ColorHash.&lt;init&gt;$default$1, colorHash.this.ColorHash.&lt;init&gt;$default$2, colorHash.this.ColorHash.&lt;init&gt;$default$3)
-        </td>
-      </tr><tr>
-        <td>
-          87
-        </td>
-        <td>
-          1564
-        </td>
-        <td>
-          3041
-          -
-          3041
+          3022
         </td>
         <td>
           Select
@@ -1171,15 +1129,57 @@
         </td>
       </tr><tr>
         <td>
+          87
+        </td>
+        <td>
+          1433
+        </td>
+        <td>
+          3022
+          -
+          3022
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.github.tkqubo.colorHash.ColorHash.&lt;init&gt;$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          colorHash.this.ColorHash.&lt;init&gt;$default$2
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          1435
+        </td>
+        <td>
+          3022
+          -
+          3037
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.github.tkqubo.colorHash.ColorHash.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new com.github.tkqubo.colorHash.ColorHash(colorHash.this.ColorHash.&lt;init&gt;$default$1, colorHash.this.ColorHash.&lt;init&gt;$default$2, colorHash.this.ColorHash.&lt;init&gt;$default$3)
+        </td>
+      </tr><tr>
+        <td>
           88
         </td>
         <td>
-          1566
+          1436
         </td>
         <td>
-          3078
+          3059
           -
-          3097
+          3078
         </td>
         <td>
           Select
@@ -1195,18 +1195,18 @@
           89
         </td>
         <td>
-          1568
+          1438
         </td>
         <td>
-          3127
+          3108
           -
-          3150
+          3131
         </td>
         <td>
           ApplyImplicitView
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.colorFromRGB
+          it.cwmp.client.view.game.CellView.colorFromRGB
         </td>
         <td style="background: #F0ADAD">
           colorFromRGB(colorHash.rgb(username))
@@ -1216,12 +1216,12 @@
           89
         </td>
         <td>
-          1567
+          1437
         </td>
         <td>
-          3127
+          3108
           -
-          3150
+          3131
         </td>
         <td>
           Apply
@@ -1237,12 +1237,12 @@
           91
         </td>
         <td>
-          1569
+          1439
         </td>
         <td>
-          3232
+          3213
           -
-          3345
+          3326
         </td>
         <td>
           Apply
@@ -1258,54 +1258,12 @@
           92
         </td>
         <td>
-          1572
+          1441
         </td>
         <td>
-          3357
+          3352
           -
-          3411
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          com.github.tkqubo.colorHash.ColorHash.rgb
-        </td>
-        <td style="background: #F0ADAD">
-          colorHash.rgb(username.substring(username.length()./(2)))
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          1574
-        </td>
-        <td>
-          3357
-          -
-          3411
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.colorFromRGB
-        </td>
-        <td style="background: #F0ADAD">
-          colorFromRGB(colorHash.rgb(username.substring(username.length()./(2))))
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          1571
-        </td>
-        <td>
-          3371
-          -
-          3410
+          3391
         </td>
         <td>
           Apply
@@ -1321,33 +1279,12 @@
           92
         </td>
         <td>
-          1573
+          1440
         </td>
         <td>
-          3357
+          3371
           -
-          3411
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.colorFromRGB
-        </td>
-        <td style="background: #F0ADAD">
-          colorFromRGB(colorHash.rgb(username.substring(username.length()./(2))))
-        </td>
-      </tr><tr>
-        <td>
-          92
-        </td>
-        <td>
-          1570
-        </td>
-        <td>
           3390
-          -
-          3409
         </td>
         <td>
           Apply
@@ -1360,21 +1297,84 @@
         </td>
       </tr><tr>
         <td>
+          92
+        </td>
+        <td>
+          1443
+        </td>
+        <td>
+          3338
+          -
+          3392
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.colorFromRGB
+        </td>
+        <td style="background: #F0ADAD">
+          colorFromRGB(colorHash.rgb(username.substring(username.length()./(2))))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          1442
+        </td>
+        <td>
+          3338
+          -
+          3392
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.github.tkqubo.colorHash.ColorHash.rgb
+        </td>
+        <td style="background: #F0ADAD">
+          colorHash.rgb(username.substring(username.length()./(2)))
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          1444
+        </td>
+        <td>
+          3338
+          -
+          3392
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.colorFromRGB
+        </td>
+        <td style="background: #F0ADAD">
+          colorFromRGB(colorHash.rgb(username.substring(username.length()./(2))))
+        </td>
+      </tr><tr>
+        <td>
           94
         </td>
         <td>
-          1575
+          1445
         </td>
         <td>
-          3435
+          3416
           -
-          3444
+          3425
         </td>
         <td>
           Ident
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.userColor
+          it.cwmp.client.view.game.CellView.userColor
         </td>
         <td style="background: #F0ADAD">
           userColor
@@ -1384,12 +1384,54 @@
           103
         </td>
         <td>
-          1578
+          1447
         </td>
         <td>
-          3612
+          3607
           -
-          3661
+          3642
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.game.GameConstants.CELL_ENERGY_WHEN_BORN
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.game.GameConstants.CELL_ENERGY_WHEN_BORN
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1449
+        </td>
+        <td>
+          3646
+          -
+          3667
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.CELL_DYING_FONT_COLOR
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.this.CELL_DYING_FONT_COLOR
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          1448
+        </td>
+        <td>
+          3593
+          -
+          3642
         </td>
         <td>
           Apply
@@ -1402,57 +1444,15 @@
         </td>
       </tr><tr>
         <td>
-          103
-        </td>
-        <td>
-          1577
-        </td>
-        <td>
-          3626
-          -
-          3661
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.game.GameConstants.CELL_ENERGY_WHEN_BORN
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.game.GameConstants.CELL_ENERGY_WHEN_BORN
-        </td>
-      </tr><tr>
-        <td>
-          103
-        </td>
-        <td>
-          1579
-        </td>
-        <td>
-          3665
-          -
-          3686
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.CELL_DYING_FONT_COLOR
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.this.CELL_DYING_FONT_COLOR
-        </td>
-      </tr><tr>
-        <td>
           104
         </td>
         <td>
-          1580
+          1450
         </td>
         <td>
-          3701
+          3682
           -
-          3724
+          3705
         </td>
         <td>
           Select
@@ -1468,12 +1468,33 @@
           111
         </td>
         <td>
-          1581
+          1452
         </td>
         <td>
-          3920
+          3886
           -
-          3953
+          3934
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Double.&lt;=
+        </td>
+        <td style="background: #F0ADAD">
+          cell.energy.&lt;=(CellView.this.CELL_MINIMUM_RADIUS_FOR_ENERGY._2)
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          1451
+        </td>
+        <td>
+          3901
+          -
+          3934
         </td>
         <td>
           Select
@@ -1489,12 +1510,12 @@
           111
         </td>
         <td>
-          1583
+          1453
         </td>
         <td>
-          3957
+          3938
           -
-          3990
+          3971
         </td>
         <td>
           Select
@@ -1507,57 +1528,15 @@
         </td>
       </tr><tr>
         <td>
-          111
-        </td>
-        <td>
-          1582
-        </td>
-        <td>
-          3905
-          -
-          3953
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Double.&lt;=
-        </td>
-        <td style="background: #F0ADAD">
-          cell.energy.&lt;=(CellView.this.CELL_MINIMUM_RADIUS_FOR_ENERGY._2)
-        </td>
-      </tr><tr>
-        <td>
           112
         </td>
         <td>
-          1584
+          1456
         </td>
         <td>
-          4029
+          4043
           -
-          4058
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._2
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.this.CELL_MAX_RADIUS_FOR_ENERGY._2
-        </td>
-      </tr><tr>
-        <td>
-          112
-        </td>
-        <td>
-          1586
-        </td>
-        <td>
-          4062
-          -
-          4091
+          4072
         </td>
         <td>
           Select
@@ -1573,12 +1552,12 @@
           112
         </td>
         <td>
-          1585
+          1455
         </td>
         <td>
-          4014
+          3995
           -
-          4058
+          4039
         </td>
         <td>
           Apply
@@ -1591,42 +1570,42 @@
         </td>
       </tr><tr>
         <td>
-          113
+          112
         </td>
         <td>
-          1587
+          1454
         </td>
         <td>
-          4152
+          4010
           -
-          4182
+          4039
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.CELL_MINIMUM_RADIUS_FOR_ENERGY
+          scala.Tuple2._2
         </td>
         <td style="background: #F0ADAD">
-          CellView.this.CELL_MINIMUM_RADIUS_FOR_ENERGY
+          CellView.this.CELL_MAX_RADIUS_FOR_ENERGY._2
         </td>
       </tr><tr>
         <td>
           113
         </td>
         <td>
-          1589
+          1459
         </td>
         <td>
-          4115
+          4096
           -
-          4211
+          4192
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.radiusBetweenMinimumAndMaximum
+          it.cwmp.client.view.game.CellView.radiusBetweenMinimumAndMaximum
         </td>
         <td style="background: #F0ADAD">
           CellView.this.radiusBetweenMinimumAndMaximum(cell, CellView.this.CELL_MINIMUM_RADIUS_FOR_ENERGY, CellView.this.CELL_MAX_RADIUS_FOR_ENERGY)
@@ -1636,33 +1615,75 @@
           113
         </td>
         <td>
-          1588
+          1458
         </td>
         <td>
-          4184
+          4165
           -
-          4210
+          4191
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.CELL_MAX_RADIUS_FOR_ENERGY
+          it.cwmp.client.view.game.CellView.CELL_MAX_RADIUS_FOR_ENERGY
         </td>
         <td style="background: #F0ADAD">
           CellView.this.CELL_MAX_RADIUS_FOR_ENERGY
         </td>
       </tr><tr>
         <td>
+          113
+        </td>
+        <td>
+          1457
+        </td>
+        <td>
+          4133
+          -
+          4163
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.CELL_MINIMUM_RADIUS_FOR_ENERGY
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.this.CELL_MINIMUM_RADIUS_FOR_ENERGY
+        </td>
+      </tr><tr>
+        <td>
           122
         </td>
         <td>
-          1590
+          1461
         </td>
         <td>
-          4444
+          4462
           -
-          4477
+          4479
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.OWNER_CELL_BORDER
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.this.OWNER_CELL_BORDER
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          1460
+        </td>
+        <td>
+          4425
+          -
+          4458
         </td>
         <td>
           Apply
@@ -1675,42 +1696,21 @@
         </td>
       </tr><tr>
         <td>
-          122
-        </td>
-        <td>
-          1591
-        </td>
-        <td>
-          4481
-          -
-          4498
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.CellView.OWNER_CELL_BORDER
-        </td>
-        <td style="background: #F0ADAD">
-          CellView.this.OWNER_CELL_BORDER
-        </td>
-      </tr><tr>
-        <td>
           123
         </td>
         <td>
-          1592
+          1462
         </td>
         <td>
-          4513
+          4494
           -
-          4532
+          4513
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.DEFAULT_CELL_BORDER
+          it.cwmp.client.view.game.CellView.DEFAULT_CELL_BORDER
         </td>
         <td style="background: #F0ADAD">
           CellView.this.DEFAULT_CELL_BORDER
@@ -1720,33 +1720,12 @@
           137
         </td>
         <td>
-          1593
+          1464
         </td>
         <td>
-          5142
+          5109
           -
-          5167
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Tuple2._2
-        </td>
-        <td style="background: #F0ADAD">
-          minimumRadiusAndEnergy._2
-        </td>
-      </tr><tr>
-        <td>
-          137
-        </td>
-        <td>
-          1594
-        </td>
-        <td>
-          5128
-          -
-          5167
+          5148
         </td>
         <td>
           Apply
@@ -1759,36 +1738,36 @@
         </td>
       </tr><tr>
         <td>
-          138
+          137
         </td>
         <td>
-          1596
+          1463
         </td>
         <td>
-          5230
+          5123
           -
-          5261
+          5148
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.Double.toInt
+          scala.Tuple2._2
         </td>
         <td style="background: #F0ADAD">
-          minimumRadiusAndEnergy._2.toInt
+          minimumRadiusAndEnergy._2
         </td>
       </tr><tr>
         <td>
           138
         </td>
         <td>
-          1595
+          1465
         </td>
         <td>
-          5197
+          5178
           -
-          5228
+          5209
         </td>
         <td>
           Select
@@ -1804,12 +1783,12 @@
           138
         </td>
         <td>
-          1597
+          1467
         </td>
         <td>
-          5191
+          5172
           -
-          5262
+          5243
         </td>
         <td>
           Apply
@@ -1822,15 +1801,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          138
         </td>
         <td>
-          1599
+          1466
         </td>
         <td>
-          5325
+          5211
           -
-          5356
+          5242
         </td>
         <td>
           Select
@@ -1839,19 +1818,19 @@
           scala.Double.toInt
         </td>
         <td style="background: #F0ADAD">
-          maximumRadiusAndEnergy._2.toInt
+          minimumRadiusAndEnergy._2.toInt
         </td>
       </tr><tr>
         <td>
           139
         </td>
         <td>
-          1598
+          1468
         </td>
         <td>
-          5292
+          5273
           -
-          5323
+          5304
         </td>
         <td>
           Select
@@ -1867,12 +1846,12 @@
           139
         </td>
         <td>
-          1600
+          1470
         </td>
         <td>
-          5286
+          5267
           -
-          5357
+          5338
         </td>
         <td>
           Apply
@@ -1885,15 +1864,36 @@
         </td>
       </tr><tr>
         <td>
+          139
+        </td>
+        <td>
+          1469
+        </td>
+        <td>
+          5306
+          -
+          5337
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Double.toInt
+        </td>
+        <td style="background: #F0ADAD">
+          maximumRadiusAndEnergy._2.toInt
+        </td>
+      </tr><tr>
+        <td>
           143
         </td>
         <td>
-          1601
+          1471
         </td>
         <td>
-          5586
+          5567
           -
-          5677
+          5658
         </td>
         <td>
           Select
@@ -1909,12 +1909,12 @@
           144
         </td>
         <td>
-          1602
+          1472
         </td>
         <td>
-          5682
+          5663
           -
-          5721
+          5702
         </td>
         <td>
           Apply
@@ -1930,12 +1930,12 @@
           180
         </td>
         <td>
-          1603
+          1473
         </td>
         <td>
-          5838
+          5819
           -
-          8949
+          8930
         </td>
         <td>
           Literal

@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/client/view/game/GameFX.scala.html
+          src/main/scala/it/cwmp/client/view/game/GameFXController.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -25,10 +25,10 @@
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.view.game
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.ActorRef
-</span>4 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
-</span>5 <span style=''>import it.cwmp.client.utils.LayoutRes
-</span>6 <span style=''>import it.cwmp.client.view.game.model.{CellView, TentacleView}
-</span>7 <span style=''>import it.cwmp.client.view.{FXAlertsController, FXViewController}
+</span>4 <span style=''>import it.cwmp.client.controller.actors.view.GameViewActor
+</span>5 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Point}
+</span>6 <span style=''>import it.cwmp.client.view.game.drawing.CellWorldObjectDrawer
+</span>7 <span style=''>import it.cwmp.client.view.{FXAlertsController, FXViewController, LayoutRes}
 </span>8 <span style=''>import javafx.fxml.FXML
 </span>9 <span style=''>import javafx.scene.canvas.Canvas
 </span>10 <span style=''>import javafx.scene.input.MouseEvent
@@ -46,7 +46,7 @@
 </span>22 <span style=''>  * @author Davide Borficchia
 </span>23 <span style=''>  * @author contributor Enrico Siboni
 </span>24 <span style=''>  */
-</span>25 <span style=''>case class GameFX(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
+</span>25 <span style=''>case class GameFXController(viewManagerActor: ActorRef, override val title: String, viewSize: Int, playerName: String)
 </span>26 <span style=''>  extends CellWorldObjectDrawer with FXViewController with FXAlertsController {
 </span>27 <span style=''>
 </span>28 <span style=''>  @FXML private var root: Group = _
@@ -176,33 +176,33 @@
           30
         </td>
         <td>
-          1273
+          1474
         </td>
         <td>
-          1041
+          1082
           -
-          1061
+          1102
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.utils.LayoutRes.gameLayout
+          it.cwmp.client.view.LayoutRes.gameLayout
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.utils.LayoutRes.gameLayout
+          it.cwmp.client.view.LayoutRes.gameLayout
         </td>
       </tr><tr>
         <td>
           34
         </td>
         <td>
-          1274
+          1475
         </td>
         <td>
-          1173
+          1214
           -
-          1188
+          1229
         </td>
         <td>
           Apply
@@ -211,19 +211,19 @@
           it.cwmp.client.view.FXViewController.initGUI
         </td>
         <td style="background: #F0ADAD">
-          GameFX.super.initGUI()
+          GameFXController.super.initGUI()
         </td>
       </tr><tr>
         <td>
           35
         </td>
         <td>
-          1276
+          1476
         </td>
         <td>
-          1235
+          1266
           -
-          1243
+          1274
         </td>
         <td>
           Select
@@ -232,19 +232,19 @@
           scala.Int.toDouble
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.viewSize.toDouble
+          GameFXController.this.viewSize.toDouble
         </td>
       </tr><tr>
         <td>
           35
         </td>
         <td>
-          1278
+          1479
         </td>
         <td>
-          1193
+          1234
           -
-          1245
+          1286
         </td>
         <td>
           Apply
@@ -253,40 +253,19 @@
           java.util.List.add
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().add(new javafx.scene.canvas.Canvas(GameFX.this.viewSize.toDouble, GameFX.this.viewSize.toDouble))
+          GameFXController.this.root.getChildren().add(new javafx.scene.canvas.Canvas(GameFXController.this.viewSize.toDouble, GameFXController.this.viewSize.toDouble))
         </td>
       </tr><tr>
         <td>
           35
         </td>
         <td>
-          1275
+          1478
         </td>
         <td>
-          1225
+          1255
           -
-          1233
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.Int.toDouble
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.viewSize.toDouble
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          1277
-        </td>
-        <td>
-          1214
-          -
-          1244
+          1285
         </td>
         <td>
           Apply
@@ -295,112 +274,103 @@
           javafx.scene.canvas.Canvas.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
-          new javafx.scene.canvas.Canvas(GameFX.this.viewSize.toDouble, GameFX.this.viewSize.toDouble)
+          new javafx.scene.canvas.Canvas(GameFXController.this.viewSize.toDouble, GameFXController.this.viewSize.toDouble)
         </td>
       </tr><tr>
         <td>
-          37
+          35
         </td>
         <td>
-          1279
+          1477
         </td>
         <td>
-          1292
+          1276
           -
-          1296
+          1284
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.root
+          scala.Int.toDouble
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root
+          GameFXController.this.viewSize.toDouble
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          1281
+          1482
         </td>
         <td>
-          1251
+          1292
           -
-          1315
+          1356
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.initializeEventHandlers
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.initializeEventHandlers
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.UserEventHandler.initializeEventHandlers(GameFX.this.root, GameFX.this.viewManagerActor)
+          GameFXController.this.UserEventHandler.initializeEventHandlers(GameFXController.this.root, GameFXController.this.viewManagerActor)
         </td>
       </tr><tr>
         <td>
           37
         </td>
         <td>
-          1280
+          1481
         </td>
         <td>
-          1298
+          1339
           -
-          1314
+          1355
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.viewManagerActor
+          it.cwmp.client.view.game.GameFXController.viewManagerActor
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.viewManagerActor
+          GameFXController.this.viewManagerActor
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          1480
+        </td>
+        <td>
+          1333
+          -
+          1337
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFXController.root
+        </td>
+        <td style="background: #F0ADAD">
+          GameFXController.this.root
         </td>
       </tr><tr>
         <td>
           45
         </td>
         <td>
-          1306
+          1508
         </td>
         <td>
-          1477
+          1525
           -
-          1955
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.concurrent.Future.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.concurrent.Future.apply[Unit]({
-  val graphicElementsToDraw: Seq[javafx.scene.Node] = scala.collection.Seq.apply[Seq[javafx.scene.Node]](world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]), world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCell(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]), world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCellEnergy(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text]), scala.collection.Seq.apply[javafx.scene.text.Text](GameFX.this.drawInstant(world.instant, GameFX.this.viewSize.toDouble))).flatten[javafx.scene.Node](scala.Predef.$conforms[Seq[javafx.scene.Node]]);
-  GameFX.this.runOnUIThread((() =&gt; {
-    GameFX.this.root.getChildren().clear();
-    {
-      GameFX.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava);
-      ()
-    }
-  }))
-})(scala.concurrent.ExecutionContext.Implicits.global)
-        </td>
-      </tr><tr>
-        <td>
-          45
-        </td>
-        <td>
-          1307
-        </td>
-        <td>
-          1484
-          -
-          1484
+          1525
         </td>
         <td>
           Literal
@@ -413,15 +383,45 @@
         </td>
       </tr><tr>
         <td>
+          45
+        </td>
+        <td>
+          1507
+        </td>
+        <td>
+          1518
+          -
+          1996
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.concurrent.Future.apply[Unit]({
+  val graphicElementsToDraw: Seq[javafx.scene.Node] = scala.collection.Seq.apply[Seq[javafx.scene.Node]](world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFXController.this.drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]), world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCell(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]), world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCellEnergy(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text]), scala.collection.Seq.apply[javafx.scene.text.Text](GameFXController.this.drawInstant(world.instant, GameFXController.this.viewSize.toDouble))).flatten[javafx.scene.Node](scala.Predef.$conforms[Seq[javafx.scene.Node]]);
+  GameFXController.this.runOnUIThread((() =&gt; {
+    GameFXController.this.root.getChildren().clear();
+    {
+      GameFXController.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava);
+      ()
+    }
+  }))
+})(scala.concurrent.ExecutionContext.Implicits.global)
+        </td>
+      </tr><tr>
+        <td>
           48
         </td>
         <td>
-          1282
+          1483
         </td>
         <td>
-          1629
+          1670
           -
-          1642
+          1683
         </td>
         <td>
           Select
@@ -437,12 +437,75 @@
           48
         </td>
         <td>
-          1285
+          1485
         </td>
         <td>
-          1565
+          1619
           -
-          1565
+          1685
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.drawing.CellWorldObjectDrawer.drawTentacle
+        </td>
+        <td style="background: #F0ADAD">
+          GameFXController.this.drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1484
+        </td>
+        <td>
+          1632
+          -
+          1684
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.TentacleView.tentacleToView
+        </td>
+        <td style="background: #F0ADAD">
+          TentacleView.tentacleToView(tentacle, world.instant)
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1487
+        </td>
+        <td>
+          1589
+          -
+          1686
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFXController.this.drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line])
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          1486
+        </td>
+        <td>
+          1606
+          -
+          1606
         </td>
         <td>
           TypeApply
@@ -455,120 +518,36 @@
         </td>
       </tr><tr>
         <td>
-          48
-        </td>
-        <td>
-          1284
-        </td>
-        <td>
-          1578
-          -
-          1644
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.CellWorldObjectDrawer.drawTentacle
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          1283
-        </td>
-        <td>
-          1591
-          -
-          1643
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.model.TentacleView.tentacleToView
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant)
-        </td>
-      </tr><tr>
-        <td>
-          48
-        </td>
-        <td>
-          1286
-        </td>
-        <td>
-          1548
-          -
-          1645
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.TraversableLike.map
-        </td>
-        <td style="background: #F0ADAD">
-          world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line])
-        </td>
-      </tr><tr>
-        <td>
           49
         </td>
         <td>
-          1288
+          1488
         </td>
         <td>
-          1684
+          1734
           -
-          1698
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.CellWorldObjectDrawer.drawCell
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.drawCell(GameFX.this.cellToView(cell))
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          1287
-        </td>
-        <td>
-          1693
-          -
-          1697
+          1738
         </td>
         <td>
           ApplyImplicitView
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.cellToView
+          it.cwmp.client.view.game.GameFXController.cellToView
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.cellToView(cell)
+          GameFXController.this.cellToView(cell)
         </td>
       </tr><tr>
         <td>
           49
         </td>
         <td>
-          1290
+          1491
         </td>
         <td>
-          1655
+          1696
           -
-          1699
+          1740
         </td>
         <td>
           ApplyToImplicitArgs
@@ -577,19 +556,19 @@
           scala.collection.TraversableLike.map
         </td>
         <td style="background: #F0ADAD">
-          world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCell(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region])
+          world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCell(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region])
         </td>
       </tr><tr>
         <td>
           49
         </td>
         <td>
-          1289
+          1490
         </td>
         <td>
-          1675
+          1716
           -
-          1675
+          1716
         </td>
         <td>
           TypeApply
@@ -602,57 +581,57 @@
         </td>
       </tr><tr>
         <td>
+          49
+        </td>
+        <td>
+          1489
+        </td>
+        <td>
+          1725
+          -
+          1739
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.drawing.CellWorldObjectDrawer.drawCell
+        </td>
+        <td style="background: #F0ADAD">
+          GameFXController.this.drawCell(GameFXController.this.cellToView(cell))
+        </td>
+      </tr><tr>
+        <td>
           50
         </td>
         <td>
-          1291
+          1492
         </td>
         <td>
-          1753
+          1794
           -
-          1757
+          1798
         </td>
         <td>
           ApplyImplicitView
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.cellToView
+          it.cwmp.client.view.game.GameFXController.cellToView
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.cellToView(cell)
+          GameFXController.this.cellToView(cell)
         </td>
       </tr><tr>
         <td>
           50
         </td>
         <td>
-          1294
+          1494
         </td>
         <td>
-          1709
+          1770
           -
-          1759
-        </td>
-        <td>
-          ApplyToImplicitArgs
-        </td>
-        <td>
-          scala.collection.TraversableLike.map
-        </td>
-        <td style="background: #F0ADAD">
-          world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCellEnergy(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text])
-        </td>
-      </tr><tr>
-        <td>
-          50
-        </td>
-        <td>
-          1293
-        </td>
-        <td>
-          1729
-          -
-          1729
+          1770
         </td>
         <td>
           TypeApply
@@ -668,54 +647,54 @@
           50
         </td>
         <td>
-          1292
+          1493
         </td>
         <td>
-          1738
+          1779
           -
-          1758
+          1799
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.CellWorldObjectDrawer.drawCellEnergy
+          it.cwmp.client.view.game.drawing.CellWorldObjectDrawer.drawCellEnergy
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.drawCellEnergy(GameFX.this.cellToView(cell))
+          GameFXController.this.drawCellEnergy(GameFXController.this.cellToView(cell))
         </td>
       </tr><tr>
         <td>
-          51
+          50
         </td>
         <td>
-          1297
+          1495
         </td>
         <td>
-          1773
+          1750
           -
-          1809
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.game.CellWorldObjectDrawer.drawInstant
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.drawInstant(world.instant, GameFX.this.viewSize.toDouble)
-        </td>
-      </tr><tr>
-        <td>
-          51
-        </td>
-        <td>
-          1296
-        </td>
-        <td>
           1800
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.collection.TraversableLike.map
+        </td>
+        <td style="background: #F0ADAD">
+          world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCellEnergy(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text])
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1497
+        </td>
+        <td>
+          1841
           -
-          1808
+          1849
         </td>
         <td>
           Select
@@ -724,19 +703,40 @@
           scala.Int.toDouble
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.viewSize.toDouble
+          GameFXController.this.viewSize.toDouble
         </td>
       </tr><tr>
         <td>
           51
         </td>
         <td>
-          1295
+          1499
         </td>
         <td>
-          1785
+          1810
           -
-          1798
+          1851
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.generic.GenericCompanion.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.collection.Seq.apply[javafx.scene.text.Text](GameFXController.this.drawInstant(world.instant, GameFXController.this.viewSize.toDouble))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          1496
+        </td>
+        <td>
+          1826
+          -
+          1839
         </td>
         <td>
           Select
@@ -752,33 +752,33 @@
           51
         </td>
         <td>
-          1298
+          1498
         </td>
         <td>
-          1769
+          1814
           -
-          1810
+          1850
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.collection.generic.GenericCompanion.apply
+          it.cwmp.client.view.game.drawing.CellWorldObjectDrawer.drawInstant
         </td>
         <td style="background: #F0ADAD">
-          scala.collection.Seq.apply[javafx.scene.text.Text](GameFX.this.drawInstant(world.instant, GameFX.this.viewSize.toDouble))
+          GameFXController.this.drawInstant(world.instant, GameFXController.this.viewSize.toDouble)
         </td>
       </tr><tr>
         <td>
           52
         </td>
         <td>
-          1300
+          1501
         </td>
         <td>
-          1535
+          1576
           -
-          1826
+          1867
         </td>
         <td>
           ApplyToImplicitArgs
@@ -787,19 +787,19 @@
           scala.collection.generic.GenericTraversableTemplate.flatten
         </td>
         <td style="background: #F0ADAD">
-          scala.collection.Seq.apply[Seq[javafx.scene.Node]](world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFX.this.drawTentacle(it.cwmp.client.view.game.model.TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]), world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCell(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]), world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFX.this.drawCellEnergy(GameFX.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text]), scala.collection.Seq.apply[javafx.scene.text.Text](GameFX.this.drawInstant(world.instant, GameFX.this.viewSize.toDouble))).flatten[javafx.scene.Node](scala.Predef.$conforms[Seq[javafx.scene.Node]])
+          scala.collection.Seq.apply[Seq[javafx.scene.Node]](world.attacks.map[javafx.scene.shape.Line, Seq[javafx.scene.shape.Line]](((tentacle: it.cwmp.client.model.game.impl.Tentacle) =&gt; GameFXController.this.drawTentacle(TentacleView.tentacleToView(tentacle, world.instant))))(collection.this.Seq.canBuildFrom[javafx.scene.shape.Line]), world.characters.map[javafx.scene.layout.Region, Seq[javafx.scene.layout.Region]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCell(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.layout.Region]), world.characters.map[javafx.scene.text.Text, Seq[javafx.scene.text.Text]](((cell: it.cwmp.client.model.game.impl.Cell) =&gt; GameFXController.this.drawCellEnergy(GameFXController.this.cellToView(cell))))(collection.this.Seq.canBuildFrom[javafx.scene.text.Text]), scala.collection.Seq.apply[javafx.scene.text.Text](GameFXController.this.drawInstant(world.instant, GameFXController.this.viewSize.toDouble))).flatten[javafx.scene.Node](scala.Predef.$conforms[Seq[javafx.scene.Node]])
         </td>
       </tr><tr>
         <td>
           52
         </td>
         <td>
-          1299
+          1500
         </td>
         <td>
-          1819
+          1860
           -
-          1819
+          1860
         </td>
         <td>
           TypeApply
@@ -815,12 +815,12 @@
           54
         </td>
         <td>
-          1305
+          1506
         </td>
         <td>
-          1832
+          1873
           -
-          1951
+          1992
         </td>
         <td>
           Apply
@@ -829,10 +829,10 @@
           it.cwmp.client.view.FXRunOnUIThread.runOnUIThread
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.runOnUIThread((() =&gt; {
-  GameFX.this.root.getChildren().clear();
+          GameFXController.this.runOnUIThread((() =&gt; {
+  GameFXController.this.root.getChildren().clear();
   {
-    GameFX.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava);
+    GameFXController.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava);
     ()
   }
 }))
@@ -842,12 +842,12 @@
           55
         </td>
         <td>
-          1301
+          1502
         </td>
         <td>
-          1860
+          1901
           -
-          1884
+          1925
         </td>
         <td>
           Apply
@@ -856,40 +856,19 @@
           java.util.List.clear
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().clear()
+          GameFXController.this.root.getChildren().clear()
         </td>
       </tr><tr>
         <td>
           56
         </td>
         <td>
-          1303
+          1503
         </td>
         <td>
-          1891
+          1956
           -
-          1944
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          java.util.List.addAll
-        </td>
-        <td style="background: #F0ADAD">
-          GameFX.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava)
-        </td>
-      </tr><tr>
-        <td>
-          56
-        </td>
-        <td>
-          1302
-        </td>
-        <td>
-          1915
-          -
-          1943
+          1984
         </td>
         <td>
           Select
@@ -905,12 +884,12 @@
           56
         </td>
         <td>
-          1304
+          1505
         </td>
         <td>
-          1914
+          1955
           -
-          1914
+          1955
         </td>
         <td>
           Literal
@@ -923,57 +902,78 @@
         </td>
       </tr><tr>
         <td>
-          66
+          56
         </td>
         <td>
-          1309
+          1504
         </td>
         <td>
-          2163
+          1932
           -
-          2200
+          1985
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.model.CellView.cellToView
+          java.util.List.addAll
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.view.game.model.CellView.cellToView(cell, GameFX.this.playerName)
+          GameFXController.this.root.getChildren().addAll(scala.collection.JavaConverters.seqAsJavaListConverter[javafx.scene.Node](graphicElementsToDraw).asJava)
         </td>
       </tr><tr>
         <td>
           66
         </td>
         <td>
-          1308
+          1510
         </td>
         <td>
-          2189
+          2204
           -
-          2199
+          2241
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.game.CellView.cellToView
+        </td>
+        <td style="background: #F0ADAD">
+          CellView.cellToView(cell, GameFXController.this.playerName)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          1509
+        </td>
+        <td>
+          2230
+          -
+          2240
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.playerName
+          it.cwmp.client.view.game.GameFXController.playerName
         </td>
         <td style="background: #F0ADAD">
-          GameFX.this.playerName
+          GameFXController.this.playerName
         </td>
       </tr><tr>
         <td>
           75
         </td>
         <td>
-          1310
+          1511
         </td>
         <td>
-          2379
+          2420
           -
-          2384
+          2425
         </td>
         <td>
           Literal
@@ -989,33 +989,33 @@
           86
         </td>
         <td>
-          1312
+          1512
         </td>
         <td>
-          2804
+          2779
           -
-          2809
+          2803
         </td>
         <td>
-          ApplyImplicitView
+          Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.eventToPoint
+          javafx.scene.input.MouseEvent.MOUSE_PRESSED
         </td>
         <td style="background: #F0ADAD">
-          UserEventHandler.this.eventToPoint(event)
+          javafx.scene.input.MouseEvent.MOUSE_PRESSED
         </td>
       </tr><tr>
         <td>
           86
         </td>
         <td>
-          1314
+          1515
         </td>
         <td>
-          2712
+          2753
           -
-          2810
+          2851
         </td>
         <td>
           Apply
@@ -1031,75 +1031,54 @@
           86
         </td>
         <td>
-          1311
+          1514
         </td>
         <td>
-          2738
+          2828
           -
-          2762
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          javafx.scene.input.MouseEvent.MOUSE_PRESSED
-        </td>
-        <td style="background: #F0ADAD">
-          javafx.scene.input.MouseEvent.MOUSE_PRESSED
-        </td>
-      </tr><tr>
-        <td>
-          86
-        </td>
-        <td>
-          1313
-        </td>
-        <td>
-          2787
-          -
-          2809
+          2850
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.startDragPoint_=
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.startDragPoint_=
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.startDragPoint_=(UserEventHandler.this.eventToPoint(event))
         </td>
       </tr><tr>
         <td>
-          89
+          86
         </td>
         <td>
-          1315
+          1513
         </td>
         <td>
-          2876
+          2845
           -
-          2900
+          2850
         </td>
         <td>
-          Select
+          ApplyImplicitView
         </td>
         <td>
-          javafx.scene.input.MouseEvent.DRAG_DETECTED
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.eventToPoint
         </td>
         <td style="background: #F0ADAD">
-          javafx.scene.input.MouseEvent.DRAG_DETECTED
+          UserEventHandler.this.eventToPoint(event)
         </td>
       </tr><tr>
         <td>
           89
         </td>
         <td>
-          1317
+          1518
         </td>
         <td>
-          2850
+          2891
           -
-          2944
+          2985
         </td>
         <td>
           Apply
@@ -1115,33 +1094,54 @@
           89
         </td>
         <td>
-          1316
+          1517
         </td>
         <td>
-          2921
+          2962
           -
-          2943
+          2984
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.mouseIsDragging_=
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.mouseIsDragging_=
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.mouseIsDragging_=(true)
         </td>
       </tr><tr>
         <td>
+          89
+        </td>
+        <td>
+          1516
+        </td>
+        <td>
+          2917
+          -
+          2941
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          javafx.scene.input.MouseEvent.DRAG_DETECTED
+        </td>
+        <td style="background: #F0ADAD">
+          javafx.scene.input.MouseEvent.DRAG_DETECTED
+        </td>
+      </tr><tr>
+        <td>
           92
         </td>
         <td>
-          1318
+          1519
         </td>
         <td>
-          3009
+          3050
           -
-          3034
+          3075
         </td>
         <td>
           Select
@@ -1157,12 +1157,12 @@
           92
         </td>
         <td>
-          1326
+          1527
         </td>
         <td>
-          2983
+          3024
           -
-          3221
+          3262
         </td>
         <td>
           Apply
@@ -1184,33 +1184,12 @@ else
           93
         </td>
         <td>
-          1324
+          1524
         </td>
         <td>
-          3067
+          3129
           -
-          3067
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          1323
-        </td>
-        <td>
-          3088
-          -
-          3220
+          3261
         </td>
         <td>
           Block
@@ -1229,33 +1208,12 @@ else
           93
         </td>
         <td>
-          1319
+          1526
         </td>
         <td>
-          3071
+          3108
           -
-          3086
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.mouseIsDragging
-        </td>
-        <td style="background: #F0ADAD">
-          UserEventHandler.this.mouseIsDragging
-        </td>
-      </tr><tr>
-        <td>
-          93
-        </td>
-        <td>
-          1325
-        </td>
-        <td>
-          3067
-          -
-          3067
+          3108
         </td>
         <td>
           Block
@@ -1268,21 +1226,63 @@ else
         </td>
       </tr><tr>
         <td>
+          93
+        </td>
+        <td>
+          1520
+        </td>
+        <td>
+          3112
+          -
+          3127
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.mouseIsDragging
+        </td>
+        <td style="background: #F0ADAD">
+          UserEventHandler.this.mouseIsDragging
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          1525
+        </td>
+        <td>
+          3108
+          -
+          3108
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
           94
         </td>
         <td>
-          1320
+          1521
         </td>
         <td>
-          3127
+          3168
           -
-          3132
+          3173
         </td>
         <td>
           ApplyImplicitView
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.eventToPoint
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.eventToPoint
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.eventToPoint(event)
@@ -1292,54 +1292,54 @@ else
           95
         </td>
         <td>
-          1321
+          1523
         </td>
         <td>
-          3162
+          3184
           -
-          3176
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.startDragPoint
-        </td>
-        <td style="background: #F0ADAD">
-          UserEventHandler.this.startDragPoint
-        </td>
-      </tr><tr>
-        <td>
-          95
-        </td>
-        <td>
-          1322
-        </td>
-        <td>
-          3143
-          -
-          3210
+          3251
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.sendAddAttackEvent
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.sendAddAttackEvent
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.sendAddAttackEvent(UserEventHandler.this.startDragPoint, stopDragPoint, viewManagerActor)
         </td>
       </tr><tr>
         <td>
+          95
+        </td>
+        <td>
+          1522
+        </td>
+        <td>
+          3203
+          -
+          3217
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.startDragPoint
+        </td>
+        <td style="background: #F0ADAD">
+          UserEventHandler.this.startDragPoint
+        </td>
+      </tr><tr>
+        <td>
           99
         </td>
         <td>
-          1327
+          1528
         </td>
         <td>
-          3281
+          3322
           -
-          3305
+          3346
         </td>
         <td>
           Select
@@ -1355,12 +1355,12 @@ else
           99
         </td>
         <td>
-          1334
+          1535
         </td>
         <td>
-          3255
+          3296
           -
-          3595
+          3636
         </td>
         <td>
           Apply
@@ -1379,18 +1379,18 @@ else
           101
         </td>
         <td>
-          1328
+          1529
         </td>
         <td>
-          3422
+          3463
           -
-          3437
+          3478
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.mouseIsDragging
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.mouseIsDragging
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.mouseIsDragging
@@ -1400,18 +1400,18 @@ else
           102
         </td>
         <td>
-          1330
+          1530
         </td>
         <td>
-          3451
+          3492
           -
-          3474
+          3515
         </td>
         <td>
-          Block
+          Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.mouseIsDragging_=
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.mouseIsDragging_=
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.mouseIsDragging_=(false)
@@ -1421,18 +1421,18 @@ else
           102
         </td>
         <td>
-          1329
+          1531
         </td>
         <td>
-          3451
+          3492
           -
-          3474
+          3515
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.mouseIsDragging_=
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.mouseIsDragging_=
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.mouseIsDragging_=(false)
@@ -1442,39 +1442,18 @@ else
           104
         </td>
         <td>
-          1333
+          1533
         </td>
         <td>
-          3531
+          3572
           -
-          3577
-        </td>
-        <td>
-          Block
-        </td>
-        <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.sendRemoveAttackEvent
-        </td>
-        <td style="background: #F0ADAD">
-          UserEventHandler.this.sendRemoveAttackEvent(UserEventHandler.this.eventToPoint(event), viewManagerActor)
-        </td>
-      </tr><tr>
-        <td>
-          104
-        </td>
-        <td>
-          1332
-        </td>
-        <td>
-          3531
-          -
-          3577
+          3618
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.sendRemoveAttackEvent
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.sendRemoveAttackEvent
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.sendRemoveAttackEvent(UserEventHandler.this.eventToPoint(event), viewManagerActor)
@@ -1484,54 +1463,75 @@ else
           104
         </td>
         <td>
-          1331
+          1532
         </td>
         <td>
-          3553
+          3594
           -
-          3558
+          3599
         </td>
         <td>
           ApplyImplicitView
         </td>
         <td>
-          it.cwmp.client.view.game.GameFX.UserEventHandler.eventToPoint
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.eventToPoint
         </td>
         <td style="background: #F0ADAD">
           UserEventHandler.this.eventToPoint(event)
         </td>
       </tr><tr>
         <td>
-          117
+          104
         </td>
         <td>
-          1336
+          1534
         </td>
         <td>
-          3957
+          3572
           -
-          3993
+          3618
         </td>
         <td>
-          Apply
+          Block
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.AddAttack.apply
+          it.cwmp.client.view.game.GameFXController.UserEventHandler.sendRemoveAttackEvent
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.AddAttack.apply(start, stop)
+          UserEventHandler.this.sendRemoveAttackEvent(UserEventHandler.this.eventToPoint(event), viewManagerActor)
         </td>
       </tr><tr>
         <td>
           117
         </td>
         <td>
-          1338
+          1536
         </td>
         <td>
-          3949
+          3990
           -
-          3993
+          3995
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(actor)
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          1539
+        </td>
+        <td>
+          3990
+          -
+          4034
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1547,33 +1547,12 @@ else
           117
         </td>
         <td>
-          1335
+          1538
         </td>
         <td>
-          3949
+          3996
           -
-          3954
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          akka.actor.actorRef2Scala
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(actor)
-        </td>
-      </tr><tr>
-        <td>
-          117
-        </td>
-        <td>
-          1337
-        </td>
-        <td>
-          3955
-          -
-          3955
+          3996
         </td>
         <td>
           Apply
@@ -1586,57 +1565,36 @@ else
         </td>
       </tr><tr>
         <td>
-          126
+          117
         </td>
         <td>
-          1342
+          1537
         </td>
         <td>
-          4318
+          3998
           -
-          4367
+          4034
         </td>
         <td>
-          ApplyToImplicitArgs
+          Apply
         </td>
         <td>
-          akka.actor.ScalaActorRef.!
+          it.cwmp.client.controller.actors.view.GameViewActor.AddAttack.apply
         </td>
         <td style="background: #F0ADAD">
-          qual$2.!(x$4)(x$5)
+          it.cwmp.client.controller.actors.view.GameViewActor.AddAttack.apply(start, stop)
         </td>
       </tr><tr>
         <td>
           126
         </td>
         <td>
-          1339
+          1542
         </td>
         <td>
-          4318
+          4365
           -
-          4323
-        </td>
-        <td>
-          ApplyImplicitView
-        </td>
-        <td>
-          akka.actor.actorRef2Scala
-        </td>
-        <td style="background: #F0ADAD">
-          actor.this.`package`.actorRef2Scala(actor)
-        </td>
-      </tr><tr>
-        <td>
-          126
-        </td>
-        <td>
-          1341
-        </td>
-        <td>
-          4324
-          -
-          4324
+          4365
         </td>
         <td>
           Apply
@@ -1652,54 +1610,75 @@ else
           126
         </td>
         <td>
-          1340
+          1541
         </td>
         <td>
-          4326
-          -
           4367
+          -
+          4408
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.game.GameViewActor.RemoveAttack.apply
+          it.cwmp.client.controller.actors.view.GameViewActor.RemoveAttack.apply
         </td>
         <td style="background: #F0ADAD">
-          GameViewActor.RemoveAttack.apply(onAttackPoint)
+          it.cwmp.client.controller.actors.view.GameViewActor.RemoveAttack.apply(onAttackPoint)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          1540
+        </td>
+        <td>
+          4359
+          -
+          4364
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.actor.actorRef2Scala
+        </td>
+        <td style="background: #F0ADAD">
+          actor.this.`package`.actorRef2Scala(actor)
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          1543
+        </td>
+        <td>
+          4359
+          -
+          4408
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.actor.ScalaActorRef.!
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.!(x$4)(x$5)
         </td>
       </tr><tr>
         <td>
           135
         </td>
         <td>
-          1345
+          1545
         </td>
         <td>
-          4639
+          4704
           -
-          4680
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.Point.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.model.game.impl.Point.apply(event.getX().toInt, event.getY().toInt)
-        </td>
-      </tr><tr>
-        <td>
-          135
-        </td>
-        <td>
-          1344
-        </td>
-        <td>
-          4663
-          -
-          4679
+          4720
         </td>
         <td>
           Select
@@ -1715,12 +1694,12 @@ else
           135
         </td>
         <td>
-          1343
+          1544
         </td>
         <td>
-          4645
+          4686
           -
-          4661
+          4702
         </td>
         <td>
           Select
@@ -1730,6 +1709,27 @@ else
         </td>
         <td style="background: #F0ADAD">
           event.getX().toInt
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          1546
+        </td>
+        <td>
+          4680
+          -
+          4721
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.Point.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.model.game.impl.Point.apply(event.getX().toInt, event.getY().toInt)
         </td>
       </tr>
     </table>

@@ -31,51 +31,53 @@
 </span>7 <span style=''>/**
 </span>8 <span style=''>  * A class to request user to insert two addresses
 </span>9 <span style=''>  *
-</span>10 <span style=''>  * @param viewTitle     the view title
-</span>11 <span style=''>  * @param message       the message to show the user
-</span>12 <span style=''>  * @param onResultReady the action on result ready
-</span>13 <span style=''>  */
-</span>14 <span style=''>case class TwoAddressesInput(viewTitle: String, message: String, onResultReady: (((String, String), (String, String))) =&gt; Unit)
-</span>15 <span style=''>                            (firstDefaultIP: String = localIP, firstDefaultPort: String = defaultPort,
-</span>16 <span style=''>                             secondDefaultIP: String = localIP, secondDefaultPort: String = defaultPort)
-</span>17 <span style=''>  extends AbstractAddressInput[((String, String), (String, String))](viewTitle, message, onResultReady)(firstDefaultIP, firstDefaultPort) {
-</span>18 <span style=''>
-</span>19 <span style=''>  private var secondIpAddressValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
-</span>20 <span style=''>  private var secondPortValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
-</span>21 <span style=''>
-</span>22 <span style=''>  protected var secondAddressIpField: TextField = _
-</span>23 <span style=''>  protected var secondAddressPortField: TextField = _
-</span>24 <span style=''>
-</span>25 <span style=''>  override protected def wholeInputValid: Boolean = </span><span style='background: #F0ADAD'>super.wholeInputValid &amp;&amp; secondPortValid &amp;&amp; secondIpAddressValid</span><span style=''>
+</span>10 <span style=''>  * @param viewTitle        the view title
+</span>11 <span style=''>  * @param message          the message to show the user
+</span>12 <span style=''>  * @param onResultReady    the action on result ready
+</span>13 <span style=''>  * @param onDialogCanceled the action to do on dialog canceled
+</span>14 <span style=''>  */
+</span>15 <span style=''>case class TwoAddressesInput(viewTitle: String, message: String)
+</span>16 <span style=''>                            (onResultReady: (((String, String), (String, String))) =&gt; Unit, onDialogCanceled: Unit =&gt; Unit)
+</span>17 <span style=''>                            (firstDefaultIP: String = localIP, firstDefaultPort: String = defaultPort,
+</span>18 <span style=''>                             secondDefaultIP: String = localIP, secondDefaultPort: String = defaultPort)
+</span>19 <span style=''>  extends AbstractAddressInput[((String, String), (String, String))](viewTitle, message, onResultReady, onDialogCanceled)(firstDefaultIP, firstDefaultPort) {
+</span>20 <span style=''>
+</span>21 <span style=''>  private var secondIpAddressValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>22 <span style=''>  private var secondPortValid = </span><span style='background: #F0ADAD'>true</span><span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>  protected var secondAddressIpField: TextField = _
+</span>25 <span style=''>  protected var secondAddressPortField: TextField = _
 </span>26 <span style=''>
-</span>27 <span style=''>  override protected def bodyGridFill(gridPane: GridPane): Unit = {
-</span>28 <span style=''>    </span><span style='background: #F0ADAD'>super.bodyGridFill(gridPane)</span><span style=''>
-</span>29 <span style=''>
-</span>30 <span style=''>    val secondIpAndPortFields = </span><span style='background: #F0ADAD'>createIpAndPortFields()</span><span style=''>
-</span>31 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField = secondIpAndPortFields._1</span><span style=''>
-</span>32 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField = secondIpAndPortFields._2</span><span style=''>
-</span>33 <span style=''>
-</span>34 <span style=''>    // attach listeners for changes that update button state
-</span>35 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.textProperty.addListener((_, _, newValue) =&gt; {
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      this.secondIpAddressValid = ipAddressValid(newValue)
-</span>37 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
-</span>38 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>39 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.textProperty.addListener((_, _, newValue) =&gt; {
-</span>40 <span style=''></span><span style='background: #F0ADAD'>      this.secondPortValid = portValid(newValue)
-</span>41 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
-</span>42 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
-</span>43 <span style=''>
-</span>44 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.setText(secondDefaultIP)</span><span style=''>
-</span>45 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.setText(secondDefaultPort)</span><span style=''>
-</span>46 <span style=''>
-</span>47 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(new Label(ADDRESS_LABEL), 0, 1)</span><span style=''>
-</span>48 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressIpField, 1, 1)</span><span style=''>
-</span>49 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressPortField, 2, 1)</span><span style=''>
-</span>50 <span style=''>  }
-</span>51 <span style=''>
-</span>52 <span style=''>  override protected def getResult: ((String, String), (String, String)) =
-</span>53 <span style=''>    </span><span style='background: #F0ADAD'>((addressIpField.getText, addressPortField.getText), (secondAddressIpField.getText, secondAddressPortField.getText))</span><span style=''>
-</span>54 <span style=''>}
+</span>27 <span style=''>  override protected def wholeInputValid: Boolean = </span><span style='background: #F0ADAD'>super.wholeInputValid &amp;&amp; secondPortValid &amp;&amp; secondIpAddressValid</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  override protected def bodyGridFill(gridPane: GridPane): Unit = {
+</span>30 <span style=''>    </span><span style='background: #F0ADAD'>super.bodyGridFill(gridPane)</span><span style=''>
+</span>31 <span style=''>
+</span>32 <span style=''>    val secondIpAndPortFields = </span><span style='background: #F0ADAD'>createIpAndPortFields()</span><span style=''>
+</span>33 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField = secondIpAndPortFields._1</span><span style=''>
+</span>34 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField = secondIpAndPortFields._2</span><span style=''>
+</span>35 <span style=''>
+</span>36 <span style=''>    // attach listeners for changes that update button state
+</span>37 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>38 <span style=''></span><span style='background: #F0ADAD'>      this.secondIpAddressValid = ipAddressValid(newValue)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>40 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.textProperty.addListener((_, _, newValue) =&gt; {
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      this.secondPortValid = portValid(newValue)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>      updateButtonState()
+</span>44 <span style=''></span><span style='background: #F0ADAD'>    })</span><span style=''>
+</span>45 <span style=''>
+</span>46 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressIpField.setText(secondDefaultIP)</span><span style=''>
+</span>47 <span style=''>    </span><span style='background: #F0ADAD'>secondAddressPortField.setText(secondDefaultPort)</span><span style=''>
+</span>48 <span style=''>
+</span>49 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(new Label(ADDRESS_LABEL), 0, 1)</span><span style=''>
+</span>50 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressIpField, 1, 1)</span><span style=''>
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>gridPane.add(secondAddressPortField, 2, 1)</span><span style=''>
+</span>52 <span style=''>  }
+</span>53 <span style=''>
+</span>54 <span style=''>  override protected def getResult: ((String, String), (String, String)) =
+</span>55 <span style=''>    </span><span style='background: #F0ADAD'>((addressIpField.getText, addressPortField.getText), (secondAddressIpField.getText, secondAddressPortField.getText))</span><span style=''>
+</span>56 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -89,15 +91,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          19
+          21
         </td>
         <td>
-          667
+          689
         </td>
         <td>
-          910
+          1062
           -
-          914
+          1066
         </td>
         <td>
           Literal
@@ -110,15 +112,15 @@
         </td>
       </tr><tr>
         <td>
-          20
+          22
         </td>
         <td>
-          668
+          690
         </td>
         <td>
-          947
+          1099
           -
-          951
+          1103
         </td>
         <td>
           Literal
@@ -131,36 +133,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          669
+          693
         </td>
         <td>
-          1137
+          1264
           -
-          1152
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.view.TwoAddressesInput.secondPortValid
-        </td>
-        <td style="background: #F0ADAD">
-          TwoAddressesInput.this.secondPortValid
-        </td>
-      </tr><tr>
-        <td>
-          25
-        </td>
-        <td>
-          671
-        </td>
-        <td>
-          1112
-          -
-          1176
+          1328
         </td>
         <td>
           Apply
@@ -173,15 +154,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          27
         </td>
         <td>
-          670
+          692
         </td>
         <td>
-          1156
+          1308
           -
-          1176
+          1328
         </td>
         <td>
           Select
@@ -194,15 +175,36 @@
         </td>
       </tr><tr>
         <td>
-          28
+          27
         </td>
         <td>
-          672
+          691
         </td>
         <td>
-          1250
+          1289
           -
-          1278
+          1304
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondPortValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondPortValid
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          694
+        </td>
+        <td>
+          1402
+          -
+          1430
         </td>
         <td>
           Apply
@@ -215,15 +217,15 @@
         </td>
       </tr><tr>
         <td>
-          30
+          32
         </td>
         <td>
-          673
+          695
         </td>
         <td>
-          1312
+          1464
           -
-          1335
+          1487
         </td>
         <td>
           Apply
@@ -236,36 +238,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          33
         </td>
         <td>
-          675
+          696
         </td>
         <td>
-          1340
+          1515
           -
-          1387
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.view.TwoAddressesInput.secondAddressIpField_=
-        </td>
-        <td style="background: #F0ADAD">
-          TwoAddressesInput.this.secondAddressIpField_=(secondIpAndPortFields._1)
-        </td>
-      </tr><tr>
-        <td>
-          31
-        </td>
-        <td>
-          674
-        </td>
-        <td>
-          1363
-          -
-          1387
+          1539
         </td>
         <td>
           Select
@@ -278,15 +259,36 @@
         </td>
       </tr><tr>
         <td>
-          32
+          33
         </td>
         <td>
-          677
+          697
         </td>
         <td>
-          1392
+          1492
           -
-          1441
+          1539
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.secondAddressIpField_=
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField_=(secondIpAndPortFields._1)
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          1544
+          -
+          1593
         </td>
         <td>
           Apply
@@ -299,15 +301,15 @@
         </td>
       </tr><tr>
         <td>
-          32
+          34
         </td>
         <td>
-          676
+          698
         </td>
         <td>
-          1417
+          1569
           -
-          1441
+          1593
         </td>
         <td>
           Select
@@ -320,15 +322,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          37
         </td>
         <td>
-          681
+          703
         </td>
         <td>
-          1508
+          1660
           -
-          1667
+          1819
         </td>
         <td>
           Apply
@@ -344,36 +346,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          38
         </td>
         <td>
-          678
+          701
         </td>
         <td>
-          1610
+          1734
           -
-          1634
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.view.AbstractAddressInput.ipAddressValid
-        </td>
-        <td style="background: #F0ADAD">
-          TwoAddressesInput.this.ipAddressValid(newValue)
-        </td>
-      </tr><tr>
-        <td>
-          36
-        </td>
-        <td>
-          679
-        </td>
-        <td>
-          1582
-          -
-          1634
+          1786
         </td>
         <td>
           Apply
@@ -386,15 +367,36 @@
         </td>
       </tr><tr>
         <td>
-          37
+          38
         </td>
         <td>
-          680
+          700
         </td>
         <td>
-          1641
+          1762
           -
-          1660
+          1786
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.AbstractAddressInput.ipAddressValid
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.ipAddressValid(newValue)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          702
+        </td>
+        <td>
+          1793
+          -
+          1812
         </td>
         <td>
           Apply
@@ -407,15 +409,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          41
         </td>
         <td>
-          685
+          707
         </td>
         <td>
-          1672
+          1824
           -
-          1823
+          1975
         </td>
         <td>
           Apply
@@ -431,15 +433,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          683
+          705
         </td>
         <td>
-          1748
+          1900
           -
-          1790
+          1942
         </td>
         <td>
           Apply
@@ -452,15 +454,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          682
+          704
         </td>
         <td>
-          1771
+          1923
           -
-          1790
+          1942
         </td>
         <td>
           Apply
@@ -473,15 +475,15 @@
         </td>
       </tr><tr>
         <td>
-          41
+          43
         </td>
         <td>
-          684
+          706
         </td>
         <td>
-          1797
+          1949
           -
-          1816
+          1968
         </td>
         <td>
           Apply
@@ -494,36 +496,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          46
         </td>
         <td>
-          687
+          708
         </td>
         <td>
-          1829
+          2010
           -
-          1874
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.control.TextInputControl.setText
-        </td>
-        <td style="background: #F0ADAD">
-          TwoAddressesInput.this.secondAddressIpField.setText(TwoAddressesInput.this.secondDefaultIP)
-        </td>
-      </tr><tr>
-        <td>
-          44
-        </td>
-        <td>
-          686
-        </td>
-        <td>
-          1858
-          -
-          1873
+          2025
         </td>
         <td>
           Select
@@ -536,15 +517,36 @@
         </td>
       </tr><tr>
         <td>
-          45
+          46
         </td>
         <td>
-          689
+          709
         </td>
         <td>
-          1879
+          1981
           -
-          1928
+          2026
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.setText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.secondAddressIpField.setText(TwoAddressesInput.this.secondDefaultIP)
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          711
+        </td>
+        <td>
+          2031
+          -
+          2080
         </td>
         <td>
           Apply
@@ -557,15 +559,15 @@
         </td>
       </tr><tr>
         <td>
-          45
+          47
         </td>
         <td>
-          688
+          710
         </td>
         <td>
-          1910
+          2062
           -
-          1927
+          2079
         </td>
         <td>
           Select
@@ -578,57 +580,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          690
+          714
         </td>
         <td>
-          1957
+          2125
           -
-          1970
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          693
-        </td>
-        <td>
-          1976
-          -
-          1977
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          1
-        </td>
-      </tr><tr>
-        <td>
-          47
-        </td>
-        <td>
-          692
-        </td>
-        <td>
-          1973
-          -
-          1974
+          2126
         </td>
         <td>
           Literal
@@ -641,15 +601,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          691
+          713
         </td>
         <td>
-          1947
+          2099
           -
-          1971
+          2123
         </td>
         <td>
           Apply
@@ -662,15 +622,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          49
         </td>
         <td>
-          694
+          716
         </td>
         <td>
-          1934
+          2086
           -
-          1978
+          2130
         </td>
         <td>
           Apply
@@ -683,15 +643,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          696
+          715
         </td>
         <td>
-          2018
+          2128
           -
-          2019
+          2129
         </td>
         <td>
           Literal
@@ -704,36 +664,36 @@
         </td>
       </tr><tr>
         <td>
-          48
+          49
         </td>
         <td>
-          695
+          712
         </td>
         <td>
-          1996
+          2109
           -
-          2016
+          2122
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.view.TwoAddressesInput.secondAddressIpField
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
         </td>
         <td style="background: #F0ADAD">
-          TwoAddressesInput.this.secondAddressIpField
+          it.cwmp.view.AbstractAddressInput.ADDRESS_LABEL
         </td>
       </tr><tr>
         <td>
-          48
+          50
         </td>
         <td>
-          698
+          720
         </td>
         <td>
-          1983
+          2135
           -
-          2023
+          2175
         </td>
         <td>
           Apply
@@ -746,78 +706,36 @@
         </td>
       </tr><tr>
         <td>
-          48
+          50
         </td>
         <td>
-          697
+          717
         </td>
         <td>
-          2021
+          2148
           -
-          2022
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          1
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          699
-        </td>
-        <td>
-          2041
-          -
-          2063
+          2168
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.view.TwoAddressesInput.secondAddressPortField
+          it.cwmp.view.TwoAddressesInput.secondAddressIpField
         </td>
         <td style="background: #F0ADAD">
-          TwoAddressesInput.this.secondAddressPortField
+          TwoAddressesInput.this.secondAddressIpField
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          702
+          719
         </td>
         <td>
-          2028
+          2173
           -
-          2070
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.layout.GridPane.add
-        </td>
-        <td style="background: #F0ADAD">
-          gridPane.add(TwoAddressesInput.this.secondAddressPortField, 2, 1)
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          701
-        </td>
-        <td>
-          2068
-          -
-          2069
+          2174
         </td>
         <td>
           Literal
@@ -830,15 +748,57 @@
         </td>
       </tr><tr>
         <td>
-          49
+          50
         </td>
         <td>
-          700
+          718
         </td>
         <td>
-          2065
+          2170
           -
-          2066
+          2171
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          723
+        </td>
+        <td>
+          2220
+          -
+          2221
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          722
+        </td>
+        <td>
+          2217
+          -
+          2218
         </td>
         <td>
           Literal
@@ -851,78 +811,57 @@
         </td>
       </tr><tr>
         <td>
-          53
+          51
         </td>
         <td>
-          705
+          724
         </td>
         <td>
-          2156
+          2180
           -
-          2206
+          2222
         </td>
         <td>
           Apply
         </td>
         <td>
-          scala.Tuple2.apply
+          javafx.scene.layout.GridPane.add
         </td>
         <td style="background: #F0ADAD">
-          scala.Tuple2.apply[String, String](TwoAddressesInput.this.addressIpField.getText(), TwoAddressesInput.this.addressPortField.getText())
+          gridPane.add(TwoAddressesInput.this.secondAddressPortField, 2, 1)
         </td>
       </tr><tr>
         <td>
-          53
+          51
         </td>
         <td>
-          708
+          721
         </td>
         <td>
-          2208
+          2193
           -
-          2270
+          2215
         </td>
         <td>
-          Apply
+          Select
         </td>
         <td>
-          scala.Tuple2.apply
+          it.cwmp.view.TwoAddressesInput.secondAddressPortField
         </td>
         <td style="background: #F0ADAD">
-          scala.Tuple2.apply[String, String](TwoAddressesInput.this.secondAddressIpField.getText(), TwoAddressesInput.this.secondAddressPortField.getText())
+          TwoAddressesInput.this.secondAddressPortField
         </td>
       </tr><tr>
         <td>
-          53
+          55
         </td>
         <td>
-          704
+          729
         </td>
         <td>
-          2181
+          2391
           -
-          2205
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          javafx.scene.control.TextInputControl.getText
-        </td>
-        <td style="background: #F0ADAD">
-          TwoAddressesInput.this.addressPortField.getText()
-        </td>
-      </tr><tr>
-        <td>
-          53
-        </td>
-        <td>
-          707
-        </td>
-        <td>
-          2239
-          -
-          2269
+          2421
         </td>
         <td>
           Apply
@@ -935,15 +874,36 @@
         </td>
       </tr><tr>
         <td>
-          53
+          55
         </td>
         <td>
-          706
+          726
         </td>
         <td>
-          2209
+          2333
           -
-          2237
+          2357
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          javafx.scene.control.TextInputControl.getText
+        </td>
+        <td style="background: #F0ADAD">
+          TwoAddressesInput.this.addressPortField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          728
+        </td>
+        <td>
+          2361
+          -
+          2389
         </td>
         <td>
           Apply
@@ -956,15 +916,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          55
         </td>
         <td>
-          709
+          731
         </td>
         <td>
-          2155
+          2307
           -
-          2271
+          2423
         </td>
         <td>
           Apply
@@ -977,15 +937,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          55
         </td>
         <td>
-          703
+          725
         </td>
         <td>
-          2157
+          2309
           -
-          2179
+          2331
         </td>
         <td>
           Apply
@@ -995,6 +955,48 @@
         </td>
         <td style="background: #F0ADAD">
           TwoAddressesInput.this.addressIpField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          727
+        </td>
+        <td>
+          2308
+          -
+          2358
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](TwoAddressesInput.this.addressIpField.getText(), TwoAddressesInput.this.addressPortField.getText())
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          730
+        </td>
+        <td>
+          2360
+          -
+          2422
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](TwoAddressesInput.this.secondAddressIpField.getText(), TwoAddressesInput.this.secondAddressPortField.getText())
         </td>
       </tr>
     </table>

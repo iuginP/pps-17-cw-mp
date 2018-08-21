@@ -2,7 +2,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title id="title">
-          src/main/scala/it/cwmp/client/controller/ActorAlertManagement.scala.html
+          src/main/scala/it/cwmp/client/controller/actors/common/ActorAlertManagement.scala.html
         </title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
         $(document).ready(function() {$(".tablesorter").tablesorter();});
@@ -22,10 +22,10 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active" id="codegrid">
-            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.controller.actors.common
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.Actor.Receive
-</span>4 <span style=''>import it.cwmp.client.controller.AlertMessages._
+</span>4 <span style=''>import it.cwmp.client.controller.actors.common.AlertMessages._
 </span>5 <span style=''>import it.cwmp.client.view.FXAlertsController
 </span>6 <span style=''>
 </span>7 <span style=''>/**
@@ -108,18 +108,18 @@
           25
         </td>
         <td>
-          82
+          383
         </td>
         <td>
-          624
+          652
           -
-          624
+          652
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ActorAlertManagement.$anonfun.&lt;init&gt;
+          it.cwmp.client.controller.actors.common.ActorAlertManagement.$anonfun.&lt;init&gt;
         </td>
         <td style="background: #F0ADAD">
           new $anonfun()
@@ -129,18 +129,18 @@
           26
         </td>
         <td>
-          80
+          381
         </td>
         <td>
-          659
+          687
           -
-          694
+          722
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ActorAlertManagement.onInfoAlertReceived
+          it.cwmp.client.controller.actors.common.ActorAlertManagement.onInfoAlertReceived
         </td>
         <td style="background: #F0ADAD">
           ActorAlertManagement.this.onInfoAlertReceived(title, message)
@@ -150,18 +150,18 @@
           27
         </td>
         <td>
-          81
+          382
         </td>
         <td>
-          729
+          757
           -
-          765
+          793
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ActorAlertManagement.onErrorAlertReceived
+          it.cwmp.client.controller.actors.common.ActorAlertManagement.onErrorAlertReceived
         </td>
         <td style="background: #F0ADAD">
           ActorAlertManagement.this.onErrorAlertReceived(title, message)
@@ -171,54 +171,12 @@
           37
         </td>
         <td>
-          83
+          385
         </td>
         <td>
-          1001
+          1042
           -
-          1013
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.controller.ActorAlertManagement.fxController
-        </td>
-        <td style="background: #F0ADAD">
-          ActorAlertManagement.this.fxController
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          85
-        </td>
-        <td>
-          1001
-          -
-          1038
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.view.FXAlertsController.showInfo
-        </td>
-        <td style="background: #F0ADAD">
-          qual$1.showInfo(x$1, x$2, x$3)
-        </td>
-      </tr><tr>
-        <td>
-          37
-        </td>
-        <td>
-          84
-        </td>
-        <td>
-          1014
-          -
-          1014
+          1042
         </td>
         <td>
           Select
@@ -231,57 +189,57 @@
         </td>
       </tr><tr>
         <td>
-          46
+          37
         </td>
         <td>
-          86
+          384
         </td>
         <td>
-          1275
+          1029
           -
-          1287
+          1041
         </td>
         <td>
           Select
         </td>
         <td>
-          it.cwmp.client.controller.ActorAlertManagement.fxController
+          it.cwmp.client.controller.actors.common.ActorAlertManagement.fxController
         </td>
         <td style="background: #F0ADAD">
           ActorAlertManagement.this.fxController
         </td>
       </tr><tr>
         <td>
-          46
+          37
         </td>
         <td>
-          88
+          386
         </td>
         <td>
-          1275
+          1029
           -
-          1313
+          1066
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.view.FXAlertsController.showError
+          it.cwmp.client.view.FXAlertsController.showInfo
         </td>
         <td style="background: #F0ADAD">
-          qual$2.showError(x$4, x$5, x$6)
+          qual$1.showInfo(x$1, x$2, x$3)
         </td>
       </tr><tr>
         <td>
           46
         </td>
         <td>
-          87
+          388
         </td>
         <td>
-          1288
+          1316
           -
-          1288
+          1316
         </td>
         <td>
           Select
@@ -291,6 +249,48 @@
         </td>
         <td style="background: #F0ADAD">
           qual$2.showError$default$3
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          1303
+          -
+          1315
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.controller.actors.common.ActorAlertManagement.fxController
+        </td>
+        <td style="background: #F0ADAD">
+          ActorAlertManagement.this.fxController
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          389
+        </td>
+        <td>
+          1303
+          -
+          1341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.view.FXAlertsController.showError
+        </td>
+        <td style="background: #F0ADAD">
+          qual$2.showError(x$4, x$5, x$6)
         </td>
       </tr>
     </table>

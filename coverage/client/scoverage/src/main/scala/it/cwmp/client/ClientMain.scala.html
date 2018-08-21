@@ -26,11 +26,11 @@
 </span>2 <span style=''>
 </span>3 <span style=''>import akka.actor.{ActorSystem, Props}
 </span>4 <span style=''>import com.typesafe.config.ConfigFactory
-</span>5 <span style=''>import it.cwmp.client.controller.{ApiClientActor, ClientControllerActor}
-</span>6 <span style=''>import it.cwmp.services.{VertxInstance, discovery}
-</span>7 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
+</span>5 <span style=''>import it.cwmp.client.controller.actors.{ApiClientActor, ClientControllerActor}
+</span>6 <span style=''>import it.cwmp.services.wrapper.{AuthenticationApiWrapper, DiscoveryApiWrapper, RoomsApiWrapper}
+</span>7 <span style=''>import it.cwmp.services.{VertxInstance, discovery}
 </span>8 <span style=''>import it.cwmp.utils.{HostAndPortArguments, Logging}
-</span>9 <span style=''>import it.cwmp.view.OneAddressInput
+</span>9 <span style=''>import it.cwmp.view.TwoAddressesInput
 </span>10 <span style=''>
 </span>11 <span style=''>import scala.util.Failure
 </span>12 <span style=''>
@@ -40,56 +40,68 @@
 </span>16 <span style=''>object ClientMain extends App with VertxInstance with Logging {
 </span>17 <span style=''>
 </span>18 <span style=''>  val APP_NAME = </span><span style='background: #F0ADAD'>&quot;CellWarsClient&quot;</span><span style=''>
-</span>19 <span style=''>
-</span>20 <span style=''>  private val COMMAND_LINE_ARGUMENTS_ERROR =
-</span>21 <span style=''>    </span><span style='background: #F0ADAD'>&quot;&quot;&quot;
-</span>22 <span style=''></span><span style='background: #F0ADAD'>      |Invalid number of arguments: I need
-</span>23 <span style=''></span><span style='background: #F0ADAD'>      |(1) the host address of the discovery service
-</span>24 <span style=''></span><span style='background: #F0ADAD'>      |(2) the port of the discovery service
-</span>25 <span style=''></span><span style='background: #F0ADAD'>    &quot;&quot;&quot;.stripMargin</span><span style=''>
-</span>26 <span style=''>
-</span>27 <span style=''>  try {
-</span>28 <span style=''>    </span><span style='background: #F0ADAD'>val hostPortPairs = HostAndPortArguments(args, 1, COMMAND_LINE_ARGUMENTS_ERROR).pairs
-</span>29 <span style=''></span><span style='background: #F0ADAD'>    val discoveryService = hostPortPairs.head
-</span>30 <span style=''></span><span style='background: #F0ADAD'>
-</span>31 <span style=''></span><span style='background: #F0ADAD'>    launch(discoveryService._1, discoveryService._2)</span><span style=''>
-</span>32 <span style=''>  } catch {
-</span>33 <span style=''>    case _: IllegalArgumentException =&gt;
-</span>34 <span style=''>      </span><span style='background: #F0ADAD'>OneAddressInput(APP_NAME, &quot;You should insert DiscoveryService host-port&quot;, discoveryServiceHostPortPair =&gt; {
-</span>35 <span style=''></span><span style='background: #F0ADAD'>        launch(discoveryServiceHostPortPair._1, discoveryServiceHostPortPair._2)
-</span>36 <span style=''></span><span style='background: #F0ADAD'>      })(defaultPort = discovery.Service.DEFAULT_PORT.toString)</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>
-</span>39 <span style=''>  /**
-</span>40 <span style=''>    * Launches client application
-</span>41 <span style=''>    *
-</span>42 <span style=''>    * @param discoveryHost the discovery to contact for services
-</span>43 <span style=''>    * @param discoveryPort the discovery port on which it listens
-</span>44 <span style=''>    */
-</span>45 <span style=''>  private def launch(discoveryHost: String, discoveryPort: String): Unit = {
-</span>46 <span style=''>    val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
-</span>47 <span style=''>    val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
-</span>48 <span style=''>    val discoveryApiWrapper: DiscoveryApiWrapper = </span><span style='background: #F0ADAD'>DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)</span><span style=''>
+</span>19 <span style=''>  val INITIAL_GUI_INSERTION_MESSAGE =
+</span>20 <span style=''>    </span><span style='background: #F0ADAD'>&quot;&quot;&quot;First pair -&gt; DiscoveryService host-port
+</span>21 <span style=''></span><span style='background: #F0ADAD'>      |Second pair -&gt; Your host IP, port will be ignored
+</span>22 <span style=''></span><span style='background: #F0ADAD'>    &quot;&quot;&quot;.stripMargin</span><span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>  private val COMMAND_LINE_ARGUMENTS_ERROR =
+</span>25 <span style=''>    </span><span style='background: #F0ADAD'>&quot;&quot;&quot;
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      |Invalid number of arguments: I need
+</span>27 <span style=''></span><span style='background: #F0ADAD'>      |(1) the host address of the discovery service
+</span>28 <span style=''></span><span style='background: #F0ADAD'>      |(2) the port of the discovery service
+</span>29 <span style=''></span><span style='background: #F0ADAD'>    &quot;&quot;&quot;.stripMargin</span><span style=''>
+</span>30 <span style=''>
+</span>31 <span style=''>  try {
+</span>32 <span style=''>    </span><span style='background: #F0ADAD'>val hostPortPairs = HostAndPortArguments(args, 1, COMMAND_LINE_ARGUMENTS_ERROR).pairs
+</span>33 <span style=''></span><span style='background: #F0ADAD'>    val discoveryService = hostPortPairs.head
+</span>34 <span style=''></span><span style='background: #F0ADAD'>    val myHostIP = hostPortPairs(1)._1
+</span>35 <span style=''></span><span style='background: #F0ADAD'>
+</span>36 <span style=''></span><span style='background: #F0ADAD'>    launch(discoveryService._1, discoveryService._2, myHostIP)</span><span style=''>
+</span>37 <span style=''>  } catch {
+</span>38 <span style=''>    case _: IllegalArgumentException =&gt;
+</span>39 <span style=''>      </span><span style='background: #F0ADAD'>TwoAddressesInput(APP_NAME, INITIAL_GUI_INSERTION_MESSAGE)(discoveryAndMyHostPortPairs =&gt; {
+</span>40 <span style=''></span><span style='background: #F0ADAD'>        val discoveryService = discoveryAndMyHostPortPairs._1
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        val myHostIP = discoveryAndMyHostPortPairs._2._1
+</span>42 <span style=''></span><span style='background: #F0ADAD'>
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        launch(discoveryService._1, discoveryService._2, myHostIP)
+</span>44 <span style=''></span><span style='background: #F0ADAD'>      },
+</span>45 <span style=''></span><span style='background: #F0ADAD'>        _ =&gt; System.exit(0)
+</span>46 <span style=''></span><span style='background: #F0ADAD'>      )(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+</span>47 <span style=''></span><span style='background: #F0ADAD'>        secondDefaultPort = 0.toString)</span><span style=''>
+</span>48 <span style=''>  }
 </span>49 <span style=''>
-</span>50 <span style=''>    log.info(&quot;Starting the client...&quot;)
-</span>51 <span style=''>    </span><span style='background: #F0ADAD'>(for (
-</span>52 <span style=''></span><span style='background: #F0ADAD'>      // Check for the presence of an AuthenticationApiWrapper
-</span>53 <span style=''></span><span style='background: #F0ADAD'>      (authenticationHost, authenticationPort) &lt;- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
-</span>54 <span style=''></span><span style='background: #F0ADAD'>      // Check for the presence of a RoomApiWrapper
-</span>55 <span style=''></span><span style='background: #F0ADAD'>      (roomsHost, roomsPort) &lt;- discoveryApiWrapper.discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME)
-</span>56 <span style=''></span><span style='background: #F0ADAD'>    ) yield {
-</span>57 <span style=''></span><span style='background: #F0ADAD'>      log.info(s&quot;Initializing the API client actor...&quot;)
-</span>58 <span style=''></span><span style='background: #F0ADAD'>      val apiClientActor = system.actorOf(Props(ApiClientActor(
-</span>59 <span style=''></span><span style='background: #F0ADAD'>        AuthenticationApiWrapper(authenticationHost, authenticationPort),
-</span>60 <span style=''></span><span style='background: #F0ADAD'>        RoomsApiWrapper(roomsHost, roomsPort))), ApiClientActor.getClass.getName)
-</span>61 <span style=''></span><span style='background: #F0ADAD'>      log.info(s&quot;Initializing the client controller actor...&quot;)
-</span>62 <span style=''></span><span style='background: #F0ADAD'>      system.actorOf(Props(ClientControllerActor(apiClientActor)), ClientControllerActor.getClass.getName)
-</span>63 <span style=''></span><span style='background: #F0ADAD'>      log.info(&quot;Client up and running!&quot;)
-</span>64 <span style=''></span><span style='background: #F0ADAD'>    }) andThen {
-</span>65 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error discovering services&quot;, ex)
-</span>66 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
-</span>67 <span style=''>  }
-</span>68 <span style=''>}
+</span>50 <span style=''>  /**
+</span>51 <span style=''>    * Launches client application
+</span>52 <span style=''>    *
+</span>53 <span style=''>    * @param discoveryHost the discovery to contact for services
+</span>54 <span style=''>    * @param discoveryPort the discovery port on which it listens
+</span>55 <span style=''>    * @param myHost        the host on which the client is executed
+</span>56 <span style=''>    */
+</span>57 <span style=''>  private def launch(discoveryHost: String, discoveryPort: String, myHost: String): Unit = {
+</span>58 <span style=''>    val config = </span><span style='background: #F0ADAD'>ConfigFactory.parseString(&quot;akka.remote.netty.tcp.port=0&quot;).withFallback(ConfigFactory.load())</span><span style=''>
+</span>59 <span style=''>    val system = </span><span style='background: #F0ADAD'>ActorSystem(APP_NAME, config)</span><span style=''>
+</span>60 <span style=''>    val discoveryApiWrapper: DiscoveryApiWrapper = </span><span style='background: #F0ADAD'>DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)</span><span style=''>
+</span>61 <span style=''>
+</span>62 <span style=''>    log.info(&quot;Starting the client...&quot;)
+</span>63 <span style=''>    </span><span style='background: #F0ADAD'>(for (
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      // Check for the presence of an AuthenticationApiWrapper
+</span>65 <span style=''></span><span style='background: #F0ADAD'>      (authenticationHost, authenticationPort) &lt;- discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME);
+</span>66 <span style=''></span><span style='background: #F0ADAD'>      // Check for the presence of a RoomApiWrapper
+</span>67 <span style=''></span><span style='background: #F0ADAD'>      (roomsHost, roomsPort) &lt;- discoveryApiWrapper.discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME)
+</span>68 <span style=''></span><span style='background: #F0ADAD'>    ) yield {
+</span>69 <span style=''></span><span style='background: #F0ADAD'>      log.info(s&quot;Initializing the API client actor...&quot;)
+</span>70 <span style=''></span><span style='background: #F0ADAD'>      val apiClientActor = system.actorOf(Props(ApiClientActor(
+</span>71 <span style=''></span><span style='background: #F0ADAD'>        AuthenticationApiWrapper(authenticationHost, authenticationPort),
+</span>72 <span style=''></span><span style='background: #F0ADAD'>        RoomsApiWrapper(roomsHost, roomsPort))), ApiClientActor.getClass.getName)
+</span>73 <span style=''></span><span style='background: #F0ADAD'>      log.info(s&quot;Initializing the client controller actor...&quot;)
+</span>74 <span style=''></span><span style='background: #F0ADAD'>      system.actorOf(Props(ClientControllerActor(apiClientActor, myHost)), ClientControllerActor.getClass.getName)
+</span>75 <span style=''></span><span style='background: #F0ADAD'>      log.info(&quot;Client up and running!&quot;)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>    }) andThen {
+</span>77 <span style=''></span><span style='background: #F0ADAD'>      case Failure(ex) =&gt; log.info(&quot;Error discovering services&quot;, ex)
+</span>78 <span style=''></span><span style='background: #F0ADAD'>    }</span><span style=''>
+</span>79 <span style=''>  }
+</span>80 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -109,9 +121,9 @@
           1
         </td>
         <td>
-          560
+          569
           -
-          576
+          585
         </td>
         <td>
           Literal
@@ -124,15 +136,57 @@
         </td>
       </tr><tr>
         <td>
-          21
+          20
         </td>
         <td>
           2
         </td>
         <td>
-          627
+          628
           -
-          779
+          736
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;First pair -&gt; DiscoveryService host-port\n      |Second pair -&gt; Your host IP, port will be ignored\n    &quot;
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          628
+          -
+          748
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.StringLike.stripMargin
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Predef.augmentString(&quot;First pair -&gt; DiscoveryService host-port\n      |Second pair -&gt; Your host IP, port will be ignored\n    &quot;).stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          799
+          -
+          951
         </td>
         <td>
           Literal
@@ -145,15 +199,15 @@
         </td>
       </tr><tr>
         <td>
-          25
+          29
         </td>
         <td>
-          3
+          5
         </td>
         <td>
-          627
+          799
           -
-          791
+          963
         </td>
         <td>
           Select
@@ -166,15 +220,15 @@
         </td>
       </tr><tr>
         <td>
-          27
+          31
         </td>
         <td>
-          12
+          16
         </td>
         <td>
-          805
+          977
           -
-          990
+          1211
         </td>
         <td>
           Block
@@ -186,83 +240,21 @@
           {
   val hostPortPairs: Seq[(String, String)] = it.cwmp.utils.HostAndPortArguments.apply(ClientMain.this.args, 1, ClientMain.this.COMMAND_LINE_ARGUMENTS_ERROR).pairs;
   val discoveryService: (String, String) = hostPortPairs.head;
-  ClientMain.this.launch(discoveryService._1, discoveryService._2)
+  val myHostIP: String = hostPortPairs.apply(1)._1;
+  ClientMain.this.launch(discoveryService._1, discoveryService._2, myHostIP)
 }
         </td>
       </tr><tr>
         <td>
-          28
+          32
         </td>
         <td>
-          5
+          8
         </td>
         <td>
-          852
+          1027
           -
-          853
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          1
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          4
-        </td>
-        <td>
-          846
-          -
-          850
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          scala.App.args
-        </td>
-        <td style="background: #F0ADAD">
-          ClientMain.this.args
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          7
-        </td>
-        <td>
-          825
-          -
-          890
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.utils.HostAndPortArguments.pairs
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.utils.HostAndPortArguments.apply(ClientMain.this.args, 1, ClientMain.this.COMMAND_LINE_ARGUMENTS_ERROR).pairs
-        </td>
-      </tr><tr>
-        <td>
-          28
-        </td>
-        <td>
-          6
-        </td>
-        <td>
-          855
-          -
-          883
+          1055
         </td>
         <td>
           Select
@@ -275,15 +267,78 @@
         </td>
       </tr><tr>
         <td>
-          29
+          32
         </td>
         <td>
-          8
+          7
         </td>
         <td>
-          918
+          1024
           -
-          936
+          1025
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          1
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          997
+          -
+          1062
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.utils.HostAndPortArguments.pairs
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.utils.HostAndPortArguments.apply(ClientMain.this.args, 1, ClientMain.this.COMMAND_LINE_ARGUMENTS_ERROR).pairs
+        </td>
+      </tr><tr>
+        <td>
+          32
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          1018
+          -
+          1022
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.App.args
+        </td>
+        <td style="background: #F0ADAD">
+          ClientMain.this.args
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          1090
+          -
+          1108
         </td>
         <td>
           Select
@@ -296,36 +351,57 @@
         </td>
       </tr><tr>
         <td>
-          31
+          34
         </td>
         <td>
           11
         </td>
         <td>
-          942
+          1142
           -
-          990
+          1143
         </td>
         <td>
-          Apply
+          Literal
         </td>
         <td>
-          it.cwmp.client.ClientMain.launch
+          &lt;nosymbol&gt;
         </td>
         <td style="background: #F0ADAD">
-          ClientMain.this.launch(discoveryService._1, discoveryService._2)
+          1
         </td>
       </tr><tr>
         <td>
-          31
+          34
         </td>
         <td>
-          10
+          12
         </td>
         <td>
-          970
+          1128
           -
-          989
+          1147
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          hostPortPairs.apply(1)._1
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          14
+        </td>
+        <td>
+          1181
+          -
+          1200
         </td>
         <td>
           Select
@@ -338,15 +414,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          36
         </td>
         <td>
-          9
+          13
         </td>
         <td>
-          949
+          1160
           -
-          968
+          1179
         </td>
         <td>
           Select
@@ -359,36 +435,36 @@
         </td>
       </tr><tr>
         <td>
-          34
+          36
         </td>
         <td>
-          14
+          15
         </td>
         <td>
-          1075
+          1153
           -
-          1121
+          1211
         </td>
         <td>
-          Literal
+          Apply
         </td>
         <td>
-          &lt;nosymbol&gt;
+          it.cwmp.client.ClientMain.launch
         </td>
         <td style="background: #F0ADAD">
-          &quot;You should insert DiscoveryService host-port&quot;
+          ClientMain.this.launch(discoveryService._1, discoveryService._2, myHostIP)
         </td>
       </tr><tr>
         <td>
-          34
+          39
         </td>
         <td>
-          13
+          17
         </td>
         <td>
-          1065
+          1288
           -
-          1073
+          1296
         </td>
         <td>
           Select
@@ -401,78 +477,78 @@
         </td>
       </tr><tr>
         <td>
-          34
+          39
         </td>
         <td>
-          19
+          28
         </td>
         <td>
-          1064
+          1328
           -
-          1064
+          1328
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.view.OneAddressInput.apply$default$4
+          it.cwmp.view.TwoAddressesInput.apply$default$7
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.view.OneAddressInput.apply$default$4(x$3, x$4, x$5)
+          it.cwmp.view.TwoAddressesInput.apply$default$7(x$4, x$5)(x$6, x$7)
         </td>
       </tr><tr>
         <td>
-          35
+          39
         </td>
         <td>
-          17
+          27
         </td>
         <td>
-          1165
+          1328
           -
-          1237
+          1328
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.ClientMain.launch
+          it.cwmp.view.TwoAddressesInput.apply$default$5
         </td>
         <td style="background: #F0ADAD">
-          ClientMain.this.launch(discoveryServiceHostPortPair._1, discoveryServiceHostPortPair._2)
+          it.cwmp.view.TwoAddressesInput.apply$default$5(x$4, x$5)(x$6, x$7)
         </td>
       </tr><tr>
         <td>
-          35
+          39
         </td>
         <td>
-          16
+          18
         </td>
         <td>
-          1205
+          1298
           -
-          1236
+          1327
         </td>
         <td>
           Select
         </td>
         <td>
-          scala.Tuple2._2
+          it.cwmp.client.ClientMain.INITIAL_GUI_INSERTION_MESSAGE
         </td>
         <td style="background: #F0ADAD">
-          discoveryServiceHostPortPair._2
+          ClientMain.this.INITIAL_GUI_INSERTION_MESSAGE
         </td>
       </tr><tr>
         <td>
-          35
+          40
         </td>
         <td>
-          15
+          19
         </td>
         <td>
-          1172
+          1393
           -
-          1203
+          1423
         </td>
         <td>
           Select
@@ -481,40 +557,145 @@
           scala.Tuple2._1
         </td>
         <td style="background: #F0ADAD">
-          discoveryServiceHostPortPair._1
+          discoveryAndMyHostPortPairs._1
         </td>
       </tr><tr>
         <td>
-          36
+          41
         </td>
         <td>
           20
         </td>
         <td>
-          1049
+          1447
           -
-          1301
+          1480
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryAndMyHostPortPairs._2._1
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          23
+        </td>
+        <td>
+          1490
+          -
+          1548
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.view.OneAddressInput.apply
+          it.cwmp.client.ClientMain.launch
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.view.OneAddressInput.apply(x$3, x$4, x$5)(x$7, x$6)
+          ClientMain.this.launch(discoveryService._1, discoveryService._2, myHostIP)
         </td>
       </tr><tr>
         <td>
-          36
+          43
         </td>
         <td>
-          18
+          22
         </td>
         <td>
-          1261
+          1518
           -
-          1300
+          1537
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._2
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._2
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          21
+        </td>
+        <td>
+          1497
+          -
+          1516
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.Tuple2._1
+        </td>
+        <td style="background: #F0ADAD">
+          discoveryService._1
+        </td>
+      </tr><tr>
+        <td>
+          45
+        </td>
+        <td>
+          24
+        </td>
+        <td>
+          1571
+          -
+          1585
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(0)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          29
+        </td>
+        <td>
+          1270
+          -
+          1693
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply(x$4, x$5)(x$6, x$7)(x$10, x$8, x$11, x$9)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          25
+        </td>
+        <td>
+          1613
+          -
+          1652
         </td>
         <td>
           Apply
@@ -527,15 +708,36 @@
         </td>
       </tr><tr>
         <td>
-          46
+          47
         </td>
         <td>
-          23
+          26
         </td>
         <td>
-          1585
+          1682
           -
-          1677
+          1692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Any.toString
+        </td>
+        <td style="background: #F0ADAD">
+          0.toString()
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          32
+        </td>
+        <td>
+          2061
+          -
+          2153
         </td>
         <td>
           Apply
@@ -548,15 +750,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          58
         </td>
         <td>
-          22
+          31
         </td>
         <td>
-          1656
+          2132
           -
-          1676
+          2152
         </td>
         <td>
           Apply
@@ -569,15 +771,15 @@
         </td>
       </tr><tr>
         <td>
-          46
+          58
         </td>
         <td>
-          21
+          30
         </td>
         <td>
-          1611
+          2087
           -
-          1641
+          2117
         </td>
         <td>
           Literal
@@ -590,15 +792,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          59
         </td>
         <td>
-          25
+          34
         </td>
         <td>
-          1695
+          2171
           -
-          1724
+          2200
         </td>
         <td>
           Apply
@@ -611,15 +813,15 @@
         </td>
       </tr><tr>
         <td>
-          47
+          59
         </td>
         <td>
-          24
+          33
         </td>
         <td>
-          1707
+          2183
           -
-          1715
+          2191
         </td>
         <td>
           Select
@@ -632,15 +834,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          60
         </td>
         <td>
-          26
+          35
         </td>
         <td>
-          1811
+          2287
           -
-          1830
+          2306
         </td>
         <td>
           Select
@@ -653,15 +855,15 @@
         </td>
       </tr><tr>
         <td>
-          48
+          60
         </td>
         <td>
-          27
+          36
         </td>
         <td>
-          1776
+          2252
           -
-          1831
+          2307
         </td>
         <td>
           Apply
@@ -674,15 +876,15 @@
         </td>
       </tr><tr>
         <td>
+          65
+        </td>
+        <td>
           53
         </td>
         <td>
-          44
-        </td>
-        <td>
-          1993
+          2469
           -
-          1993
+          2469
         </td>
         <td>
           Select
@@ -695,15 +897,15 @@
         </td>
       </tr><tr>
         <td>
-          53
+          65
         </td>
         <td>
-          28
+          37
         </td>
         <td>
-          2024
+          2500
           -
-          2024
+          2500
         </td>
         <td>
           Select
@@ -716,15 +918,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          67
         </td>
         <td>
-          29
+          38
         </td>
         <td>
-          2195
+          2671
           -
-          2240
+          2716
         </td>
         <td>
           Select
@@ -737,15 +939,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          67
         </td>
         <td>
-          31
+          40
         </td>
         <td>
-          2194
+          2670
           -
-          2194
+          2670
         </td>
         <td>
           Select
@@ -758,15 +960,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          67
         </td>
         <td>
-          43
+          52
         </td>
         <td>
-          2140
+          2616
           -
-          2748
+          3232
         </td>
         <td>
           ApplyToImplicitArgs
@@ -778,18 +980,18 @@
           discoveryApiWrapper.discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME).withFilter(((check$ifrefutable$2: (String, Int)) =&gt; (check$ifrefutable$2: (String, Int) @unchecked) match {
   case (_1: String, _2: Int)(String, Int)((roomsHost @ _), (roomsPort @ _)) =&gt; true
   case _ =&gt; false
-}))(ClientMain.this.vertxExecutionContext).map[Unit](((x$1: (String, Int)) =&gt; (x$1: (String, Int) @unchecked) match {
+}))(ClientMain.this.vertxExecutionContext).map[Unit](((x$2: (String, Int)) =&gt; (x$2: (String, Int) @unchecked) match {
   case (_1: String, _2: Int)(String, Int)((roomsHost @ _), (roomsPort @ _)) =&gt; {
     (if (ClientMain.this.log.underlying.isInfoEnabled())
       ClientMain.this.log.underlying.info(&quot;Initializing the API client actor...&quot;)
     else
       (): Unit);
-    val apiClientActor: akka.actor.ActorRef = system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ApiClientActor](it.cwmp.client.controller.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.ApiClientActor](classOf[it.cwmp.client.controller.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ApiClientActor])), it.cwmp.client.controller.ApiClientActor.getClass().getName());
+    val apiClientActor: akka.actor.ActorRef = system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ApiClientActor](it.cwmp.client.controller.actors.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.actors.ApiClientActor](classOf[it.cwmp.client.controller.actors.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ApiClientActor])), it.cwmp.client.controller.actors.ApiClientActor.getClass().getName());
     (if (ClientMain.this.log.underlying.isInfoEnabled())
       ClientMain.this.log.underlying.info(&quot;Initializing the client controller actor...&quot;)
     else
       (): Unit);
-    system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor](it.cwmp.client.controller.ClientControllerActor.apply(apiClientActor))((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor])), it.cwmp.client.controller.ClientControllerActor.getClass().getName());
+    system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ClientControllerActor](it.cwmp.client.controller.actors.ClientControllerActor.apply(apiClientActor, myHost))((ClassTag.apply[it.cwmp.client.controller.actors.ClientControllerActor](classOf[it.cwmp.client.controller.actors.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ClientControllerActor])), it.cwmp.client.controller.actors.ClientControllerActor.getClass().getName());
     (if (ClientMain.this.log.underlying.isInfoEnabled())
       ClientMain.this.log.underlying.info(&quot;Client up and running!&quot;)
     else
@@ -799,15 +1001,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          67
         </td>
         <td>
-          30
+          39
         </td>
         <td>
-          2194
+          2670
           -
-          2194
+          2670
         </td>
         <td>
           Literal
@@ -820,15 +1022,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          67
         </td>
         <td>
-          42
+          51
         </td>
         <td>
-          2163
+          2639
           -
-          2163
+          2639
         </td>
         <td>
           Select
@@ -841,15 +1043,15 @@
         </td>
       </tr><tr>
         <td>
-          58
+          70
         </td>
         <td>
-          35
+          44
         </td>
         <td>
-          2354
+          2830
           -
-          2497
+          2973
         </td>
         <td>
           ApplyToImplicitArgs
@@ -858,40 +1060,19 @@
           akka.actor.Props.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.actor.Props.apply[it.cwmp.client.controller.ApiClientActor](it.cwmp.client.controller.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.ApiClientActor](classOf[it.cwmp.client.controller.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ApiClientActor]))
+          akka.actor.Props.apply[it.cwmp.client.controller.actors.ApiClientActor](it.cwmp.client.controller.actors.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.actors.ApiClientActor](classOf[it.cwmp.client.controller.actors.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ApiClientActor]))
         </td>
       </tr><tr>
         <td>
-          58
+          70
         </td>
         <td>
-          34
+          46
         </td>
         <td>
-          2360
+          2815
           -
-          2496
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.client.controller.ApiClientActor.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort))
-        </td>
-      </tr><tr>
-        <td>
-          58
-        </td>
-        <td>
-          37
-        </td>
-        <td>
-          2339
-          -
-          2531
+          3007
         </td>
         <td>
           Apply
@@ -900,19 +1081,40 @@
           akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ApiClientActor](it.cwmp.client.controller.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.ApiClientActor](classOf[it.cwmp.client.controller.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ApiClientActor])), it.cwmp.client.controller.ApiClientActor.getClass().getName())
+          system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ApiClientActor](it.cwmp.client.controller.actors.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.actors.ApiClientActor](classOf[it.cwmp.client.controller.actors.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ApiClientActor])), it.cwmp.client.controller.actors.ApiClientActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
-          59
+          70
         </td>
         <td>
-          32
+          43
         </td>
         <td>
-          2384
+          2836
           -
-          2448
+          2972
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.client.controller.actors.ApiClientActor.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.client.controller.actors.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort))
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          41
+        </td>
+        <td>
+          2860
+          -
+          2924
         </td>
         <td>
           Apply
@@ -925,15 +1127,15 @@
         </td>
       </tr><tr>
         <td>
-          60
+          72
         </td>
         <td>
-          36
+          45
         </td>
         <td>
-          2499
+          2975
           -
-          2530
+          3006
         </td>
         <td>
           Apply
@@ -942,19 +1144,19 @@
           java.lang.Class.getName
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ApiClientActor.getClass().getName()
+          it.cwmp.client.controller.actors.ApiClientActor.getClass().getName()
         </td>
       </tr><tr>
         <td>
-          60
+          72
         </td>
         <td>
-          33
+          42
         </td>
         <td>
-          2458
+          2934
           -
-          2495
+          2971
         </td>
         <td>
           Apply
@@ -967,15 +1169,15 @@
         </td>
       </tr><tr>
         <td>
-          62
+          74
         </td>
         <td>
-          41
+          50
         </td>
         <td>
-          2601
+          3077
           -
-          2701
+          3185
         </td>
         <td>
           Apply
@@ -984,40 +1186,40 @@
           akka.actor.ActorRefFactory.actorOf
         </td>
         <td style="background: #F0ADAD">
-          system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor](it.cwmp.client.controller.ClientControllerActor.apply(apiClientActor))((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor])), it.cwmp.client.controller.ClientControllerActor.getClass().getName())
+          system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ClientControllerActor](it.cwmp.client.controller.actors.ClientControllerActor.apply(apiClientActor, myHost))((ClassTag.apply[it.cwmp.client.controller.actors.ClientControllerActor](classOf[it.cwmp.client.controller.actors.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ClientControllerActor])), it.cwmp.client.controller.actors.ClientControllerActor.getClass().getName())
         </td>
       </tr><tr>
         <td>
-          62
+          74
         </td>
         <td>
-          38
+          47
         </td>
         <td>
-          2622
+          3098
           -
-          2659
+          3143
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.client.controller.ClientControllerActor.apply
+          it.cwmp.client.controller.actors.ClientControllerActor.apply
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerActor.apply(apiClientActor)
+          it.cwmp.client.controller.actors.ClientControllerActor.apply(apiClientActor, myHost)
         </td>
       </tr><tr>
         <td>
-          62
+          74
         </td>
         <td>
-          40
+          49
         </td>
         <td>
-          2662
+          3146
           -
-          2700
+          3184
         </td>
         <td>
           Apply
@@ -1026,19 +1228,19 @@
           java.lang.Class.getName
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.client.controller.ClientControllerActor.getClass().getName()
+          it.cwmp.client.controller.actors.ClientControllerActor.getClass().getName()
         </td>
       </tr><tr>
         <td>
-          62
+          74
         </td>
         <td>
-          39
+          48
         </td>
         <td>
-          2616
+          3092
           -
-          2660
+          3144
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1047,19 +1249,19 @@
           akka.actor.Props.apply
         </td>
         <td style="background: #F0ADAD">
-          akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor](it.cwmp.client.controller.ClientControllerActor.apply(apiClientActor))((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor]))
+          akka.actor.Props.apply[it.cwmp.client.controller.actors.ClientControllerActor](it.cwmp.client.controller.actors.ClientControllerActor.apply(apiClientActor, myHost))((ClassTag.apply[it.cwmp.client.controller.actors.ClientControllerActor](classOf[it.cwmp.client.controller.actors.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ClientControllerActor]))
         </td>
       </tr><tr>
         <td>
-          64
+          76
         </td>
         <td>
-          47
+          56
         </td>
         <td>
-          1876
+          2352
           -
-          2834
+          3318
         </td>
         <td>
           ApplyToImplicitArgs
@@ -1071,22 +1273,22 @@
           discoveryApiWrapper.discover(it.cwmp.services.authentication.Service.DISCOVERY_NAME).withFilter(((check$ifrefutable$1: (String, Int)) =&gt; (check$ifrefutable$1: (String, Int) @unchecked) match {
   case (_1: String, _2: Int)(String, Int)((authenticationHost @ _), (authenticationPort @ _)) =&gt; true
   case _ =&gt; false
-}))(ClientMain.this.vertxExecutionContext).flatMap[Unit](((x$2: (String, Int)) =&gt; (x$2: (String, Int) @unchecked) match {
+}))(ClientMain.this.vertxExecutionContext).flatMap[Unit](((x$3: (String, Int)) =&gt; (x$3: (String, Int) @unchecked) match {
   case (_1: String, _2: Int)(String, Int)((authenticationHost @ _), (authenticationPort @ _)) =&gt; discoveryApiWrapper.discover(it.cwmp.services.rooms.Service.DISCOVERY_NAME).withFilter(((check$ifrefutable$2: (String, Int)) =&gt; (check$ifrefutable$2: (String, Int) @unchecked) match {
   case (_1: String, _2: Int)(String, Int)((roomsHost @ _), (roomsPort @ _)) =&gt; true
   case _ =&gt; false
-}))(ClientMain.this.vertxExecutionContext).map[Unit](((x$1: (String, Int)) =&gt; (x$1: (String, Int) @unchecked) match {
+}))(ClientMain.this.vertxExecutionContext).map[Unit](((x$2: (String, Int)) =&gt; (x$2: (String, Int) @unchecked) match {
     case (_1: String, _2: Int)(String, Int)((roomsHost @ _), (roomsPort @ _)) =&gt; {
       (if (ClientMain.this.log.underlying.isInfoEnabled())
         ClientMain.this.log.underlying.info(&quot;Initializing the API client actor...&quot;)
       else
         (): Unit);
-      val apiClientActor: akka.actor.ActorRef = system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ApiClientActor](it.cwmp.client.controller.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.ApiClientActor](classOf[it.cwmp.client.controller.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ApiClientActor])), it.cwmp.client.controller.ApiClientActor.getClass().getName());
+      val apiClientActor: akka.actor.ActorRef = system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ApiClientActor](it.cwmp.client.controller.actors.ApiClientActor.apply(it.cwmp.services.wrapper.AuthenticationApiWrapper.apply(authenticationHost, authenticationPort), it.cwmp.services.wrapper.RoomsApiWrapper.apply(roomsHost, roomsPort)))((ClassTag.apply[it.cwmp.client.controller.actors.ApiClientActor](classOf[it.cwmp.client.controller.actors.ApiClientActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ApiClientActor])), it.cwmp.client.controller.actors.ApiClientActor.getClass().getName());
       (if (ClientMain.this.log.underlying.isInfoEnabled())
         ClientMain.this.log.underlying.info(&quot;Initializing the client controller actor...&quot;)
       else
         (): Unit);
-      system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.ClientControllerActor](it.cwmp.client.controller.ClientControllerActor.apply(apiClientActor))((ClassTag.apply[it.cwmp.client.controller.ClientControllerActor](classOf[it.cwmp.client.controller.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.ClientControllerActor])), it.cwmp.client.controller.ClientControllerActor.getClass().getName());
+      system.actorOf(akka.actor.Props.apply[it.cwmp.client.controller.actors.ClientControllerActor](it.cwmp.client.controller.actors.ClientControllerActor.apply(apiClientActor, myHost))((ClassTag.apply[it.cwmp.client.controller.actors.ClientControllerActor](classOf[it.cwmp.client.controller.actors.ClientControllerActor]): scala.reflect.ClassTag[it.cwmp.client.controller.actors.ClientControllerActor])), it.cwmp.client.controller.actors.ClientControllerActor.getClass().getName());
       (if (ClientMain.this.log.underlying.isInfoEnabled())
         ClientMain.this.log.underlying.info(&quot;Client up and running!&quot;)
       else
@@ -1116,15 +1318,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          76
         </td>
         <td>
-          46
+          55
         </td>
         <td>
-          2750
+          3234
           -
-          2750
+          3234
         </td>
         <td>
           Select
@@ -1137,15 +1339,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          76
         </td>
         <td>
-          45
+          54
         </td>
         <td>
-          2758
+          3242
           -
-          2758
+          3242
         </td>
         <td>
           Apply
@@ -1158,15 +1360,15 @@
         </td>
       </tr><tr>
         <td>
-          64
+          76
         </td>
         <td>
-          48
+          57
         </td>
         <td>
-          2750
+          3234
           -
-          2750
+          3234
         </td>
         <td>
           Literal

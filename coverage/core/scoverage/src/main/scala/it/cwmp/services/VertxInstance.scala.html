@@ -37,8 +37,8 @@
 </span>13 <span style=''>trait VertxInstance {
 </span>14 <span style=''>  private val vertxContext = </span><span style='background: #AEF1AE'>Vertx.currentContext().getOrElse(Vertx.vertx.getOrCreateContext())</span><span style=''>
 </span>15 <span style=''>
-</span>16 <span style=''>  val vertx: Vertx = </span><span style='background: #AEF1AE'>vertxContext.owner()</span><span style=''>
-</span>17 <span style=''>  implicit val vertxExecutionContext: VertxExecutionContext = </span><span style='background: #AEF1AE'>VertxExecutionContext(vertxContext)</span><span style=''>
+</span>16 <span style=''>  protected val vertx: Vertx = </span><span style='background: #AEF1AE'>vertxContext.owner()</span><span style=''>
+</span>17 <span style=''>  protected implicit val vertxExecutionContext: VertxExecutionContext = </span><span style='background: #AEF1AE'>VertxExecutionContext(vertxContext)</span><span style=''>
 </span>18 <span style=''>}
 </span></pre>
           </div>
@@ -101,9 +101,9 @@
           188
         </td>
         <td>
-          489
+          499
           -
-          509
+          519
         </td>
         <td>
           Apply
@@ -122,9 +122,9 @@
           190
         </td>
         <td>
-          572
+          592
           -
-          607
+          627
         </td>
         <td>
           Apply
@@ -143,9 +143,9 @@
           189
         </td>
         <td>
-          594
+          614
           -
-          606
+          626
         </td>
         <td>
           Select

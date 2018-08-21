@@ -24,96 +24,103 @@
           <div class="tab-pane active" id="codegrid">
             <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package it.cwmp.client.model.game.distributed.impl
 </span>2 <span style=''>
-</span>3 <span style=''>import java.time.Instant
-</span>4 <span style=''>
-</span>5 <span style=''>import akka.actor.Actor.Receive
-</span>6 <span style=''>import akka.actor.ActorRef
-</span>7 <span style=''>import akka.cluster.Cluster
-</span>8 <span style=''>import akka.cluster.ddata.Replicator.Update
-</span>9 <span style=''>import akka.cluster.ddata._
-</span>10 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState
-</span>11 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
-</span>12 <span style=''>import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld._
-</span>13 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
-</span>14 <span style=''>import it.cwmp.utils.Utils
-</span>15 <span style=''>
-</span>16 <span style=''>import scala.language.implicitConversions
-</span>17 <span style=''>
-</span>18 <span style=''>/**
-</span>19 <span style=''>  * Distributed representation of CellWorld where modifications made concurrently are merged
-</span>20 <span style=''>  *
-</span>21 <span style=''>  * @param onWorldUpdate   the strategy to adopt on world changes
-</span>22 <span style=''>  * @param replicatorActor the actor that will distribute the data
-</span>23 <span style=''>  * @param cluster         the cluster where this distributed data are exchanged
-</span>24 <span style=''>  * @author Enrico Siboni
-</span>25 <span style=''>  */
-</span>26 <span style=''>case class MergingStateCellWorld(onWorldUpdate: CellWorld =&gt; Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
-</span>27 <span style=''>  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
-</span>28 <span style=''>
-</span>29 <span style=''>  override type ReplicatedDataType = ORMultiMap[String, ReplicatedData]
-</span>30 <span style=''>
-</span>31 <span style=''>  override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] = </span><span style='background: #F0ADAD'>ORMultiMapKey(DISTRIBUTED_KEY_NAME)</span><span style=''>
-</span>32 <span style=''>
-</span>33 <span style=''>  override protected def activeBehaviour: Receive = {
-</span>34 <span style=''>    case UpdateState(state: CellWorld) =&gt;
-</span>35 <span style=''>      log.debug(&quot;Updating distributed state&quot;)
-</span>36 <span style=''>      </span><span style='background: #F0ADAD'>updateDistributedStateTo(state)</span><span style=''>
-</span>37 <span style=''>  }
-</span>38 <span style=''>
-</span>39 <span style=''>  override protected def updateDistributedStateTo(state: CellWorld): Unit =
-</span>40 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor !
-</span>41 <span style=''></span><span style='background: #F0ADAD'>      Update(distributedKey,
-</span>42 <span style=''></span><span style='background: #F0ADAD'>        ORMultiMap.emptyWithValueDeltas[String, ReplicatedData],
-</span>43 <span style=''></span><span style='background: #F0ADAD'>        consistencyPolicy
-</span>44 <span style=''></span><span style='background: #F0ADAD'>      )(distributedModify(_, state))</span><span style=''>
-</span>45 <span style=''>
-</span>46 <span style=''>  override protected def distributedModify(oldDistributedState: ORMultiMap[String, ReplicatedData],
-</span>47 <span style=''>                                           newState: CellWorld): ORMultiMap[String, ReplicatedData] = {
-</span>48 <span style=''>
-</span>49 <span style=''>    val distributedInstant = </span><span style='background: #F0ADAD'>LWWRegister[Instant](newState.instant)</span><span style=''>
-</span>50 <span style=''>    val distributedCharacters = </span><span style='background: #F0ADAD'>newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)</span><span style=''>
-</span>51 <span style=''>    val distributedAttacks = </span><span style='background: #F0ADAD'>newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)</span><span style=''>
-</span>52 <span style=''>
-</span>53 <span style=''>    </span><span style='background: #F0ADAD'>oldDistributedState.entries
-</span>54 <span style=''></span><span style='background: #F0ADAD'>      .foldLeft(oldDistributedState)(_ - _._1) // removes all bindings
-</span>55 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
-</span>56 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
-</span>57 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)</span><span style=''>
-</span>58 <span style=''>  }
+</span>3 <span style=''>import java.text.ParseException
+</span>4 <span style=''>import java.time.Instant
+</span>5 <span style=''>
+</span>6 <span style=''>import akka.actor.Actor.Receive
+</span>7 <span style=''>import akka.actor.ActorRef
+</span>8 <span style=''>import akka.cluster.Cluster
+</span>9 <span style=''>import akka.cluster.ddata.Replicator.Update
+</span>10 <span style=''>import akka.cluster.ddata._
+</span>11 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState
+</span>12 <span style=''>import it.cwmp.client.model.game.distributed.AkkaDistributedState.UpdateState
+</span>13 <span style=''>import it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld._
+</span>14 <span style=''>import it.cwmp.client.model.game.impl.{Cell, CellWorld, Tentacle}
+</span>15 <span style=''>import it.cwmp.utils.Utils
+</span>16 <span style=''>
+</span>17 <span style=''>import scala.language.implicitConversions
+</span>18 <span style=''>
+</span>19 <span style=''>/**
+</span>20 <span style=''>  * Distributed representation of CellWorld where modifications made concurrently are merged
+</span>21 <span style=''>  *
+</span>22 <span style=''>  * @param onWorldUpdate   the strategy to adopt on world changes
+</span>23 <span style=''>  * @param replicatorActor the actor that will distribute the data
+</span>24 <span style=''>  * @param cluster         the cluster where this distributed data are exchanged
+</span>25 <span style=''>  * @author Enrico Siboni
+</span>26 <span style=''>  */
+</span>27 <span style=''>case class MergingStateCellWorld(onWorldUpdate: CellWorld =&gt; Unit)(implicit replicatorActor: ActorRef, cluster: Cluster)
+</span>28 <span style=''>  extends AkkaDistributedState[CellWorld](onWorldUpdate) {
+</span>29 <span style=''>
+</span>30 <span style=''>  override type ReplicatedDataType = ORMultiMap[String, ReplicatedData]
+</span>31 <span style=''>
+</span>32 <span style=''>  override protected val distributedKey: ORMultiMapKey[String, ReplicatedData] = </span><span style='background: #F0ADAD'>ORMultiMapKey(DISTRIBUTED_KEY_NAME)</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  override protected def activeBehaviour: Receive = {
+</span>35 <span style=''>    case UpdateState(state: CellWorld) =&gt;
+</span>36 <span style=''>      log.debug(&quot;Updating distributed state&quot;)
+</span>37 <span style=''>      </span><span style='background: #F0ADAD'>updateDistributedStateTo(state)</span><span style=''>
+</span>38 <span style=''>  }
+</span>39 <span style=''>
+</span>40 <span style=''>  override protected def updateDistributedStateTo(state: CellWorld): Unit =
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>replicatorActor !
+</span>42 <span style=''></span><span style='background: #F0ADAD'>      Update(distributedKey,
+</span>43 <span style=''></span><span style='background: #F0ADAD'>        ORMultiMap.emptyWithValueDeltas[String, ReplicatedData],
+</span>44 <span style=''></span><span style='background: #F0ADAD'>        consistencyPolicy
+</span>45 <span style=''></span><span style='background: #F0ADAD'>      )(distributedModify(_, state))</span><span style=''>
+</span>46 <span style=''>
+</span>47 <span style=''>  override protected def distributedModify(oldDistributedState: ORMultiMap[String, ReplicatedData],
+</span>48 <span style=''>                                           newState: CellWorld): ORMultiMap[String, ReplicatedData] = {
+</span>49 <span style=''>    val distributedInstant = </span><span style='background: #F0ADAD'>LWWRegister[Instant](
+</span>50 <span style=''></span><span style='background: #F0ADAD'>      try {
+</span>51 <span style=''></span><span style='background: #F0ADAD'>        val oldInstant = parseFromDistributed(oldDistributedState).instant
+</span>52 <span style=''></span><span style='background: #F0ADAD'>        if (oldInstant.isBefore(newState.instant)) newState.instant else oldInstant
+</span>53 <span style=''></span><span style='background: #F0ADAD'>      } catch {
+</span>54 <span style=''></span><span style='background: #F0ADAD'>        case _: ParseException =&gt; newState.instant
+</span>55 <span style=''></span><span style='background: #F0ADAD'>      }
+</span>56 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style=''>
+</span>57 <span style=''>    val distributedCharacters = </span><span style='background: #F0ADAD'>newState.characters.foldLeft(ORSet.empty[Cell])(_ + _)</span><span style=''>
+</span>58 <span style=''>    val distributedAttacks = </span><span style='background: #F0ADAD'>newState.attacks.foldLeft(ORSet.empty[Tentacle])(_ + _)</span><span style=''>
 </span>59 <span style=''>
-</span>60 <span style=''>  override protected def parseFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
-</span>61 <span style=''>    val instantOption = </span><span style='background: #F0ADAD'>distributedData.get(INSTANT_DISTRIBUTED_KEY)</span><span style=''>
-</span>62 <span style=''>    val charactersOption = </span><span style='background: #F0ADAD'>distributedData.get(CELLS_DISTRIBUTED_KEY)</span><span style=''>
-</span>63 <span style=''>    val attacksOption = </span><span style='background: #F0ADAD'>distributedData.get(TENTACLE_DISTRIBUTED_KEY)</span><span style=''>
-</span>64 <span style=''>
-</span>65 <span style=''>    (instantOption, charactersOption, attacksOption) match {
-</span>66 <span style=''>      case (Some(replicatedInstant), Some(replicatedCharacters), Some(replicatedAttacks))
-</span>67 <span style=''>        if </span><span style='background: #F0ADAD'>replicatedInstant.nonEmpty &amp;&amp; replicatedCharacters.nonEmpty &amp;&amp; replicatedAttacks.nonEmpty</span><span style=''> =&gt;
-</span>68 <span style=''>
-</span>69 <span style=''>        val distributedInstant = </span><span style='background: #F0ADAD'>replicatedInstant.head.asInstanceOf[LWWRegister[Instant]]</span><span style=''>
-</span>70 <span style=''>        val distributedCharacters = </span><span style='background: #F0ADAD'>replicatedCharacters.head.asInstanceOf[ORSet[Cell]]</span><span style=''>
-</span>71 <span style=''>        val distributedAttacks = </span><span style='background: #F0ADAD'>replicatedAttacks.head.asInstanceOf[ORSet[Tentacle]]</span><span style=''>
-</span>72 <span style=''>
-</span>73 <span style=''>        </span><span style='background: #F0ADAD'>CellWorld(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)</span><span style=''>
-</span>74 <span style=''>
-</span>75 <span style=''>      case cause@_ =&gt;
-</span>76 <span style=''>        val errorMessage = </span><span style='background: #F0ADAD'>s&quot;Cannot convert from distributed data: $cause&quot;</span><span style=''>
-</span>77 <span style=''>        log.error(errorMessage)
-</span>78 <span style=''>        </span><span style='background: #F0ADAD'>throw Utils.parseException(&quot;Converting from DistributedData to CellWorld&quot;, errorMessage)</span><span style=''>
-</span>79 <span style=''>    }
-</span>80 <span style=''>  }
-</span>81 <span style=''>}
-</span>82 <span style=''>
-</span>83 <span style=''>/**
-</span>84 <span style=''>  * Companion object
-</span>85 <span style=''>  */
-</span>86 <span style=''>object MergingStateCellWorld {
-</span>87 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
-</span>88 <span style=''>
-</span>89 <span style=''>  private val INSTANT_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;instantKey&quot;</span><span style=''>
-</span>90 <span style=''>  private val CELLS_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;cellsKey&quot;</span><span style=''>
-</span>91 <span style=''>  private val TENTACLE_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;tentaclesKey&quot;</span><span style=''>
-</span>92 <span style=''>}
+</span>60 <span style=''>    </span><span style='background: #F0ADAD'>oldDistributedState.entries
+</span>61 <span style=''></span><span style='background: #F0ADAD'>      .foldLeft(oldDistributedState)(_ - _._1) // removes all bindings
+</span>62 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
+</span>63 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
+</span>64 <span style=''></span><span style='background: #F0ADAD'>      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)</span><span style=''>
+</span>65 <span style=''>  }
+</span>66 <span style=''>
+</span>67 <span style=''>  override protected def parseFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
+</span>68 <span style=''>    val instantOption = </span><span style='background: #F0ADAD'>distributedData.get(INSTANT_DISTRIBUTED_KEY)</span><span style=''>
+</span>69 <span style=''>    val charactersOption = </span><span style='background: #F0ADAD'>distributedData.get(CELLS_DISTRIBUTED_KEY)</span><span style=''>
+</span>70 <span style=''>    val attacksOption = </span><span style='background: #F0ADAD'>distributedData.get(TENTACLE_DISTRIBUTED_KEY)</span><span style=''>
+</span>71 <span style=''>
+</span>72 <span style=''>    (instantOption, charactersOption, attacksOption) match {
+</span>73 <span style=''>      case (Some(replicatedInstant), Some(replicatedCharacters), Some(replicatedAttacks))
+</span>74 <span style=''>        if </span><span style='background: #F0ADAD'>replicatedInstant.nonEmpty &amp;&amp; replicatedCharacters.nonEmpty &amp;&amp; replicatedAttacks.nonEmpty</span><span style=''> =&gt;
+</span>75 <span style=''>
+</span>76 <span style=''>        val distributedInstant = </span><span style='background: #F0ADAD'>replicatedInstant.head.asInstanceOf[LWWRegister[Instant]]</span><span style=''>
+</span>77 <span style=''>        val distributedCharacters = </span><span style='background: #F0ADAD'>replicatedCharacters.head.asInstanceOf[ORSet[Cell]]</span><span style=''>
+</span>78 <span style=''>        val distributedAttacks = </span><span style='background: #F0ADAD'>replicatedAttacks.head.asInstanceOf[ORSet[Tentacle]]</span><span style=''>
+</span>79 <span style=''>
+</span>80 <span style=''>        </span><span style='background: #F0ADAD'>CellWorld(distributedInstant.value, distributedCharacters.elements.toSeq, distributedAttacks.elements.toSeq)</span><span style=''>
+</span>81 <span style=''>
+</span>82 <span style=''>      case cause@_ =&gt;
+</span>83 <span style=''>        val errorMessage = </span><span style='background: #F0ADAD'>s&quot;Cannot convert from distributed data: $cause&quot;</span><span style=''>
+</span>84 <span style=''>        log.error(errorMessage)
+</span>85 <span style=''>        </span><span style='background: #F0ADAD'>throw Utils.parseException(&quot;Converting from DistributedData to CellWorld&quot;, errorMessage)</span><span style=''>
+</span>86 <span style=''>    }
+</span>87 <span style=''>  }
+</span>88 <span style=''>}
+</span>89 <span style=''>
+</span>90 <span style=''>/**
+</span>91 <span style=''>  * Companion object
+</span>92 <span style=''>  */
+</span>93 <span style=''>object MergingStateCellWorld {
+</span>94 <span style=''>  private val DISTRIBUTED_KEY_NAME = </span><span style='background: #F0ADAD'>&quot;distributedKey&quot;</span><span style=''>
+</span>95 <span style=''>
+</span>96 <span style=''>  private val INSTANT_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;instantKey&quot;</span><span style=''>
+</span>97 <span style=''>  private val CELLS_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;cellsKey&quot;</span><span style=''>
+</span>98 <span style=''>  private val TENTACLE_DISTRIBUTED_KEY = </span><span style='background: #F0ADAD'>&quot;tentaclesKey&quot;</span><span style=''>
+</span>99 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -127,15 +134,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
-          687
+          910
         </td>
         <td>
-          1273
+          1305
           -
-          1308
+          1340
         </td>
         <td>
           Apply
@@ -148,15 +155,15 @@
         </td>
       </tr><tr>
         <td>
-          31
+          32
         </td>
         <td>
-          686
+          909
         </td>
         <td>
-          1287
+          1319
           -
-          1307
+          1339
         </td>
         <td>
           Select
@@ -169,15 +176,15 @@
         </td>
       </tr><tr>
         <td>
-          33
+          34
         </td>
         <td>
-          689
+          912
         </td>
         <td>
-          1362
+          1394
           -
-          1362
+          1394
         </td>
         <td>
           Apply
@@ -190,15 +197,15 @@
         </td>
       </tr><tr>
         <td>
-          36
+          37
         </td>
         <td>
-          688
+          911
         </td>
         <td>
-          1458
+          1490
           -
-          1489
+          1521
         </td>
         <td>
           Apply
@@ -211,15 +218,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          41
         </td>
         <td>
-          690
+          920
         </td>
         <td>
-          1575
+          1623
           -
-          1590
+          1623
         </td>
         <td>
           Select
@@ -232,15 +239,36 @@
         </td>
       </tr><tr>
         <td>
-          40
+          41
         </td>
         <td>
-          698
+          913
         </td>
         <td>
-          1575
+          1607
           -
-          1749
+          1622
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.replicatorActor
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.replicatorActor
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          921
+        </td>
+        <td>
+          1607
+          -
+          1781
         </td>
         <td>
           ApplyToImplicitArgs
@@ -253,57 +281,15 @@
         </td>
       </tr><tr>
         <td>
-          40
+          42
         </td>
         <td>
-          697
+          917
         </td>
         <td>
-          1591
+          1631
           -
-          1591
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.replicatorActor
-        </td>
-        <td style="background: #F0ADAD">
-          MergingStateCellWorld.this.replicatorActor
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          691
-        </td>
-        <td>
-          1606
-          -
-          1620
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.distributedKey
-        </td>
-        <td style="background: #F0ADAD">
-          MergingStateCellWorld.this.distributedKey
-        </td>
-      </tr><tr>
-        <td>
-          41
-        </td>
-        <td>
-          694
-        </td>
-        <td>
-          1599
-          -
-          1599
+          1631
         </td>
         <td>
           TypeApply
@@ -319,12 +305,33 @@
           42
         </td>
         <td>
-          692
+          914
         </td>
         <td>
-          1630
+          1638
           -
-          1685
+          1652
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.distributedKey
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.distributedKey
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          915
+        </td>
+        <td>
+          1662
+          -
+          1717
         </td>
         <td>
           TypeApply
@@ -337,15 +344,15 @@
         </td>
       </tr><tr>
         <td>
-          43
+          44
         </td>
         <td>
-          693
+          916
         </td>
         <td>
-          1695
+          1727
           -
-          1712
+          1744
         </td>
         <td>
           Select
@@ -358,15 +365,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          45
         </td>
         <td>
-          696
+          919
         </td>
         <td>
-          1599
+          1631
           -
-          1749
+          1781
         </td>
         <td>
           Apply
@@ -379,15 +386,15 @@
         </td>
       </tr><tr>
         <td>
-          44
+          45
         </td>
         <td>
-          695
+          918
         </td>
         <td>
-          1721
+          1753
           -
-          1748
+          1780
         </td>
         <td>
           Apply
@@ -403,33 +410,12 @@
           49
         </td>
         <td>
-          699
+          932
         </td>
         <td>
-          2006
+          2016
           -
-          2022
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.client.model.game.impl.CellWorld.instant
-        </td>
-        <td style="background: #F0ADAD">
-          newState.instant
-        </td>
-      </tr><tr>
-        <td>
-          49
-        </td>
-        <td>
-          702
-        </td>
-        <td>
-          1985
-          -
-          2023
+          2289
         </td>
         <td>
           ApplyToImplicitArgs
@@ -445,12 +431,12 @@
           49
         </td>
         <td>
-          701
+          931
         </td>
         <td>
-          2005
+          2036
           -
-          2005
+          2036
         </td>
         <td>
           Apply
@@ -466,12 +452,12 @@
           49
         </td>
         <td>
-          700
+          930
         </td>
         <td>
-          2005
+          2036
           -
-          2005
+          2036
         </td>
         <td>
           Select
@@ -487,12 +473,186 @@
           50
         </td>
         <td>
-          705
+          928
         </td>
         <td>
-          2104
+          2058
           -
-          2109
+          2208
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          {
+  val oldInstant: java.time.Instant = MergingStateCellWorld.this.parseFromDistributed(oldDistributedState).instant;
+  if (oldInstant.isBefore(newState.instant))
+    newState.instant
+  else
+    oldInstant
+}
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          922
+        </td>
+        <td>
+          2075
+          -
+          2124
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          MergingStateCellWorld.this.parseFromDistributed(oldDistributedState).instant
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          923
+        </td>
+        <td>
+          2157
+          -
+          2173
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          newState.instant
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          926
+        </td>
+        <td>
+          2176
+          -
+          2192
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          newState.instant
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          925
+        </td>
+        <td>
+          2176
+          -
+          2192
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          newState.instant
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          927
+        </td>
+        <td>
+          2198
+          -
+          2208
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          it.cwmp.client.model.game.distributed.impl.MergingStateCellWorld.oldInstant
+        </td>
+        <td style="background: #F0ADAD">
+          oldInstant
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          924
+        </td>
+        <td>
+          2137
+          -
+          2174
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.time.Instant.isBefore
+        </td>
+        <td style="background: #F0ADAD">
+          oldInstant.isBefore(newState.instant)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          929
+        </td>
+        <td>
+          2259
+          -
+          2275
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.client.model.game.impl.CellWorld.instant
+        </td>
+        <td style="background: #F0ADAD">
+          newState.instant
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          935
+        </td>
+        <td>
+          2370
+          -
+          2375
         </td>
         <td>
           ApplyToImplicitArgs
@@ -505,15 +665,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          57
         </td>
         <td>
-          704
+          934
         </td>
         <td>
-          2106
+          2372
           -
-          2106
+          2372
         </td>
         <td>
           Select
@@ -526,15 +686,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          57
         </td>
         <td>
-          706
+          936
         </td>
         <td>
-          2056
+          2322
           -
-          2110
+          2376
         </td>
         <td>
           Apply
@@ -547,15 +707,15 @@
         </td>
       </tr><tr>
         <td>
-          50
+          57
         </td>
         <td>
-          703
+          933
         </td>
         <td>
-          2085
+          2351
           -
-          2102
+          2368
         </td>
         <td>
           TypeApply
@@ -568,15 +728,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          58
         </td>
         <td>
-          708
+          938
         </td>
         <td>
-          2191
+          2457
           -
-          2191
+          2457
         </td>
         <td>
           Select
@@ -589,36 +749,15 @@
         </td>
       </tr><tr>
         <td>
-          51
+          58
         </td>
         <td>
-          710
+          937
         </td>
         <td>
-          2140
+          2432
           -
-          2195
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.collection.TraversableOnce.foldLeft
-        </td>
-        <td style="background: #F0ADAD">
-          newState.attacks.foldLeft[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle]](akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Tentacle])(((x$4: akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle], x$5: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$4.+(x$5)(MergingStateCellWorld.this.cluster)))
-        </td>
-      </tr><tr>
-        <td>
-          51
-        </td>
-        <td>
-          707
-        </td>
-        <td>
-          2166
-          -
-          2187
+          2453
         </td>
         <td>
           TypeApply
@@ -631,15 +770,36 @@
         </td>
       </tr><tr>
         <td>
-          51
+          58
         </td>
         <td>
-          709
+          940
         </td>
         <td>
-          2189
+          2406
           -
-          2194
+          2461
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.TraversableOnce.foldLeft
+        </td>
+        <td style="background: #F0ADAD">
+          newState.attacks.foldLeft[akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle]](akka.cluster.ddata.ORSet.empty[it.cwmp.client.model.game.impl.Tentacle])(((x$4: akka.cluster.ddata.ORSet[it.cwmp.client.model.game.impl.Tentacle], x$5: it.cwmp.client.model.game.impl.Tentacle) =&gt; x$4.+(x$5)(MergingStateCellWorld.this.cluster)))
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          939
+        </td>
+        <td>
+          2455
+          -
+          2460
         </td>
         <td>
           ApplyToImplicitArgs
@@ -652,15 +812,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          61
         </td>
         <td>
-          711
+          941
         </td>
         <td>
-          2270
+          2536
           -
-          2274
+          2540
         </td>
         <td>
           Select
@@ -673,15 +833,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          61
         </td>
         <td>
-          713
+          943
         </td>
         <td>
-          2266
+          2532
           -
-          2274
+          2540
         </td>
         <td>
           ApplyToImplicitArgs
@@ -694,15 +854,15 @@
         </td>
       </tr><tr>
         <td>
-          54
+          61
         </td>
         <td>
-          712
+          942
         </td>
         <td>
-          2268
+          2534
           -
-          2268
+          2534
         </td>
         <td>
           Select
@@ -715,15 +875,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          62
         </td>
         <td>
-          714
+          944
         </td>
         <td>
-          2318
+          2584
           -
-          2341
+          2607
         </td>
         <td>
           Select
@@ -736,15 +896,15 @@
         </td>
       </tr><tr>
         <td>
-          55
+          62
         </td>
         <td>
-          715
+          945
         </td>
         <td>
-          2317
+          2583
           -
-          2317
+          2583
         </td>
         <td>
           Select
@@ -757,15 +917,15 @@
         </td>
       </tr><tr>
         <td>
-          56
+          63
         </td>
         <td>
-          717
+          947
         </td>
         <td>
-          2380
+          2646
           -
-          2380
+          2646
         </td>
         <td>
           Select
@@ -778,15 +938,15 @@
         </td>
       </tr><tr>
         <td>
-          56
+          63
         </td>
         <td>
-          716
+          946
         </td>
         <td>
-          2381
+          2647
           -
-          2402
+          2668
         </td>
         <td>
           Select
@@ -799,15 +959,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          64
         </td>
         <td>
-          720
+          950
         </td>
         <td>
-          2201
+          2467
           -
-          2490
+          2756
         </td>
         <td>
           ApplyToImplicitArgs
@@ -820,15 +980,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          64
         </td>
         <td>
-          719
+          949
         </td>
         <td>
-          2444
+          2710
           -
-          2444
+          2710
         </td>
         <td>
           Select
@@ -841,15 +1001,15 @@
         </td>
       </tr><tr>
         <td>
-          57
+          64
         </td>
         <td>
-          718
+          948
         </td>
         <td>
-          2445
+          2711
           -
-          2469
+          2735
         </td>
         <td>
           Select
@@ -862,15 +1022,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          68
         </td>
         <td>
-          722
+          952
         </td>
         <td>
-          2634
+          2900
           -
-          2678
+          2944
         </td>
         <td>
           Apply
@@ -883,15 +1043,15 @@
         </td>
       </tr><tr>
         <td>
-          61
+          68
         </td>
         <td>
-          721
+          951
         </td>
         <td>
-          2654
+          2920
           -
-          2677
+          2943
         </td>
         <td>
           Select
@@ -904,15 +1064,15 @@
         </td>
       </tr><tr>
         <td>
-          62
+          69
         </td>
         <td>
-          723
+          953
         </td>
         <td>
-          2726
+          2992
           -
-          2747
+          3013
         </td>
         <td>
           Select
@@ -925,15 +1085,15 @@
         </td>
       </tr><tr>
         <td>
-          62
+          69
         </td>
         <td>
-          724
+          954
         </td>
         <td>
-          2706
+          2972
           -
-          2748
+          3014
         </td>
         <td>
           Apply
@@ -946,15 +1106,15 @@
         </td>
       </tr><tr>
         <td>
-          63
+          70
         </td>
         <td>
-          726
+          956
         </td>
         <td>
-          2773
+          3039
           -
-          2818
+          3084
         </td>
         <td>
           Apply
@@ -967,15 +1127,15 @@
         </td>
       </tr><tr>
         <td>
-          63
+          70
         </td>
         <td>
-          725
+          955
         </td>
         <td>
-          2793
+          3059
           -
-          2817
+          3083
         </td>
         <td>
           Select
@@ -988,15 +1148,15 @@
         </td>
       </tr><tr>
         <td>
-          67
+          74
         </td>
         <td>
-          729
+          959
         </td>
         <td>
-          2982
+          3248
           -
-          3071
+          3337
         </td>
         <td>
           Apply
@@ -1009,15 +1169,15 @@
         </td>
       </tr><tr>
         <td>
-          67
+          74
         </td>
         <td>
-          728
+          958
         </td>
         <td>
-          3045
+          3311
           -
-          3071
+          3337
         </td>
         <td>
           Select
@@ -1030,15 +1190,15 @@
         </td>
       </tr><tr>
         <td>
-          67
+          74
         </td>
         <td>
-          727
+          957
         </td>
         <td>
-          3012
+          3278
           -
-          3041
+          3307
         </td>
         <td>
           Select
@@ -1051,15 +1211,15 @@
         </td>
       </tr><tr>
         <td>
-          69
+          76
         </td>
         <td>
-          730
+          960
         </td>
         <td>
-          3109
+          3375
           -
-          3166
+          3432
         </td>
         <td>
           TypeApply
@@ -1072,15 +1232,15 @@
         </td>
       </tr><tr>
         <td>
-          70
+          77
         </td>
         <td>
-          731
+          961
         </td>
         <td>
-          3203
+          3469
           -
-          3254
+          3520
         </td>
         <td>
           TypeApply
@@ -1093,15 +1253,15 @@
         </td>
       </tr><tr>
         <td>
-          71
+          78
         </td>
         <td>
-          732
+          962
         </td>
         <td>
-          3288
+          3554
           -
-          3340
+          3606
         </td>
         <td>
           TypeApply
@@ -1114,15 +1274,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          80
         </td>
         <td>
-          735
+          965
         </td>
         <td>
-          3424
+          3690
           -
-          3457
+          3723
         </td>
         <td>
           Select
@@ -1135,15 +1295,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          80
         </td>
         <td>
-          734
+          964
         </td>
         <td>
-          3386
+          3652
           -
-          3422
+          3688
         </td>
         <td>
           Select
@@ -1156,15 +1316,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          80
         </td>
         <td>
-          733
+          963
         </td>
         <td>
-          3360
+          3626
           -
-          3384
+          3650
         </td>
         <td>
           Select
@@ -1177,15 +1337,15 @@
         </td>
       </tr><tr>
         <td>
-          73
+          80
         </td>
         <td>
-          736
+          966
         </td>
         <td>
-          3350
+          3616
           -
-          3458
+          3724
         </td>
         <td>
           Apply
@@ -1198,15 +1358,15 @@
         </td>
       </tr><tr>
         <td>
-          76
+          83
         </td>
         <td>
-          737
+          967
         </td>
         <td>
-          3509
+          3775
           -
-          3556
+          3822
         </td>
         <td>
           Apply
@@ -1219,15 +1379,15 @@
         </td>
       </tr><tr>
         <td>
-          78
+          85
         </td>
         <td>
-          738
+          968
         </td>
         <td>
-          3597
+          3863
           -
-          3685
+          3951
         </td>
         <td>
           Throw
@@ -1240,15 +1400,15 @@
         </td>
       </tr><tr>
         <td>
-          87
+          94
         </td>
         <td>
-          739
+          969
         </td>
         <td>
-          3797
+          4063
           -
-          3813
+          4079
         </td>
         <td>
           Literal
@@ -1261,15 +1421,15 @@
         </td>
       </tr><tr>
         <td>
-          89
+          96
         </td>
         <td>
-          740
+          970
         </td>
         <td>
-          3855
+          4121
           -
-          3867
+          4133
         </td>
         <td>
           Literal
@@ -1282,15 +1442,15 @@
         </td>
       </tr><tr>
         <td>
-          90
+          97
         </td>
         <td>
-          741
+          971
         </td>
         <td>
-          3906
+          4172
           -
-          3916
+          4182
         </td>
         <td>
           Literal
@@ -1303,15 +1463,15 @@
         </td>
       </tr><tr>
         <td>
-          91
+          98
         </td>
         <td>
-          742
+          972
         </td>
         <td>
-          3958
+          4224
           -
-          3972
+          4238
         </td>
         <td>
           Literal

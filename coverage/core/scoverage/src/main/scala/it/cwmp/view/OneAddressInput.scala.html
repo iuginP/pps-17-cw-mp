@@ -29,16 +29,18 @@
 </span>5 <span style=''>/**
 </span>6 <span style=''>  * Class to request user a single pair IP and port
 </span>7 <span style=''>  *
-</span>8 <span style=''>  * @param viewTitle     the view title
-</span>9 <span style=''>  * @param message       the message to show the user
-</span>10 <span style=''>  * @param onResultReady the action on result ready
-</span>11 <span style=''>  */
-</span>12 <span style=''>case class OneAddressInput(viewTitle: String, message: String, onResultReady: ((String, String)) =&gt; Unit)
-</span>13 <span style=''>                          (defaultIP: String = localIP, defaultPort: String = defaultPort)
-</span>14 <span style=''>  extends AbstractAddressInput[(String, String)](viewTitle, message, onResultReady)(defaultIP, defaultPort) {
-</span>15 <span style=''>
-</span>16 <span style=''>  override protected def getResult: (String, String) = </span><span style='background: #F0ADAD'>(addressIpField.getText, addressPortField.getText)</span><span style=''>
-</span>17 <span style=''>}
+</span>8 <span style=''>  * @param viewTitle        the view title
+</span>9 <span style=''>  * @param message          the message to show the user
+</span>10 <span style=''>  * @param onResultReady    the action on result ready
+</span>11 <span style=''>  * @param onDialogCanceled the action on dialog canceled
+</span>12 <span style=''>  */
+</span>13 <span style=''>case class OneAddressInput(viewTitle: String, message: String)
+</span>14 <span style=''>                          (onResultReady: ((String, String)) =&gt; Unit, onDialogCanceled: Unit =&gt; Unit)
+</span>15 <span style=''>                          (defaultIP: String = localIP, defaultPort: String = defaultPort)
+</span>16 <span style=''>  extends AbstractAddressInput[(String, String)](viewTitle, message, onResultReady, onDialogCanceled)(defaultIP, defaultPort) {
+</span>17 <span style=''>
+</span>18 <span style=''>  override protected def getResult: (String, String) = </span><span style='background: #F0ADAD'>(addressIpField.getText, addressPortField.getText)</span><span style=''>
+</span>19 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -52,36 +54,15 @@
         <th>Code</th>
       </tr><tr>
         <td>
-          16
+          18
         </td>
         <td>
-          666
+          687
         </td>
         <td>
-          661
+          830
           -
-          711
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          scala.Tuple2.apply
-        </td>
-        <td style="background: #F0ADAD">
-          scala.Tuple2.apply[String, String](OneAddressInput.this.addressIpField.getText(), OneAddressInput.this.addressPortField.getText())
-        </td>
-      </tr><tr>
-        <td>
-          16
-        </td>
-        <td>
-          665
-        </td>
-        <td>
-          686
-          -
-          710
+          854
         </td>
         <td>
           Apply
@@ -94,15 +75,15 @@
         </td>
       </tr><tr>
         <td>
-          16
+          18
         </td>
         <td>
-          664
+          686
         </td>
         <td>
-          662
+          806
           -
-          684
+          828
         </td>
         <td>
           Apply
@@ -112,6 +93,27 @@
         </td>
         <td style="background: #F0ADAD">
           OneAddressInput.this.addressIpField.getText()
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          805
+          -
+          855
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #F0ADAD">
+          scala.Tuple2.apply[String, String](OneAddressInput.this.addressIpField.getText(), OneAddressInput.this.addressPortField.getText())
         </td>
       </tr>
     </table>

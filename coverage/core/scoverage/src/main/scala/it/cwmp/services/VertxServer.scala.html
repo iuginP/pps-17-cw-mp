@@ -93,95 +93,92 @@
 </span>69 <span style=''>                             message: Option[String] = None)
 </span>70 <span style=''>                            (implicit routingContext: RoutingContext): Unit = {
 </span>71 <span style=''>    </span><span style='background: #AEF1AE'>response.setStatusCode(httpCode)</span><span style=''>
-</span>72 <span style=''>    message match {
-</span>73 <span style=''>      case Some(messageString) =&gt;
-</span>74 <span style=''>        log.info(s&quot;Sending $httpCode response to client with message: $messageString&quot;)
-</span>75 <span style=''>        </span><span style='background: #AEF1AE'>response.end(messageString)</span><span style=''>
-</span>76 <span style=''>      case None =&gt;
-</span>77 <span style=''>        log.info(s&quot;Sending $httpCode response to client&quot;)
-</span>78 <span style=''>        </span><span style='background: #AEF1AE'>response.end()</span><span style=''>
-</span>79 <span style=''>    }
-</span>80 <span style=''>  }
-</span>81 <span style=''>
-</span>82 <span style=''>  /**
-</span>83 <span style=''>    * Utility method to obtain the response object
-</span>84 <span style=''>    *
-</span>85 <span style=''>    * @param routingContext the implicit routing context
-</span>86 <span style=''>    * @return the response
-</span>87 <span style=''>    */
-</span>88 <span style=''>  protected def response(implicit routingContext: RoutingContext): HttpServerResponse = </span><span style='background: #AEF1AE'>routingContext.response</span><span style=''>
-</span>89 <span style=''>
-</span>90 <span style=''>  /**
-</span>91 <span style=''>    * @param routingContext the routing context on which to extract
-</span>92 <span style=''>    * @return the extracted room name
-</span>93 <span style=''>    */
-</span>94 <span style=''>  protected def getRequestParameter(paramName: String)
-</span>95 <span style=''>                                   (implicit routingContext: RoutingContext): Option[String] =
-</span>96 <span style=''>    </span><span style='background: #AEF1AE'>request.getParam(paramName)</span><span style=''>
-</span>97 <span style=''>
-</span>98 <span style=''>  /**
-</span>99 <span style=''>    * Utility method to obtain the request object
-</span>100 <span style=''>    *
-</span>101 <span style=''>    * @param routingContext the implicit routing context
-</span>102 <span style=''>    * @return the request
-</span>103 <span style=''>    */
-</span>104 <span style=''>  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = </span><span style='background: #AEF1AE'>routingContext.request()</span><span style=''>
-</span>105 <span style=''>
-</span>106 <span style=''>  /**
-</span>107 <span style=''>    * An implicit class to provide the [[HttpServerRequest]] with some more useful utilities.
-</span>108 <span style=''>    */
-</span>109 <span style=''>  implicit class RichHttpRequest(request: HttpServerRequest) {
-</span>110 <span style=''>
-</span>111 <span style=''>    /**
-</span>112 <span style=''>      * This is a utility method that checks if the request is authenticated.
-</span>113 <span style=''>      * For the check it uses the validation strategy given.
-</span>114 <span style=''>      *
-</span>115 <span style=''>      * @param strategy       the validation strategy to use.
-</span>116 <span style=''>      * @param routingContext the routing context in which to execute the check.
-</span>117 <span style=''>      * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
-</span>118 <span style=''>      */
-</span>119 <span style=''>    def checkAuthentication(implicit strategy: Validation[String, User],
-</span>120 <span style=''>                            routingContext: RoutingContext): Future[User] = </span><span style='background: #AEF1AE'>getAuthenticationHeader</span><span style=''> match {
-</span>121 <span style=''>      case None =&gt;
-</span>122 <span style=''>        log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
-</span>123 <span style=''>        </span><span style='background: #F0ADAD'>Future.failed(HTTPException(BAD_REQUEST, NO_AUTH_HEADER_IN_REQUEST_ERROR))</span><span style=''>
-</span>124 <span style=''>      case Some(authenticationHeader) =&gt; </span><span style='background: #AEF1AE'>strategy.validate(authenticationHeader)</span><span style=''>
-</span>125 <span style=''>    }
-</span>126 <span style=''>
-</span>127 <span style=''>    /**
-</span>128 <span style=''>      * This is a utility method that checks if the request is authenticated.
-</span>129 <span style=''>      * For the check it uses the validation strategy given.
-</span>130 <span style=''>      * If it fails with any [[HTTPException]], then it responds to the request
-</span>131 <span style=''>      * with the status code and message specified in the exception.
-</span>132 <span style=''>      *
-</span>133 <span style=''>      * @param strategy       the validation strategy to use.
-</span>134 <span style=''>      * @param routingContext the routing context in which to execute the check.
-</span>135 <span style=''>      * @return A future containing the authenticated user, if present
-</span>136 <span style=''>      */
-</span>137 <span style=''>    def checkAuthenticationOrReject(implicit strategy: Validation[String, User],
-</span>138 <span style=''>                                    routingContext: RoutingContext): Future[User] =
-</span>139 <span style=''>      </span><span style='background: #AEF1AE'>checkAuthentication(strategy, routingContext).recoverWith {
-</span>140 <span style=''></span><span style='background: #AEF1AE'>        case HTTPException(statusCode, errorMessage) =&gt;
-</span>141 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(statusCode, errorMessage)
-</span>142 <span style=''></span><span style='background: #AEF1AE'>          Future.failed(new IllegalAccessException(errorMessage))
-</span>143 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
-</span>144 <span style=''>
-</span>145 <span style=''>    /**
-</span>146 <span style=''>      * Reads the authorization header (with token) in the request.
-</span>147 <span style=''>      *
-</span>148 <span style=''>      * @return An optional containing the header, if present. Otherwise None
-</span>149 <span style=''>      */
-</span>150 <span style=''>    def getAuthenticationHeader: Option[String] = </span><span style='background: #AEF1AE'>request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)</span><span style=''>
-</span>151 <span style=''>  }
-</span>152 <span style=''>
-</span>153 <span style=''>}
-</span>154 <span style=''>
-</span>155 <span style=''>/**
-</span>156 <span style=''>  * Companion object
-</span>157 <span style=''>  */
-</span>158 <span style=''>object VertxServer {
-</span>159 <span style=''>  private val NO_AUTH_HEADER_IN_REQUEST_ERROR = </span><span style='background: #F0ADAD'>&quot;No authorization header in request!&quot;</span><span style=''>
-</span>160 <span style=''>}
+</span>72 <span style=''>    log.info(s&quot;Sending $httpCode response to client&quot;)
+</span>73 <span style=''>    message match {
+</span>74 <span style=''>      case Some(messageString) =&gt; </span><span style='background: #AEF1AE'>response.end(messageString)</span><span style=''>
+</span>75 <span style=''>      case None =&gt; </span><span style='background: #AEF1AE'>response.end()</span><span style=''>
+</span>76 <span style=''>    }
+</span>77 <span style=''>  }
+</span>78 <span style=''>
+</span>79 <span style=''>  /**
+</span>80 <span style=''>    * Utility method to obtain the response object
+</span>81 <span style=''>    *
+</span>82 <span style=''>    * @param routingContext the implicit routing context
+</span>83 <span style=''>    * @return the response
+</span>84 <span style=''>    */
+</span>85 <span style=''>  protected def response(implicit routingContext: RoutingContext): HttpServerResponse = </span><span style='background: #AEF1AE'>routingContext.response</span><span style=''>
+</span>86 <span style=''>
+</span>87 <span style=''>  /**
+</span>88 <span style=''>    * @param routingContext the routing context on which to extract
+</span>89 <span style=''>    * @return the extracted room name
+</span>90 <span style=''>    */
+</span>91 <span style=''>  protected def getRequestParameter(paramName: String)
+</span>92 <span style=''>                                   (implicit routingContext: RoutingContext): Option[String] =
+</span>93 <span style=''>    </span><span style='background: #AEF1AE'>request.getParam(paramName)</span><span style=''>
+</span>94 <span style=''>
+</span>95 <span style=''>  /**
+</span>96 <span style=''>    * Utility method to obtain the request object
+</span>97 <span style=''>    *
+</span>98 <span style=''>    * @param routingContext the implicit routing context
+</span>99 <span style=''>    * @return the request
+</span>100 <span style=''>    */
+</span>101 <span style=''>  protected def request(implicit routingContext: RoutingContext): HttpServerRequest = </span><span style='background: #AEF1AE'>routingContext.request()</span><span style=''>
+</span>102 <span style=''>
+</span>103 <span style=''>  /**
+</span>104 <span style=''>    * An implicit class to provide the [[HttpServerRequest]] with some more useful utilities.
+</span>105 <span style=''>    */
+</span>106 <span style=''>  implicit class RichHttpRequest(request: HttpServerRequest) {
+</span>107 <span style=''>
+</span>108 <span style=''>    /**
+</span>109 <span style=''>      * This is a utility method that checks if the request is authenticated.
+</span>110 <span style=''>      * For the check it uses the validation strategy given.
+</span>111 <span style=''>      *
+</span>112 <span style=''>      * @param strategy       the validation strategy to use.
+</span>113 <span style=''>      * @param routingContext the routing context in which to execute the check.
+</span>114 <span style=''>      * @return A future containing the authenticated user, if present, otherwise it fails with a [[HTTPException]]
+</span>115 <span style=''>      */
+</span>116 <span style=''>    def checkAuthentication(implicit strategy: Validation[String, User],
+</span>117 <span style=''>                            routingContext: RoutingContext): Future[User] = </span><span style='background: #AEF1AE'>getAuthenticationHeader</span><span style=''> match {
+</span>118 <span style=''>      case None =&gt;
+</span>119 <span style=''>        log.warn(NO_AUTH_HEADER_IN_REQUEST_ERROR)
+</span>120 <span style=''>        </span><span style='background: #F0ADAD'>Future.failed(HTTPException(BAD_REQUEST, NO_AUTH_HEADER_IN_REQUEST_ERROR))</span><span style=''>
+</span>121 <span style=''>      case Some(authenticationHeader) =&gt; </span><span style='background: #AEF1AE'>strategy.validate(authenticationHeader)</span><span style=''>
+</span>122 <span style=''>    }
+</span>123 <span style=''>
+</span>124 <span style=''>    /**
+</span>125 <span style=''>      * This is a utility method that checks if the request is authenticated.
+</span>126 <span style=''>      * For the check it uses the validation strategy given.
+</span>127 <span style=''>      * If it fails with any [[HTTPException]], then it responds to the request
+</span>128 <span style=''>      * with the status code and message specified in the exception.
+</span>129 <span style=''>      *
+</span>130 <span style=''>      * @param strategy       the validation strategy to use.
+</span>131 <span style=''>      * @param routingContext the routing context in which to execute the check.
+</span>132 <span style=''>      * @return A future containing the authenticated user, if present
+</span>133 <span style=''>      */
+</span>134 <span style=''>    def checkAuthenticationOrReject(implicit strategy: Validation[String, User],
+</span>135 <span style=''>                                    routingContext: RoutingContext): Future[User] =
+</span>136 <span style=''>      </span><span style='background: #AEF1AE'>checkAuthentication(strategy, routingContext).recoverWith {
+</span>137 <span style=''></span><span style='background: #AEF1AE'>        case HTTPException(statusCode, errorMessage) =&gt;
+</span>138 <span style=''></span><span style='background: #AEF1AE'>          sendResponse(statusCode, errorMessage)
+</span>139 <span style=''></span><span style='background: #AEF1AE'>          Future.failed(new IllegalAccessException(errorMessage))
+</span>140 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>141 <span style=''>
+</span>142 <span style=''>    /**
+</span>143 <span style=''>      * Reads the authorization header (with token) in the request.
+</span>144 <span style=''>      *
+</span>145 <span style=''>      * @return An optional containing the header, if present. Otherwise None
+</span>146 <span style=''>      */
+</span>147 <span style=''>    def getAuthenticationHeader: Option[String] = </span><span style='background: #AEF1AE'>request.getHeader(HttpHeaderNames.AUTHORIZATION.toString)</span><span style=''>
+</span>148 <span style=''>  }
+</span>149 <span style=''>
+</span>150 <span style=''>}
+</span>151 <span style=''>
+</span>152 <span style=''>/**
+</span>153 <span style=''>  * Companion object
+</span>154 <span style=''>  */
+</span>155 <span style=''>object VertxServer {
+</span>156 <span style=''>  private val NO_AUTH_HEADER_IN_REQUEST_ERROR = </span><span style='background: #F0ADAD'>&quot;No authorization header in request!&quot;</span><span style=''>
+</span>157 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -499,15 +496,15 @@
         </td>
       </tr><tr>
         <td>
-          75
+          74
         </td>
         <td>
           249
         </td>
         <td>
-          2356
+          2315
           -
-          2383
+          2342
         </td>
         <td>
           Apply
@@ -520,15 +517,15 @@
         </td>
       </tr><tr>
         <td>
-          78
+          75
         </td>
         <td>
           250
         </td>
         <td>
-          2469
+          2362
           -
-          2483
+          2376
         </td>
         <td>
           Apply
@@ -541,15 +538,15 @@
         </td>
       </tr><tr>
         <td>
-          88
+          85
         </td>
         <td>
           251
         </td>
         <td>
-          2737
+          2630
           -
-          2760
+          2653
         </td>
         <td>
           Apply
@@ -562,15 +559,15 @@
         </td>
       </tr><tr>
         <td>
-          96
+          93
         </td>
         <td>
           252
         </td>
         <td>
-          3035
+          2928
           -
-          3062
+          2955
         </td>
         <td>
           Apply
@@ -583,15 +580,15 @@
         </td>
       </tr><tr>
         <td>
-          104
+          101
         </td>
         <td>
           253
         </td>
         <td>
-          3302
+          3195
           -
-          3326
+          3219
         </td>
         <td>
           Apply
@@ -604,15 +601,15 @@
         </td>
       </tr><tr>
         <td>
-          120
+          117
         </td>
         <td>
           254
         </td>
         <td>
-          4071
+          3964
           -
-          4094
+          3987
         </td>
         <td>
           Select
@@ -625,15 +622,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          120
         </td>
         <td>
           256
         </td>
         <td>
-          4208
+          4101
           -
-          4219
+          4112
         </td>
         <td>
           ApplyImplicitView
@@ -646,15 +643,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          120
         </td>
         <td>
           259
         </td>
         <td>
-          4180
+          4073
           -
-          4254
+          4147
         </td>
         <td>
           Apply
@@ -667,15 +664,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          120
         </td>
         <td>
           258
         </td>
         <td>
-          4194
+          4087
           -
-          4253
+          4146
         </td>
         <td>
           Apply
@@ -688,15 +685,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          120
         </td>
         <td>
           255
         </td>
         <td>
-          4208
+          4101
           -
-          4219
+          4112
         </td>
         <td>
           Select
@@ -709,15 +706,15 @@
         </td>
       </tr><tr>
         <td>
-          123
+          120
         </td>
         <td>
           257
         </td>
         <td>
-          4221
+          4114
           -
-          4252
+          4145
         </td>
         <td>
           Select
@@ -730,15 +727,15 @@
         </td>
       </tr><tr>
         <td>
-          124
+          121
         </td>
         <td>
           260
         </td>
         <td>
-          4296
+          4189
           -
-          4335
+          4228
         </td>
         <td>
           Apply
@@ -751,15 +748,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          136
         </td>
         <td>
           265
         </td>
         <td>
-          5099
+          4992
           -
-          5099
+          4992
         </td>
         <td>
           Select
@@ -772,15 +769,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          136
         </td>
         <td>
           264
         </td>
         <td>
-          5099
+          4992
           -
-          5099
+          4992
         </td>
         <td>
           Apply
@@ -793,15 +790,15 @@
         </td>
       </tr><tr>
         <td>
-          139
+          136
         </td>
         <td>
           266
         </td>
         <td>
-          5041
+          4934
           -
-          5279
+          5172
         </td>
         <td>
           ApplyToImplicitArgs
@@ -833,15 +830,15 @@
         </td>
       </tr><tr>
         <td>
-          141
+          138
         </td>
         <td>
           261
         </td>
         <td>
-          5167
+          5060
           -
-          5205
+          5098
         </td>
         <td>
           ApplyToImplicitArgs
@@ -854,15 +851,15 @@
         </td>
       </tr><tr>
         <td>
-          142
+          139
         </td>
         <td>
           262
         </td>
         <td>
-          5230
+          5123
           -
-          5270
+          5163
         </td>
         <td>
           Apply
@@ -875,15 +872,15 @@
         </td>
       </tr><tr>
         <td>
-          142
+          139
         </td>
         <td>
           263
         </td>
         <td>
-          5216
+          5109
           -
-          5271
+          5164
         </td>
         <td>
           Apply
@@ -896,15 +893,15 @@
         </td>
       </tr><tr>
         <td>
-          150
+          147
         </td>
         <td>
           268
         </td>
         <td>
-          5502
+          5395
           -
-          5559
+          5452
         </td>
         <td>
           Apply
@@ -917,15 +914,15 @@
         </td>
       </tr><tr>
         <td>
-          150
+          147
         </td>
         <td>
           267
         </td>
         <td>
-          5520
+          5413
           -
-          5558
+          5451
         </td>
         <td>
           Apply
@@ -938,15 +935,15 @@
         </td>
       </tr><tr>
         <td>
-          159
+          156
         </td>
         <td>
           269
         </td>
         <td>
-          5667
+          5560
           -
-          5704
+          5597
         </td>
         <td>
           Literal

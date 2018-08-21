@@ -44,27 +44,29 @@
 </span>20 <span style=''></span><span style='background: #F0ADAD'>    launch(discoveryService._1, discoveryService._2, myService._1, myService._2)</span><span style=''>
 </span>21 <span style=''>  } catch {
 </span>22 <span style=''>    case _: IllegalArgumentException =&gt;
-</span>23 <span style=''>      </span><span style='background: #F0ADAD'>TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE, discoveryAndMyHostPortPairs =&gt; {
+</span>23 <span style=''>      </span><span style='background: #F0ADAD'>TwoAddressesInput(Service.COMMON_NAME, ServiceLauncher.GUI_INSERTION_MESSAGE)(discoveryAndMyHostPortPairs =&gt; {
 </span>24 <span style=''></span><span style='background: #F0ADAD'>        val discoveryService = discoveryAndMyHostPortPairs._1
 </span>25 <span style=''></span><span style='background: #F0ADAD'>        val myService = discoveryAndMyHostPortPairs._2
 </span>26 <span style=''></span><span style='background: #F0ADAD'>
 </span>27 <span style=''></span><span style='background: #F0ADAD'>        launch(discoveryService._1, discoveryService._2, myService._1, myService._2)
-</span>28 <span style=''></span><span style='background: #F0ADAD'>      })(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
-</span>29 <span style=''></span><span style='background: #F0ADAD'>        secondDefaultPort = Service.DEFAULT_PORT.toString)</span><span style=''>
-</span>30 <span style=''>  }
-</span>31 <span style=''>
-</span>32 <span style=''>  override def launch(discoveryHost: String, discoveryPort: String, myHost: String, myPort: String): Unit = {
-</span>33 <span style=''>    log.info(&quot;Deploying AuthenticationService... &quot;)
-</span>34 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(AuthenticationServiceVerticle(myPort.toInt))
-</span>35 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
-</span>36 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt;
-</span>37 <span style=''></span><span style='background: #F0ADAD'>          log.info(&quot;AuthenticationService up and running!&quot;)
-</span>38 <span style=''></span><span style='background: #F0ADAD'>          DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
-</span>39 <span style=''></span><span style='background: #F0ADAD'>            .publish(Service.DISCOVERY_NAME, myHost, myPort.toInt)
-</span>40 <span style=''></span><span style='background: #F0ADAD'>        case Failure(ex) =&gt; log.info(&quot;Error deploying AuthenticationService&quot;, ex)
-</span>41 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
-</span>42 <span style=''>  }
-</span>43 <span style=''>}
+</span>28 <span style=''></span><span style='background: #F0ADAD'>      },
+</span>29 <span style=''></span><span style='background: #F0ADAD'>        _ =&gt; System.exit(0)
+</span>30 <span style=''></span><span style='background: #F0ADAD'>      )(firstDefaultPort = discovery.Service.DEFAULT_PORT.toString,
+</span>31 <span style=''></span><span style='background: #F0ADAD'>        secondDefaultPort = Service.DEFAULT_PORT.toString)</span><span style=''>
+</span>32 <span style=''>  }
+</span>33 <span style=''>
+</span>34 <span style=''>  override def launch(discoveryHost: String, discoveryPort: String, myHost: String, myPort: String): Unit = {
+</span>35 <span style=''>    log.info(&quot;Deploying AuthenticationService... &quot;)
+</span>36 <span style=''>    </span><span style='background: #F0ADAD'>vertx.deployVerticleFuture(AuthenticationServiceVerticle(myPort.toInt))
+</span>37 <span style=''></span><span style='background: #F0ADAD'>      .andThen {
+</span>38 <span style=''></span><span style='background: #F0ADAD'>        case Success(_) =&gt;
+</span>39 <span style=''></span><span style='background: #F0ADAD'>          log.info(&quot;AuthenticationService up and running!&quot;)
+</span>40 <span style=''></span><span style='background: #F0ADAD'>          DiscoveryApiWrapper(discoveryHost, discoveryPort.toInt)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>            .publish(Service.DISCOVERY_NAME, myHost, myPort.toInt)
+</span>42 <span style=''></span><span style='background: #F0ADAD'>        case Failure(ex) =&gt; log.info(&quot;Error deploying AuthenticationService&quot;, ex)
+</span>43 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style=''>
+</span>44 <span style=''>  }
+</span>45 <span style=''>}
 </span></pre>
           </div>
           <div class="tab-pane" id="statementlist">
@@ -359,6 +361,27 @@
           23
         </td>
         <td>
+          149
+        </td>
+        <td>
+          845
+          -
+          845
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply$default$7
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply$default$7(x$2, x$3)(x$4, x$5)
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
           136
         </td>
         <td>
@@ -383,39 +406,18 @@
           148
         </td>
         <td>
-          785
+          845
           -
-          785
+          845
         </td>
         <td>
           Apply
         </td>
         <td>
-          it.cwmp.view.TwoAddressesInput.apply$default$6
+          it.cwmp.view.TwoAddressesInput.apply$default$5
         </td>
         <td style="background: #F0ADAD">
-          it.cwmp.view.TwoAddressesInput.apply$default$6(x$1, x$2, x$3)
-        </td>
-      </tr><tr>
-        <td>
-          23
-        </td>
-        <td>
-          147
-        </td>
-        <td>
-          785
-          -
-          785
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.view.TwoAddressesInput.apply$default$4
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.view.TwoAddressesInput.apply$default$4(x$1, x$2, x$3)
+          it.cwmp.view.TwoAddressesInput.apply$default$5(x$2, x$3)(x$4, x$5)
         </td>
       </tr><tr>
         <td>
@@ -566,36 +568,36 @@
         </td>
       </tr><tr>
         <td>
-          28
-        </td>
-        <td>
-          149
-        </td>
-        <td>
-          768
-          -
-          1209
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.view.TwoAddressesInput.apply
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.view.TwoAddressesInput.apply(x$1, x$2, x$3)(x$6, x$4, x$7, x$5)
-        </td>
-      </tr><tr>
-        <td>
-          28
+          29
         </td>
         <td>
           145
         </td>
         <td>
-          1110
+          1104
           -
-          1149
+          1118
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.System.exit
+        </td>
+        <td style="background: #F0ADAD">
+          java.lang.System.exit(0)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          1146
+          -
+          1185
         </td>
         <td>
           Apply
@@ -608,15 +610,36 @@
         </td>
       </tr><tr>
         <td>
-          29
+          30
         </td>
         <td>
-          146
+          150
         </td>
         <td>
-          1179
+          768
           -
-          1208
+          1245
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.view.TwoAddressesInput.apply
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.view.TwoAddressesInput.apply(x$2, x$3)(x$4, x$5)(x$8, x$6, x$9, x$7)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          1215
+          -
+          1244
         </td>
         <td>
           Apply
@@ -629,36 +652,15 @@
         </td>
       </tr><tr>
         <td>
-          34
+          36
         </td>
         <td>
           151
         </td>
         <td>
-          1408
+          1474
           -
-          1451
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationServiceVerticle.apply(scala.Predef.augmentString(myPort).toInt)
-        </td>
-      </tr><tr>
-        <td>
-          34
-        </td>
-        <td>
-          150
-        </td>
-        <td>
-          1438
-          -
-          1450
+          1486
         </td>
         <td>
           Select
@@ -671,15 +673,99 @@
         </td>
       </tr><tr>
         <td>
-          35
+          36
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          1444
+          -
+          1487
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceVerticle.apply
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceVerticle.apply(scala.Predef.augmentString(myPort).toInt)
+        </td>
+      </tr><tr>
+        <td>
+          37
         </td>
         <td>
           158
         </td>
         <td>
-          1381
+          1504
           -
-          1779
+          1504
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          it.cwmp.services.VertxInstance.vertxExecutionContext
+        </td>
+        <td style="background: #F0ADAD">
+          AuthenticationServiceMain.this.vertxExecutionContext
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          1504
+          -
+          1504
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          1504
+          -
+          1504
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.authentication.AuthenticationServiceMain.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          1417
+          -
+          1815
         </td>
         <td>
           ApplyToImplicitArgs
@@ -719,78 +805,15 @@
         </td>
       </tr><tr>
         <td>
-          35
+          40
         </td>
         <td>
-          157
+          153
         </td>
         <td>
-          1468
+          1638
           -
-          1468
-        </td>
-        <td>
-          Select
-        </td>
-        <td>
-          it.cwmp.services.VertxInstance.vertxExecutionContext
-        </td>
-        <td style="background: #F0ADAD">
-          AuthenticationServiceMain.this.vertxExecutionContext
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          156
-        </td>
-        <td>
-          1468
-          -
-          1468
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.authentication.AuthenticationServiceMain.$anonfun.&lt;init&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          new $anonfun()
-        </td>
-      </tr><tr>
-        <td>
-          35
-        </td>
-        <td>
-          159
-        </td>
-        <td>
-          1468
-          -
-          1468
-        </td>
-        <td>
-          Literal
-        </td>
-        <td>
-          &lt;nosymbol&gt;
-        </td>
-        <td style="background: #F0ADAD">
-          ()
-        </td>
-      </tr><tr>
-        <td>
-          38
-        </td>
-        <td>
-          152
-        </td>
-        <td>
-          1602
-          -
-          1621
+          1657
         </td>
         <td>
           Select
@@ -803,36 +826,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          41
         </td>
         <td>
           155
         </td>
         <td>
-          1567
+          1712
           -
-          1689
-        </td>
-        <td>
-          Apply
-        </td>
-        <td>
-          it.cwmp.services.wrapper.DiscoveryApiWrapper.publish
-        </td>
-        <td style="background: #F0ADAD">
-          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply(discoveryHost, scala.Predef.augmentString(discoveryPort).toInt).publish(Service.DISCOVERY_NAME, myHost, scala.Predef.augmentString(myPort).toInt)
-        </td>
-      </tr><tr>
-        <td>
-          39
-        </td>
-        <td>
-          154
-        </td>
-        <td>
-          1676
-          -
-          1688
+          1724
         </td>
         <td>
           Select
@@ -845,15 +847,15 @@
         </td>
       </tr><tr>
         <td>
-          39
+          41
         </td>
         <td>
-          153
+          154
         </td>
         <td>
-          1644
+          1680
           -
-          1666
+          1702
         </td>
         <td>
           Select
@@ -863,6 +865,27 @@
         </td>
         <td style="background: #F0ADAD">
           Service.DISCOVERY_NAME
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          1603
+          -
+          1725
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.publish
+        </td>
+        <td style="background: #F0ADAD">
+          it.cwmp.services.wrapper.DiscoveryApiWrapper.apply(discoveryHost, scala.Predef.augmentString(discoveryPort).toInt).publish(Service.DISCOVERY_NAME, myHost, scala.Predef.augmentString(myPort).toInt)
         </td>
       </tr>
     </table>
