@@ -19,7 +19,7 @@ trait VertxJDBC {
 
   def configurationPath: Option[String] = None
 
-  private val DEFAULT_CONFIG_PATH: String = "database/jdbc_config.json"
+  private val DEFAULT_CONFIG_PATH: String = "database/in_memory_jdbc_config.json"
 
   private val clientFuture: Future[JDBCClient] =
     for (
