@@ -60,8 +60,8 @@ case class MergingStateCellWorld(onWorldUpdate: CellWorld => Unit)(implicit repl
     oldDistributedState.entries
       .foldLeft(oldDistributedState)(_ - _._1) // removes all bindings
       .addBinding(INSTANT_DISTRIBUTED_KEY, distributedInstant)
-      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters)
-      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks)
+      .addBinding(CELLS_DISTRIBUTED_KEY, distributedCharacters.resetDelta)
+      .addBinding(TENTACLE_DISTRIBUTED_KEY, distributedAttacks.resetDelta)
   }
 
   override protected def parseFromDistributed(distributedData: ORMultiMap[String, ReplicatedData]): CellWorld = {
